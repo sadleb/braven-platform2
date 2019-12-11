@@ -40,7 +40,7 @@ import SimpleUploadAdapter from '@ckeditor/ckeditor5-upload/src/adapters/simpleu
 // CKEditor plugin implementing a content part widget to be used in the editor content.
 import ContentPartPreviewEditing from '../ckeditor/contentpartpreviewediting';
 import ChecklistQuestionEditing from '../ckeditor/checklistquestionediting';
-import RadioQuestionEditing from '../ckeditor/radioquestionediting';
+//import RadioQuestionEditing from '../ckeditor/radioquestionediting';
 import SectionEditing from '../ckeditor/sectionediting';
 
 // React components to render the list of content parts and the content part preview.
@@ -74,8 +74,8 @@ BalloonEditor.builtinPlugins = [
 
     ContentPartPreviewEditing,
     SectionEditing,
-    ChecklistQuestionEditing,
-    RadioQuestionEditing
+    ChecklistQuestionEditing
+    //RadioQuestionEditing
 ];
 
 // Editor configuration.
@@ -315,15 +315,6 @@ class ContentEditor extends Component {
                                                 this.editor.editing.view.focus();
                                             }}
                                             {...{name: 'Checklist Question', id: Math.floor(Math.random() * 1e16)}}
-                                        />
-                                        <ContentPartPreview
-                                            id="21"
-                                            key="21"
-                                            onClick={( id ) => {
-                                                this.editor.execute( 'insertRadioQuestion', id );
-                                                this.editor.editing.view.focus();
-                                            }}
-                                            {...{name: 'Radio Question', id: Math.floor(Math.random() * 1e16)}}
                                         />
                                         <input
                                             type="file"
