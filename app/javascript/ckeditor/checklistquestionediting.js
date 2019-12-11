@@ -3,6 +3,7 @@ import { toWidget, toWidgetEditable } from '@ckeditor/ckeditor5-widget/src/utils
 import Widget from '@ckeditor/ckeditor5-widget/src/widget';
 import InsertChecklistQuestionCommand from './insertchecklistquestioncommand';
 import InsertCheckboxCommand from './insertcheckboxcommand';
+import { preventCKEditorHandling } from './utils';
 
 export default class ChecklistQuestionEditing extends Plugin {
     static get requires() {
@@ -15,6 +16,21 @@ export default class ChecklistQuestionEditing extends Plugin {
 
         this.editor.commands.add( 'insertChecklistQuestion', new InsertChecklistQuestionCommand( this.editor ) );
         this.editor.commands.add( 'insertCheckbox', new InsertCheckboxCommand( this.editor ) );
+
+        // Override the default 'enter' key behavior for checkbox labels.
+        this.listenTo( this.editor.editing.view.document, 'enter', ( evt, data ) => {
+            const positionParent = this.editor.model.document.selection.getLastPosition().parent;
+            if ( positionParent.name == 'checkboxLabel' ) {
+                // Only insert a new checkbox if the current label is empty, but stop the event from
+                // propogating regardless.
+                if (!positionParent.isEmpty) {
+                    this.editor.execute( 'insertCheckbox' )
+                }
+                data.preventDefault();
+                evt.stop();
+            }
+        });
+
     }
 
     _defineSchema() {
@@ -103,17 +119,6 @@ export default class ChecklistQuestionEditing extends Plugin {
         const conversion = editor.conversion;
         const { editing, data, model } = editor;
 
-        // FIXME: this should go somewhere else
-        this.listenTo( editing.view.document, 'enter', ( evt, data ) => {
-            const doc = this.editor.model.document;
-            const positionParent = doc.selection.getLastPosition().parent;
-            if ( positionParent.name == 'checkboxLabel' ) {
-                editor.execute( 'insertCheckbox' )
-                data.preventDefault();
-                evt.stop();
-            }
-        });
-
         // <checklistQuestion> converters
         conversion.for( 'upcast' ).elementToElement( {
             view: {
@@ -141,7 +146,6 @@ export default class ChecklistQuestionEditing extends Plugin {
             view: ( modelElement, viewWriter ) => {
                 const id = modelElement.getAttribute( 'id' );
 
-                // The outermost <section class="checklist-question" data-id="..."></section> element.
                 const checklistQuestion = viewWriter.createContainerElement( 'div', {
                     class: 'module-block module-block-checkbox',
                     'data-id': id
@@ -265,15 +269,23 @@ export default class ChecklistQuestionEditing extends Plugin {
                     'select',
                     {
                         'name': 'test',
-                        'onchange': 'localStorage.setItem(`select[${this.name}]`, this.value)'
+                        'onchange': 'console.log("TODO: SAVE CORRECTNESS")'
                     },
                     function( domDocument ) {
                         const domElement = this.toDomElement( domDocument );
+
+                        // Set up the select values.
                         domElement.innerHTML = `
                             <option value="correct">Correct</option>
                             <option value="incorrect">Incorrect</option>
                             <option value="maybe">Maybe</option>`;
+
+                        // Default to the stored value.
                         domElement.value = modelElement.getAttribute( 'data-correctness' );
+
+                        // Allow toggling this input in the editor UI.
+                        preventCKEditorHandling(domElement, editor);
+
                         return domElement;
                     } );
 
