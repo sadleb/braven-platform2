@@ -298,46 +298,69 @@ export default class ChecklistQuestionEditing extends Plugin {
 
         // <checkboxInput> converters
         conversion.for( 'upcast' ).elementToElement( {
-            model: 'checkboxInput',
             view: {
                 name: 'input',
                 type: 'checkbox'
+            },
+            model: ( viewElement, modelWriter ) => {
+                return modelWriter.createElement( 'checkboxInput', {
+                    'id': viewElement.getAttribute( 'id' )
+                } );
             }
 
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'checkboxInput',
             view: ( modelElement, viewWriter ) => {
-                const input = viewWriter.createEmptyElement( 'input', {'type': 'checkbox'} );
+                const input = viewWriter.createEmptyElement( 'input', {
+                    'type': 'checkbox',
+                    'id': modelElement.getAttribute( 'id' )
+                } );
                 return input;
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'checkboxInput',
             view: ( modelElement, viewWriter ) => {
-                const input = viewWriter.createEmptyElement( 'input', {'type': 'checkbox'} );
+                const input = viewWriter.createEmptyElement( 'input', {
+                    'type': 'checkbox',
+                    'id': modelElement.getAttribute( 'id' )
+                } );
                 return toWidget( input, viewWriter );
             }
         } );
 
         // <checkboxLabel> converters
         conversion.for( 'upcast' ).elementToElement( {
-            model: 'checkboxLabel',
             view: {
                 name: 'label'
+            },
+            model: ( viewElement, modelWriter ) => {
+                return modelWriter.createElement( 'checkboxLabel', {
+                    // HACK: Get the id of the checkbox this label corresponds to.
+                    'for': viewElement.parent.getChild(0).getAttribute('id')
+                } );
             }
 
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'checkboxLabel',
-            view: {
-                name: 'label'
+            view: ( modelElement, viewWriter ) => {
+                const label = viewWriter.createEditableElement( 'label', {
+                    // HACK: Get the id of the checkbox this label corresponds to.
+                    'for': modelElement.parent.getChild(0).getAttribute('id')
+                } );
+
+                return label;
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'checkboxLabel',
             view: ( modelElement, viewWriter ) => {
-                const label = viewWriter.createEditableElement( 'label', {} );
+                const label = viewWriter.createEditableElement( 'label', {
+                    // NOTE: We don't set the 'for' attribute in the editing view, so that clicking in the label
+                    // editable to type doesn't also toggle the checkbox.
+                } );
 
                 return toWidgetEditable( label, viewWriter );
             }
