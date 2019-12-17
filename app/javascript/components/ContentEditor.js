@@ -42,6 +42,7 @@ import ContentPartPreviewEditing from '../ckeditor/contentpartpreviewediting';
 import ContentCommonEditing from '../ckeditor/contentcommonediting';
 import ChecklistQuestionEditing from '../ckeditor/checklistquestionediting';
 import RadioQuestionEditing from '../ckeditor/radioquestionediting';
+import MatchingQuestionEditing from '../ckeditor/matchingquestionediting';
 import SectionEditing from '../ckeditor/sectionediting';
 
 // React components to render the list of content parts and the content part preview.
@@ -77,7 +78,8 @@ BalloonEditor.builtinPlugins = [
     ContentCommonEditing,
     SectionEditing,
     ChecklistQuestionEditing,
-    RadioQuestionEditing
+    RadioQuestionEditing,
+    MatchingQuestionEditing
 ];
 
 // Editor configuration.
@@ -326,6 +328,15 @@ class ContentEditor extends Component {
                                                 this.editor.editing.view.focus();
                                             }}
                                             {...{name: 'Radio Question', id: Math.floor(Math.random() * 1e16)}}
+                                        />
+                                        <ContentPartPreview
+                                            id="22"
+                                            key="22"
+                                            onClick={( id ) => {
+                                                this.editor.execute( 'insertMatchingQuestion', id );
+                                                this.editor.editing.view.focus();
+                                            }}
+                                            {...{name: 'Matching Question', id: Math.floor(Math.random() * 1e16)}}
                                         />
                                         <input
                                             type="file"
