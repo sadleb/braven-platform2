@@ -15,9 +15,14 @@ export default class ContentCommonEditing extends Plugin {
     _defineSchema() {
         const schema = this.editor.model.schema;
 
+        schema.register( 'content', {
+            isObject: true,
+            allowIn: ['blockquoteContent', 'tableContent', 'iframeContent'],
+        });
+
         schema.register( 'question', {
             isObject: true,
-            allowIn: ['checklistQuestion', 'radioQuestion'],
+            allowIn: ['checklistQuestion', 'radioQuestion', 'matchingQuestion'],
         } );
 
         schema.register( 'questionTitle', {
@@ -67,6 +72,30 @@ export default class ContentCommonEditing extends Plugin {
         const editor = this.editor;
         const conversion = editor.conversion;
         const { editing, data, model } = editor;
+
+        // <content> converters
+        conversion.for( 'upcast' ).elementToElement( {
+            model: 'content',
+            view: {
+                name: 'div',
+                classes: 'content'
+            }
+        } );
+        conversion.for( 'dataDowncast' ).elementToElement( {
+            model: 'content',
+            view: {
+                name: 'div',
+                classes: 'content'
+            }
+        } );
+        conversion.for( 'editingDowncast' ).elementToElement( {
+            model: 'content',
+            view: ( modelElement, viewWriter ) => {
+                const section = viewWriter.createContainerElement( 'div', { class: 'content' } );
+
+                return toWidget( section, viewWriter );
+            }
+        } );
 
         // <question> converters
         conversion.for( 'upcast' ).elementToElement( {
