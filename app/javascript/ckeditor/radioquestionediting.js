@@ -1,11 +1,11 @@
 import Plugin from '@ckeditor/ckeditor5-core/src/plugin';
 import { toWidget, toWidgetEditable } from '@ckeditor/ckeditor5-widget/src/utils';
 import Widget from '@ckeditor/ckeditor5-widget/src/widget';
-import InsertChecklistQuestionCommand from './insertchecklistquestioncommand';
-import InsertCheckboxCommand from './insertcheckboxcommand';
+import InsertRadioQuestionCommand from './insertradioquestioncommand';
+import InsertRadioCommand from './insertradiocommand';
 import { preventCKEditorHandling } from './utils';
 
-export default class ChecklistQuestionEditing extends Plugin {
+export default class RadioQuestionEditing extends Plugin {
     static get requires() {
         return [ Widget ];
     }
@@ -14,17 +14,17 @@ export default class ChecklistQuestionEditing extends Plugin {
         this._defineSchema();
         this._defineConverters();
 
-        this.editor.commands.add( 'insertChecklistQuestion', new InsertChecklistQuestionCommand( this.editor ) );
-        this.editor.commands.add( 'insertCheckbox', new InsertCheckboxCommand( this.editor ) );
+        this.editor.commands.add( 'insertRadioQuestion', new InsertRadioQuestionCommand( this.editor ) );
+        this.editor.commands.add( 'insertRadio', new InsertRadioCommand( this.editor ) );
 
-        // Override the default 'enter' key behavior for checkbox labels.
+        // Override the default 'enter' key behavior for radio labels.
         this.listenTo( this.editor.editing.view.document, 'enter', ( evt, data ) => {
             const positionParent = this.editor.model.document.selection.getLastPosition().parent;
-            if ( positionParent.name == 'checkboxLabel' ) {
-                // Only insert a new checkbox if the current label is empty, but stop the event from
+            if ( positionParent.name == 'radioLabel' ) {
+                // Only insert a new radio if the current label is empty, but stop the event from
                 // propogating regardless.
                 if (!positionParent.isEmpty) {
-                    this.editor.execute( 'insertCheckbox' )
+                    this.editor.execute( 'insertRadio' )
                 }
                 data.preventDefault();
                 evt.stop();
@@ -36,32 +36,32 @@ export default class ChecklistQuestionEditing extends Plugin {
     _defineSchema() {
         const schema = this.editor.model.schema;
 
-        schema.register( 'checklistQuestion', {
+        schema.register( 'radioQuestion', {
             isObject: true,
             allowIn: 'section',
             allowAttributes: [ 'id' ]
         } );
 
-        schema.register( 'checkboxDiv', {
+        schema.register( 'radioDiv', {
             allowIn: 'questionFieldset',
         } );
 
-        schema.register( 'checkboxInput', {
+        schema.register( 'radioInput', {
             isInline: true,
-            allowIn: 'checkboxDiv',
+            allowIn: 'radioDiv',
             allowAttributes: [ 'id', 'name', 'value' ]
         } );
 
-        schema.register( 'checkboxLabel', {
+        schema.register( 'radioLabel', {
             isInline: true,
-            allowIn: 'checkboxDiv',
+            allowIn: 'radioDiv',
             allowContentOf: '$block',
             allowAttributes: [ 'for' ]
         } );
 
         schema.addChildCheck( ( context, childDefinition ) => {
             // Disallow adding questions inside answerText boxes.
-            if ( context.endsWith( 'answerText' ) && childDefinition.name == 'checklistQuestion' ) {
+            if ( context.endsWith( 'answerText' ) && childDefinition.name == 'radioQuestion' ) {
                 return false;
             }
         } );
@@ -72,58 +72,58 @@ export default class ChecklistQuestionEditing extends Plugin {
         const conversion = editor.conversion;
         const { editing, data, model } = editor;
 
-        // <checklistQuestion> converters
+        // <radioQuestion> converters
         conversion.for( 'upcast' ).elementToElement( {
             view: {
                 name: 'div',
-                classes: ['module-block', 'module-block-checkbox']
+                classes: ['module-block', 'module-block-radio']
             },
             model: ( viewElement, modelWriter ) => {
                 // Read the "data-id" attribute from the view and set it as the "id" in the model.
-                return modelWriter.createElement( 'checklistQuestion', {
+                return modelWriter.createElement( 'radioQuestion', {
                     id: parseInt( viewElement.getAttribute( 'data-id' ) )
                 } );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
-            model: 'checklistQuestion',
+            model: 'radioQuestion',
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createEditableElement( 'div', {
-                    class: 'module-block module-block-checkbox',
+                    class: 'module-block module-block-radio',
                     'data-id': modelElement.getAttribute( 'id' )
                 } );
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
-            model: 'checklistQuestion',
+            model: 'radioQuestion',
             view: ( modelElement, viewWriter ) => {
                 const id = modelElement.getAttribute( 'id' );
 
-                const checklistQuestion = viewWriter.createContainerElement( 'div', {
-                    class: 'module-block module-block-checkbox',
+                const radioQuestion = viewWriter.createContainerElement( 'div', {
+                    class: 'module-block module-block-radio',
                     'data-id': id
                 } );
 
-                return toWidget( checklistQuestion, viewWriter, { label: 'checklist-question widget' } );
+                return toWidget( radioQuestion, viewWriter, { label: 'radio-question widget' } );
             }
         } );
 
-        // <checkboxDiv> converters
+        // <radioDiv> converters
         conversion.for( 'upcast' ).elementToElement( {
-            model: 'checkboxDiv',
+            model: 'radioDiv',
             view: {
                 name: 'div'
             }
 
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
-            model: 'checkboxDiv',
+            model: 'radioDiv',
             view: {
                 name: 'div'
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
-            model: 'checkboxDiv',
+            model: 'radioDiv',
             view: ( modelElement, viewWriter ) => {
                 const div = viewWriter.createContainerElement( 'div', {} );
 
@@ -158,58 +158,58 @@ export default class ChecklistQuestionEditing extends Plugin {
             }
         } );
 
-        // <checkboxInput> converters
+        // <radioInput> converters
         conversion.for( 'upcast' ).elementToElement( {
             view: {
                 name: 'input',
-                type: 'checkbox'
+                type: 'radio'
             },
             model: ( viewElement, modelWriter ) => {
-                return modelWriter.createElement( 'checkboxInput', {
+                return modelWriter.createElement( 'radioInput', {
                     'id': viewElement.getAttribute( 'id' )
                 } );
             }
 
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
-            model: 'checkboxInput',
+            model: 'radioInput',
             view: ( modelElement, viewWriter ) => {
                 const input = viewWriter.createEmptyElement( 'input', {
-                    'type': 'checkbox',
+                    'type': 'radio',
                     'id': modelElement.getAttribute( 'id' )
                 } );
                 return input;
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
-            model: 'checkboxInput',
+            model: 'radioInput',
             view: ( modelElement, viewWriter ) => {
                 const input = viewWriter.createEmptyElement( 'input', {
-                    'type': 'checkbox',
+                    'type': 'radio',
                     'id': modelElement.getAttribute( 'id' )
                 } );
                 return toWidget( input, viewWriter );
             }
         } );
 
-        // <checkboxLabel> converters
+        // <radioLabel> converters
         conversion.for( 'upcast' ).elementToElement( {
             view: {
                 name: 'label'
             },
             model: ( viewElement, modelWriter ) => {
-                return modelWriter.createElement( 'checkboxLabel', {
-                    // HACK: Get the id of the checkbox this label corresponds to.
+                return modelWriter.createElement( 'radioLabel', {
+                    // HACK: Get the id of the radio this label corresponds to.
                     'for': viewElement.parent.getChild(0).getAttribute('id')
                 } );
             }
 
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
-            model: 'checkboxLabel',
+            model: 'radioLabel',
             view: ( modelElement, viewWriter ) => {
                 const label = viewWriter.createEditableElement( 'label', {
-                    // HACK: Get the id of the checkbox this label corresponds to.
+                    // HACK: Get the id of the radio this label corresponds to.
                     'for': modelElement.parent.getChild(0).getAttribute('id')
                 } );
 
@@ -217,11 +217,11 @@ export default class ChecklistQuestionEditing extends Plugin {
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
-            model: 'checkboxLabel',
+            model: 'radioLabel',
             view: ( modelElement, viewWriter ) => {
                 const label = viewWriter.createEditableElement( 'label', {
                     // NOTE: We don't set the 'for' attribute in the editing view, so that clicking in the label
-                    // editable to type doesn't also toggle the checkbox.
+                    // editable to type doesn't also toggle the radio.
                 } );
 
                 return toWidgetEditable( label, viewWriter );

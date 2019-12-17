@@ -39,8 +39,9 @@ import SimpleUploadAdapter from '@ckeditor/ckeditor5-upload/src/adapters/simpleu
 
 // CKEditor plugin implementing a content part widget to be used in the editor content.
 import ContentPartPreviewEditing from '../ckeditor/contentpartpreviewediting';
+import ContentCommonEditing from '../ckeditor/contentcommonediting';
 import ChecklistQuestionEditing from '../ckeditor/checklistquestionediting';
-//import RadioQuestionEditing from '../ckeditor/radioquestionediting';
+import RadioQuestionEditing from '../ckeditor/radioquestionediting';
 import SectionEditing from '../ckeditor/sectionediting';
 
 // React components to render the list of content parts and the content part preview.
@@ -73,9 +74,10 @@ BalloonEditor.builtinPlugins = [
     SimpleUploadAdapter,
 
     ContentPartPreviewEditing,
+    ContentCommonEditing,
     SectionEditing,
-    ChecklistQuestionEditing
-    //RadioQuestionEditing
+    ChecklistQuestionEditing,
+    RadioQuestionEditing
 ];
 
 // Editor configuration.
@@ -299,8 +301,8 @@ class ContentEditor extends Component {
                                 <div id="toolbar-components">
                                     <ul key="content-part-list" id="widget-list">
                                         <ContentPartPreview
-                                            id="1"
-                                            key="1"
+                                            id="10"
+                                            key="10"
                                             onClick={( id ) => {
                                                 this.editor.execute( 'insertSection', id );
                                                 this.editor.editing.view.focus();
@@ -308,13 +310,22 @@ class ContentEditor extends Component {
                                             {...{name: 'Section', id: Math.floor(Math.random() * 1e16)}}
                                         />
                                         <ContentPartPreview
-                                            id="2"
-                                            key="2"
+                                            id="20"
+                                            key="20"
                                             onClick={( id ) => {
                                                 this.editor.execute( 'insertChecklistQuestion', id );
                                                 this.editor.editing.view.focus();
                                             }}
                                             {...{name: 'Checklist Question', id: Math.floor(Math.random() * 1e16)}}
+                                        />
+                                        <ContentPartPreview
+                                            id="21"
+                                            key="21"
+                                            onClick={( id ) => {
+                                                this.editor.execute( 'insertRadioQuestion', id );
+                                                this.editor.editing.view.focus();
+                                            }}
+                                            {...{name: 'Radio Question', id: Math.floor(Math.random() * 1e16)}}
                                         />
                                         <input
                                             type="file"
@@ -326,8 +337,8 @@ class ContentEditor extends Component {
                                             }}
                                         />
                                         <ContentPartPreview
-                                            id="3"
-                                            key="3"
+                                            id="30"
+                                            key="30"
                                             onClick={this.showFileUpload}
                                             {...{name: 'Image', id: Math.floor(Math.random() * 1e16)}}
                                         />
