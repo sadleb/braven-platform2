@@ -18,6 +18,7 @@ export default class ContentCommonEditing extends Plugin {
         schema.register( 'content', {
             isObject: true,
             allowIn: ['blockquoteContent', 'tableContent', 'iframeContent'],
+            allowContentOf: '$root'
         });
 
         schema.register( 'question', {

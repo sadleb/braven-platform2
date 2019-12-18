@@ -43,6 +43,7 @@ import ContentCommonEditing from '../ckeditor/contentcommonediting';
 import ChecklistQuestionEditing from '../ckeditor/checklistquestionediting';
 import RadioQuestionEditing from '../ckeditor/radioquestionediting';
 import MatchingQuestionEditing from '../ckeditor/matchingquestionediting';
+import TableContentEditing from '../ckeditor/tablecontentediting';
 import SectionEditing from '../ckeditor/sectionediting';
 
 // React components to render the list of content parts and the content part preview.
@@ -76,10 +77,11 @@ BalloonEditor.builtinPlugins = [
 
     ContentPartPreviewEditing,
     ContentCommonEditing,
-    SectionEditing,
     ChecklistQuestionEditing,
     RadioQuestionEditing,
-    MatchingQuestionEditing
+    MatchingQuestionEditing,
+    TableContentEditing,
+    SectionEditing
 ];
 
 // Editor configuration.
@@ -352,6 +354,15 @@ class ContentEditor extends Component {
                                             key="30"
                                             onClick={this.showFileUpload}
                                             {...{name: 'Image', id: Math.floor(Math.random() * 1e16)}}
+                                        />
+                                        <ContentPartPreview
+                                            id="31"
+                                            key="31"
+                                            onClick={( id ) => {
+                                                this.editor.execute( 'insertTableContent', id , {rows: 2, columns: 2});
+                                                this.editor.editing.view.focus();
+                                            }}
+                                            {...{name: 'Table', id: Math.floor(Math.random() * 1e16)}}
                                         />
 
                                     </ul>
