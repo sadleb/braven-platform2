@@ -25,8 +25,10 @@ export default class InsertMatchingQuestionCommand extends Command {
     const matchingTableRow2 = writer.createElement( 'matchingTableRow' );
     const matchingTableCell11 = writer.createElement( 'matchingTableCell' );
     const matchingTableCell12 = writer.createElement( 'matchingTableCell' );
+    const matchingTableCell13 = writer.createElement( 'matchingTableCell' );
     const matchingTableCell21 = writer.createElement( 'matchingTableCell' );
     const matchingTableCell22 = writer.createElement( 'matchingTableCell' );
+    const matchingTableCell23 = writer.createElement( 'matchingTableCell' );
 
 
     writer.append( question, matchingQuestion );
@@ -37,15 +39,19 @@ export default class InsertMatchingQuestionCommand extends Command {
     writer.append( matchingTableRow2, matchingTableBody );
     writer.append( matchingTableCell11, matchingTableRow1 );
     writer.append( matchingTableCell12, matchingTableRow1 );
+    writer.append( matchingTableCell13, matchingTableRow1 );
     writer.append( matchingTableCell21, matchingTableRow2 );
     writer.append( matchingTableCell22, matchingTableRow2 );
+    writer.append( matchingTableCell23, matchingTableRow2 );
 
     // Add text to empty editables, to get around the lack of placeholder support.
     writer.insertText( 'Question?', questionTitle );
-    writer.insertText( '11', matchingTableCell11 );
-    writer.insertText( '12', matchingTableCell12 );
-    writer.insertText( '21', matchingTableCell21 );
-    writer.insertText( '22', matchingTableCell22 );
+    writer.insertText( 'Title', matchingTableCell11 );
+    writer.insertText( 'Text', matchingTableCell12 );
+    writer.insertText( 'Text', matchingTableCell13 );
+    writer.insertText( 'Title', matchingTableCell21 );
+    writer.insertText( 'Text', matchingTableCell22 );
+    writer.insertText( 'Text', matchingTableCell23 );
 
             model.insertContent( matchingQuestion );
 	    //writer.setSelection( writer.createPositionAt( table.getNodeByPath( [ 0, 0, 0 ] ), 0 ) );

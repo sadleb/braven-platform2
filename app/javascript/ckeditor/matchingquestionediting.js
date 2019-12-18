@@ -2,6 +2,7 @@ import Plugin from '@ckeditor/ckeditor5-core/src/plugin';
 import { toWidget, toWidgetEditable } from '@ckeditor/ckeditor5-widget/src/utils';
 import Widget from '@ckeditor/ckeditor5-widget/src/widget';
 import InsertMatchingQuestionCommand from './insertmatchingquestioncommand';
+import InsertMatchingTableRow from './insertmatchingtablerowcommand';
 
 export default class MatchingQuestionEditing extends Plugin {
     static get requires() {
@@ -13,6 +14,17 @@ export default class MatchingQuestionEditing extends Plugin {
         this._defineConverters();
 
         this.editor.commands.add( 'insertMatchingQuestion', new InsertMatchingQuestionCommand( this.editor ) );
+        this.editor.commands.add( 'insertMatchingTableRow', new InsertMatchingTableRow( this.editor ) );
+
+        // Override the default 'enter' key behavior for checkbox labels.
+        this.listenTo( this.editor.editing.view.document, 'enter', ( evt, data ) => {
+            const positionParent = this.editor.model.document.selection.getLastPosition().parent;
+            if ( positionParent.name == 'matchingTableCell' ) {
+                this.editor.execute( 'insertMatchingTableRow' )
+                data.preventDefault();
+                evt.stop();
+            }
+        });
     }
 
     _defineSchema() {
@@ -21,15 +33,16 @@ export default class MatchingQuestionEditing extends Plugin {
         schema.register( 'matchingQuestion', {
             isObject: true,
             allowIn: 'section',
-            allowAttributes: [ 'id' ]
+            allowAttributes: [ 'id', 'class' ]
         } );
 
         schema.register( 'matchingTable', {
-            allowIn: 'matchingQuestion',
-            allowAttributes: [ 'class' ]
+            allowIn: 'question',
+            allowAttributes: [ 'class' ],
         } );
 
         schema.register( 'matchingTableBody', {
+            isLimit: true,
             allowIn: 'matchingTable'
         } );
 
@@ -39,7 +52,6 @@ export default class MatchingQuestionEditing extends Plugin {
         } );
 
         schema.register( 'matchingTableCell', {
-            isLimit: true,
             isInline: true,
             allowIn: 'matchingTableRow',
             allowContentOf: '$block',
@@ -99,18 +111,18 @@ export default class MatchingQuestionEditing extends Plugin {
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'matchingTable',
             view: ( modelElement, viewWriter ) => {
-                return viewWriter.createContainerElement( 'table', {
-                    'class': 'sort-to-match no-zebra',
+                return viewWriter.createEditableElement( 'table', {
+                    'class': 'sort-to-match no-zebra'
                 } );
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'matchingTable',
             view: ( modelElement, viewWriter ) => {
-                const table = viewWriter.createContainerElement( 'table', {
-                    'class': 'sort-to-match no-zebra',
+                const table = viewWriter.createEditableElement( 'table', {
+                    'class': 'sort-to-match no-zebra'
                 } );
-                return toWidget( table, viewWriter );
+                return toWidgetEditable( table, viewWriter );
             }
         } );
 
@@ -144,8 +156,11 @@ export default class MatchingQuestionEditing extends Plugin {
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'matchingTableRow',
-            view: ( modelElement, viewWriter ) => {
-                return viewWriter.createContainerElement( 'tr' );
+            //view: ( modelElement, viewWriter ) => {
+            //    return viewWriter.createContainerElement( 'tr' );
+            //}
+            view: {
+                name: 'tr'
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
