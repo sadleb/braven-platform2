@@ -150,44 +150,65 @@ export default class MatchingQuestionEditing extends Plugin {
         // <matchingTableRow> converters
         conversion.for( 'upcast' ).elementToElement( {
             view: {
-                name: 'tr'
+                name: 'tr',
             },
-            model: 'matchingTableRow'
+            model: ( viewElement, modelWriter ) => {
+                const classes = viewElement.getAttribute( 'class' );
+                return modelWriter.createElement( 'matchingTableRow', classes === undefined ? {} : {
+                    'class': classes
+                } );
+            }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'matchingTableRow',
-            //view: ( modelElement, viewWriter ) => {
-            //    return viewWriter.createContainerElement( 'tr' );
-            //}
-            view: {
-                name: 'tr'
+            view: ( modelElement, viewWriter ) => {
+                const classes = modelElement.getAttribute( 'class' );
+                return viewWriter.createContainerElement( 'tr', classes === undefined ? {} : {
+                    'class': classes
+                } );
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'matchingTableRow',
             view: ( modelElement, viewWriter ) => {
-                const row = viewWriter.createContainerElement( 'tr' );
-                return toWidget( row, viewWriter );
+                const classes = modelElement.getAttribute( 'class' );
+                const cell = viewWriter.createContainerElement( 'tr', classes === undefined ? {} : {
+                    'class': classes
+                });
+
+                return toWidget( cell, viewWriter );
             }
         } );
 
         // <matchingTableCell> converters
         conversion.for( 'upcast' ).elementToElement( {
             view: {
-                name: 'td'
+                name: 'td',
             },
-            model: 'matchingTableCell'
+            model: ( viewElement, modelWriter ) => {
+                const classes = viewElement.getAttribute( 'class' );
+                return modelWriter.createElement( 'matchingTableCell', classes === undefined ? {} : {
+                    'class': classes
+                } );
+            }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'matchingTableCell',
             view: ( modelElement, viewWriter ) => {
-                return viewWriter.createEditableElement( 'td' );
+                const classes = modelElement.getAttribute( 'class' );
+                return viewWriter.createEditableElement( 'td', classes === undefined ? {} : {
+                    'class': classes
+                } );
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'matchingTableCell',
             view: ( modelElement, viewWriter ) => {
-                const cell = viewWriter.createEditableElement( 'td' );
+                const classes = modelElement.getAttribute( 'class' );
+                const cell = viewWriter.createEditableElement( 'td', classes === undefined ? {} : {
+                    'class': classes
+                });
+
                 return toWidgetEditable( cell, viewWriter );
             }
         } );
