@@ -44,6 +44,8 @@ import ChecklistQuestionEditing from '../ckeditor/checklistquestionediting';
 import RadioQuestionEditing from '../ckeditor/radioquestionediting';
 import MatchingQuestionEditing from '../ckeditor/matchingquestionediting';
 import TableContentEditing from '../ckeditor/tablecontentediting';
+import BlockquoteContentEditing from '../ckeditor/blockquotecontentediting';
+import IFrameContentEditing from '../ckeditor/iframecontentediting';
 import SectionEditing from '../ckeditor/sectionediting';
 
 // React components to render the list of content parts and the content part preview.
@@ -81,6 +83,8 @@ BalloonEditor.builtinPlugins = [
     RadioQuestionEditing,
     MatchingQuestionEditing,
     TableContentEditing,
+    BlockquoteContentEditing,
+    IFrameContentEditing,
     SectionEditing
 ];
 
@@ -363,6 +367,24 @@ class ContentEditor extends Component {
                                                 this.editor.editing.view.focus();
                                             }}
                                             {...{name: 'Table', id: Math.floor(Math.random() * 1e16)}}
+                                        />
+                                        <ContentPartPreview
+                                            id="32"
+                                            key="32"
+                                            onClick={( id ) => {
+                                                this.editor.execute( 'insertBlockquoteContent', id );
+                                                this.editor.editing.view.focus();
+                                            }}
+                                            {...{name: 'Quote', id: Math.floor(Math.random() * 1e16)}}
+                                        />
+                                        <ContentPartPreview
+                                            id="33"
+                                            key="33"
+                                            onClick={( id ) => {
+                                                this.editor.execute( 'insertIFrameContent', id, 'http://example.com' );
+                                                this.editor.editing.view.focus();
+                                            }}
+                                            {...{name: 'iFrame', id: Math.floor(Math.random() * 1e16)}}
                                         />
 
                                     </ul>
