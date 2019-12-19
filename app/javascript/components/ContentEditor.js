@@ -7,6 +7,9 @@ import Rails from '@rails/ujs';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 //import 'react-tabs/style/react-tabs.css';
 
+// Non-ckeditor Node imports
+const uuidv4 = require('uuid/v4');
+
 // The official CKEditor 5 instance inspector. It helps understand the editor view and model.
 import CKEditorInspector from '@ckeditor/ckeditor5-inspector';
 
@@ -315,7 +318,7 @@ class ContentEditor extends Component {
                                                 this.editor.execute( 'insertSection', id );
                                                 this.editor.editing.view.focus();
                                             }}
-                                            {...{name: 'Section', id: Math.floor(Math.random() * 1e16)}}
+                                            {...{name: 'Section', id: uuidv4()}}
                                         />
                                         <ContentPartPreview
                                             id="20"
@@ -324,7 +327,7 @@ class ContentEditor extends Component {
                                                 this.editor.execute( 'insertChecklistQuestion', id );
                                                 this.editor.editing.view.focus();
                                             }}
-                                            {...{name: 'Checklist Question', id: Math.floor(Math.random() * 1e16)}}
+                                            {...{name: 'Checklist Question', id: uuidv4()}}
                                         />
                                         <ContentPartPreview
                                             id="21"
@@ -333,7 +336,7 @@ class ContentEditor extends Component {
                                                 this.editor.execute( 'insertRadioQuestion', id );
                                                 this.editor.editing.view.focus();
                                             }}
-                                            {...{name: 'Radio Question', id: Math.floor(Math.random() * 1e16)}}
+                                            {...{name: 'Radio Question', id: uuidv4()}}
                                         />
                                         <ContentPartPreview
                                             id="22"
@@ -342,7 +345,7 @@ class ContentEditor extends Component {
                                                 this.editor.execute( 'insertMatchingQuestion', id );
                                                 this.editor.editing.view.focus();
                                             }}
-                                            {...{name: 'Matching Question', id: Math.floor(Math.random() * 1e16)}}
+                                            {...{name: 'Matching Question', id: uuidv4()}}
                                         />
                                         <input
                                             type="file"
@@ -357,7 +360,7 @@ class ContentEditor extends Component {
                                             id="30"
                                             key="30"
                                             onClick={this.showFileUpload}
-                                            {...{name: 'Image', id: Math.floor(Math.random() * 1e16)}}
+                                            {...{name: 'Image', id: uuidv4()}}
                                         />
                                         <ContentPartPreview
                                             id="31"
@@ -366,7 +369,7 @@ class ContentEditor extends Component {
                                                 this.editor.execute( 'insertTableContent', id , {rows: 2, columns: 2});
                                                 this.editor.editing.view.focus();
                                             }}
-                                            {...{name: 'Table', id: Math.floor(Math.random() * 1e16)}}
+                                            {...{name: 'Table', id: uuidv4()}}
                                         />
                                         <ContentPartPreview
                                             id="32"
@@ -375,7 +378,7 @@ class ContentEditor extends Component {
                                                 this.editor.execute( 'insertBlockquoteContent', id );
                                                 this.editor.editing.view.focus();
                                             }}
-                                            {...{name: 'Quote', id: Math.floor(Math.random() * 1e16)}}
+                                            {...{name: 'Quote', id: uuidv4()}}
                                         />
                                         <ContentPartPreview
                                             id="33"
@@ -384,7 +387,7 @@ class ContentEditor extends Component {
                                                 this.editor.execute( 'insertIFrameContent', id, 'http://example.com' );
                                                 this.editor.editing.view.focus();
                                             }}
-                                            {...{name: 'iFrame', id: Math.floor(Math.random() * 1e16)}}
+                                            {...{name: 'iFrame', id: uuidv4()}}
                                         />
 
                                     </ul>
