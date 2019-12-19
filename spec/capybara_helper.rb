@@ -9,7 +9,7 @@ end
 
 chrome_shim = ENV.fetch('GOOGLE_CHROME_SHIM', nil)
 
-chrome_opts = chrome_shim ? { "chromeOptions" => { "binary" => chrome_shim } } : {}
+chrome_opts = chrome_shim ? { "chromeOptions" => { "binary" => chrome_shim, "remote-debugging-port" => "9222", "headless": true } } : {}
 puts chrome_opts
 
 Capybara.register_driver :chrome do |app|
