@@ -2,9 +2,14 @@ RSpec.configure do |config|
   config.include Capybara::DSL
 end
 
-chrome_bin = ENV.fetch('GOOGLE_CHROME_SHIM', nil)
+chrome_bin = ENV.fetch('GOOGLE_CHROME_BIN', nil)
+if chrome_bin
+  Selenium::WebDriver::Chrome.path = chrome_bin
+end
 
-chrome_opts = chrome_bin ? { "chromeOptions" => { "binary" => chrome_bin } } : {}
+chrome_shim = ENV.fetch('GOOGLE_CHROME_SHIM', nil)
+
+chrome_opts = chrome_shim ? { "chromeOptions" => { "binary" => chrome_shim } } : {}
 puts chrome_opts
 
 Capybara.register_driver :chrome do |app|
