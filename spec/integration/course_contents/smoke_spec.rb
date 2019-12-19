@@ -10,7 +10,7 @@ RSpec.describe CourseContentsController, type: :routing do
   let(:host_servers) {{ join_server: "#{ENV['VCR_JOIN_SERVER']}", canvas_server: "#{ENV['VCR_CANVAS_SERVER']}" }}
 
   describe "Content Editor Smoke Tests" do
-    describe "/course_contents/new loads ckeditor", :js, driver: :selenium_chrome_headless do
+    describe "/course_contents/new loads ckeditor", :js do
       let(:return_service) { '/course_contents/new' }
       before(:each) do 
         visit "/cas/login?service=#{url_encode(return_service)}"
