@@ -159,6 +159,13 @@ BalloonEditor.defaultConfig = {
     language: 'en'
 };
 
+function addRetainedDataID(element) {
+   console.log('todo');
+   return uuidv4();
+}
+
+window.addRetainedDataID = addRetainedDataID;
+
 class ContentEditor extends Component {
     constructor( props ) {
         super( props );
@@ -171,7 +178,8 @@ class ContentEditor extends Component {
             // The initial editor data. It is bound to the editor instance and will change as
             // the user types and modifies the content of the editor.
             editorData: props.course_content['body'] || "",
-            isPublished: false
+            isPublished: false,
+            enabledCommands: [],
         };
 
         // The configuration of the <CKEditor> instance.
@@ -191,6 +199,7 @@ class ContentEditor extends Component {
         };
 
         this.handleEditorDataChange = this.handleEditorDataChange.bind( this );
+        this.handleEditorFocusChange = this.handleEditorFocusChange.bind( this );
         this.handleEditorInit = this.handleEditorInit.bind( this );
 
         this.fileUpload = React.createRef();
@@ -208,6 +217,12 @@ class ContentEditor extends Component {
         this.setState( {
             editorData: editor.getData(),
             isPublished: false
+        } );
+    }
+
+    handleEditorFocusChange( ) {
+        this.setState( {
+            enabledCommands: [...this.editor.commands.names()].filter(x => this.editor.commands.get(x).isEnabled)
         } );
     }
 
@@ -231,6 +246,10 @@ class ContentEditor extends Component {
         this.setState( {
             editorData: editor.getData()
         } );
+
+        // Attach the focus handler, and call it once.
+        editor.editing.view.document.selection.on('change', this.handleEditorFocusChange);
+        this.handleEditorFocusChange();
 
         // CKEditor 5 inspector allows you to take a peek into the editor's model and view
         // data layers. Use it to debug the application and learn more about the editor.
@@ -314,6 +333,7 @@ class ContentEditor extends Component {
                                         <ContentPartPreview
                                             id="10"
                                             key="10"
+                                            enabled={this.state.enabledCommands.includes('insertSection')}
                                             onClick={( id ) => {
                                                 this.editor.execute( 'insertSection', id );
                                                 this.editor.editing.view.focus();
@@ -323,6 +343,7 @@ class ContentEditor extends Component {
                                         <ContentPartPreview
                                             id="20"
                                             key="20"
+                                            enabled={this.state.enabledCommands.includes('insertChecklistQuestion')}
                                             onClick={( id ) => {
                                                 this.editor.execute( 'insertChecklistQuestion', id );
                                                 this.editor.editing.view.focus();
@@ -332,6 +353,7 @@ class ContentEditor extends Component {
                                         <ContentPartPreview
                                             id="21"
                                             key="21"
+                                            enabled={this.state.enabledCommands.includes('insertRadioQuestion')}
                                             onClick={( id ) => {
                                                 this.editor.execute( 'insertRadioQuestion', id );
                                                 this.editor.editing.view.focus();
@@ -341,6 +363,7 @@ class ContentEditor extends Component {
                                         <ContentPartPreview
                                             id="22"
                                             key="22"
+                                            enabled={this.state.enabledCommands.includes('insertMatchingQuestion')}
                                             onClick={( id ) => {
                                                 this.editor.execute( 'insertMatchingQuestion', id );
                                                 this.editor.editing.view.focus();
@@ -359,12 +382,14 @@ class ContentEditor extends Component {
                                         <ContentPartPreview
                                             id="30"
                                             key="30"
+                                            enabled={this.state.enabledCommands.includes('imageUpload')}
                                             onClick={this.showFileUpload}
                                             {...{name: 'Image', id: uuidv4()}}
                                         />
                                         <ContentPartPreview
                                             id="31"
                                             key="31"
+                                            enabled={this.state.enabledCommands.includes('insertTableContent')}
                                             onClick={( id ) => {
                                                 this.editor.execute( 'insertTableContent', id , {rows: 2, columns: 2});
                                                 this.editor.editing.view.focus();
@@ -374,6 +399,7 @@ class ContentEditor extends Component {
                                         <ContentPartPreview
                                             id="32"
                                             key="32"
+                                            enabled={this.state.enabledCommands.includes('insertBlockquoteContent')}
                                             onClick={( id ) => {
                                                 this.editor.execute( 'insertBlockquoteContent', id );
                                                 this.editor.editing.view.focus();
@@ -383,6 +409,7 @@ class ContentEditor extends Component {
                                         <ContentPartPreview
                                             id="33"
                                             key="33"
+                                            enabled={this.state.enabledCommands.includes('insertIFrameContent')}
                                             onClick={( id ) => {
                                                 this.editor.execute( 'insertIFrameContent', id, 'http://example.com' );
                                                 this.editor.editing.view.focus();
