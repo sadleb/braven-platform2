@@ -46,7 +46,7 @@ RSpec.describe CourseContentsController, type: :routing do
           find("li", text: "Checklist Question").click
 
           # Make sure the question was inserted.
-          expect(page).to have_selector("h5.ck-editor__editable.ck-editor__nested-editable", text: "QUESTION?")
+          expect(page).to have_selector("h5.ck-editor__editable.ck-editor__nested-editable")
           expect(page).to have_selector('input[type="checkbox"].ck-widget')
 
         end
