@@ -275,7 +275,8 @@ export default class ContentCommonEditing extends Plugin {
                 enablePlaceholder( {
                     view: editing.view,
                     element: div,
-                    text: 'Answer body'
+                    text: 'Answer body',
+                    isDirectHost: false
                 } );
 
                 return toWidgetEditable( div, viewWriter );
