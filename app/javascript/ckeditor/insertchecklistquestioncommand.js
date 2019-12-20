@@ -47,9 +47,9 @@ function createChecklistQuestion( writer, id ) {
     // Add text to empty editables, to get around the lack of placeholder support.
     // There must be at least one paragraph for the description to be editable.
     // See https://github.com/ckeditor/ckeditor5/issues/1464.
-    writer.insertText( 'Question?', questionTitle );
-    writer.insertText( 'Option 1', checkboxLabel );
-    writer.insertText( 'Answer Title', answerTitle );
+    //writer.insertText( 'Question?', questionTitle );
+    writer.insertText( 'Answer 1', checkboxLabel );
+    //writer.insertText( 'Answer Title', answerTitle );
     writer.insertText( 'Answer body', answerParagraph );
 
     return checklistQuestion;

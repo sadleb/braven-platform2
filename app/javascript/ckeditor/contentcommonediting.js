@@ -1,4 +1,5 @@
 import Plugin from '@ckeditor/ckeditor5-core/src/plugin';
+import { enablePlaceholder } from '@ckeditor/ckeditor5-engine/src/view/placeholder';
 import { toWidget, toWidgetEditable } from '@ckeditor/ckeditor5-widget/src/utils';
 import Widget from '@ckeditor/ckeditor5-widget/src/widget';
 
@@ -27,6 +28,12 @@ export default class ContentCommonEditing extends Plugin {
         } );
 
         schema.register( 'questionTitle', {
+            isLimit: true,
+            allowIn: 'question',
+            allowContentOf: '$block'
+        } );
+
+        schema.register( 'questionBody', {
             isLimit: true,
             allowIn: 'question',
             allowContentOf: '$block'
@@ -141,6 +148,12 @@ export default class ContentCommonEditing extends Plugin {
                 const h5 = viewWriter.createEditableElement( 'h5', {
                 } );
 
+                enablePlaceholder( {
+                    view: editing.view,
+                    element: h5,
+                    text: 'Question Title'
+                } );
+
                 return toWidgetEditable( h5, viewWriter );
             }
         } );
@@ -231,6 +244,12 @@ export default class ContentCommonEditing extends Plugin {
             view: ( modelElement, viewWriter ) => {
                 const h5 = viewWriter.createEditableElement( 'h5', {} );
 
+                enablePlaceholder( {
+                    view: editing.view,
+                    element: h5,
+                    text: 'Answer Title'
+                } );
+
                 return toWidgetEditable( h5, viewWriter );
             }
         } );
@@ -252,6 +271,12 @@ export default class ContentCommonEditing extends Plugin {
             model: 'answerText',
             view: ( modelElement, viewWriter ) => {
                 const div = viewWriter.createEditableElement( 'div', {} );
+
+                enablePlaceholder( {
+                    view: editing.view,
+                    element: div,
+                    text: 'Answer body'
+                } );
 
                 return toWidgetEditable( div, viewWriter );
             }
