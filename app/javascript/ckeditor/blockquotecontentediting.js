@@ -1,4 +1,5 @@
 import Plugin from '@ckeditor/ckeditor5-core/src/plugin';
+import { enablePlaceholder } from '@ckeditor/ckeditor5-engine/src/view/placeholder';
 import { toWidget, toWidgetEditable } from '@ckeditor/ckeditor5-widget/src/utils';
 import Widget from '@ckeditor/ckeditor5-widget/src/widget';
 import InsertBlockquoteContentCommand from './insertblockquotecontentcommand';
@@ -115,6 +116,13 @@ export default class BlockquoteContentEditing extends Plugin {
             model: 'blockquoteCitation',
             view: ( modelElement, viewWriter ) => {
                 const small = viewWriter.createEditableElement( 'small' );
+
+                enablePlaceholder( {
+                    view: editing.view,
+                    element: small,
+                    text: 'Citation'
+                } );
+
 
                 return toWidgetEditable( small, viewWriter );
             }

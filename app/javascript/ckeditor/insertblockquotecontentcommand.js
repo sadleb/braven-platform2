@@ -34,7 +34,6 @@ function createBlockquoteContent( writer, id ) {
     // There must be at least one paragraph for the description to be editable.
     // See https://github.com/ckeditor/ckeditor5/issues/1464.
     writer.insertText( 'Quote', paragraph );
-    writer.insertText( 'Citation', citation );
 
     return blockquoteContent;
 }
