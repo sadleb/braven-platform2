@@ -45,7 +45,6 @@ export default class InsertMatchingQuestionCommand extends Command {
     writer.append( matchingTableCell23, matchingTableRow2 );
 
     // Add text to empty editables, to get around the lack of placeholder support.
-    writer.insertText( 'Question?', questionTitle );
     writer.insertText( 'Title', matchingTableCell11 );
     writer.insertText( 'Text', matchingTableCell12 );
     writer.insertText( 'Text', matchingTableCell13 );
