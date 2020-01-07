@@ -45,6 +45,7 @@ import ContentPartPreviewEditing from '../ckeditor/contentpartpreviewediting';
 import ContentCommonEditing from '../ckeditor/contentcommonediting';
 import ChecklistQuestionEditing from '../ckeditor/checklistquestionediting';
 import RadioQuestionEditing from '../ckeditor/radioquestionediting';
+import TextAreaQuestionEditing from '../ckeditor/textareaquestionediting';
 import MatchingQuestionEditing from '../ckeditor/matchingquestionediting';
 import TableContentEditing from '../ckeditor/tablecontentediting';
 import BlockquoteContentEditing from '../ckeditor/blockquotecontentediting';
@@ -84,6 +85,7 @@ BalloonEditor.builtinPlugins = [
     ContentCommonEditing,
     ChecklistQuestionEditing,
     RadioQuestionEditing,
+    TextAreaQuestionEditing,
     MatchingQuestionEditing,
     TableContentEditing,
     BlockquoteContentEditing,
@@ -369,6 +371,26 @@ class ContentEditor extends Component {
                                                 this.editor.editing.view.focus();
                                             }}
                                             {...{name: 'Matching Question', id: uuidv4()}}
+                                        />
+                                        <ContentPartPreview
+                                            id="23"
+                                            key="23"
+                                            enabled={this.state.enabledCommands.includes('insertTextAreaQuestion')}
+                                            onClick={( id ) => {
+                                                this.editor.execute( 'insertTextAreaQuestion', id );
+                                                this.editor.editing.view.focus();
+                                            }}
+                                            {...{name: 'Text Area Question', id: uuidv4()}}
+                                        />
+                                        <ContentPartPreview
+                                            id="24"
+                                            key="24"
+                                            enabled={this.state.enabledCommands.includes('insertTextArea')}
+                                            onClick={( id ) => {
+                                                this.editor.execute( 'insertTextArea', id );
+                                                this.editor.editing.view.focus();
+                                            }}
+                                            {...{name: 'Text Area', id: uuidv4()}}
                                         />
                                         <input
                                             type="file"

@@ -81,6 +81,12 @@ export default class ContentCommonEditing extends Plugin {
             allowAttributes: [ 'data-bz-retained' ],
             allowIn: '$root',
         } );
+
+        schema.register( 'textArea', {
+            isObject: true,
+            allowAttributes: [ 'data-bz-retained' ],
+            allowIn: [ '$root', 'checkboxDiv', 'radioDiv', 'tableCell', 'questionForm' ],
+        } );
     }
 
     _defineConverters() {
@@ -348,6 +354,36 @@ export default class ContentCommonEditing extends Plugin {
                     'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
                 } );
                 return toWidget( input, viewWriter );
+            }
+        } );
+
+        // <textArea> converters
+        conversion.for( 'upcast' ).elementToElement( {
+            view: {
+                name: 'textarea',
+            },
+            model: ( viewElement, modelWriter ) => {
+                return modelWriter.createElement( 'textArea', {
+                    'data-bz-retained': viewElement.getAttribute('data-bz-retained'),
+                } );
+            }
+        } );
+        conversion.for( 'dataDowncast' ).elementToElement( {
+            model: 'textArea',
+            view: ( modelElement, viewWriter ) => {
+                const textarea = viewWriter.createEmptyElement( 'textarea', {
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                } );
+                return textarea;
+            }
+        } );
+        conversion.for( 'editingDowncast' ).elementToElement( {
+            model: 'textArea',
+            view: ( modelElement, viewWriter ) => {
+                const textarea = viewWriter.createEmptyElement( 'textarea', {
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                } );
+                return toWidget( textarea, viewWriter );
             }
         } );
     }
