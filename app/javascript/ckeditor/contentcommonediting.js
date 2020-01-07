@@ -36,7 +36,7 @@ export default class ContentCommonEditing extends Plugin {
         schema.register( 'questionBody', {
             isLimit: true,
             allowIn: 'question',
-            allowContentOf: '$block'
+            allowContentOf: '$root'
         } );
 
         schema.register( 'questionForm', {
@@ -155,6 +155,35 @@ export default class ContentCommonEditing extends Plugin {
                 } );
 
                 return toWidgetEditable( h5, viewWriter );
+            }
+        } );
+
+        // <questionBody> converters
+        conversion.for( 'upcast' ).elementToElement( {
+            model: 'questionBody',
+            view: {
+                name: 'div'
+            }
+        } );
+        conversion.for( 'dataDowncast' ).elementToElement( {
+            model: 'questionBody',
+            view: {
+                name: 'div'
+            }
+        } );
+        conversion.for( 'editingDowncast' ).elementToElement( {
+            model: 'questionBody',
+            view: ( modelElement, viewWriter ) => {
+                const div = viewWriter.createEditableElement( 'div', {} );
+
+                enablePlaceholder( {
+                    view: editing.view,
+                    element: div,
+                    text: 'Question body',
+                    isDirectHost: false
+                } );
+
+                return toWidgetEditable( div, viewWriter );
             }
         } );
 

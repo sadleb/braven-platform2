@@ -22,6 +22,7 @@ function createRadioQuestion( writer, id ) {
     const radioQuestion = writer.createElement( 'radioQuestion', {id} );
     const question = writer.createElement( 'question' );
     const questionTitle = writer.createElement( 'questionTitle' );
+    const questionBody = writer.createElement( 'questionBody' );
     const questionForm = writer.createElement( 'questionForm' );
     const questionFieldset = writer.createElement( 'questionFieldset' );
     const radioDiv = writer.createElement( 'radioDiv' );
@@ -31,10 +32,13 @@ function createRadioQuestion( writer, id ) {
     const answer = writer.createElement( 'answer' );
     const answerTitle = writer.createElement( 'answerTitle' );
     const answerText = writer.createElement( 'answerText' );
+
+    const questionParagraph = writer.createElement( 'paragraph' );
     const answerParagraph = writer.createElement( 'paragraph' );
 
     writer.append( question, radioQuestion );
     writer.append( questionTitle, question );
+    writer.append( questionBody, question );
     writer.append( questionForm, question );
     writer.append( questionFieldset, questionForm );
     writer.append( radioDiv, questionFieldset );
@@ -46,6 +50,7 @@ function createRadioQuestion( writer, id ) {
     writer.append( answerText, answer );
     // There must be at least one paragraph for the description to be editable.
     // See https://github.com/ckeditor/ckeditor5/issues/1464.
+    writer.append( questionParagraph, questionBody );
     writer.append( answerParagraph, answerText );
 
     // Add text to empty editables where placeholders don't work.
