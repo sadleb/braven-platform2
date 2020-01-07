@@ -32,6 +32,16 @@ export default class ChecklistQuestionEditing extends Plugin {
             }
         });
 
+        // Override the default 'enter' key behavior for checkbox inline feedback.
+        this.listenTo( this.editor.editing.view.document, 'enter', ( evt, data ) => {
+            const positionParent = this.editor.model.document.selection.getLastPosition().parent;
+            if ( positionParent.name == 'checkboxInlineFeedback' ) {
+                // Just ignore it, we don't want to do anything.
+                data.preventDefault();
+                evt.stop();
+            }
+        });
+
     }
 
     _defineSchema() {
@@ -58,6 +68,11 @@ export default class ChecklistQuestionEditing extends Plugin {
             allowIn: 'checkboxDiv',
             allowContentOf: '$block',
             allowAttributes: [ 'for' ]
+        } );
+
+        schema.register( 'checkboxInlineFeedback', {
+            allowIn: 'checkboxDiv',
+            allowContentOf: '$block'
         } );
 
         schema.addChildCheck( ( context, childDefinition ) => {
@@ -235,6 +250,45 @@ export default class ChecklistQuestionEditing extends Plugin {
                 } );
 
                 return toWidgetEditable( label, viewWriter );
+            }
+        } );
+
+        // <checkboxInlineFeedback> converters
+        conversion.for( 'upcast' ).elementToElement( {
+            view: {
+                name: 'p',
+                classes: ['inline', 'feedback']
+            },
+            model: ( viewElement, modelWriter ) => {
+                return modelWriter.createElement( 'checkboxInlineFeedback', {
+                } );
+            }
+
+        } );
+        conversion.for( 'dataDowncast' ).elementToElement( {
+            model: 'checkboxInlineFeedback',
+            view: ( modelElement, viewWriter ) => {
+                const p = viewWriter.createEditableElement( 'p', {
+                    'class': 'feedback inline',
+                } );
+
+                return p;
+            }
+        } );
+        conversion.for( 'editingDowncast' ).elementToElement( {
+            model: 'checkboxInlineFeedback',
+            view: ( modelElement, viewWriter ) => {
+                const p = viewWriter.createEditableElement( 'p', {
+                    'class': 'feedback inline',
+                } );
+
+                enablePlaceholder( {
+                    view: editing.view,
+                    element: p,
+                    text: 'Inline feedback (optional)'
+                } );
+
+                return toWidgetEditable( p, viewWriter );
             }
         } );
     }

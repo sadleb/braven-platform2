@@ -3,9 +3,9 @@ import Command from '@ckeditor/ckeditor5-core/src/command';
 export default class InsertChecklistQuestionCommand extends Command {
     execute( id ) {
         this.editor.model.change( writer => {
-            // Insert <checklistQuestion id="...">*</checklistQuestion> at the current selection position
-            // in a way which will result in creating a valid model structure.
-            this.editor.model.insertContent( createChecklistQuestion( writer, id ) );
+            const { checklistQuestion, selection } = createChecklistQuestion( writer, id );
+            this.editor.model.insertContent( checklistQuestion );
+            writer.setSelection( selection );
         } );
     }
 
@@ -27,6 +27,7 @@ function createChecklistQuestion( writer, id ) {
     const checkboxDiv = writer.createElement( 'checkboxDiv' );
     const checkboxInput = writer.createElement( 'checkboxInput' );
     const checkboxLabel = writer.createElement( 'checkboxLabel' );
+    const checkboxInlineFeedback = writer.createElement( 'checkboxInlineFeedback' );
     const answer = writer.createElement( 'answer' );
     const answerTitle = writer.createElement( 'answerTitle' );
     const answerText = writer.createElement( 'answerText' );
@@ -39,6 +40,7 @@ function createChecklistQuestion( writer, id ) {
     writer.append( checkboxDiv, questionFieldset );
     writer.append( checkboxInput, checkboxDiv );
     writer.append( checkboxLabel, checkboxDiv );
+    writer.append( checkboxInlineFeedback, checkboxDiv );
     writer.append( answer, checklistQuestion );
     writer.append( answerTitle, answer );
     writer.append( answerText, answer );
@@ -47,7 +49,10 @@ function createChecklistQuestion( writer, id ) {
     writer.append( answerParagraph, answerText );
 
     // Add text to empty editables where placeholders don't work.
-    writer.insertText( 'Answer 1', checkboxLabel );
+    writer.insertText( 'Checkbox label', checkboxLabel );
 
-    return checklistQuestion;
+    // Return the created element and desired selection position.
+    const selection = writer.createPositionAt( questionTitle, 0 );
+
+    return { checklistQuestion, selection };
 }

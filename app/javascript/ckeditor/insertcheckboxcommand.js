@@ -26,9 +26,14 @@ function createCheckbox( writer, id ) {
     const checkboxDiv = writer.createElement( 'checkboxDiv' , {id} );
     const checkboxInput = writer.createElement( 'checkboxInput' );
     const checkboxLabel = writer.createElement( 'checkboxLabel' );
+    const checkboxInlineFeedback = writer.createElement( 'checkboxInlineFeedback' );
 
     writer.append( checkboxInput, checkboxDiv );
     writer.append( checkboxLabel, checkboxDiv );
+    writer.append( checkboxInlineFeedback, checkboxDiv );
+
+    // Add text to empty editables where placeholders don't work.
+    writer.insertText( 'Checkbox label', checkboxLabel );
 
     return checkboxDiv;
 }

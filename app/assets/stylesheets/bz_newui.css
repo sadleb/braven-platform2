@@ -985,10 +985,12 @@ figcaption {
 	margin-left: 0;
 }
 
+/* FIXME: disable this in ckeditor but not portal -- rshipp
 .revealable,
 .feedback {
 	display: none;
 }
+*/
 
 .show-answers .feedback {
 	display: block;
