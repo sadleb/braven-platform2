@@ -41,7 +41,6 @@ export default class ChecklistQuestionEditing extends Plugin {
                 evt.stop();
             }
         });
-
     }
 
     _defineSchema() {
