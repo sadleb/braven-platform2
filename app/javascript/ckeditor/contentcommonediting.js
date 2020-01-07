@@ -74,6 +74,13 @@ export default class ContentCommonEditing extends Plugin {
             allowIn: 'answer',
             allowContentOf: '$root'
         } );
+
+        // Misc elements
+        schema.register( 'textInput', {
+            isObject: true,
+            allowAttributes: [ 'data-bz-retained' ],
+            allowIn: '$root',
+        } );
     }
 
     _defineConverters() {
@@ -312,5 +319,36 @@ export default class ContentCommonEditing extends Plugin {
             }
         } );
 
+        // Misc elements
+
+        // <textInput> converters
+        conversion.for( 'upcast' ).elementToElement( {
+            view: {
+                name: 'input',
+            },
+            model: ( viewElement, modelWriter ) => {
+                return modelWriter.createElement( 'textInput', {
+                    'data-bz-retained': viewElement.getAttribute('data-bz-retained'),
+                } );
+            }
+        } );
+        conversion.for( 'dataDowncast' ).elementToElement( {
+            model: 'textInput',
+            view: ( modelElement, viewWriter ) => {
+                const input = viewWriter.createEmptyElement( 'input', {
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                } );
+                return input;
+            }
+        } );
+        conversion.for( 'editingDowncast' ).elementToElement( {
+            model: 'textInput',
+            view: ( modelElement, viewWriter ) => {
+                const input = viewWriter.createEmptyElement( 'input', {
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                } );
+                return toWidget( input, viewWriter );
+            }
+        } );
     }
 }

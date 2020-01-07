@@ -172,11 +172,12 @@ export default class RadioQuestionEditing extends Plugin {
         conversion.for( 'upcast' ).elementToElement( {
             view: {
                 name: 'input',
-                type: 'radio'
+                attributes: {
+                    type: 'radio'
+                }
             },
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'radioInput', {
-                    'type': 'radio',
                     'id': viewElement.getAttribute( 'id' ),
                     // HACK: Get the retained id of the question this radiobutton is inside.
                     'name': viewElement.parent.parent.parent.parent.parent.getAttribute('id')

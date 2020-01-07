@@ -172,7 +172,9 @@ export default class ChecklistQuestionEditing extends Plugin {
         conversion.for( 'upcast' ).elementToElement( {
             view: {
                 name: 'input',
-                type: 'checkbox'
+                attributes: {
+                    type: 'checkbox'
+                }
             },
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'checkboxInput', {
@@ -180,7 +182,6 @@ export default class ChecklistQuestionEditing extends Plugin {
                     'data-bz-retained': viewElement.getAttribute('data-bz-retained') || addRetainedDataID(viewElement)
                 } );
             }
-
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'checkboxInput',
@@ -216,7 +217,6 @@ export default class ChecklistQuestionEditing extends Plugin {
                     'for': viewElement.parent.getChild(0).getAttribute('id')
                 } );
             }
-
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'checkboxLabel',
