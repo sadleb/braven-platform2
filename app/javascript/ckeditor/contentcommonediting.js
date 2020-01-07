@@ -242,7 +242,7 @@ export default class ContentCommonEditing extends Plugin {
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'answerTitle',
             view: ( modelElement, viewWriter ) => {
-                const h5 = viewWriter.createEditableElement( 'h5', {} );
+                const h5 = viewWriter.createEmptyElement( 'h5', {} );
 
                 enablePlaceholder( {
                     view: editing.view,
@@ -250,7 +250,7 @@ export default class ContentCommonEditing extends Plugin {
                     text: 'Answer Title'
                 } );
 
-                return toWidgetEditable( h5, viewWriter );
+                return toWidget( h5, viewWriter );
             }
         } );
 
