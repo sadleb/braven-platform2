@@ -232,7 +232,7 @@ blockquote {
 .bz-module > div[data-replaced-with-page] > blockquote,
 .bz-module > blockquote {
 	background: bottom center no-repeat #D1AB5C;
-	background-image: url('images/bkg700-03.jpg');
+	background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/bkg700-03.jpg');
 	position: relative;
 	margin: 3em 0;
 	width: calc( 100% - 6em );
@@ -245,31 +245,31 @@ blockquote {
 
 .bz-module > div[data-replaced-with-page] > blockquote:nth-of-type(3n+0),
 .bz-module > blockquote:nth-of-type(3n+0) {
-	background-image: url('images/bkg700-02.jpg');
+	background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/bkg700-02.jpg');
 }
 
 .bz-module > div[data-replaced-with-page] > blockquote:nth-of-type(3n+1),
 .bz-module > blockquote:nth-of-type(3n+1) {
-	background-image: url('images/bkg700-01.jpg');
+	background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/bkg700-01.jpg');
 }
 blockquote.special:nth-of-type(5n+0) {
-  background-image: url('images/bkg-special-01.jpg');
+  background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/bkg-special-01.jpg');
   background-position: center center;
 }
 blockquote.special:nth-of-type(5n+1) {
-  background-image: url('images/bkg-special-02.jpg');
+  background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/bkg-special-02.jpg');
   background-position: center center;
 }
 blockquote.special:nth-of-type(5n+2) {
-  background-image: url('images/bkg-special-03.jpg');
+  background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/bkg-special-03.jpg');
   background-position: center center;
 }
 blockquote.special:nth-of-type(5n+3) {
-  background-image: url('images/bkg-special-04.jpg');
+  background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/bkg-special-04.jpg');
   background-position: center center;
 }
 blockquote.special:nth-of-type(5n+4) {
-  background-image: url('images/bkg-special-05.jpg');
+  background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/bkg-special-05.jpg');
   background-position: center center;
 }
 
@@ -778,11 +778,11 @@ progress[value]::-webkit-progress-bar {
 }
 
 .bz-course-part-module-box.completed::after {
-  background-image: url("dynamic-syllabus-icons-completed.png");
+  background-image: url("https://s3.amazonaws.com/canvas-prod-assets/images/dynamic-syllabus-icons-completed.png");
 }
 
 .bz-course-part-module-box.locked::after {
-  background-image: url("dynamic-syllabus-icons-locked.png");
+  background-image: url("https://s3.amazonaws.com/canvas-prod-assets/images/dynamic-syllabus-icons-locked.png");
 }
 
 .bz-course-part-module-box .bz-module-image {
@@ -1159,7 +1159,7 @@ figure {
 }
 
 .question {
-	background-image: url('images/lms-icons-04.png');
+	background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/lms-icons-04.png');
 }
 
 .question.survey-question {
@@ -1168,11 +1168,11 @@ figure {
 }
 
 .answer {
-	background-image: url('images/lms-icons-100.png');
+	background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/lms-icons-100.png');
 }
 
 .answer.correct {
-	background-image: url('images/lms-icons-99.png');
+	background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/lms-icons-99.png');
 }
 
 .bz-module .answer.correct .box-title {
@@ -1180,7 +1180,7 @@ figure {
 }
 
 .answer.incorrect {
-	background-image: url('images/lms-icons-98.png');
+	background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/lms-icons-98.png');
 }
 
 .bz-module .answer.incorrect .box-title {
@@ -1188,35 +1188,35 @@ figure {
 }
 
 .reflection {
-	background-image: url('images/lms-icons-14.png');
+	background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/lms-icons-14.png');
 }
 
 .video {
-	background-image: url('images/lms-icons-23.png');
+	background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/lms-icons-23.png');
 }
 
 .pulse {
-	background-image: url('images/lms-icons-30.png');
+	background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/lms-icons-30.png');
 }
 
 .alert {
-	background-image: url('images/lms-icons-11.png');
+	background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/lms-icons-11.png');
 }
 
 .key {
-	background-image: url('images/lms-icons-33.png');
+	background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/lms-icons-33.png');
 }
 
 .action {
-	background-image: url('images/lms-icons-41.png');
+	background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/lms-icons-41.png');
 }
 
 .values {
-	background-image: url('images/lms-icons-47.png');
+	background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/lms-icons-47.png');
 }
 
 .read {
-	background-image: url('images/lms-icons-read-56.png');
+	background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/lms-icons-read-56.png');
 }
 li input:not([type="button"]):not([type="radio"]):not([type="checkbox"]), li textarea {
  margin: 0.5em;
@@ -1634,7 +1634,7 @@ table [type="range"] {
     border-radius: 50px;
     position: absolute !important;
     top: 0;
-    background-image: url('images/lms-resources-icons.png?date=020119');
+    background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/lms-resources-icons.png?date=020119');
 }
 
 .bz-icons-list a::before {
