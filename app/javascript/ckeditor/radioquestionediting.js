@@ -1,4 +1,5 @@
 import Plugin from '@ckeditor/ckeditor5-core/src/plugin';
+import { enablePlaceholder } from '@ckeditor/ckeditor5-engine/src/view/placeholder';
 import { toWidget, toWidgetEditable } from '@ckeditor/ckeditor5-widget/src/utils';
 import Widget from '@ckeditor/ckeditor5-widget/src/widget';
 import InsertRadioQuestionCommand from './insertradioquestioncommand';
@@ -31,6 +32,15 @@ export default class RadioQuestionEditing extends Plugin {
             }
         });
 
+        // Override the default 'enter' key behavior for radio inline feedback.
+        this.listenTo( this.editor.editing.view.document, 'enter', ( evt, data ) => {
+            const positionParent = this.editor.model.document.selection.getLastPosition().parent;
+            if ( positionParent.name == 'radioInlineFeedback' ) {
+                // Just ignore it, we don't want to do anything.
+                data.preventDefault();
+                evt.stop();
+            }
+        });
     }
 
     _defineSchema() {
@@ -57,6 +67,11 @@ export default class RadioQuestionEditing extends Plugin {
             allowIn: 'radioDiv',
             allowContentOf: '$block',
             allowAttributes: [ 'for' ]
+        } );
+
+        schema.register( 'radioInlineFeedback', {
+            allowIn: 'radioDiv',
+            allowContentOf: '$block'
         } );
 
         schema.addChildCheck( ( context, childDefinition ) => {
@@ -224,7 +239,52 @@ export default class RadioQuestionEditing extends Plugin {
                     // editable to type doesn't also toggle the radio.
                 } );
 
+                enablePlaceholder( {
+                    view: editing.view,
+                    element: label,
+                    text: 'Answer text'
+                } );
+
                 return toWidgetEditable( label, viewWriter );
+            }
+        } );
+
+        // <radioInlineFeedback> converters
+        conversion.for( 'upcast' ).elementToElement( {
+            view: {
+                name: 'p',
+                classes: ['inline', 'feedback']
+            },
+            model: ( viewElement, modelWriter ) => {
+                return modelWriter.createElement( 'radioInlineFeedback', {
+                } );
+            }
+
+        } );
+        conversion.for( 'dataDowncast' ).elementToElement( {
+            model: 'radioInlineFeedback',
+            view: ( modelElement, viewWriter ) => {
+                const p = viewWriter.createEditableElement( 'p', {
+                    'class': 'feedback inline',
+                } );
+
+                return p;
+            }
+        } );
+        conversion.for( 'editingDowncast' ).elementToElement( {
+            model: 'radioInlineFeedback',
+            view: ( modelElement, viewWriter ) => {
+                const p = viewWriter.createEditableElement( 'p', {
+                    'class': 'feedback inline',
+                } );
+
+                enablePlaceholder( {
+                    view: editing.view,
+                    element: p,
+                    text: 'Inline feedback (optional)'
+                } );
+
+                return toWidgetEditable( p, viewWriter );
             }
         } );
     }

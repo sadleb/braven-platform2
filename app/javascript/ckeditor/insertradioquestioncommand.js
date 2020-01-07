@@ -27,6 +27,7 @@ function createRadioQuestion( writer, id ) {
     const radioDiv = writer.createElement( 'radioDiv' );
     const radioInput = writer.createElement( 'radioInput' );
     const radioLabel = writer.createElement( 'radioLabel' );
+    const radioInlineFeedback = writer.createElement( 'radioInlineFeedback' );
     const answer = writer.createElement( 'answer' );
     const answerTitle = writer.createElement( 'answerTitle' );
     const answerText = writer.createElement( 'answerText' );
@@ -39,6 +40,7 @@ function createRadioQuestion( writer, id ) {
     writer.append( radioDiv, questionFieldset );
     writer.append( radioInput, radioDiv );
     writer.append( radioLabel, radioDiv );
+    writer.append( radioInlineFeedback, radioDiv );
     writer.append( answer, radioQuestion );
     writer.append( answerTitle, answer );
     writer.append( answerText, answer );
@@ -46,8 +48,8 @@ function createRadioQuestion( writer, id ) {
     // See https://github.com/ckeditor/ckeditor5/issues/1464.
     writer.append( answerParagraph, answerText );
 
-    // Add text to empty editables, where placeholder doesn't work.
-    writer.insertText( 'Option 1', radioLabel );
+    // Add text to empty editables where placeholders don't work.
+    writer.insertText( 'Radio label', radioLabel );
 
     return radioQuestion;
 }
