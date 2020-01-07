@@ -118,20 +118,24 @@ export default class RadioQuestionEditing extends Plugin {
         conversion.for( 'upcast' ).elementToElement( {
             model: 'radioDiv',
             view: {
-                name: 'div'
+                name: 'div',
+                classes: ['module-radio-div']
             }
 
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'radioDiv',
             view: {
-                name: 'div'
+                name: 'div',
+                classes: ['module-radio-div']
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'radioDiv',
             view: ( modelElement, viewWriter ) => {
-                const div = viewWriter.createContainerElement( 'div', {} );
+                const div = viewWriter.createContainerElement( 'div', {
+                    'class': 'module-radio-div'
+                } );
 
                 const widgetContents = viewWriter.createUIElement(
                     'select',

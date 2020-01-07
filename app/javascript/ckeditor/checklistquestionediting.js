@@ -118,20 +118,24 @@ export default class ChecklistQuestionEditing extends Plugin {
         conversion.for( 'upcast' ).elementToElement( {
             model: 'checkboxDiv',
             view: {
-                name: 'div'
+                name: 'div',
+                classes: ['module-checkbox-div']
             }
 
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'checkboxDiv',
             view: {
-                name: 'div'
+                name: 'div',
+                classes: ['module-checkbox-div']
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'checkboxDiv',
             view: ( modelElement, viewWriter ) => {
-                const div = viewWriter.createContainerElement( 'div', {} );
+                const div = viewWriter.createContainerElement( 'div', {
+                    'class': 'module-checkbox-div'
+                } );
 
                 const widgetContents = viewWriter.createUIElement(
                     'select',
