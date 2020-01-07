@@ -31,16 +31,6 @@ export default class RadioQuestionEditing extends Plugin {
                 evt.stop();
             }
         });
-
-        // Override the default 'enter' key behavior for radio inline feedback.
-        this.listenTo( this.editor.editing.view.document, 'enter', ( evt, data ) => {
-            const positionParent = this.editor.model.document.selection.getLastPosition().parent;
-            if ( positionParent.name == 'radioInlineFeedback' ) {
-                // Just ignore it, we don't want to do anything.
-                data.preventDefault();
-                evt.stop();
-            }
-        });
     }
 
     _defineSchema() {
@@ -70,6 +60,7 @@ export default class RadioQuestionEditing extends Plugin {
         } );
 
         schema.register( 'radioInlineFeedback', {
+            isLimit: true,
             allowIn: 'radioDiv',
             allowContentOf: '$block'
         } );
