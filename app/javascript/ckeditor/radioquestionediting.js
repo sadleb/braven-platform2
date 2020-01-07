@@ -176,7 +176,10 @@ export default class RadioQuestionEditing extends Plugin {
             },
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'radioInput', {
-                    'id': viewElement.getAttribute( 'id' )
+                    'type': 'radio',
+                    'id': viewElement.getAttribute( 'id' ),
+                    // HACK: Get the retained id of the question this radiobutton is inside.
+                    'name': viewElement.parent.parent.parent.parent.parent.getAttribute('id')
                 } );
             }
 
@@ -186,7 +189,9 @@ export default class RadioQuestionEditing extends Plugin {
             view: ( modelElement, viewWriter ) => {
                 const input = viewWriter.createEmptyElement( 'input', {
                     'type': 'radio',
-                    'id': modelElement.getAttribute( 'id' )
+                    'id': modelElement.getAttribute( 'id' ),
+                    // HACK: Get the retained id of the question this radiobutton is inside.
+                    'name': modelElement.parent.parent.parent.parent.parent.getAttribute('id')
                 } );
                 return input;
             }
@@ -196,7 +201,9 @@ export default class RadioQuestionEditing extends Plugin {
             view: ( modelElement, viewWriter ) => {
                 const input = viewWriter.createEmptyElement( 'input', {
                     'type': 'radio',
-                    'id': modelElement.getAttribute( 'id' )
+                    'id': modelElement.getAttribute( 'id' ),
+                    // HACK: Get the retained id of the question this radiobutton is inside.
+                    'name': modelElement.parent.parent.parent.parent.parent.getAttribute('id')
                 } );
                 return toWidget( input, viewWriter );
             }
