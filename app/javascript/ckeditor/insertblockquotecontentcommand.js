@@ -3,9 +3,9 @@ import Command from '@ckeditor/ckeditor5-core/src/command';
 export default class InsertBlockquoteContentCommand extends Command {
     execute( id ) {
         this.editor.model.change( writer => {
-            // Insert <blockquoteContent id="...">*</blockquoteContent> at the current selection position
-            // in a way which will result in creating a valid model structure.
-            this.editor.model.insertContent( createBlockquoteContent( writer, id ) );
+            const { blockquoteContent, selection } = createBlockquoteContent( writer, id );
+            this.editor.model.insertContent( blockquoteContent );
+            writer.setSelection( selection );
         } );
     }
 
@@ -35,5 +35,8 @@ function createBlockquoteContent( writer, id ) {
     // See https://github.com/ckeditor/ckeditor5/issues/1464.
     writer.insertText( 'Quote', paragraph );
 
-    return blockquoteContent;
+    // Return the created element and desired selection position.
+    const selection = writer.createPositionAt( paragraph, 0 );
+
+    return { blockquoteContent, selection };
 }
