@@ -90,7 +90,7 @@ export default class ContentCommonEditing extends Plugin {
         // Misc elements
         schema.register( 'textInput', {
             isObject: true,
-            allowAttributes: [ 'data-bz-retained' ],
+            allowAttributes: [ 'data-bz-retained', 'type' ],
             allowIn: '$root',
         } );
 
@@ -98,6 +98,12 @@ export default class ContentCommonEditing extends Plugin {
             isObject: true,
             allowAttributes: [ 'data-bz-retained' ],
             allowIn: [ '$root', 'checkboxDiv', 'radioDiv', 'tableCell', 'questionForm' ],
+        } );
+
+        schema.register( 'fileUpload', {
+            isObject: true,
+            allowAttributes: [ 'class', 'data-bz-retained', 'data-bz-share-release', 'type' ],
+            allowIn: [ '$root' ],
         } );
     }
 
@@ -405,6 +411,9 @@ export default class ContentCommonEditing extends Plugin {
         conversion.for( 'upcast' ).elementToElement( {
             view: {
                 name: 'input',
+                attributes: {
+                    'type': 'text'
+                }
             },
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'textInput', {
@@ -416,6 +425,7 @@ export default class ContentCommonEditing extends Plugin {
             model: 'textInput',
             view: ( modelElement, viewWriter ) => {
                 const input = viewWriter.createEmptyElement( 'input', {
+                    'type': 'text',
                     'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
                 } );
                 return input;
@@ -425,6 +435,7 @@ export default class ContentCommonEditing extends Plugin {
             model: 'textInput',
             view: ( modelElement, viewWriter ) => {
                 const input = viewWriter.createEmptyElement( 'input', {
+                    'type': 'text',
                     'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
                 } );
                 return toWidget( input, viewWriter );
@@ -458,6 +469,47 @@ export default class ContentCommonEditing extends Plugin {
                     'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
                 } );
                 return toWidget( textarea, viewWriter );
+            }
+        } );
+
+        // <fileUpload> converters
+        conversion.for( 'upcast' ).elementToElement( {
+            view: {
+                name: 'input',
+                classes: [ 'bz-optional-magic-field' ],
+                attributes: {
+                    'type': 'file',
+                }
+            },
+            model: ( viewElement, modelWriter ) => {
+                return modelWriter.createElement( 'fileUpload', {
+                    'data-bz-retained': viewElement.getAttribute('data-bz-retained'),
+                    'data-bz-share-release': viewElement.getAttribute('data-bz-share-release') || '',
+                } );
+            }
+        } );
+        conversion.for( 'dataDowncast' ).elementToElement( {
+            model: 'fileUpload',
+            view: ( modelElement, viewWriter ) => {
+                const input = viewWriter.createEmptyElement( 'input', {
+                    'type': 'file',
+                    'class': 'bz-optional-magic-field',
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'data-bz-share-release': modelElement.getAttribute('data-bz-share-release') || '',
+                } );
+                return input;
+            }
+        } );
+        conversion.for( 'editingDowncast' ).elementToElement( {
+            model: 'fileUpload',
+            view: ( modelElement, viewWriter ) => {
+                const input = viewWriter.createEmptyElement( 'input', {
+                    'type': 'file',
+                    'class': 'bz-optional-magic-field',
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'data-bz-share-release': modelElement.getAttribute('data-bz-share-release') || '',
+                } );
+                return toWidget( input, viewWriter );
             }
         } );
     }
