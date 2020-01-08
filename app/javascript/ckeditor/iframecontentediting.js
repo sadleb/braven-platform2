@@ -75,6 +75,7 @@ export default class IFrameContentEditing extends Plugin {
         conversion.for( 'upcast' ).elementToElement( {
             view: {
                 name: 'iframe',
+                classes: ['iframe-content']
             },
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'iframe', {
@@ -86,15 +87,18 @@ export default class IFrameContentEditing extends Plugin {
             model: 'iframe',
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createEditableElement( 'iframe', {
-                    'src': modelElement.getAttribute( 'src' )
+                    'src': modelElement.getAttribute( 'src' ),
+                    'class': 'iframe-content'
                 } );
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'iframe',
             view: ( modelElement, viewWriter ) => {
+                alert('here');
                 return viewWriter.createEditableElement( 'iframe', {
-                    'src': modelElement.getAttribute( 'src' )
+                    'src': modelElement.getAttribute( 'src' ),
+                    'class': 'iframe-content'
                 } );
             }
         } );

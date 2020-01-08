@@ -18,9 +18,21 @@ export default class ContentCommonEditing extends Plugin {
 
         schema.register( 'content', {
             isObject: true,
-            allowIn: ['blockquoteContent', 'tableContent', 'iframeContent'],
+            allowIn: ['blockquoteContent', 'tableContent', 'iframeContent', 'videoContent' ],
             allowContentOf: '$root'
         });
+
+        schema.register( 'contentTitle', {
+            isLimit: true,
+            allowIn: 'content',
+            allowContentOf: '$block'
+        } );
+
+        schema.register( 'contentBody', {
+            isLimit: true,
+            allowIn: 'content',
+            allowContentOf: '$root'
+        } );
 
         schema.register( 'question', {
             isObject: true,
@@ -115,6 +127,68 @@ export default class ContentCommonEditing extends Plugin {
                 const section = viewWriter.createContainerElement( 'div', { class: 'content' } );
 
                 return toWidget( section, viewWriter );
+            }
+        } );
+
+        // <contentTitle> converters
+        conversion.for( 'upcast' ).elementToElement( {
+            model: 'contentTitle',
+            view: {
+                name: 'h5'
+            }
+        } );
+        conversion.for( 'dataDowncast' ).elementToElement( {
+            model: 'contentTitle',
+            view: {
+                name: 'h5'
+            }
+        } );
+        conversion.for( 'editingDowncast' ).elementToElement( {
+            model: 'contentTitle',
+            view: ( modelElement, viewWriter ) => {
+                const h5 = viewWriter.createEditableElement( 'h5', {
+                } );
+
+                enablePlaceholder( {
+                    view: editing.view,
+                    element: h5,
+                    text: 'Content Title'
+                } );
+
+                return toWidgetEditable( h5, viewWriter );
+            }
+        } );
+
+        // <contentBody> converters
+        conversion.for( 'upcast' ).elementToElement( {
+            model: 'contentBody',
+            view: {
+                name: 'div',
+                classes: ['content-body']
+            }
+        } );
+        conversion.for( 'dataDowncast' ).elementToElement( {
+            model: 'contentBody',
+            view: {
+                name: 'div',
+                classes: ['content-body']
+            }
+        } );
+        conversion.for( 'editingDowncast' ).elementToElement( {
+            model: 'contentBody',
+            view: ( modelElement, viewWriter ) => {
+                const div = viewWriter.createEditableElement( 'div', {
+                    'class': 'content-body'
+                } );
+
+                enablePlaceholder( {
+                    view: editing.view,
+                    element: div,
+                    text: 'Content body',
+                    isDirectHost: false
+                } );
+
+                return toWidgetEditable( div, viewWriter );
             }
         } );
 

@@ -50,6 +50,7 @@ import MatchingQuestionEditing from '../ckeditor/matchingquestionediting';
 import TableContentEditing from '../ckeditor/tablecontentediting';
 import BlockquoteContentEditing from '../ckeditor/blockquotecontentediting';
 import IFrameContentEditing from '../ckeditor/iframecontentediting';
+import VideoContentEditing from '../ckeditor/videocontentediting';
 import SectionEditing from '../ckeditor/sectionediting';
 
 // React components to render the list of content parts and the content part preview.
@@ -90,6 +91,7 @@ BalloonEditor.builtinPlugins = [
     TableContentEditing,
     BlockquoteContentEditing,
     IFrameContentEditing,
+    VideoContentEditing,
     SectionEditing
 ];
 
@@ -438,7 +440,16 @@ class ContentEditor extends Component {
                                             }}
                                             {...{name: 'iFrame', id: uuidv4()}}
                                         />
-
+                                        <ContentPartPreview
+                                            id="34"
+                                            key="34"
+                                            enabled={this.state.enabledCommands.includes('insertVideoContent')}
+                                            onClick={( id ) => {
+                                                this.editor.execute( 'insertVideoContent', id, 'https://www.youtube.com/embed/yyRrKMb8oIg?rel=0' );
+                                                this.editor.editing.view.focus();
+                                            }}
+                                            {...{name: 'Video', id: uuidv4()}}
+                                        />
                                     </ul>
                                 </div>
                             </TabPanel>
