@@ -72,6 +72,20 @@ Note: Beware of modifying this element as it can break the animations - you shou
   background: rgba(0, 0, 0, 0.3);
 }
 
+/* --- Content Editor styles ----- */
+section.content-section {
+    border: 1px dashed grey;
+}
+
+div#wysiwyg-container {
+    max-height: 640px;
+    overflow-y: auto;
+}
+
+// overwrite reboot.css
+legend {
+    font-size: 1rem !important;
+}
 
 /* --- General.application styles --------------------------------------------------- */
 
