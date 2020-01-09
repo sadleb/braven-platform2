@@ -18,7 +18,7 @@ export default class ContentCommonEditing extends Plugin {
 
         schema.register( 'content', {
             isObject: true,
-            allowIn: ['blockquoteContent', 'tableContent', 'iframeContent', 'videoContent' ],
+            allowIn: [ 'blockquoteContent', 'tableContent', 'iframeContent', 'videoContent' ],
             allowContentOf: '$root'
         });
 
@@ -36,7 +36,11 @@ export default class ContentCommonEditing extends Plugin {
 
         schema.register( 'question', {
             isObject: true,
-            allowIn: ['checklistQuestion', 'radioQuestion', 'matchingQuestion'],
+            allowIn: [ 'checklistQuestion', 'radioQuestion', 'matchingQuestion' ],
+        } );
+
+        schema.extend( 'paragraph', {
+            allowIn: 'question'
         } );
 
         schema.register( 'questionTitle', {
@@ -63,7 +67,7 @@ export default class ContentCommonEditing extends Plugin {
             allowIn: 'questionForm',
         } );
 
-        schema.register( 'questionLegend', {
+        schema.register( 'legend', {
             // Cannot be split or left by the caret.
             isLimit: true,
             allowIn: 'questionFieldset',
@@ -72,7 +76,7 @@ export default class ContentCommonEditing extends Plugin {
 
         schema.register( 'answer', {
             isObject: true,
-            allowIn: ['checklistQuestion', 'radioQuestion']
+            allowIn: [ 'checklistQuestion', 'radioQuestion' ]
         } );
 
         schema.register( 'answerTitle', {
@@ -97,12 +101,18 @@ export default class ContentCommonEditing extends Plugin {
         schema.register( 'textArea', {
             isObject: true,
             allowAttributes: [ 'data-bz-retained' ],
-            allowIn: [ '$root', 'checkboxDiv', 'radioDiv', 'tableCell', 'questionForm' ],
+            allowIn: [ '$root', 'checkboxDiv', 'radioDiv', 'tableCell', 'questionFieldset' ],
         } );
 
         schema.register( 'fileUpload', {
             isObject: true,
             allowAttributes: [ 'class', 'data-bz-retained', 'data-bz-share-release', 'type' ],
+            allowIn: [ '$root' ],
+        } );
+
+        schema.register( 'slider', {
+            isObject: true,
+            allowAttributes: [ 'data-bz-retained', 'type', 'max', 'min', 'step' ],
             allowIn: [ '$root' ],
         } );
     }
@@ -130,9 +140,7 @@ export default class ContentCommonEditing extends Plugin {
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'content',
             view: ( modelElement, viewWriter ) => {
-                const section = viewWriter.createContainerElement( 'div', { class: 'content' } );
-
-                return toWidget( section, viewWriter );
+                return viewWriter.createContainerElement( 'div', { class: 'content' } );
             }
         } );
 
@@ -216,9 +224,7 @@ export default class ContentCommonEditing extends Plugin {
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'question',
             view: ( modelElement, viewWriter ) => {
-                const section = viewWriter.createContainerElement( 'div', { class: 'question' } );
-
-                return toWidget( section, viewWriter );
+                return viewWriter.createContainerElement( 'div', { class: 'question' } );
             }
         } );
 
@@ -296,9 +302,7 @@ export default class ContentCommonEditing extends Plugin {
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'questionForm',
             view: ( modelElement, viewWriter ) => {
-                const form = viewWriter.createContainerElement( 'form' );
-
-                return toWidget( form, viewWriter );
+                return viewWriter.createContainerElement( 'form' );
             }
         } );
 
@@ -318,9 +322,35 @@ export default class ContentCommonEditing extends Plugin {
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'questionFieldset',
             view: ( modelElement, viewWriter ) => {
-                const fieldset = viewWriter.createContainerElement( 'fieldset' );
+                return viewWriter.createContainerElement( 'fieldset' );
+            }
+        } );
 
-                return toWidget( fieldset, viewWriter );
+        // <questionLegend> converters
+        conversion.for( 'upcast' ).elementToElement( {
+            model: 'legend',
+            view: {
+                name: 'legend'
+            }
+        } );
+        conversion.for( 'dataDowncast' ).elementToElement( {
+            model: 'legend',
+            view: {
+                name: 'legend'
+            }
+        } );
+        conversion.for( 'editingDowncast' ).elementToElement( {
+            model: 'legend',
+            view: ( modelElement, viewWriter ) => {
+                const legend = viewWriter.createEditableElement( 'legend' );
+
+                enablePlaceholder( {
+                    view: editing.view,
+                    element: legend,
+                    text: 'Legend'
+                } );
+
+                return toWidgetEditable( legend, viewWriter );
             }
         } );
 
@@ -342,9 +372,7 @@ export default class ContentCommonEditing extends Plugin {
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'answer',
             view: ( modelElement, viewWriter ) => {
-                const section = viewWriter.createContainerElement( 'div', { class: 'answer' } );
-
-                return toWidget( section, viewWriter );
+                return viewWriter.createContainerElement( 'div', { class: 'answer' } );
             }
         } );
 
@@ -372,7 +400,7 @@ export default class ContentCommonEditing extends Plugin {
                     text: 'Answer Title'
                 } );
 
-                return toWidget( h5, viewWriter );
+                return h5;
             }
         } );
 
@@ -508,6 +536,53 @@ export default class ContentCommonEditing extends Plugin {
                     'class': 'bz-optional-magic-field',
                     'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
                     'data-bz-share-release': modelElement.getAttribute('data-bz-share-release') || '',
+                } );
+                return toWidget( input, viewWriter );
+            }
+        } );
+
+        // <slider> converters
+        conversion.for( 'upcast' ).elementToElement( {
+            view: {
+                name: 'input',
+                attributes: {
+                    'type': 'range',
+                }
+            },
+            model: ( viewElement, modelWriter ) => {
+                return modelWriter.createElement( 'slider', {
+                    'class': viewElement.getAttribute('class') || '',
+                    'data-bz-retained': viewElement.getAttribute('data-bz-retained'),
+                    'min': viewElement.getAttribute('min'),
+                    'max': viewElement.getAttribute('max'),
+                    'step': viewElement.getAttribute('step') || '',
+                } );
+            }
+        } );
+        conversion.for( 'dataDowncast' ).elementToElement( {
+            model: 'slider',
+            view: ( modelElement, viewWriter ) => {
+                const input = viewWriter.createEmptyElement( 'input', {
+                    'type': 'range',
+                    'class': modelElement.getAttribute('class') || '',
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'min': modelElement.getAttribute('min'),
+                    'max': modelElement.getAttribute('max'),
+                    'step': modelElement.getAttribute('step') || '',
+                } );
+                return input;
+            }
+        } );
+        conversion.for( 'editingDowncast' ).elementToElement( {
+            model: 'slider',
+            view: ( modelElement, viewWriter ) => {
+                const input = viewWriter.createEmptyElement( 'input', {
+                    'type': 'range',
+                    'class': modelElement.getAttribute('class') || '',
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'min': modelElement.getAttribute('min'),
+                    'max': modelElement.getAttribute('max'),
+                    'step': modelElement.getAttribute('step') || '',
                 } );
                 return toWidget( input, viewWriter );
             }

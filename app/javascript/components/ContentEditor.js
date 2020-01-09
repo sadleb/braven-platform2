@@ -46,6 +46,7 @@ import ContentCommonEditing from '../ckeditor/contentcommonediting';
 import ChecklistQuestionEditing from '../ckeditor/checklistquestionediting';
 import RadioQuestionEditing from '../ckeditor/radioquestionediting';
 import TextAreaQuestionEditing from '../ckeditor/textareaquestionediting';
+import RateThisModuleQuestionEditing from '../ckeditor/ratethismodulequestionediting';
 import MatchingQuestionEditing from '../ckeditor/matchingquestionediting';
 import TableContentEditing from '../ckeditor/tablecontentediting';
 import BlockquoteContentEditing from '../ckeditor/blockquotecontentediting';
@@ -87,6 +88,7 @@ BalloonEditor.builtinPlugins = [
     ChecklistQuestionEditing,
     RadioQuestionEditing,
     TextAreaQuestionEditing,
+    RateThisModuleQuestionEditing,
     MatchingQuestionEditing,
     TableContentEditing,
     BlockquoteContentEditing,
@@ -449,6 +451,16 @@ class ContentEditor extends Component {
                                                 this.editor.editing.view.focus();
                                             }}
                                             {...{name: 'Video', id: uuidv4()}}
+                                        />
+                                        <ContentPartPreview
+                                            id="99"
+                                            key="99"
+                                            enabled={this.state.enabledCommands.includes('insertRateThisModuleQuestion')}
+                                            onClick={( id ) => {
+                                                this.editor.execute( 'insertRateThisModuleQuestion', id );
+                                                this.editor.editing.view.focus();
+                                            }}
+                                            {...{name: 'Rate This Module', id: uuidv4()}}
                                         />
                                     </ul>
                                 </div>
