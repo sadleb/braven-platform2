@@ -898,7 +898,7 @@ progress[value]::-webkit-progress-bar {
 	margin-right: auto;
 }
 
-.bz-has-tooltip {
+.has-tooltip {
 	border-bottom: 2px dotted #5bbbba;
 	cursor: pointer; /* fallback */
 	cursor: help;

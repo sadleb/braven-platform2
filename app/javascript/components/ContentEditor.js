@@ -54,6 +54,8 @@ import IFrameContentEditing from '../ckeditor/iframecontentediting';
 import VideoContentEditing from '../ckeditor/videocontentediting';
 import SectionEditing from '../ckeditor/sectionediting';
 
+import Tooltip from '../ckeditor/tooltip';
+
 // React components to render the list of content parts and the content part preview.
 import ContentPartList from './ContentPartList';
 import ContentPartPreview from './ContentPartPreview';
@@ -75,6 +77,7 @@ BalloonEditor.builtinPlugins = [
     Indent,
     Italic,
     Link,
+    Tooltip,
     List,
     MediaEmbed,
     Paragraph,
@@ -123,6 +126,7 @@ BalloonEditor.defaultConfig = {
             'bold',
             'italic',
             'link',
+            'addTooltip',
             'bulletedList',
             'numberedList',
             '|',
