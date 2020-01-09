@@ -26,6 +26,10 @@ export default class TextAreaQuestionEditing extends Plugin {
             allowAttributes: [ 'data-bz-retained' ]
         } );
 
+        schema.extend( 'question', {
+            allowIn: 'textAreaQuestion'
+        } );
+
         schema.addChildCheck( ( context, childDefinition ) => {
             // Disallow adding questions inside answerText boxes.
             if ( context.endsWith( 'answerText' ) && childDefinition.name == 'textAreaQuestion' ) {
