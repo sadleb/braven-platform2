@@ -2555,31 +2555,31 @@ table.sort-to-match tr {
 	display: none;
 }
 
-.slider-container.likert-style {
+.slider-container.range {
 	display: table;
 	width: 100%;
 	border-spacing: 6px;
 }
 
-.slider-container.likert-style > * {
+.slider-container.range > * {
 	display: table-cell;
 	width: 50%;
 	vertical-align: middle;
 }
 
-.slider-container.likert-style > span {
+.slider-container.range > span {
 	width: 25%;
 }
 
-.slider-container.likert-style > span:first-child {
+.slider-container.range > span:first-child {
 	text-align: right;
 }
 
-.slider-container.likert-style > span:last-child {
+.slider-container.range > span:last-child {
 	text-align: left;
 }
 
-.slider-container.likert-style input[type=range] {
+.slider-container.range input[type=range] {
 	margin: auto;
 	width: 100%;
 }
