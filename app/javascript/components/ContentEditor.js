@@ -18,8 +18,6 @@ import Autoformat from '@ckeditor/ckeditor5-autoformat/src/autoformat';
 import BlockQuote from '@ckeditor/ckeditor5-block-quote/src/blockquote';
 import BlockToolbar from '@ckeditor/ckeditor5-ui/src/toolbar/block/blocktoolbar';
 import Bold from '@ckeditor/ckeditor5-basic-styles/src/bold';
-import CKFinder from '@ckeditor/ckeditor5-ckfinder/src/ckfinder';
-import EasyImage from '@ckeditor/ckeditor5-easy-image/src/easyimage';
 import Heading from '@ckeditor/ckeditor5-heading/src/heading';
 import Image from '@ckeditor/ckeditor5-image/src/image';
 import ImageCaption from '@ckeditor/ckeditor5-image/src/imagecaption';
@@ -36,10 +34,14 @@ import PasteFromOffice from '@ckeditor/ckeditor5-paste-from-office/src/pastefrom
 import Table from '@ckeditor/ckeditor5-table/src/table';
 import TableToolbar from '@ckeditor/ckeditor5-table/src/tabletoolbar';
 import Underline from '@ckeditor/ckeditor5-basic-styles/src/underline';
-import UploadAdapter from '@ckeditor/ckeditor5-adapter-ckfinder/src/uploadadapter';
+import SimpleUploadAdapter from '@ckeditor/ckeditor5-upload/src/adapters/simpleuploadadapter';
+
 
 // CKEditor plugin implementing a content part widget to be used in the editor content.
 import ContentPartPreviewEditing from '../ckeditor/contentpartpreviewediting';
+import ChecklistQuestionEditing from '../ckeditor/checklistquestionediting';
+//import RadioQuestionEditing from '../ckeditor/radioquestionediting';
+import SectionEditing from '../ckeditor/sectionediting';
 
 // React components to render the list of content parts and the content part preview.
 import ContentPartList from './ContentPartList';
@@ -53,8 +55,6 @@ BalloonEditor.builtinPlugins = [
     BlockQuote,
     BlockToolbar,
     Bold,
-    CKFinder,
-    EasyImage,
     Heading,
     Image,
     ImageCaption,
@@ -70,9 +70,12 @@ BalloonEditor.builtinPlugins = [
     PasteFromOffice,
     Table,
     TableToolbar,
-    UploadAdapter,
+    SimpleUploadAdapter,
 
-    ContentPartPreviewEditing
+    ContentPartPreviewEditing,
+    SectionEditing,
+    ChecklistQuestionEditing
+    //RadioQuestionEditing
 ];
 
 // Editor configuration.
@@ -129,6 +132,16 @@ BalloonEditor.defaultConfig = {
             'mergeTableCells'
         ]
     },
+    simpleUpload: {
+        // The URL that the images are uploaded to.
+        uploadUrl: '/image_upload_api',
+
+        // Headers sent along with the XMLHttpRequest to the upload server.
+        headers: {
+            //Authorization: 'Bearer <JSON Web Token>'
+            'X-CSRF-Token': Rails.csrfToken(),
+        }
+    },
     // This value must be kept in sync with the language defined in webpack.config.js.
     language: 'en'
 };
@@ -166,7 +179,15 @@ class ContentEditor extends Component {
 
         this.handleEditorDataChange = this.handleEditorDataChange.bind( this );
         this.handleEditorInit = this.handleEditorInit.bind( this );
+
+        this.fileUpload = React.createRef();
+        this.showFileUpload = this.showFileUpload.bind(this);
+
     }
+
+  showFileUpload() {
+    this.fileUpload.current.click();
+  }
 
     // A handler executed when the user types or modifies the editor content.
     // It updates the state of the application.
@@ -190,6 +211,9 @@ class ContentEditor extends Component {
     // It synchronizes the initial data state and saves the reference to the editor instance.
     handleEditorInit( editor ) {
         this.editor = editor;
+
+        // Store a reference to the editor in the window, just to make debugging easier.
+        window.editor = editor;
 
         this.setState( {
             editorData: editor.getData()
@@ -219,6 +243,7 @@ class ContentEditor extends Component {
                 // Note: it's important to handle errors here
                 // instead of a catch() block so that we don't swallow
                 // exceptions from actual bugs in components.
+                // TODO: We'll eventually want to actually handle errors, not just log them.
                 (error) => {
                     console.log(error);
                 }
@@ -272,14 +297,42 @@ class ContentEditor extends Component {
 
                             <TabPanel>
                                 <div id="toolbar-components">
-                                    <ContentPartList
-                                        key="content-part-list"
-                                        contentParts={this.props.contentParts}
-                                        onClick={( id ) => {
-                                            this.editor.execute( 'insertContentPart', id );
-                                            this.editor.editing.view.focus();
-                                        }}
-                                    />
+                                    <ul key="content-part-list" id="widget-list">
+                                        <ContentPartPreview
+                                            id="1"
+                                            key="1"
+                                            onClick={( id ) => {
+                                                this.editor.execute( 'insertSection', id );
+                                                this.editor.editing.view.focus();
+                                            }}
+                                            {...{name: 'Section', id: Math.floor(Math.random() * 1e16)}}
+                                        />
+                                        <ContentPartPreview
+                                            id="2"
+                                            key="2"
+                                            onClick={( id ) => {
+                                                this.editor.execute( 'insertChecklistQuestion', id );
+                                                this.editor.editing.view.focus();
+                                            }}
+                                            {...{name: 'Checklist Question', id: Math.floor(Math.random() * 1e16)}}
+                                        />
+                                        <input
+                                            type="file"
+                                            style={{ display: "none" }}
+                                            ref={this.fileUpload}
+                                            onChange={e => {
+                                                this.editor.execute( 'imageUpload', {file: e.target.files[0]} );
+                                                this.editor.editing.view.focus();
+                                            }}
+                                        />
+                                        <ContentPartPreview
+                                            id="3"
+                                            key="3"
+                                            onClick={this.showFileUpload}
+                                            {...{name: 'Image', id: Math.floor(Math.random() * 1e16)}}
+                                        />
+
+                                    </ul>
                                 </div>
                             </TabPanel>
                             <TabPanel>Not Implemented</TabPanel>

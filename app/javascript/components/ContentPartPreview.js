@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default class ContentPreview extends React.Component {
+export default class ContentPartPreview extends React.Component {
     render() {
         return (
             <li
