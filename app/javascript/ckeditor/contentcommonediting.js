@@ -3,6 +3,8 @@ import { enablePlaceholder } from '@ckeditor/ckeditor5-engine/src/view/placehold
 import { toWidget, toWidgetEditable } from '@ckeditor/ckeditor5-widget/src/utils';
 import Widget from '@ckeditor/ckeditor5-widget/src/widget';
 
+import { setupCustomAttributeConversion } from './utils';
+
 export default class ContentCommonEditing extends Plugin {
     static get requires() {
         return [ Widget ];
@@ -124,7 +126,6 @@ export default class ContentCommonEditing extends Plugin {
             allowIn: [ '$root' ],
             allowContentOf: '$root'
         } );
-
     }
 
     _defineConverters() {
