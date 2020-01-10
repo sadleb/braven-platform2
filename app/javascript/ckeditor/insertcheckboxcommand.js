@@ -8,7 +8,8 @@ export default class InsertCheckboxCommand extends Command {
             // add some extra logic here.
             // Before inserting, modify the current selection to after the checkboxDiv (the grandparent
             // of the current selection, iff the aforementioned assumption holds true).
-            writer.setSelection( this.editor.model.document.selection.focus.parent.parent, 'after' );
+            const grandparentCheckboxDiv = this.editor.model.document.selection.focus.parent.parent;
+            writer.setSelection( grandparentCheckboxDiv, 'after' );
             this.editor.model.insertContent( createCheckbox( writer, id ) );
         } );
     }

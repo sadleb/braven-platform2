@@ -8,7 +8,8 @@ export default class InsertRadioCommand extends Command {
             // add some extra logic here.
             // Before inserting, modify the current selection to after the radioDiv (the grandparent
             // of the current selection, iff the aforementioned assumption holds true).
-            writer.setSelection( this.editor.model.document.selection.focus.parent.parent, 'after' );
+            const grandparentRadioDiv = this.editor.model.document.selection.focus.parent.parent;
+            writer.setSelection( grandparentRadioDiv, 'after' );
             this.editor.model.insertContent( createRadio( writer, id ) );
         } );
     }
