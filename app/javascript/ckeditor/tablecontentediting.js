@@ -23,6 +23,10 @@ export default class TableContentEditing extends Plugin {
             allowIn: 'section',
             allowAttributes: [ 'id', 'class' ]
         } );
+
+        schema.extend( 'slider', {
+            allowIn: 'tableCell'
+        } );
     }
 
     _defineConverters() {

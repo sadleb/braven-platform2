@@ -43,12 +43,12 @@ export default class ChecklistQuestionEditing extends Plugin {
         } );
 
         schema.register( 'checkboxDiv', {
-            allowIn: 'questionFieldset',
+            allowIn: [ 'questionFieldset', 'tableCell' ],
         } );
 
         schema.register( 'checkboxInput', {
             isInline: true,
-            allowIn: 'checkboxDiv',
+            allowIn: [ 'checkboxDiv', 'tableCell' ],
             allowAttributes: [ 'id', 'name', 'value', 'data-bz-retained' ]
         } );
 

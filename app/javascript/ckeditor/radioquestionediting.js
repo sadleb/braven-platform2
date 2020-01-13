@@ -43,12 +43,12 @@ export default class RadioQuestionEditing extends Plugin {
         } );
 
         schema.register( 'radioDiv', {
-            allowIn: 'questionFieldset',
+            allowIn: [ 'questionFieldset' ]
         } );
 
         schema.register( 'radioInput', {
             isInline: true,
-            allowIn: 'radioDiv',
+            allowIn: [ 'radioDiv', 'tableCell' ],
             allowAttributes: [ 'id', 'name', 'value' ]
         } );
 
