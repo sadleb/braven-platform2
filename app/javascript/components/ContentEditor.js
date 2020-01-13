@@ -400,6 +400,16 @@ class ContentEditor extends Component {
                                             }}
                                             {...{name: 'Text Area', id: uuidv4()}}
                                         />
+                                        <ContentPartPreview
+                                            id="25"
+                                            key="25"
+                                            enabled={this.state.enabledCommands.includes('insertSlider')}
+                                            onClick={( id ) => {
+                                                this.editor.execute( 'insertSlider', id );
+                                                this.editor.editing.view.focus();
+                                            }}
+                                            {...{name: 'Slider', id: uuidv4()}}
+                                        />
                                         <input
                                             type="file"
                                             style={{ display: "none" }}
