@@ -16,7 +16,9 @@ export default class MatchingQuestionEditing extends Plugin {
         this.editor.commands.add( 'insertMatchingQuestion', new InsertMatchingQuestionCommand( this.editor ) );
         this.editor.commands.add( 'insertMatchingTableRow', new InsertMatchingTableRow( this.editor ) );
 
-        // Override the default 'enter' key behavior for checkbox labels.
+        // Override the default 'enter' key behavior for matching table cells.
+        // Default behavior is to insert a new paragraph inside the cell, but the behavior we want
+        // is to insert a new row below the current row.
         this.listenTo( this.editor.editing.view.document, 'enter', ( evt, data ) => {
             const positionParent = this.editor.model.document.selection.getLastPosition().parent;
             if ( positionParent.name == 'matchingTableCell' ) {
