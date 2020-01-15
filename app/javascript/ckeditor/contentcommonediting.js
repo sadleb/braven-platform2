@@ -16,6 +16,7 @@ export default class ContentCommonEditing extends Plugin {
     _defineSchema() {
         const schema = this.editor.model.schema;
 
+        // Shared elements.
         schema.register( 'content', {
             isObject: true,
             allowIn: [ 'blockquoteContent', 'tableContent', 'iframeContent', 'videoContent' ],
@@ -91,7 +92,7 @@ export default class ContentCommonEditing extends Plugin {
             allowContentOf: '$root'
         } );
 
-        // Misc elements
+        // Shared inputs.
         schema.register( 'textInput', {
             isObject: true,
             allowAttributes: [ 'data-bz-retained', 'type' ],
@@ -115,6 +116,15 @@ export default class ContentCommonEditing extends Plugin {
             allowAttributes: [ 'data-bz-retained', 'type', 'max', 'min', 'step' ],
             allowIn: [ '$root' ],
         } );
+
+        // Fallback elements.
+        schema.register( 'fallbackDiv', {
+            isObject: true,
+            allowAttributes: [ 'data-bz-retained', 'class' ],
+            allowIn: [ '$root' ],
+            allowContentOf: '$root'
+        } );
+
     }
 
     _defineConverters() {
@@ -585,6 +595,38 @@ export default class ContentCommonEditing extends Plugin {
                     'step': modelElement.getAttribute('step') || '',
                 } );
                 return toWidget( input, viewWriter );
+            }
+        } );
+
+        // <fallbackDiv> converters
+        conversion.for( 'upcast' ).elementToElement( {
+            view: {
+                name: 'div'
+            },
+            model: ( viewElement, modelWriter ) => {
+                return modelWriter.createElement( 'fallbackDiv', {
+                    'class': viewElement.getAttribute('class') || '',
+                    'data-bz-retained': viewElement.getAttribute('data-bz-retained') || '',
+                } );
+            }
+        } );
+        conversion.for( 'dataDowncast' ).elementToElement( {
+            model: 'fallbackDiv',
+            view: ( modelElement, viewWriter ) => {
+                return viewWriter.createContainerElement( 'div', {
+                    'class': modelElement.getAttribute('class') || '',
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                } );
+                return input;
+            }
+        } );
+        conversion.for( 'editingDowncast' ).elementToElement( {
+            model: 'fallbackDiv',
+            view: ( modelElement, viewWriter ) => {
+                return viewWriter.createContainerElement( 'div', {
+                    'class': modelElement.getAttribute('class') || '',
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || '',
+                } );
             }
         } );
     }
