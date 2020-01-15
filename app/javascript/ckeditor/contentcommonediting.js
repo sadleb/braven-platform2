@@ -606,8 +606,6 @@ export default class ContentCommonEditing extends Plugin {
             },
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'fallbackDiv', {
-                    'class': viewElement.getAttribute('class') || '',
-                    'data-bz-retained': viewElement.getAttribute('data-bz-retained') || '',
                 } );
             }
         } );
@@ -615,8 +613,6 @@ export default class ContentCommonEditing extends Plugin {
             model: 'fallbackDiv',
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createContainerElement( 'div', {
-                    'class': modelElement.getAttribute('class') || '',
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
                 } );
                 return input;
             }
@@ -625,8 +621,6 @@ export default class ContentCommonEditing extends Plugin {
             model: 'fallbackDiv',
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createContainerElement( 'div', {
-                    'class': modelElement.getAttribute('class') || '',
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || '',
                 } );
             }
         } );

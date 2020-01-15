@@ -11,8 +11,11 @@ export default class CustomElementClassPreservation extends Plugin {
         const editor = this.editor;
 
         // Define on which elements the CSS classes should be preserved:
-        setupCustomClassConversion( 'td', 'tableCell', editor );
         setupCustomClassConversion( 'p', 'paragraph', editor );
+        setupCustomClassConversion( 'div', 'fallbackDiv', editor );
+        setupCustomClassConversion( 'table', 'table', editor );
+        
+        editor.conversion.for( 'upcast' ).add( upcastCustomClasses( 'figure' ), { priority: 'low' } );
     }
 }
 
