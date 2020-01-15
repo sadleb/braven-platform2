@@ -344,8 +344,7 @@ class ContentEditor extends Component {
                                 <div id="toolbar-components">
                                     <ul key="content-part-list" id="widget-list">
                                         <ContentPartPreview
-                                            id="10"
-                                            key="10"
+                                            key="insertSection"
                                             enabled={this.state.enabledCommands.includes('insertSection')}
                                             onClick={( id ) => {
                                                 this.editor.execute( 'insertSection', id );
@@ -354,8 +353,7 @@ class ContentEditor extends Component {
                                             {...{name: 'Section', id: uuidv4()}}
                                         />
                                         <ContentPartPreview
-                                            id="20"
-                                            key="20"
+                                            key="insertChecklistQuestion"
                                             enabled={this.state.enabledCommands.includes('insertChecklistQuestion')}
                                             onClick={( id ) => {
                                                 this.editor.execute( 'insertChecklistQuestion', id );
@@ -364,8 +362,7 @@ class ContentEditor extends Component {
                                             {...{name: 'Checklist Question', id: uuidv4()}}
                                         />
                                         <ContentPartPreview
-                                            id="21"
-                                            key="21"
+                                            key="insertRadioQuestion"
                                             enabled={this.state.enabledCommands.includes('insertRadioQuestion')}
                                             onClick={( id ) => {
                                                 this.editor.execute( 'insertRadioQuestion', id );
@@ -374,8 +371,7 @@ class ContentEditor extends Component {
                                             {...{name: 'Radio Question', id: uuidv4()}}
                                         />
                                         <ContentPartPreview
-                                            id="22"
-                                            key="22"
+                                            key="insertMatchingQuestion"
                                             enabled={this.state.enabledCommands.includes('insertMatchingQuestion')}
                                             onClick={( id ) => {
                                                 this.editor.execute( 'insertMatchingQuestion', id );
@@ -384,8 +380,7 @@ class ContentEditor extends Component {
                                             {...{name: 'Matching Question', id: uuidv4()}}
                                         />
                                         <ContentPartPreview
-                                            id="23"
-                                            key="23"
+                                            key="insertTextAreaQuestion"
                                             enabled={this.state.enabledCommands.includes('insertTextAreaQuestion')}
                                             onClick={( id ) => {
                                                 this.editor.execute( 'insertTextAreaQuestion', id );
@@ -394,8 +389,7 @@ class ContentEditor extends Component {
                                             {...{name: 'Text Area Question', id: uuidv4()}}
                                         />
                                         <ContentPartPreview
-                                            id="24"
-                                            key="24"
+                                            key="insertTextArea"
                                             enabled={this.state.enabledCommands.includes('insertTextArea')}
                                             onClick={( id ) => {
                                                 this.editor.execute( 'insertTextArea', id );
@@ -404,8 +398,7 @@ class ContentEditor extends Component {
                                             {...{name: 'Text Area', id: uuidv4()}}
                                         />
                                         <ContentPartPreview
-                                            id="25"
-                                            key="25"
+                                            key="insertSlider"
                                             enabled={this.state.enabledCommands.includes('insertSlider')}
                                             onClick={( id ) => {
                                                 this.editor.execute( 'insertSlider', id );
@@ -423,15 +416,13 @@ class ContentEditor extends Component {
                                             }}
                                         />
                                         <ContentPartPreview
-                                            id="30"
-                                            key="30"
+                                            key="imageUpload"
                                             enabled={this.state.enabledCommands.includes('imageUpload')}
                                             onClick={this.showFileUpload}
                                             {...{name: 'Image', id: uuidv4()}}
                                         />
                                         <ContentPartPreview
-                                            id="31"
-                                            key="31"
+                                            key="insertTableContent"
                                             enabled={this.state.enabledCommands.includes('insertTableContent')}
                                             onClick={( id ) => {
                                                 this.editor.execute( 'insertTableContent', id , {rows: 2, columns: 2});
@@ -440,8 +431,7 @@ class ContentEditor extends Component {
                                             {...{name: 'Table', id: uuidv4()}}
                                         />
                                         <ContentPartPreview
-                                            id="32"
-                                            key="32"
+                                            key="insertBlockquoteContent"
                                             enabled={this.state.enabledCommands.includes('insertBlockquoteContent')}
                                             onClick={( id ) => {
                                                 this.editor.execute( 'insertBlockquoteContent', id );
@@ -450,8 +440,7 @@ class ContentEditor extends Component {
                                             {...{name: 'Quote', id: uuidv4()}}
                                         />
                                         <ContentPartPreview
-                                            id="33"
-                                            key="33"
+                                            key="insertIFrameContent"
                                             enabled={this.state.enabledCommands.includes('insertIFrameContent')}
                                             onClick={( id ) => {
                                                 this.editor.execute( 'insertIFrameContent', id, 'http://example.com' );
@@ -460,8 +449,7 @@ class ContentEditor extends Component {
                                             {...{name: 'iFrame', id: uuidv4()}}
                                         />
                                         <ContentPartPreview
-                                            id="34"
-                                            key="34"
+                                            key="insertVideoContent"
                                             enabled={this.state.enabledCommands.includes('insertVideoContent')}
                                             onClick={( id ) => {
                                                 this.editor.execute( 'insertVideoContent', id, 'https://www.youtube.com/embed/yyRrKMb8oIg?rel=0' );
@@ -470,8 +458,7 @@ class ContentEditor extends Component {
                                             {...{name: 'Video', id: uuidv4()}}
                                         />
                                         <ContentPartPreview
-                                            id="99"
-                                            key="99"
+                                            key="insertRateThisModuleQuestion"
                                             enabled={this.state.enabledCommands.includes('insertRateThisModuleQuestion')}
                                             onClick={( id ) => {
                                                 this.editor.execute( 'insertRateThisModuleQuestion', id );
