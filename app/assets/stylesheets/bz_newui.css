@@ -1634,7 +1634,7 @@ table [type="range"] {
     border-radius: 50px;
     position: absolute !important;
     top: 0;
-    background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/lms-resources-icons.png?date=020119');
+    background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/lms-resources-icons.png');
 }
 
 .bz-icons-list a::before {
