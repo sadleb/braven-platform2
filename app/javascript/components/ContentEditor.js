@@ -230,6 +230,9 @@ class ContentEditor extends Component {
         } );
     }
 
+    // A handler executed when the current selection changes inside the CKEditor view.
+    // It propogates state changes from CKEditor up to this React component, so we can
+    // update the UI accordingly.
     handleEditorFocusChange( ) {
         this.setState( {
             enabledCommands: [...this.editor.commands.names()].filter(x => this.editor.commands.get(x).isEnabled)
@@ -257,7 +260,7 @@ class ContentEditor extends Component {
             editorData: editor.getData()
         } );
 
-        // Attach the focus handler, and call it once.
+        // Attach the focus handler, and call it once to set the initial state of the right sidebar buttons.
         editor.editing.view.document.selection.on('change', this.handleEditorFocusChange);
         this.handleEditorFocusChange();
 
