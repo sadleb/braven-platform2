@@ -177,10 +177,13 @@ export default class RadioQuestionEditing extends Plugin {
                 }
             },
             model: ( viewElement, modelWriter ) => {
+                // All radio buttons in the same question must share the same 'name' attribute,
+                // so let's get a reference to the ancestor radio question block and use its ID.
+                const moduleBlockRadioDiv = viewElement.parent.parent.parent.parent.parent;
                 return modelWriter.createElement( 'radioInput', {
                     'id': viewElement.getAttribute( 'id' ),
                     // HACK: Get the retained id of the question this radiobutton is inside.
-                    'name': viewElement.parent.parent.parent.parent.parent.getAttribute('id')
+                    'name': moduleBlockRadioDiv.getAttribute('id')
                 } );
             }
 
@@ -188,11 +191,14 @@ export default class RadioQuestionEditing extends Plugin {
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'radioInput',
             view: ( modelElement, viewWriter ) => {
+                // All radio buttons in the same question must share the same 'name' attribute,
+                // so let's get a reference to the ancestor radio question block and use its ID.
+                const moduleBlockRadioDiv = modelElement.parent.parent.parent.parent.parent;
                 const input = viewWriter.createEmptyElement( 'input', {
                     'type': 'radio',
                     'id': modelElement.getAttribute( 'id' ),
                     // HACK: Get the retained id of the question this radiobutton is inside.
-                    'name': modelElement.parent.parent.parent.parent.parent.getAttribute('id')
+                    'name': moduleBlockRadioDiv.getAttribute('id')
                 } );
                 return input;
             }
@@ -200,11 +206,14 @@ export default class RadioQuestionEditing extends Plugin {
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'radioInput',
             view: ( modelElement, viewWriter ) => {
+                // All radio buttons in the same question must share the same 'name' attribute,
+                // so let's get a reference to the ancestor radio question block and use its ID.
+                const moduleBlockRadioDiv = modelElement.parent.parent.parent.parent.parent;
                 const input = viewWriter.createEmptyElement( 'input', {
                     'type': 'radio',
                     'id': modelElement.getAttribute( 'id' ),
                     // HACK: Get the retained id of the question this radiobutton is inside.
-                    'name': modelElement.parent.parent.parent.parent.parent.getAttribute('id')
+                    'name': moduleBlockRadioDiv.getAttribute('id')
                 } );
                 return toWidget( input, viewWriter );
             }
