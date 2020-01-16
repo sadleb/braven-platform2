@@ -11,8 +11,8 @@ export default class CustomElementClassPreservation extends Plugin {
         const editor = this.editor;
 
         // Define on which elements the CSS classes should be preserved:
-        setupCustomClassConversion( 'p', 'paragraph', editor );
-        setupCustomClassConversion( 'div', 'fallbackDiv', editor );
+        //setupCustomClassConversion( 'p', 'paragraph', editor );
+        //setupCustomClassConversion( 'div', 'fallbackDiv', editor );
         setupCustomClassConversion( 'table', 'table', editor );
         
         editor.conversion.for( 'upcast' ).add( upcastCustomClasses( 'figure' ), { priority: 'low' } );
@@ -30,7 +30,7 @@ function setupCustomClassConversion( viewElementName, modelElementName, editor )
     editor.conversion.for( 'upcast' ).add( upcastCustomClasses( viewElementName ), { priority: 'low' } );
 
     // Define downcast converters for a model element with a "low" priority so they are run after the default converters.
-    editor.conversion.for( 'downcast' ).add( downcastCustomClasses( modelElementName ), { priority: 'low' } );
+    editor.conversion.for( 'downcast' ).add( downcastCustomClasses( modelElementName, viewElementName ), { priority: 'low' } );
 }
 
 /**
@@ -61,7 +61,7 @@ function upcastCustomClasses( elementName ) {
  *
  * This converter expects that the view element is nested in a <figure> element.
  */
-function downcastCustomClasses( modelElementName ) {
+function downcastCustomClasses( modelElementName, viewElementName  ) {
     return dispatcher => dispatcher.on( `insert:${ modelElementName }`, ( evt, data, conversionApi ) => {
         const modelElement = data.item;
 
@@ -72,13 +72,13 @@ function downcastCustomClasses( modelElementName ) {
         }
 
         // The code below assumes that classes are set on the <figure> element...
-        conversionApi.writer.addClass( modelElement.getAttribute( 'customClass' ), viewFigure );
+        // conversionApi.writer.addClass( modelElement.getAttribute( 'customClass' ), viewFigure );
 
         // ... but if you prefer the classes to be passed to the <img> element, find the view element inside the <figure>:
-        //
-        // const viewElement = findViewChild( viewFigure, viewElementName, conversionApi );
-        //
-        // conversionApi.writer.addClass( modelElement.getAttribute( 'customClass' ), viewElement );
+
+        const viewElement = findViewChild( viewFigure, viewElementName, conversionApi );
+
+        conversionApi.writer.addClass( modelElement.getAttribute( 'customClass' ), viewElement );
     } );
 }
 
