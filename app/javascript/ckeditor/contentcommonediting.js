@@ -97,13 +97,13 @@ export default class ContentCommonEditing extends Plugin {
         // Shared inputs.
         schema.register( 'textInput', {
             isObject: true,
-            allowAttributes: [ 'data-bz-retained', 'type' ],
+            allowAttributes: [ 'data-bz-retained', 'type', 'placeholder' ],
             allowIn: '$root',
         } );
 
         schema.register( 'textArea', {
             isObject: true,
-            allowAttributes: [ 'data-bz-retained' ],
+            allowAttributes: [ 'data-bz-retained', 'placeholder' ],
             allowIn: [ '$root', 'checkboxDiv', 'radioDiv', 'tableCell', 'questionFieldset' ],
         } );
 
@@ -449,6 +449,7 @@ export default class ContentCommonEditing extends Plugin {
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'textInput', {
                     'data-bz-retained': viewElement.getAttribute('data-bz-retained'),
+                    'placeholder': viewElement.getAttribute('placeholder')
                 } );
             }
         } );
@@ -458,6 +459,7 @@ export default class ContentCommonEditing extends Plugin {
                 const input = viewWriter.createEmptyElement( 'input', {
                     'type': 'text',
                     'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'placeholder': modelElement.getAttribute('placeholder')
                 } );
                 return input;
             }
@@ -468,6 +470,7 @@ export default class ContentCommonEditing extends Plugin {
                 const input = viewWriter.createEmptyElement( 'input', {
                     'type': 'text',
                     'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'placeholder': modelElement.getAttribute('placeholder')
                 } );
                 return toWidget( input, viewWriter );
             }
@@ -481,6 +484,7 @@ export default class ContentCommonEditing extends Plugin {
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'textArea', {
                     'data-bz-retained': viewElement.getAttribute('data-bz-retained'),
+                    'placeholder': viewElement.getAttribute('placeholder')
                 } );
             }
         } );
@@ -489,6 +493,7 @@ export default class ContentCommonEditing extends Plugin {
             view: ( modelElement, viewWriter ) => {
                 const textarea = viewWriter.createEmptyElement( 'textarea', {
                     'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'placeholder': modelElement.getAttribute('placeholder')
                 } );
                 return textarea;
             }
@@ -498,6 +503,7 @@ export default class ContentCommonEditing extends Plugin {
             view: ( modelElement, viewWriter ) => {
                 const textarea = viewWriter.createEmptyElement( 'textarea', {
                     'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'placeholder': modelElement.getAttribute('placeholder')
                 } );
                 return toWidget( textarea, viewWriter );
             }
