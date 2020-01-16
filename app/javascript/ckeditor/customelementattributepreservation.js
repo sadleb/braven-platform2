@@ -149,11 +149,25 @@ function setupAllowedAttributePreservation( editor ) {
         allowContentOf: '$root'
     } );
 
+    // Allow <span> elements in the model.
+    editor.model.schema.register( 'span', {
+        allowWhere: '$block',
+        allowContentOf: '$block'
+    } );
+
     // View-to-model converter converting a view <div> with all its attributes to the model.
     editor.conversion.for( 'upcast' ).elementToElement( {
         view: 'div',
         model: ( viewElement, modelWriter ) => {
             return modelWriter.createElement( 'div', filterAllowedAttributes( viewElement.getAttributes() ) );
+        },
+    } );
+
+    // View-to-model converter converting a view <span> with all its attributes to the model.
+    editor.conversion.for( 'upcast' ).elementToElement( {
+        view: 'span',
+        model: ( viewElement, modelWriter ) => {
+            return modelWriter.createElement( 'span', filterAllowedAttributes( viewElement.getAttributes() ) );
         },
     } );
 
@@ -182,6 +196,12 @@ function setupAllowedAttributePreservation( editor ) {
     editor.conversion.for( 'downcast' ).elementToElement( {
         model: 'div',
         view: 'div'
+    } );
+
+    // Model-to-view converter for the <span> element (attrbiutes are converted separately).
+    editor.conversion.for( 'downcast' ).elementToElement( {
+        model: 'span',
+        view: 'span'
     } );
 
     // Model-to-view converter for all element attributes.
