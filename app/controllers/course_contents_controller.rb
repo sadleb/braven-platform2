@@ -12,10 +12,13 @@ class CourseContentsController < ApplicationController
 
   # GET /course_contents/new
   def new
+    @course_contents = CourseContent.all
+    @course_content = CourseContent.new
   end
 
   # GET /course_contents/1/edit
   def edit
+    @course_contents = CourseContent.all
   end
 
   # POST /course_contents

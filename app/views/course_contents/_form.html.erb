@@ -1,5 +1,11 @@
+<%= javascript_pack_tag 'sidebar' %>
+<%= javascript_pack_tag 'content_editor' %>
+
+<%= react_component('Sidebar', { 
+    courseContents: @course_contents
+}) %>
+
 <%= form_with(model: course_content, local: true) do |form| %>
-  <%= javascript_pack_tag 'content_editor' %>
 
   <% if course_content.errors.any? %>
     <div id="error_explanation">
@@ -13,7 +19,7 @@
     </div>
   <% end %>
 
-  <div class="field">
+  <div class="field" >
     <%= react_component('ContentEditor', { course_content: course_content,
         contentParts: [
             {
