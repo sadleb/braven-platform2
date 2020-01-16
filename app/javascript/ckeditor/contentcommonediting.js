@@ -98,13 +98,13 @@ export default class ContentCommonEditing extends Plugin {
         schema.register( 'textInput', {
             isObject: true,
             allowAttributes: [ 'data-bz-retained', 'type', 'placeholder' ],
-            allowIn: [ '$root', 'tableCell' ],
+            allowIn: [ '$root', '$block', 'tableCell' ],
         } );
 
         schema.register( 'textArea', {
             isObject: true,
             allowAttributes: [ 'data-bz-retained', 'placeholder' ],
-            allowIn: [ '$root', 'checkboxDiv', 'radioDiv', 'tableCell', 'questionFieldset' ],
+            allowIn: [ '$root', '$block', 'checkboxDiv', 'radioDiv', 'tableCell', 'questionFieldset' ],
         } );
 
         schema.register( 'fileUpload', {
