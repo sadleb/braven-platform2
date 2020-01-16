@@ -98,7 +98,7 @@ export default class ContentCommonEditing extends Plugin {
         schema.register( 'textInput', {
             isObject: true,
             allowAttributes: [ 'data-bz-retained', 'type', 'placeholder' ],
-            allowIn: '$root',
+            allowIn: [ '$root', 'tableCell' ],
         } );
 
         schema.register( 'textArea', {
