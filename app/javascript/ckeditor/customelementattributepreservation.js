@@ -2,7 +2,12 @@
 // and https://github.com/ckeditor/ckeditor5/issues/5569
 import Plugin from '@ckeditor/ckeditor5-core/src/plugin';
 
-export default class CustomElementClassPreservation extends Plugin {
+const ALLOWED_ATTRIBUTES = [
+    'class',
+    'data-bz-retained'
+]
+
+export default class CustomElementAttributePreservation extends Plugin {
     static get requires() {
         return [ ];
     }
@@ -10,10 +15,11 @@ export default class CustomElementClassPreservation extends Plugin {
     init() {
         const editor = this.editor;
 
-        // Define on which elements the CSS classes should be preserved:
-        //setupCustomClassConversion( 'p', 'paragraph', editor );
-        //setupCustomClassConversion( 'div', 'fallbackDiv', editor );
-        setupCustomClassConversion( 'table', 'table', editor );
+        // Enable custom attributes on several predefined elements (see function).
+        setupAllowedAttributePreservation( editor );
+
+        // Enable custom class on tables, within figures.
+        setupCustomFigureClassConversion( 'table', 'table', editor );
         
         editor.conversion.for( 'upcast' ).add( upcastCustomClasses( 'figure' ), { priority: 'low' } );
     }
@@ -22,7 +28,7 @@ export default class CustomElementClassPreservation extends Plugin {
 /**
  * Sets up a conversion that preservers classes on <img> and <table> elements.
  */
-function setupCustomClassConversion( viewElementName, modelElementName, editor ) {
+function setupCustomFigureClassConversion( viewElementName, modelElementName, editor ) {
     // The 'customClass' attribute will store custom classes from the data in the model so schema definitions allow this attribute.
     editor.model.schema.extend( modelElementName, { allowAttributes: [ 'customClass' ] } );
 
@@ -130,4 +136,81 @@ function downcastAttribute( modelElementName, viewElementName, viewAttribute, mo
 
         conversionApi.writer.setAttribute( viewAttribute, modelElement.getAttribute( modelAttribute ), viewElement );
     } );
+}
+
+// From https://ckeditor.com/docs/ckeditor5/latest/framework/guides/deep-dive/conversion/conversion-preserving-custom-content.html#loading-content-with-all-attributes
+function setupAllowedAttributePreservation( editor ) {
+    // Allow <div> elements in the model.
+    editor.model.schema.register( 'div', {
+        allowWhere: '$block',
+        allowContentOf: '$root'
+    } );
+
+    // View-to-model converter converting a view <div> with all its attributes to the model.
+    editor.conversion.for( 'upcast' ).elementToElement( {
+        view: 'div',
+        model: ( viewElement, modelWriter ) => {
+            return modelWriter.createElement( 'div', filterAllowedAttributes( viewElement.getAttributes() ) );
+        },
+    } );
+
+    // View-to-model converter converting a view <p> with all its attributes to the model.
+    editor.conversion.for( 'upcast' ).elementToElement( {
+        view: 'p',
+        model: ( viewElement, modelWriter ) => {
+        console.log(viewElement.getAttributes());
+            return modelWriter.createElement( 'paragraph', filterAllowedAttributes( viewElement.getAttributes() ) );
+        },
+        // Use high priority to overwrite existing paragraph converter.
+        converterPriority: 'high'
+    } );
+
+    // View-to-model converter converting a view <td> with all its attributes to the model.
+    editor.conversion.for( 'upcast' ).elementToElement( {
+        view: 'td',
+        model: ( viewElement, modelWriter ) => {
+            return modelWriter.createElement( 'tableCell', filterAllowedAttributes( viewElement.getAttributes() ) );
+        },
+        // Use high priority to overwrite existing tableCell converter.
+        converterPriority: 'high'
+    } );
+
+    // Model-to-view converter for the <div> element (attrbiutes are converted separately).
+    editor.conversion.for( 'downcast' ).elementToElement( {
+        model: 'div',
+        view: 'div'
+    } );
+
+    // Model-to-view converter for all element attributes.
+    // Note that a lower-level, event-based API is used here.
+    editor.conversion.for( 'downcast' ).add( dispatcher => {
+        dispatcher.on( 'attribute', ( evt, data, conversionApi ) => {
+
+            // Allow all elements in the model to have any of a preset list of attributes.
+            if ( ! ALLOWED_ATTRIBUTES.includes( data.attributeKey ) ) {
+                return;
+            }
+
+            const viewWriter = conversionApi.writer;
+            const viewElement = conversionApi.mapper.toViewElement( data.item );
+
+            // In the model-to-view conversion we convert changes.
+            // An attribute can be added or removed or changed.
+            // The below code handles all 3 cases.
+            if ( data.attributeNewValue ) {
+                viewWriter.setAttribute( data.attributeKey, data.attributeNewValue, viewElement );
+            } else {
+                viewWriter.removeAttribute( data.attributeKey, viewElement );
+            }
+        } );
+    } );
+}
+
+// Filter out attributes that aren't in ALLOWED_ATTRIBUTES.
+// Return a map of key:value pairs as expected by createElement.
+function filterAllowedAttributes( attributeGenerator ) {
+    return new Map( [...attributeGenerator].filter( item => {
+        // item == [key, value]
+        return ALLOWED_ATTRIBUTES.includes( item[0] );
+    } ) );
 }

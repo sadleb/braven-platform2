@@ -118,14 +118,6 @@ export default class ContentCommonEditing extends Plugin {
             allowAttributes: [ 'data-bz-retained', 'type', 'max', 'min', 'step' ],
             allowIn: [ '$root' ],
         } );
-
-        // Fallback elements.
-        schema.register( 'fallbackDiv', {
-            isObject: true,
-            allowAttributes: [ 'data-bz-retained', 'class' ],
-            allowIn: [ '$root' ],
-            allowContentOf: '$root'
-        } );
     }
 
     _defineConverters() {
@@ -596,32 +588,6 @@ export default class ContentCommonEditing extends Plugin {
                     'step': modelElement.getAttribute('step') || '',
                 } );
                 return toWidget( input, viewWriter );
-            }
-        } );
-
-        // <fallbackDiv> converters
-        conversion.for( 'upcast' ).elementToElement( {
-            view: {
-                name: 'div'
-            },
-            model: ( viewElement, modelWriter ) => {
-                return modelWriter.createElement( 'fallbackDiv', {
-                } );
-            }
-        } );
-        conversion.for( 'dataDowncast' ).elementToElement( {
-            model: 'fallbackDiv',
-            view: ( modelElement, viewWriter ) => {
-                return viewWriter.createContainerElement( 'div', {
-                } );
-                return input;
-            }
-        } );
-        conversion.for( 'editingDowncast' ).elementToElement( {
-            model: 'fallbackDiv',
-            view: ( modelElement, viewWriter ) => {
-                return viewWriter.createContainerElement( 'div', {
-                } );
             }
         } );
     }

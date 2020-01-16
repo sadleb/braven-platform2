@@ -55,7 +55,7 @@ import VideoContentEditing from '../ckeditor/videocontentediting';
 import SectionEditing from '../ckeditor/sectionediting';
 
 import Tooltip from '../ckeditor/tooltip';
-import CustomElementClassPreservation from '../ckeditor/customelementclasspreservation';
+import CustomElementAttributePreservation from '../ckeditor/customelementattributepreservation';
 
 // React components to render the list of content parts and the content part preview.
 import ContentPartList from './ContentPartList';
@@ -103,7 +103,7 @@ BalloonEditor.builtinPlugins = [
 
 // Editor configuration.
 BalloonEditor.defaultConfig = {
-    extraPlugins: [ CustomElementClassPreservation ],
+    extraPlugins: [ CustomElementAttributePreservation ],
     blockToolbar: [
         'heading',
         '|',
