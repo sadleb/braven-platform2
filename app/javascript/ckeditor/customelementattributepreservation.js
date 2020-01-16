@@ -22,6 +22,9 @@ export default class CustomElementAttributePreservation extends Plugin {
         setupCustomFigureClassConversion( 'table', 'table', editor );
         
         editor.conversion.for( 'upcast' ).add( upcastCustomClasses( 'figure' ), { priority: 'low' } );
+
+        // Enable <a class="..." />
+        allowLinkClass( editor );
     }
 }
 
@@ -213,4 +216,32 @@ function filterAllowedAttributes( attributeGenerator ) {
         // item == [key, value]
         return ALLOWED_ATTRIBUTES.includes( item[0] );
     } ) );
+}
+
+// From https://ckeditor.com/docs/ckeditor5/latest/framework/guides/deep-dive/conversion/conversion-preserving-custom-content.html#loading-content-with-a-custom-attribute
+function allowLinkClass( editor ) {
+    // Allow the "linkClass" attribute in the editor model.
+    editor.model.schema.extend( '$text', { allowAttributes: 'linkClass' } );
+
+    // Tell the editor that the model "linkClass" attribute converts into <a class="..."></a>
+    editor.conversion.for( 'downcast' ).attributeToElement( {
+        model: 'linkClass',
+        view: ( attributeValue, writer ) => {
+            const linkElement = writer.createAttributeElement( 'a', { 'class': attributeValue }, { priority: 5 } );
+            writer.setCustomProperty( 'link', true, linkElement );
+
+            return linkElement;
+        },
+        converterPriority: 'low'
+    } );
+
+    // Tell the editor that <a class="..."></a> converts into the "linkClass" attribute in the model.
+    editor.conversion.for( 'upcast' ).attributeToAttribute( {
+        view: {
+            name: 'a',
+            key: 'class'
+        },
+        model: 'linkClass',
+        converterPriority: 'low'
+    } );
 }
