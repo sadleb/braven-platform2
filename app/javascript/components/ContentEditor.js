@@ -55,6 +55,7 @@ import VideoContentEditing from '../ckeditor/videocontentediting';
 import SectionEditing from '../ckeditor/sectionediting';
 
 import Tooltip from '../ckeditor/tooltip';
+import ImageLink from '../ckeditor/imagelink';
 import CustomElementAttributePreservation from '../ckeditor/customelementattributepreservation';
 
 // React components to render the list of content parts and the content part preview.
@@ -79,6 +80,7 @@ BalloonEditor.builtinPlugins = [
     Italic,
     Link,
     Tooltip,
+    ImageLink,
     List,
     MediaEmbed,
     Paragraph,
