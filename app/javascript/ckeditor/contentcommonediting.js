@@ -658,19 +658,19 @@ export default class ContentCommonEditing extends Plugin {
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'selectOption',
             view: ( modelElement, viewWriter ) => {
-                const select = viewWriter.createContainerElement( 'option', {
+                const option = viewWriter.createContainerElement( 'option', {
                     'value': modelElement.getAttribute('value'),
                 } );
-                return select;
+                return option;
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'selectOption',
             view: ( modelElement, viewWriter ) => {
-                const select = viewWriter.createContainerElement( 'option', {
+                const option = viewWriter.createContainerElement( 'option', {
                     'value': modelElement.getAttribute('value'),
                 } );
-                return toWidget( select, viewWriter );
+                return toWidget( option, viewWriter );
             }
         } );
     }
