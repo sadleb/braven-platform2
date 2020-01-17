@@ -2,6 +2,7 @@ import Plugin from '@ckeditor/ckeditor5-core/src/plugin';
 import { enablePlaceholder } from '@ckeditor/ckeditor5-engine/src/view/placeholder';
 import { toWidget, toWidgetEditable } from '@ckeditor/ckeditor5-widget/src/utils';
 import Widget from '@ckeditor/ckeditor5-widget/src/widget';
+import InsertTextInputCommand from './inserttextinputcommand';
 
 export default class ContentCommonEditing extends Plugin {
     static get requires() {
@@ -11,6 +12,8 @@ export default class ContentCommonEditing extends Plugin {
     init() {
         this._defineSchema();
         this._defineConverters();
+
+        this.editor.commands.add( 'insertTextInput', new InsertTextInputCommand( this.editor ) );
     }
 
     _defineSchema() {
@@ -460,7 +463,7 @@ export default class ContentCommonEditing extends Plugin {
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'textInput', {
                     'data-bz-retained': viewElement.getAttribute('data-bz-retained'),
-                    'placeholder': viewElement.getAttribute('placeholder')
+                    'placeholder': viewElement.getAttribute('placeholder') || ''
                 } );
             }
         } );
@@ -470,7 +473,7 @@ export default class ContentCommonEditing extends Plugin {
                 const input = viewWriter.createEmptyElement( 'input', {
                     'type': 'text',
                     'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
-                    'placeholder': modelElement.getAttribute('placeholder')
+                    'placeholder': modelElement.getAttribute('placeholder') || ''
                 } );
                 return input;
             }
@@ -481,7 +484,7 @@ export default class ContentCommonEditing extends Plugin {
                 const input = viewWriter.createEmptyElement( 'input', {
                     'type': 'text',
                     'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
-                    'placeholder': modelElement.getAttribute('placeholder')
+                    'placeholder': modelElement.getAttribute('placeholder') || ''
                 } );
                 return toWidget( input, viewWriter );
             }

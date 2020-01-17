@@ -380,6 +380,10 @@ class ContentEditor extends Component {
                             {this.state.modelPath.map( modelElement => {
                                 if ( ['textArea', 'textInput'].includes( modelElement ) ) {
                                     // Text inputs and textareas have placeholder settings.
+                                    const commandMap = {
+                                        'textArea': 'insertTextArea',
+                                        'textInput': 'insertTextInput',
+                                    }
                                     return (
                                         <>
                                             <h4>Text Input</h4>
@@ -388,7 +392,7 @@ class ContentEditor extends Component {
                                                 id='input-placeholder'
                                                 defaultValue={this.state['selectedElement'].getAttribute('placeholder')}
                                                 onChange={( evt ) => {
-                                                    this.editor.execute( 'insertTextArea', 'retained-data-todo', evt.target.value );
+                                                    this.editor.execute( commandMap[modelElement], 'retained-data-todo', evt.target.value );
                                                 }}
                                             />
                                             <label htmlFor='input-placeholder'>Placeholder</label>
