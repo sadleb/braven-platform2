@@ -175,7 +175,6 @@ function setupAllowedAttributePreservation( editor ) {
     editor.conversion.for( 'upcast' ).elementToElement( {
         view: 'p',
         model: ( viewElement, modelWriter ) => {
-        console.log(viewElement.getAttributes());
             return modelWriter.createElement( 'paragraph', filterAllowedAttributes( viewElement.getAttributes() ) );
         },
         // Use high priority to overwrite existing paragraph converter.
