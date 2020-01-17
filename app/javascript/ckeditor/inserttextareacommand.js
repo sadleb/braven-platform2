@@ -1,9 +1,11 @@
 import Command from '@ckeditor/ckeditor5-core/src/command';
 
 export default class InsertTextAreaCommand extends Command {
-    execute( id ) {
+    execute( id, placeholder ) {
         this.editor.model.change( writer => {
-            this.editor.model.insertContent( createTextArea( writer, id ) );
+            const textArea = createTextArea( writer, id, placeholder );
+            this.editor.model.insertContent( textArea );
+            writer.setSelection( textArea, 'on' );
         } );
     }
 
@@ -16,7 +18,7 @@ export default class InsertTextAreaCommand extends Command {
     }
 }
 
-function createTextArea( writer, id ) {
-    const textAreaDiv = writer.createElement( 'textArea' );
-    return textAreaDiv;
+function createTextArea( writer, id, placeholder ) {
+    const textArea = writer.createElement( 'textArea', { 'data-bz-retained': id, placeholder: placeholder } );
+    return textArea;
 }

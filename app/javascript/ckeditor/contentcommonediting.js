@@ -495,7 +495,7 @@ export default class ContentCommonEditing extends Plugin {
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'textArea', {
                     'data-bz-retained': viewElement.getAttribute('data-bz-retained'),
-                    'placeholder': viewElement.getAttribute('placeholder')
+                    'placeholder': viewElement.getAttribute('placeholder') || ''
                 } );
             }
         } );
@@ -504,7 +504,7 @@ export default class ContentCommonEditing extends Plugin {
             view: ( modelElement, viewWriter ) => {
                 const textarea = viewWriter.createEmptyElement( 'textarea', {
                     'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
-                    'placeholder': modelElement.getAttribute('placeholder')
+                    'placeholder': modelElement.getAttribute('placeholder') || ''
                 } );
                 return textarea;
             }
@@ -514,7 +514,7 @@ export default class ContentCommonEditing extends Plugin {
             view: ( modelElement, viewWriter ) => {
                 const textarea = viewWriter.createEmptyElement( 'textarea', {
                     'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
-                    'placeholder': modelElement.getAttribute('placeholder')
+                    'placeholder': modelElement.getAttribute('placeholder') || ''
                 } );
                 return toWidget( textarea, viewWriter );
             }
@@ -573,9 +573,9 @@ export default class ContentCommonEditing extends Plugin {
                 return modelWriter.createElement( 'slider', {
                     'class': viewElement.getAttribute('class') || '',
                     'data-bz-retained': viewElement.getAttribute('data-bz-retained'),
-                    'min': viewElement.getAttribute('min'),
-                    'max': viewElement.getAttribute('max'),
-                    'step': viewElement.getAttribute('step') || '',
+                    'min': viewElement.getAttribute('min') || 0,
+                    'max': viewElement.getAttribute('max') || 10,
+                    'step': viewElement.getAttribute('step') || 1,
                 } );
             }
         } );
@@ -586,9 +586,9 @@ export default class ContentCommonEditing extends Plugin {
                     'type': 'range',
                     'class': modelElement.getAttribute('class') || '',
                     'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
-                    'min': modelElement.getAttribute('min'),
-                    'max': modelElement.getAttribute('max'),
-                    'step': modelElement.getAttribute('step') || '',
+                    'min': modelElement.getAttribute('min') || 0,
+                    'max': modelElement.getAttribute('max') || 10, 
+                    'step': modelElement.getAttribute('step') || 1,
                 } );
                 return input;
             }
@@ -600,9 +600,9 @@ export default class ContentCommonEditing extends Plugin {
                     'type': 'range',
                     'class': modelElement.getAttribute('class') || '',
                     'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
-                    'min': modelElement.getAttribute('min'),
-                    'max': modelElement.getAttribute('max'),
-                    'step': modelElement.getAttribute('step') || '',
+                    'min': modelElement.getAttribute('min') || 0,
+                    'max': modelElement.getAttribute('max') || 10,
+                    'step': modelElement.getAttribute('step') || 1,
                 } );
                 return toWidget( input, viewWriter );
             }

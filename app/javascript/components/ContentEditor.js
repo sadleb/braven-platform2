@@ -195,6 +195,7 @@ class ContentEditor extends Component {
             enabledCommands: [],
             modelPath: [],
             viewPath: [],
+            selectedElement: undefined,
         };
 
         // The configuration of the <CKEditor> instance.
@@ -251,7 +252,8 @@ class ContentEditor extends Component {
 
         this.setState( {
             enabledCommands: [...commands.names()].filter( x => commands.get(x).isEnabled ),
-            modelPath: modelAncestorNames.concat(selectedModelElement.name)
+            modelPath: modelAncestorNames.concat(selectedModelElement.name),
+            selectedElement: selectedModelElement
         } );
 
         // The view selection works differently than the model selection, and we can't
@@ -382,9 +384,78 @@ class ContentEditor extends Component {
 
                             <TabPanel>
                                 <div id="toolbar-contextual">
-                                    {this.state.viewPath.join(' > ')}
-                                       <br/>
-                                    {this.state.modelPath.join(' > ')}
+                                    {this.state.modelPath.map( modelElement => {
+                                        if ( ['textArea', 'textInput'].includes( modelElement ) ) {
+                                            // Text inputs and textareas have placeholder settings.
+                                            return (
+                                                <>
+                                                    <h5>Text Input</h5>
+                                                    <input
+                                                        type='text'
+                                                        id='input-placeholder'
+                                                        defaultValue={this.state['selectedElement'].getAttribute('placeholder')}
+                                                        onChange={( evt ) => {
+                                                            this.editor.execute( 'insertTextArea', 'retained-data-todo', evt.target.value );
+                                                        }}
+                                                    />
+                                                    <label htmlFor='input-placeholder'>Placeholder</label>
+                                                </>
+                                            );
+                                        } else if ( 'slider' === modelElement ) {
+                                            // Sliders have several different settings to change.
+                                            const min = this.state['selectedElement'].getAttribute('min');
+                                            const max = this.state['selectedElement'].getAttribute('max');
+                                            const step = this.state['selectedElement'].getAttribute('step');
+
+                                            return (
+                                                <>
+                                                    <h5>Slider</h5>
+
+                                                    <input
+                                                        type='number'
+                                                        id='input-min'
+                                                        defaultValue={min}
+                                                        onChange={( evt ) => {
+                                                            this.editor.execute( 'insertSlider', 'retained-data-todo', {
+                                                                min: evt.target.value,
+                                                                max: max,
+                                                                step: step,
+                                                            } );
+                                                        }}
+                                                    />
+                                                    <label htmlFor='input-min'>Min</label>
+
+                                                    <input
+                                                        type='number'
+                                                        id='input-max'
+                                                        defaultValue={max}
+                                                        onChange={( evt ) => {
+                                                            this.editor.execute( 'insertSlider', 'retained-data-todo', {
+                                                                min: min,
+                                                                max: evt.target.value,
+                                                                step: step,
+                                                            } );
+                                                        }}
+                                                    />
+                                                    <label htmlFor='input-max'>Max</label>
+
+                                                    <input
+                                                        type='number'
+                                                        id='input-step'
+                                                        defaultValue={step}
+                                                        onChange={( evt ) => {
+                                                            this.editor.execute( 'insertSlider', 'retained-data-todo', {
+                                                                min: min,
+                                                                max: max,
+                                                                step: evt.target.value,
+                                                            } );
+                                                        }}
+                                                    />
+                                                    <label htmlFor='input-step'>Step</label>
+                                                </>
+                                            );
+                                        }
+                                    } ) }
                                 </div>
                                 <div id="toolbar-components">
                                     <ul key="content-part-list" id="widget-list">
