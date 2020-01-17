@@ -45,7 +45,7 @@ export default class ContentPartPreviewEditing extends Plugin {
             model: ( viewElement, modelWriter ) => {
                 // Read the "data-id" attribute from the view and set it as the "id" in the model.
                 return modelWriter.createElement( 'contentPartPreview', {
-                    id: parseInt( viewElement.getAttribute( 'data-id' ) )
+                    id: viewElement.getAttribute( 'data-id' )
                 } );
             }
         } );

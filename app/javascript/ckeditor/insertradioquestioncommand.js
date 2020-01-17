@@ -1,34 +1,34 @@
 import Command from '@ckeditor/ckeditor5-core/src/command';
 
-export default class InsertChecklistQuestionCommand extends Command {
+export default class InsertRadioQuestionCommand extends Command {
     execute( id ) {
         this.editor.model.change( writer => {
-            const { checklistQuestion, selection } = createChecklistQuestion( writer, id );
-            this.editor.model.insertContent( checklistQuestion );
-            writer.setSelection( selection );
+            // Insert <radioQuestion id="...">*</radioQuestion> at the current selection position
+            // in a way which will result in creating a valid model structure.
+            this.editor.model.insertContent( createRadioQuestion( writer, id ) );
         } );
     }
 
     refresh() {
         const model = this.editor.model;
         const selection = model.document.selection;
-        const allowedIn = model.schema.findAllowedParent( selection.getFirstPosition(), 'checklistQuestion' );
+        const allowedIn = model.schema.findAllowedParent( selection.getFirstPosition(), 'radioQuestion' );
 
         this.isEnabled = allowedIn !== null;
     }
 }
 
-function createChecklistQuestion( writer, id ) {
-    const checklistQuestion = writer.createElement( 'checklistQuestion', {id} );
+function createRadioQuestion( writer, id ) {
+    const radioQuestion = writer.createElement( 'radioQuestion', {id} );
     const question = writer.createElement( 'question' );
     const questionTitle = writer.createElement( 'questionTitle' );
     const questionBody = writer.createElement( 'questionBody' );
     const questionForm = writer.createElement( 'questionForm' );
     const questionFieldset = writer.createElement( 'questionFieldset' );
-    const checkboxDiv = writer.createElement( 'checkboxDiv' );
-    const checkboxInput = writer.createElement( 'checkboxInput' );
-    const checkboxLabel = writer.createElement( 'checkboxLabel' );
-    const checkboxInlineFeedback = writer.createElement( 'checkboxInlineFeedback' );
+    const radioDiv = writer.createElement( 'radioDiv' );
+    const radioInput = writer.createElement( 'radioInput' );
+    const radioLabel = writer.createElement( 'radioLabel' );
+    const radioInlineFeedback = writer.createElement( 'radioInlineFeedback' );
     const answer = writer.createElement( 'answer' );
     const answerTitle = writer.createElement( 'answerTitle' );
     const answerText = writer.createElement( 'answerText' );
@@ -36,16 +36,16 @@ function createChecklistQuestion( writer, id ) {
     const questionParagraph = writer.createElement( 'paragraph' );
     const answerParagraph = writer.createElement( 'paragraph' );
 
-    writer.append( question, checklistQuestion );
+    writer.append( question, radioQuestion );
     writer.append( questionTitle, question );
     writer.append( questionBody, question );
     writer.append( questionForm, question );
     writer.append( questionFieldset, questionForm );
-    writer.append( checkboxDiv, questionFieldset );
-    writer.append( checkboxInput, checkboxDiv );
-    writer.append( checkboxLabel, checkboxDiv );
-    writer.append( checkboxInlineFeedback, checkboxDiv );
-    writer.append( answer, checklistQuestion );
+    writer.append( radioDiv, questionFieldset );
+    writer.append( radioInput, radioDiv );
+    writer.append( radioLabel, radioDiv );
+    writer.append( radioInlineFeedback, radioDiv );
+    writer.append( answer, radioQuestion );
     writer.append( answerTitle, answer );
     writer.append( answerText, answer );
     // There must be at least one paragraph for the description to be editable.
@@ -54,10 +54,7 @@ function createChecklistQuestion( writer, id ) {
     writer.append( answerParagraph, answerText );
 
     // Add text to empty editables where placeholders don't work.
-    writer.insertText( 'Checkbox label', checkboxLabel );
+    writer.insertText( 'Radio label', radioLabel );
 
-    // Return the created element and desired selection position.
-    const selection = writer.createPositionAt( questionTitle, 0 );
-
-    return { checklistQuestion, selection };
+    return radioQuestion;
 }

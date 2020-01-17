@@ -6,6 +6,7 @@ export default class ContentPartPreview extends React.Component {
             <li
                 onClick={() => this.props.onClick( this.props.id )}
                 title="Add to the editor"
+                className={this.props.enabled ? '' : 'disabled'}
             >
                 {this.props.name}
             </li>

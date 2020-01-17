@@ -7,7 +7,7 @@
       ],
       "addons": ["heroku-postgresql:in-dyno"],
       "scripts": {
-        "setup": "bundle exec rake db:migrate db:seed",
+        "postdeploy": "bundle exec rake db:migrate db:seed",
         "test-setup": "yarn install",
         "test": "bundle exec rspec && yarn test"
       }
