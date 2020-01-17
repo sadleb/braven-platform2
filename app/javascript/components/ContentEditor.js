@@ -193,6 +193,8 @@ class ContentEditor extends Component {
             editorData: props.course_content['body'] || "",
             isPublished: false,
             enabledCommands: [],
+            modelPath: [],
+            viewPath: [],
         };
 
         // The configuration of the <CKEditor> instance.
@@ -236,10 +238,45 @@ class ContentEditor extends Component {
     // A handler executed when the current selection changes inside the CKEditor view.
     // It propogates state changes from CKEditor up to this React component, so we can
     // update the UI accordingly.
-    handleEditorFocusChange( ) {
+    handleEditorFocusChange() {
+        // Get the model element names of the current element and all its ancestors.
+        const modelSelection = this.editor.model.document.selection;
+        // If the current selection is an element (as opposed to inside an editable),
+        // use that as the last node in the path. Otherwise use the parent of the last
+        // cursor position (generally, the editable element the cursor is inside).
+        const selectedModelElement = modelSelection.getSelectedElement() || modelSelection.getLastPosition().parent;
+        const modelAncestorNames = selectedModelElement.getAncestors().map( x => x.name );
+
+        const commands = this.editor.commands;
+
         this.setState( {
-            enabledCommands: [...this.editor.commands.names()].filter(x => this.editor.commands.get(x).isEnabled)
+            enabledCommands: [...commands.names()].filter( x => commands.get(x).isEnabled ),
+            modelPath: modelAncestorNames.concat(selectedModelElement.name)
         } );
+
+        // The view selection works differently than the model selection, and we can't
+        // always tie it to an element. Only update the view path if it's sane.
+        const viewSelection = this.editor.editing.view.document.selection;
+        let selectedViewElement;
+        if ( viewSelection.getSelectedElement() ) {
+            // If the current selection is an element (as opposed to inside an editable),
+            // use that as the last node in the path.
+            selectedViewElement = viewSelection.getSelectedElement();
+        } else if ( viewSelection.focus ) {
+            // If the current selection has a focus, use the focus's parent as the last
+            // node in the path.
+            selectedViewElement = viewSelection.focus.parent;
+        }
+
+        // If one of the above cases was true, we'll have a selectedViewElement, and we can
+        // pull its ancestor chain.
+        if ( selectedViewElement ) {
+            const viewAncestorNames = selectedViewElement.getAncestors().map( x => x.name );
+
+            this.setState( {
+                viewPath: viewAncestorNames.concat(selectedViewElement.name)
+            } );
+        }
     }
 
     // A handler executed when the user types or modifies the raw html editor content.
@@ -344,6 +381,11 @@ class ContentEditor extends Component {
                             </TabList>
 
                             <TabPanel>
+                                <div id="toolbar-contextual">
+                                    {this.state.viewPath.join(' > ')}
+                                       <br/>
+                                    {this.state.modelPath.join(' > ')}
+                                </div>
                                 <div id="toolbar-components">
                                     <ul key="content-part-list" id="widget-list">
                                         <ContentPartPreview
