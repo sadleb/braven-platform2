@@ -8,7 +8,8 @@ export default class InsertCheckboxCommand extends Command {
             // add some extra logic here.
             // Before inserting, modify the current selection to after the checkboxDiv (the grandparent
             // of the current selection, iff the aforementioned assumption holds true).
-            writer.setSelection( this.editor.model.document.selection.focus.parent.parent, 'after' );
+            const grandparentCheckboxDiv = this.editor.model.document.selection.focus.parent.parent;
+            writer.setSelection( grandparentCheckboxDiv, 'after' );
             this.editor.model.insertContent( createCheckbox( writer, id ) );
         } );
     }
@@ -26,9 +27,14 @@ function createCheckbox( writer, id ) {
     const checkboxDiv = writer.createElement( 'checkboxDiv' , {id} );
     const checkboxInput = writer.createElement( 'checkboxInput' );
     const checkboxLabel = writer.createElement( 'checkboxLabel' );
+    const checkboxInlineFeedback = writer.createElement( 'checkboxInlineFeedback' );
 
     writer.append( checkboxInput, checkboxDiv );
     writer.append( checkboxLabel, checkboxDiv );
+    writer.append( checkboxInlineFeedback, checkboxDiv );
+
+    // Add text to empty editables where placeholders don't work.
+    writer.insertText( 'Checkbox label', checkboxLabel );
 
     return checkboxDiv;
 }

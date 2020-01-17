@@ -1,9 +1,9 @@
 import Plugin from '@ckeditor/ckeditor5-core/src/plugin';
 import { toWidget, toWidgetEditable } from '@ckeditor/ckeditor5-widget/src/utils';
 import Widget from '@ckeditor/ckeditor5-widget/src/widget';
-import InsertSectionCommand from './insertsectioncommand';
+import InsertTableContentCommand from './inserttablecontentcommand';
 
-export default class SectionEditing extends Plugin {
+export default class TableContentEditing extends Plugin {
     static get requires() {
         return [ Widget ];
     }
@@ -12,69 +12,61 @@ export default class SectionEditing extends Plugin {
         this._defineSchema();
         this._defineConverters();
 
-        this.editor.commands.add( 'insertSection', new InsertSectionCommand( this.editor ) );
+        this.editor.commands.add( 'insertTableContent', new InsertTableContentCommand( this.editor ) );
     }
 
     _defineSchema() {
         const schema = this.editor.model.schema;
 
-        schema.register( 'section', {
-            //isObject: true,
-
-            allowIn: '$root',
-
-            // Allow content which is allowed in the root (e.g. paragraphs).
-            allowContentOf: '$root',
-
-            allowAttributes: [ 'id' ]
+        schema.register( 'tableContent', {
+            isObject: true,
+            allowIn: 'section',
+            allowAttributes: [ 'id', 'class' ]
         } );
 
-        schema.addChildCheck( ( context, childDefinition ) => {
-            // Disallow sections within sections, at *any* level of nesting.
-            if ( [...context.getNames()].includes( 'section' ) && childDefinition.name == 'section' ) {
-                return false;
-            }
+        schema.extend( 'slider', {
+            allowIn: 'tableCell'
         } );
     }
 
     _defineConverters() {
         const editor = this.editor;
         const conversion = editor.conversion;
+        const { editing, data, model } = editor;
 
-        // <section> converters
+        // <tableContent> converters
         conversion.for( 'upcast' ).elementToElement( {
             view: {
-                name: 'section',
-                classes: ['content-section']
+                name: 'div',
+                classes: ['module-block', 'module-block-table']
             },
             model: ( viewElement, modelWriter ) => {
                 // Read the "data-id" attribute from the view and set it as the "id" in the model.
-                return modelWriter.createElement( 'section', {
+                return modelWriter.createElement( 'tableContent', {
                     id: viewElement.getAttribute( 'data-id' )
                 } );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
-            model: 'section',
+            model: 'tableContent',
             view: ( modelElement, viewWriter ) => {
-                return viewWriter.createEditableElement( 'section', {
-                    class: 'content-section',
+                return viewWriter.createEditableElement( 'div', {
+                    'class': 'module-block module-block-table',
                     'data-id': modelElement.getAttribute( 'id' )
                 } );
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
-            model: 'section',
+            model: 'tableContent',
             view: ( modelElement, viewWriter ) => {
                 const id = modelElement.getAttribute( 'id' );
 
-                const section = viewWriter.createContainerElement( 'section', {
-                    class: 'content-section',
+                const tableContent = viewWriter.createContainerElement( 'div', {
+                    'class': 'module-block module-block-table',
                     'data-id': id
                 } );
 
-                // Note: sections are not converted into widgets! They're just an element.
-                return section;
+                return toWidget( tableContent, viewWriter, { label: 'table widget' } );
             }
         } );
     }
