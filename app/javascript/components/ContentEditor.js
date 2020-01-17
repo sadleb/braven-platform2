@@ -422,13 +422,25 @@ class ContentEditor extends Component {
                                             key="imageUpload"
                                             enabled={this.state.enabledCommands.includes('imageUpload')}
                                             onClick={this.showFileUpload}
-                                            {...{name: 'Image', id: uuidv4()}}
+                                            {...{name: 'Image (Upload)', id: uuidv4()}}
+                                        />
+                                        <ContentPartPreview
+                                            key="imageInsert"
+                                            enabled={this.state.enabledCommands.includes('imageInsert')}
+                                            onClick={( id ) => {
+                                                const url = window.prompt('URL', 'http://placekitten.com/200/300');
+                                                this.editor.execute( 'imageInsert', {source: url} );
+                                                this.editor.editing.view.focus();
+                                            }}
+                                            {...{name: 'Image (URL)', id: uuidv4()}}
                                         />
                                         <ContentPartPreview
                                             key="insertTableContent"
                                             enabled={this.state.enabledCommands.includes('insertTableContent')}
                                             onClick={( id ) => {
-                                                this.editor.execute( 'insertTableContent', id , {rows: 2, columns: 2});
+                                                const rows = window.prompt('How many rows?', 2);
+                                                const columns = window.prompt('How many columns?', 2);
+                                                this.editor.execute( 'insertTableContent', id , {rows: rows, columns: columns});
                                                 this.editor.editing.view.focus();
                                             }}
                                             {...{name: 'Table', id: uuidv4()}}
@@ -446,7 +458,8 @@ class ContentEditor extends Component {
                                             key="insertIFrameContent"
                                             enabled={this.state.enabledCommands.includes('insertIFrameContent')}
                                             onClick={( id ) => {
-                                                this.editor.execute( 'insertIFrameContent', id, 'http://example.com' );
+                                                const url = window.prompt('URL', 'http://example.com' );
+                                                this.editor.execute( 'insertIFrameContent', id, url );
                                                 this.editor.editing.view.focus();
                                             }}
                                             {...{name: 'iFrame', id: uuidv4()}}
@@ -455,7 +468,8 @@ class ContentEditor extends Component {
                                             key="insertVideoContent"
                                             enabled={this.state.enabledCommands.includes('insertVideoContent')}
                                             onClick={( id ) => {
-                                                this.editor.execute( 'insertVideoContent', id, 'https://www.youtube.com/embed/yyRrKMb8oIg?rel=0' );
+                                                const url = window.prompt('URL', 'https://www.youtube.com/embed/yyRrKMb8oIg?rel=0' );
+                                                this.editor.execute( 'insertVideoContent', id, url );
                                                 this.editor.editing.view.focus();
                                             }}
                                             {...{name: 'Video', id: uuidv4()}}
