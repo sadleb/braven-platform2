@@ -450,7 +450,7 @@ class ContentEditor extends Component {
                         <div id="toolbar-components">
                             <h4>Insert Component</h4>
 
-                            <ul key="content-part-list" id="widget-list">
+                            <ul key="content-part-list-section" className="widget-list">
                                 <ContentPartPreview
                                     key="insertSection"
                                     enabled={this.state.enabledCommands.includes('insertSection')}
@@ -460,6 +460,8 @@ class ContentEditor extends Component {
                                     }}
                                     {...{name: 'Section', id: uuidv4()}}
                                 />
+                            </ul>
+                            <ul key="content-part-list-questions" className="widget-list">
                                 <ContentPartPreview
                                     key="insertChecklistQuestion"
                                     enabled={this.state.enabledCommands.includes('insertChecklistQuestion')}
@@ -496,6 +498,50 @@ class ContentEditor extends Component {
                                     }}
                                     {...{name: 'Text Area Question', id: uuidv4()}}
                                 />
+                            </ul>
+                            <ul key="content-part-list-content" className="widget-list">
+                                <ContentPartPreview
+                                    key="insertTableContent"
+                                    enabled={this.state.enabledCommands.includes('insertTableContent')}
+                                    onClick={( id ) => {
+                                        const rows = window.prompt('How many rows?', 2);
+                                        const columns = window.prompt('How many columns?', 2);
+                                        this.editor.execute( 'insertTableContent', id , {rows: rows, columns: columns});
+                                        this.editor.editing.view.focus();
+                                    }}
+                                    {...{name: 'Table', id: uuidv4()}}
+                                />
+                                <ContentPartPreview
+                                    key="insertBlockquoteContent"
+                                    enabled={this.state.enabledCommands.includes('insertBlockquoteContent')}
+                                    onClick={( id ) => {
+                                        this.editor.execute( 'insertBlockquoteContent', id );
+                                        this.editor.editing.view.focus();
+                                    }}
+                                    {...{name: 'Quote', id: uuidv4()}}
+                                />
+                                <ContentPartPreview
+                                    key="insertIFrameContent"
+                                    enabled={this.state.enabledCommands.includes('insertIFrameContent')}
+                                    onClick={( id ) => {
+                                        const url = window.prompt('URL', 'http://example.com' );
+                                        this.editor.execute( 'insertIFrameContent', id, url );
+                                        this.editor.editing.view.focus();
+                                    }}
+                                    {...{name: 'iFrame', id: uuidv4()}}
+                                />
+                                <ContentPartPreview
+                                    key="insertVideoContent"
+                                    enabled={this.state.enabledCommands.includes('insertVideoContent')}
+                                    onClick={( id ) => {
+                                        const url = window.prompt('URL', 'https://www.youtube.com/embed/yyRrKMb8oIg?rel=0' );
+                                        this.editor.execute( 'insertVideoContent', id, url );
+                                        this.editor.editing.view.focus();
+                                    }}
+                                    {...{name: 'Video', id: uuidv4()}}
+                                />
+                            </ul>
+                            <ul key="content-part-list-elements" className="widget-list">
                                 <ContentPartPreview
                                     key="insertTextArea"
                                     enabled={this.state.enabledCommands.includes('insertTextArea')}
@@ -539,46 +585,8 @@ class ContentEditor extends Component {
                                     }}
                                     {...{name: 'Image (URL)', id: uuidv4()}}
                                 />
-                                <ContentPartPreview
-                                    key="insertTableContent"
-                                    enabled={this.state.enabledCommands.includes('insertTableContent')}
-                                    onClick={( id ) => {
-                                        const rows = window.prompt('How many rows?', 2);
-                                        const columns = window.prompt('How many columns?', 2);
-                                        this.editor.execute( 'insertTableContent', id , {rows: rows, columns: columns});
-                                        this.editor.editing.view.focus();
-                                    }}
-                                    {...{name: 'Table', id: uuidv4()}}
-                                />
-                                <ContentPartPreview
-                                    key="insertBlockquoteContent"
-                                    enabled={this.state.enabledCommands.includes('insertBlockquoteContent')}
-                                    onClick={( id ) => {
-                                        this.editor.execute( 'insertBlockquoteContent', id );
-                                        this.editor.editing.view.focus();
-                                    }}
-                                    {...{name: 'Quote', id: uuidv4()}}
-                                />
-                                <ContentPartPreview
-                                    key="insertIFrameContent"
-                                    enabled={this.state.enabledCommands.includes('insertIFrameContent')}
-                                    onClick={( id ) => {
-                                        const url = window.prompt('URL', 'http://example.com' );
-                                        this.editor.execute( 'insertIFrameContent', id, url );
-                                        this.editor.editing.view.focus();
-                                    }}
-                                    {...{name: 'iFrame', id: uuidv4()}}
-                                />
-                                <ContentPartPreview
-                                    key="insertVideoContent"
-                                    enabled={this.state.enabledCommands.includes('insertVideoContent')}
-                                    onClick={( id ) => {
-                                        const url = window.prompt('URL', 'https://www.youtube.com/embed/yyRrKMb8oIg?rel=0' );
-                                        this.editor.execute( 'insertVideoContent', id, url );
-                                        this.editor.editing.view.focus();
-                                    }}
-                                    {...{name: 'Video', id: uuidv4()}}
-                                />
+                            </ul>
+                            <ul key="content-part-list-rtm" className="widget-list">
                                 <ContentPartPreview
                                     key="insertRateThisModuleQuestion"
                                     enabled={this.state.enabledCommands.includes('insertRateThisModuleQuestion')}
