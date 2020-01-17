@@ -3,7 +3,15 @@
 // You can use Sass (SCSS) here: http://sass-lang.com/
 /* assets/styles.css */
 
-/* --- Sidebar styles --- */
+/* --- Right sidebar styles --- */
+ul.widget-list li.disabled,
+ul.widget-list li.disabled:hover {
+  border: 1px solid #bbb;
+  background-color: #ddd;
+  color: #888;
+}
+
+/* --- Left Sidebar styles --- */
 
 /* Position and sizing of burger button */
 .bm-burger-button {
