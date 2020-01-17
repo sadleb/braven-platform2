@@ -127,7 +127,8 @@ main {
   background: #F3F3F3; }
 
 #toolbar-page-settings,
-#toolbar-components {
+#toolbar-components,
+#toolbar-contextual {
   padding: 1em; }
 
 #workspace {
@@ -135,6 +136,14 @@ main {
 
 #toolbar-components {
   border-top: 1px solid #ccc; }
+
+#toolbar-contextual {
+  border-top: 1px solid #ccc; }
+
+#toolbar-contextual:empty {
+          transform:translate(9999px);
+
+  display: none; }
 
 #workspace {
   border-top: 1px solid #D1D1D1; }
