@@ -308,7 +308,10 @@ class ContentEditor extends Component {
 
         // CKEditor 5 inspector allows you to take a peek into the editor's model and view
         // data layers. Use it to debug the application and learn more about the editor.
-        CKEditorInspector.attach( editor );
+        // Disable unless debug mode is enabled.
+        if ( window.location.search === '?debug' ) {
+            CKEditorInspector.attach( editor );
+        }
     }
 
     handlePublish( evt ) {
