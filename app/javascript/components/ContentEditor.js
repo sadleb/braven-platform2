@@ -375,233 +375,221 @@ class ContentEditor extends Component {
                             <h4>Insert Component</h4>
 
                         </div>
-                        <Tabs>
-                            <TabList id="component-types">
-                                <Tab className="active">Content</Tab>
-                                <Tab>Question</Tab>
-                                <Tab>Library</Tab>
-                            </TabList>
+                        <div id="toolbar-contextual">
+                            {this.state.modelPath.map( modelElement => {
+                                if ( ['textArea', 'textInput'].includes( modelElement ) ) {
+                                    // Text inputs and textareas have placeholder settings.
+                                    return (
+                                        <>
+                                            <h5>Text Input</h5>
+                                            <input
+                                                type='text'
+                                                id='input-placeholder'
+                                                defaultValue={this.state['selectedElement'].getAttribute('placeholder')}
+                                                onChange={( evt ) => {
+                                                    this.editor.execute( 'insertTextArea', 'retained-data-todo', evt.target.value );
+                                                }}
+                                            />
+                                            <label htmlFor='input-placeholder'>Placeholder</label>
+                                        </>
+                                    );
+                                } else if ( 'slider' === modelElement ) {
+                                    // Sliders have several different settings to change.
+                                    const min = this.state['selectedElement'].getAttribute('min');
+                                    const max = this.state['selectedElement'].getAttribute('max');
+                                    const step = this.state['selectedElement'].getAttribute('step');
 
-                            <TabPanel>
-                                <div id="toolbar-contextual">
-                                    {this.state.modelPath.map( modelElement => {
-                                        if ( ['textArea', 'textInput'].includes( modelElement ) ) {
-                                            // Text inputs and textareas have placeholder settings.
-                                            return (
-                                                <>
-                                                    <h5>Text Input</h5>
-                                                    <input
-                                                        type='text'
-                                                        id='input-placeholder'
-                                                        defaultValue={this.state['selectedElement'].getAttribute('placeholder')}
-                                                        onChange={( evt ) => {
-                                                            this.editor.execute( 'insertTextArea', 'retained-data-todo', evt.target.value );
-                                                        }}
-                                                    />
-                                                    <label htmlFor='input-placeholder'>Placeholder</label>
-                                                </>
-                                            );
-                                        } else if ( 'slider' === modelElement ) {
-                                            // Sliders have several different settings to change.
-                                            const min = this.state['selectedElement'].getAttribute('min');
-                                            const max = this.state['selectedElement'].getAttribute('max');
-                                            const step = this.state['selectedElement'].getAttribute('step');
+                                    return (
+                                        <>
+                                            <h5>Slider</h5>
 
-                                            return (
-                                                <>
-                                                    <h5>Slider</h5>
+                                            <input
+                                                type='number'
+                                                id='input-min'
+                                                defaultValue={min}
+                                                onChange={( evt ) => {
+                                                    this.editor.execute( 'insertSlider', 'retained-data-todo', {
+                                                        min: evt.target.value,
+                                                        max: max,
+                                                        step: step,
+                                                    } );
+                                                }}
+                                            />
+                                            <label htmlFor='input-min'>Min</label>
 
-                                                    <input
-                                                        type='number'
-                                                        id='input-min'
-                                                        defaultValue={min}
-                                                        onChange={( evt ) => {
-                                                            this.editor.execute( 'insertSlider', 'retained-data-todo', {
-                                                                min: evt.target.value,
-                                                                max: max,
-                                                                step: step,
-                                                            } );
-                                                        }}
-                                                    />
-                                                    <label htmlFor='input-min'>Min</label>
+                                            <input
+                                                type='number'
+                                                id='input-max'
+                                                defaultValue={max}
+                                                onChange={( evt ) => {
+                                                    this.editor.execute( 'insertSlider', 'retained-data-todo', {
+                                                        min: min,
+                                                        max: evt.target.value,
+                                                        step: step,
+                                                    } );
+                                                }}
+                                            />
+                                            <label htmlFor='input-max'>Max</label>
 
-                                                    <input
-                                                        type='number'
-                                                        id='input-max'
-                                                        defaultValue={max}
-                                                        onChange={( evt ) => {
-                                                            this.editor.execute( 'insertSlider', 'retained-data-todo', {
-                                                                min: min,
-                                                                max: evt.target.value,
-                                                                step: step,
-                                                            } );
-                                                        }}
-                                                    />
-                                                    <label htmlFor='input-max'>Max</label>
-
-                                                    <input
-                                                        type='number'
-                                                        id='input-step'
-                                                        defaultValue={step}
-                                                        onChange={( evt ) => {
-                                                            this.editor.execute( 'insertSlider', 'retained-data-todo', {
-                                                                min: min,
-                                                                max: max,
-                                                                step: evt.target.value,
-                                                            } );
-                                                        }}
-                                                    />
-                                                    <label htmlFor='input-step'>Step</label>
-                                                </>
-                                            );
-                                        }
-                                    } ) }
-                                </div>
-                                <div id="toolbar-components">
-                                    <ul key="content-part-list" id="widget-list">
-                                        <ContentPartPreview
-                                            key="insertSection"
-                                            enabled={this.state.enabledCommands.includes('insertSection')}
-                                            onClick={( id ) => {
-                                                this.editor.execute( 'insertSection', id );
-                                                this.editor.editing.view.focus();
-                                            }}
-                                            {...{name: 'Section', id: uuidv4()}}
-                                        />
-                                        <ContentPartPreview
-                                            key="insertChecklistQuestion"
-                                            enabled={this.state.enabledCommands.includes('insertChecklistQuestion')}
-                                            onClick={( id ) => {
-                                                this.editor.execute( 'insertChecklistQuestion', id );
-                                                this.editor.editing.view.focus();
-                                            }}
-                                            {...{name: 'Checklist Question', id: uuidv4()}}
-                                        />
-                                        <ContentPartPreview
-                                            key="insertRadioQuestion"
-                                            enabled={this.state.enabledCommands.includes('insertRadioQuestion')}
-                                            onClick={( id ) => {
-                                                this.editor.execute( 'insertRadioQuestion', id );
-                                                this.editor.editing.view.focus();
-                                            }}
-                                            {...{name: 'Radio Question', id: uuidv4()}}
-                                        />
-                                        <ContentPartPreview
-                                            key="insertMatchingQuestion"
-                                            enabled={this.state.enabledCommands.includes('insertMatchingQuestion')}
-                                            onClick={( id ) => {
-                                                this.editor.execute( 'insertMatchingQuestion', id );
-                                                this.editor.editing.view.focus();
-                                            }}
-                                            {...{name: 'Matching Question', id: uuidv4()}}
-                                        />
-                                        <ContentPartPreview
-                                            key="insertTextAreaQuestion"
-                                            enabled={this.state.enabledCommands.includes('insertTextAreaQuestion')}
-                                            onClick={( id ) => {
-                                                this.editor.execute( 'insertTextAreaQuestion', id );
-                                                this.editor.editing.view.focus();
-                                            }}
-                                            {...{name: 'Text Area Question', id: uuidv4()}}
-                                        />
-                                        <ContentPartPreview
-                                            key="insertTextArea"
-                                            enabled={this.state.enabledCommands.includes('insertTextArea')}
-                                            onClick={( id ) => {
-                                                this.editor.execute( 'insertTextArea', id );
-                                                this.editor.editing.view.focus();
-                                            }}
-                                            {...{name: 'Text Area', id: uuidv4()}}
-                                        />
-                                        <ContentPartPreview
-                                            key="insertSlider"
-                                            enabled={this.state.enabledCommands.includes('insertSlider')}
-                                            onClick={( id ) => {
-                                                this.editor.execute( 'insertSlider', id );
-                                                this.editor.editing.view.focus();
-                                            }}
-                                            {...{name: 'Slider', id: uuidv4()}}
-                                        />
-                                        <input
-                                            type="file"
-                                            style={{ display: "none" }}
-                                            ref={this.fileUpload}
-                                            onChange={e => {
-                                                this.editor.execute( 'imageUpload', {file: e.target.files[0]} );
-                                                this.editor.editing.view.focus();
-                                            }}
-                                        />
-                                        <ContentPartPreview
-                                            key="imageUpload"
-                                            enabled={this.state.enabledCommands.includes('imageUpload')}
-                                            onClick={this.showFileUpload}
-                                            {...{name: 'Image (Upload)', id: uuidv4()}}
-                                        />
-                                        <ContentPartPreview
-                                            key="imageInsert"
-                                            enabled={this.state.enabledCommands.includes('imageInsert')}
-                                            onClick={( id ) => {
-                                                const url = window.prompt('URL', 'http://placekitten.com/200/300');
-                                                this.editor.execute( 'imageInsert', {source: url} );
-                                                this.editor.editing.view.focus();
-                                            }}
-                                            {...{name: 'Image (URL)', id: uuidv4()}}
-                                        />
-                                        <ContentPartPreview
-                                            key="insertTableContent"
-                                            enabled={this.state.enabledCommands.includes('insertTableContent')}
-                                            onClick={( id ) => {
-                                                const rows = window.prompt('How many rows?', 2);
-                                                const columns = window.prompt('How many columns?', 2);
-                                                this.editor.execute( 'insertTableContent', id , {rows: rows, columns: columns});
-                                                this.editor.editing.view.focus();
-                                            }}
-                                            {...{name: 'Table', id: uuidv4()}}
-                                        />
-                                        <ContentPartPreview
-                                            key="insertBlockquoteContent"
-                                            enabled={this.state.enabledCommands.includes('insertBlockquoteContent')}
-                                            onClick={( id ) => {
-                                                this.editor.execute( 'insertBlockquoteContent', id );
-                                                this.editor.editing.view.focus();
-                                            }}
-                                            {...{name: 'Quote', id: uuidv4()}}
-                                        />
-                                        <ContentPartPreview
-                                            key="insertIFrameContent"
-                                            enabled={this.state.enabledCommands.includes('insertIFrameContent')}
-                                            onClick={( id ) => {
-                                                const url = window.prompt('URL', 'http://example.com' );
-                                                this.editor.execute( 'insertIFrameContent', id, url );
-                                                this.editor.editing.view.focus();
-                                            }}
-                                            {...{name: 'iFrame', id: uuidv4()}}
-                                        />
-                                        <ContentPartPreview
-                                            key="insertVideoContent"
-                                            enabled={this.state.enabledCommands.includes('insertVideoContent')}
-                                            onClick={( id ) => {
-                                                const url = window.prompt('URL', 'https://www.youtube.com/embed/yyRrKMb8oIg?rel=0' );
-                                                this.editor.execute( 'insertVideoContent', id, url );
-                                                this.editor.editing.view.focus();
-                                            }}
-                                            {...{name: 'Video', id: uuidv4()}}
-                                        />
-                                        <ContentPartPreview
-                                            key="insertRateThisModuleQuestion"
-                                            enabled={this.state.enabledCommands.includes('insertRateThisModuleQuestion')}
-                                            onClick={( id ) => {
-                                                this.editor.execute( 'insertRateThisModuleQuestion', id );
-                                                this.editor.editing.view.focus();
-                                            }}
-                                            {...{name: 'Rate This Module', id: uuidv4()}}
-                                        />
-                                    </ul>
-                                </div>
-                            </TabPanel>
-                            <TabPanel>Not Implemented</TabPanel>
-                            <TabPanel>Not Implemented</TabPanel>
-                        </Tabs>
+                                            <input
+                                                type='number'
+                                                id='input-step'
+                                                defaultValue={step}
+                                                onChange={( evt ) => {
+                                                    this.editor.execute( 'insertSlider', 'retained-data-todo', {
+                                                        min: min,
+                                                        max: max,
+                                                        step: evt.target.value,
+                                                    } );
+                                                }}
+                                            />
+                                            <label htmlFor='input-step'>Step</label>
+                                        </>
+                                    );
+                                }
+                            } ) }
+                        </div>
+                        <div id="toolbar-components">
+                            <ul key="content-part-list" id="widget-list">
+                                <ContentPartPreview
+                                    key="insertSection"
+                                    enabled={this.state.enabledCommands.includes('insertSection')}
+                                    onClick={( id ) => {
+                                        this.editor.execute( 'insertSection', id );
+                                        this.editor.editing.view.focus();
+                                    }}
+                                    {...{name: 'Section', id: uuidv4()}}
+                                />
+                                <ContentPartPreview
+                                    key="insertChecklistQuestion"
+                                    enabled={this.state.enabledCommands.includes('insertChecklistQuestion')}
+                                    onClick={( id ) => {
+                                        this.editor.execute( 'insertChecklistQuestion', id );
+                                        this.editor.editing.view.focus();
+                                    }}
+                                    {...{name: 'Checklist Question', id: uuidv4()}}
+                                />
+                                <ContentPartPreview
+                                    key="insertRadioQuestion"
+                                    enabled={this.state.enabledCommands.includes('insertRadioQuestion')}
+                                    onClick={( id ) => {
+                                        this.editor.execute( 'insertRadioQuestion', id );
+                                        this.editor.editing.view.focus();
+                                    }}
+                                    {...{name: 'Radio Question', id: uuidv4()}}
+                                />
+                                <ContentPartPreview
+                                    key="insertMatchingQuestion"
+                                    enabled={this.state.enabledCommands.includes('insertMatchingQuestion')}
+                                    onClick={( id ) => {
+                                        this.editor.execute( 'insertMatchingQuestion', id );
+                                        this.editor.editing.view.focus();
+                                    }}
+                                    {...{name: 'Matching Question', id: uuidv4()}}
+                                />
+                                <ContentPartPreview
+                                    key="insertTextAreaQuestion"
+                                    enabled={this.state.enabledCommands.includes('insertTextAreaQuestion')}
+                                    onClick={( id ) => {
+                                        this.editor.execute( 'insertTextAreaQuestion', id );
+                                        this.editor.editing.view.focus();
+                                    }}
+                                    {...{name: 'Text Area Question', id: uuidv4()}}
+                                />
+                                <ContentPartPreview
+                                    key="insertTextArea"
+                                    enabled={this.state.enabledCommands.includes('insertTextArea')}
+                                    onClick={( id ) => {
+                                        this.editor.execute( 'insertTextArea', id );
+                                        this.editor.editing.view.focus();
+                                    }}
+                                    {...{name: 'Text Area', id: uuidv4()}}
+                                />
+                                <ContentPartPreview
+                                    key="insertSlider"
+                                    enabled={this.state.enabledCommands.includes('insertSlider')}
+                                    onClick={( id ) => {
+                                        this.editor.execute( 'insertSlider', id );
+                                        this.editor.editing.view.focus();
+                                    }}
+                                    {...{name: 'Slider', id: uuidv4()}}
+                                />
+                                <input
+                                    type="file"
+                                    style={{ display: "none" }}
+                                    ref={this.fileUpload}
+                                    onChange={e => {
+                                        this.editor.execute( 'imageUpload', {file: e.target.files[0]} );
+                                        this.editor.editing.view.focus();
+                                    }}
+                                />
+                                <ContentPartPreview
+                                    key="imageUpload"
+                                    enabled={this.state.enabledCommands.includes('imageUpload')}
+                                    onClick={this.showFileUpload}
+                                    {...{name: 'Image (Upload)', id: uuidv4()}}
+                                />
+                                <ContentPartPreview
+                                    key="imageInsert"
+                                    enabled={this.state.enabledCommands.includes('imageInsert')}
+                                    onClick={( id ) => {
+                                        const url = window.prompt('URL', 'http://placekitten.com/200/300');
+                                        this.editor.execute( 'imageInsert', {source: url} );
+                                        this.editor.editing.view.focus();
+                                    }}
+                                    {...{name: 'Image (URL)', id: uuidv4()}}
+                                />
+                                <ContentPartPreview
+                                    key="insertTableContent"
+                                    enabled={this.state.enabledCommands.includes('insertTableContent')}
+                                    onClick={( id ) => {
+                                        const rows = window.prompt('How many rows?', 2);
+                                        const columns = window.prompt('How many columns?', 2);
+                                        this.editor.execute( 'insertTableContent', id , {rows: rows, columns: columns});
+                                        this.editor.editing.view.focus();
+                                    }}
+                                    {...{name: 'Table', id: uuidv4()}}
+                                />
+                                <ContentPartPreview
+                                    key="insertBlockquoteContent"
+                                    enabled={this.state.enabledCommands.includes('insertBlockquoteContent')}
+                                    onClick={( id ) => {
+                                        this.editor.execute( 'insertBlockquoteContent', id );
+                                        this.editor.editing.view.focus();
+                                    }}
+                                    {...{name: 'Quote', id: uuidv4()}}
+                                />
+                                <ContentPartPreview
+                                    key="insertIFrameContent"
+                                    enabled={this.state.enabledCommands.includes('insertIFrameContent')}
+                                    onClick={( id ) => {
+                                        const url = window.prompt('URL', 'http://example.com' );
+                                        this.editor.execute( 'insertIFrameContent', id, url );
+                                        this.editor.editing.view.focus();
+                                    }}
+                                    {...{name: 'iFrame', id: uuidv4()}}
+                                />
+                                <ContentPartPreview
+                                    key="insertVideoContent"
+                                    enabled={this.state.enabledCommands.includes('insertVideoContent')}
+                                    onClick={( id ) => {
+                                        const url = window.prompt('URL', 'https://www.youtube.com/embed/yyRrKMb8oIg?rel=0' );
+                                        this.editor.execute( 'insertVideoContent', id, url );
+                                        this.editor.editing.view.focus();
+                                    }}
+                                    {...{name: 'Video', id: uuidv4()}}
+                                />
+                                <ContentPartPreview
+                                    key="insertRateThisModuleQuestion"
+                                    enabled={this.state.enabledCommands.includes('insertRateThisModuleQuestion')}
+                                    onClick={( id ) => {
+                                        this.editor.execute( 'insertRateThisModuleQuestion', id );
+                                        this.editor.editing.view.focus();
+                                    }}
+                                    {...{name: 'Rate This Module', id: uuidv4()}}
+                                />
+                            </ul>
+                        </div>
                     </div>
                     <Tabs>
                         <div id="workspace">
