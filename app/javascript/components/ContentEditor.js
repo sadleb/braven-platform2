@@ -372,8 +372,6 @@ class ContentEditor extends Component {
                                        placeholder="Page Title"
                                 />
                             </h2>
-                            <h4>Insert Component</h4>
-
                         </div>
                         <div id="toolbar-contextual">
                             {this.state.modelPath.map( modelElement => {
@@ -381,7 +379,7 @@ class ContentEditor extends Component {
                                     // Text inputs and textareas have placeholder settings.
                                     return (
                                         <>
-                                            <h5>Text Input</h5>
+                                            <h4>Text Input</h4>
                                             <input
                                                 type='text'
                                                 id='input-placeholder'
@@ -401,7 +399,7 @@ class ContentEditor extends Component {
 
                                     return (
                                         <>
-                                            <h5>Slider</h5>
+                                            <h4>Slider</h4>
 
                                             <input
                                                 type='number'
@@ -450,6 +448,8 @@ class ContentEditor extends Component {
                             } ) }
                         </div>
                         <div id="toolbar-components">
+                            <h4>Insert Component</h4>
+
                             <ul key="content-part-list" id="widget-list">
                                 <ContentPartPreview
                                     key="insertSection"
