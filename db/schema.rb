@@ -34,6 +34,35 @@ ActiveRecord::Schema.define(version: 2020_02_20_212829) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "contact_owners", force: :cascade do |t|
+    t.integer "contact_id"
+    t.string "contact_type"
+    t.integer "owner_id"
+    t.string "owner_type"
+    t.index ["contact_id", "contact_type"], name: "index_contact_owners_on_contact_id_and_contact_type"
+    t.index ["owner_id", "owner_type"], name: "index_contact_owners_on_owner_id_and_owner_type"
+  end
+
+  create_table "course_content_histories", force: :cascade do |t|
+    t.bigint "course_content_id", null: false
+    t.string "title"
+    t.text "body"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["course_content_id"], name: "index_course_content_histories_on_course_content_id"
+  end
+
+  create_table "course_content_undos", force: :cascade do |t|
+    t.bigint "course_content_id", null: false
+    t.text "operation"
+    t.integer "version"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.integer "batch_version"
+    t.index ["course_content_id", "version"], name: "index_course_content_undos_on_course_content_id_and_version", unique: true
+    t.index ["course_content_id"], name: "index_course_content_undos_on_course_content_id"
+  end
+
   create_table "course_contents", force: :cascade do |t|
     t.string "title"
     t.text "body"
@@ -366,4 +395,6 @@ ActiveRecord::Schema.define(version: 2020_02_20_212829) do
   add_foreign_key "sections", "programs"
   add_foreign_key "user_sections", "sections"
   add_foreign_key "user_sections", "users"
+  add_foreign_key "course_content_histories", "course_contents"
+  add_foreign_key "course_content_undos", "course_contents"
 end

@@ -1,0 +1,19 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Course content:</strong>
+  <%= @course_content_undo.course_content_id %>
+</p>
+
+<p>
+  <strong>Operation:</strong>
+  <%= @course_content_undo.operation %>
+</p>
+
+<p>
+  <strong>Version:</strong>
+  <%= @course_content_undo.version %>
+</p>
+
+<%= link_to 'Edit', edit_course_content_undo_path(@course_content_undo) %> |
+<%= link_to 'Back', course_content_undos_path %>

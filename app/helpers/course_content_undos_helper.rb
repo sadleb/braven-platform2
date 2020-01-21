@@ -1,0 +1,2 @@
+module CourseContentUndosHelper
+end

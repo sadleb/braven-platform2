@@ -1,0 +1,19 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Course content:</strong>
+  <%= @course_content_history.course_content_id %>
+</p>
+
+<p>
+  <strong>Title:</strong>
+  <%= @course_content_history.title %>
+</p>
+
+<p>
+  <strong>Body:</strong>
+  <%= @course_content_history.body %>
+</p>
+
+<%= link_to 'Edit', edit_course_content_history_path(@course_content_history) %> |
+<%= link_to 'Back', course_content_histories_path %>
