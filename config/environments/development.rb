@@ -68,4 +68,11 @@ Rails.application.configure do
 
   # Add Rack::LiveReload to the bottom of the middleware stack with the default options:
   config.middleware.insert_after ActionDispatch::Static, Rack::LiveReload
+
+  # When running in Docker, the subnets may not be the default 127.0.0.1 for localhost.
+  # So we need to whitelist whatever subnet the docker network is using in order for
+  # the web-console gem to work.
+  config.web_console.whitelisted_ips = Socket.ip_address_list.reduce([]) do |res, addrinfo|
+    addrinfo.ipv4? ? res << IPAddr.new(addrinfo.ip_address).mask(24) : res
+  end
 end

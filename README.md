@@ -5,6 +5,8 @@
 
 This is the Braven Platform!
 
+Add to this README please. It's easy to edit and see your changes locally using [grip](https://github.com/joeyespo/grip).
+
 ## Initial setup
 
 First, we need to copy a couple of environment files in the app directory:
@@ -12,7 +14,9 @@ First, we need to copy a couple of environment files in the app directory:
     cp .env.example .env
     cp .env.database.example .env.database
 
-Be sure to set the `SSO_URL` variable in `.env` to point to whatever CAS SSO server you're using.
+*Note:* At the time of writing, the SSO login requires the Join server to be running locally at [http://joinweb](http://joinweb).
+Look at the `server` config value in `config/rubycas.yml` for where that comes from. You can login with any user that
+exists in the Join server's database and admins are anyone with an `@bebraven.org` email.
 
 You don't really need to change the database passwords in these files, so we're doing this mainly to conform to "best
 practices" for Rails apps in general. But if you do want to pick a different database password, make sure it matches in
@@ -34,7 +38,7 @@ We've configured Docker to run our Rails app on port 3020, so go to http://local
 everything's working correctly, you should be brought to the app's homepage.
 
 If you have a `127.0.0.1   platformweb` entry in your `/etc/hosts` file, and are using the [nginx-dev
-container](https://github.com/beyond-z/nginx-dev), you can also access the Platform app via http://platformweb.
+container](https://github.com/beyond-z/nginx-dev), you can also access the Platform app via http://platformweb:3020.
 
 ### Dummy Data
 
@@ -123,6 +127,13 @@ If something isn't working, you can watch the docker logs live with:
 Or search through them with e.g.:
 
     docker-compose logs | grep "ERROR_I_WANT_TO_SEE"
+
+We also have the [web-console gem](https://github.com/rails/web-console) 
+in the dev env so that when you get an error page in the browser, it includes an interactive ruby console at the bottom
+so that you can inspect the variables or run code. E.g. Type `instance_variables` or `local_variables` to see a list.
+Or, for example you can inspect one such as the `@current_user` by writing `instance_variable_get(:@current_user)`
+
+**TODO:** talk about pry and other dev and troubleshooting techniques.
 
 ### Accessibility testing
 
