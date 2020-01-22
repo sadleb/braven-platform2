@@ -1,5 +1,5 @@
 class User < ApplicationRecord
-  ADMIN_DOMAIN_WHITELIST = ['bebraven.org']
+  ADMIN_DOMAIN_WHITELIST = ['bebraven.org', 'beyondz.org']
 
   devise :cas_authenticatable, :rememberable
   
