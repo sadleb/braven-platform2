@@ -50,7 +50,7 @@ test:
   <<: *default
   log:
     output: 
-    level: DEBUG
+    level: ERROR
   public_site_domain: joinweb
   # this should be the *top* domain - so even for staging, it should be .join.bebraven.org stilldefault_service: http://canvasweb/login/cas
   cookie_domain: .localhost 
