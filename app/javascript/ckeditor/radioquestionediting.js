@@ -178,12 +178,26 @@ export default class RadioQuestionEditing extends Plugin {
             },
             model: ( viewElement, modelWriter ) => {
                 // All radio buttons in the same question must share the same 'name' attribute,
-                // so let's get a reference to the ancestor radio question block and use its ID.
-                const moduleBlockRadioDiv = viewElement.parent.parent.parent.parent.parent;
+                // so let's get a reference to the ancestor module block and use its ID.
+                let radioGroupName;
+                try {
+                    const moduleBlockRadioDiv = viewElement.parent.parent.parent.parent.parent;
+                    // Try to use the existing name first; fall back to question ID.
+                    radioGroupName = viewElement.getAttribute('name') || moduleBlockRadioDiv.getAttribute('id');
+                }
+                catch (e) {
+                    if (e instanceof TypeError) {
+                        // We're not in a radio question; use something else for the group name.
+                        radioGroupName = viewElement.getAttribute('name');
+                    } else {
+                        throw e;
+                    }
+                }
+
                 return modelWriter.createElement( 'radioInput', {
                     'id': viewElement.getAttribute( 'id' ),
                     // HACK: Get the retained id of the question this radiobutton is inside.
-                    'name': moduleBlockRadioDiv.getAttribute('id')
+                    'name': radioGroupName
                 } );
             }
 
@@ -192,13 +206,27 @@ export default class RadioQuestionEditing extends Plugin {
             model: 'radioInput',
             view: ( modelElement, viewWriter ) => {
                 // All radio buttons in the same question must share the same 'name' attribute,
-                // so let's get a reference to the ancestor radio question block and use its ID.
-                const moduleBlockRadioDiv = modelElement.parent.parent.parent.parent.parent;
+                // so let's get a reference to the ancestor module block and use its ID.
+                let radioGroupName;
+                try {
+                    const moduleBlockRadioDiv = modelElement.parent.parent.parent.parent.parent;
+                    // Try to use the existing name first; fall back to question ID.
+                    radioGroupName = modelElement.getAttribute('name') || moduleBlockRadioDiv.getAttribute('id');
+                }
+                catch (e) {
+                    if (e instanceof TypeError) {
+                        // We're not in a radio question; use something else for the group name.
+                        radioGroupName = modelElement.getAttribute('name');
+                    } else {
+                        throw e;
+                    }
+                }
+
                 const input = viewWriter.createEmptyElement( 'input', {
                     'type': 'radio',
                     'id': modelElement.getAttribute( 'id' ),
                     // HACK: Get the retained id of the question this radiobutton is inside.
-                    'name': moduleBlockRadioDiv.getAttribute('id')
+                    'name': radioGroupName
                 } );
                 return input;
             }
@@ -207,13 +235,27 @@ export default class RadioQuestionEditing extends Plugin {
             model: 'radioInput',
             view: ( modelElement, viewWriter ) => {
                 // All radio buttons in the same question must share the same 'name' attribute,
-                // so let's get a reference to the ancestor radio question block and use its ID.
-                const moduleBlockRadioDiv = modelElement.parent.parent.parent.parent.parent;
+                // so let's get a reference to the ancestor module block and use its ID.
+                let radioGroupName;
+                try {
+                    const moduleBlockRadioDiv = modelElement.parent.parent.parent.parent.parent;
+                    // Try to use the existing name first; fall back to question ID.
+                    radioGroupName = modelElement.getAttribute('name') || moduleBlockRadioDiv.getAttribute('id');
+                }
+                catch (e) {
+                    if (e instanceof TypeError) {
+                        // We're not in a radio question; use something else for the group name.
+                        radioGroupName = modelElement.getAttribute('name');
+                    } else {
+                        throw e;
+                    }
+                }
+
                 const input = viewWriter.createEmptyElement( 'input', {
                     'type': 'radio',
                     'id': modelElement.getAttribute( 'id' ),
                     // HACK: Get the retained id of the question this radiobutton is inside.
-                    'name': moduleBlockRadioDiv.getAttribute('id')
+                    'name': radioGroupName
                 } );
                 return toWidget( input, viewWriter );
             }

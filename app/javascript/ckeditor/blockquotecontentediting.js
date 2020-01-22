@@ -61,6 +61,7 @@ export default class BlockquoteContentEditing extends Plugin {
                     'class': 'module-block module-block-quote',
                     'data-id': modelElement.getAttribute( 'id' )
                 } );
+
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
@@ -82,13 +83,17 @@ export default class BlockquoteContentEditing extends Plugin {
             model: 'blockquoteQuote',
             view: {
                 name: 'blockquote'
-            }
+            },
+            // Overwrite CKE5's blockquote converters.
+            converterPriority: 'high'
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'blockquoteQuote',
             view: {
                 name: 'blockquote'
-            }
+            },
+            // Overwrite CKE5's blockquote converters.
+            converterPriority: 'high'
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'blockquoteQuote',
@@ -96,7 +101,9 @@ export default class BlockquoteContentEditing extends Plugin {
                 const blockquote = viewWriter.createEditableElement( 'blockquote' );
 
                 return toWidgetEditable( blockquote, viewWriter );
-            }
+            },
+            // Overwrite CKE5's blockquote converters.
+            converterPriority: 'high'
         } );
 
         // <blockquoteCitation> converters

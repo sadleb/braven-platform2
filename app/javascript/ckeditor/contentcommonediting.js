@@ -16,6 +16,7 @@ export default class ContentCommonEditing extends Plugin {
     _defineSchema() {
         const schema = this.editor.model.schema;
 
+        // Shared elements.
         schema.register( 'content', {
             isObject: true,
             allowIn: [ 'blockquoteContent', 'tableContent', 'iframeContent', 'videoContent' ],
@@ -91,17 +92,17 @@ export default class ContentCommonEditing extends Plugin {
             allowContentOf: '$root'
         } );
 
-        // Misc elements
+        // Shared inputs.
         schema.register( 'textInput', {
             isObject: true,
-            allowAttributes: [ 'data-bz-retained', 'type' ],
-            allowIn: '$root',
+            allowAttributes: [ 'data-bz-retained', 'type', 'placeholder' ],
+            allowIn: [ '$root', '$block', 'tableCell' ],
         } );
 
         schema.register( 'textArea', {
             isObject: true,
-            allowAttributes: [ 'data-bz-retained' ],
-            allowIn: [ '$root', 'checkboxDiv', 'radioDiv', 'tableCell', 'questionFieldset' ],
+            allowAttributes: [ 'data-bz-retained', 'placeholder' ],
+            allowIn: [ '$root', '$block', 'checkboxDiv', 'radioDiv', 'tableCell', 'questionFieldset' ],
         } );
 
         schema.register( 'fileUpload', {
@@ -114,6 +115,19 @@ export default class ContentCommonEditing extends Plugin {
             isObject: true,
             allowAttributes: [ 'data-bz-retained', 'type', 'max', 'min', 'step' ],
             allowIn: [ '$root' ],
+        } );
+
+        schema.register( 'select', {
+            isObject: true,
+            allowAttributes: [ 'data-bz-retained', 'id', 'name' ],
+            allowIn: [ '$root' ],
+        } );
+
+        schema.register( 'selectOption', {
+            isObject: true,
+            allowAttributes: [ 'value', 'selected' ],
+            allowIn: [ 'select' ],
+            allowContentOf: '$block'
         } );
     }
 
@@ -446,6 +460,7 @@ export default class ContentCommonEditing extends Plugin {
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'textInput', {
                     'data-bz-retained': viewElement.getAttribute('data-bz-retained'),
+                    'placeholder': viewElement.getAttribute('placeholder')
                 } );
             }
         } );
@@ -455,6 +470,7 @@ export default class ContentCommonEditing extends Plugin {
                 const input = viewWriter.createEmptyElement( 'input', {
                     'type': 'text',
                     'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'placeholder': modelElement.getAttribute('placeholder')
                 } );
                 return input;
             }
@@ -465,6 +481,7 @@ export default class ContentCommonEditing extends Plugin {
                 const input = viewWriter.createEmptyElement( 'input', {
                     'type': 'text',
                     'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'placeholder': modelElement.getAttribute('placeholder')
                 } );
                 return toWidget( input, viewWriter );
             }
@@ -478,6 +495,7 @@ export default class ContentCommonEditing extends Plugin {
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'textArea', {
                     'data-bz-retained': viewElement.getAttribute('data-bz-retained'),
+                    'placeholder': viewElement.getAttribute('placeholder')
                 } );
             }
         } );
@@ -486,6 +504,7 @@ export default class ContentCommonEditing extends Plugin {
             view: ( modelElement, viewWriter ) => {
                 const textarea = viewWriter.createEmptyElement( 'textarea', {
                     'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'placeholder': modelElement.getAttribute('placeholder')
                 } );
                 return textarea;
             }
@@ -495,6 +514,7 @@ export default class ContentCommonEditing extends Plugin {
             view: ( modelElement, viewWriter ) => {
                 const textarea = viewWriter.createEmptyElement( 'textarea', {
                     'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'placeholder': modelElement.getAttribute('placeholder')
                 } );
                 return toWidget( textarea, viewWriter );
             }
@@ -585,6 +605,72 @@ export default class ContentCommonEditing extends Plugin {
                     'step': modelElement.getAttribute('step') || '',
                 } );
                 return toWidget( input, viewWriter );
+            }
+        } );
+
+        // <select> converters
+        conversion.for( 'upcast' ).elementToElement( {
+            view: {
+                name: 'select',
+            },
+            model: ( viewElement, modelWriter ) => {
+                return modelWriter.createElement( 'select', {
+                    'data-bz-retained': viewElement.getAttribute('data-bz-retained'),
+                    'name': viewElement.getAttribute('name'),
+                    'id': viewElement.getAttribute('id')
+                } );
+            }
+        } );
+        conversion.for( 'dataDowncast' ).elementToElement( {
+            model: 'select',
+            view: ( modelElement, viewWriter ) => {
+                const select = viewWriter.createContainerElement( 'select', {
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'name': modelElement.getAttribute('name'),
+                    'id': modelElement.getAttribute('id'),
+                } );
+                return select;
+            }
+        } );
+        conversion.for( 'editingDowncast' ).elementToElement( {
+            model: 'select',
+            view: ( modelElement, viewWriter ) => {
+                const select = viewWriter.createContainerElement( 'select', {
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'name': modelElement.getAttribute('name'),
+                    'id': modelElement.getAttribute('id')
+                } );
+                return toWidget( select, viewWriter );
+            }
+        } );
+
+        // <selectOption> converters
+        conversion.for( 'upcast' ).elementToElement( {
+            view: {
+                name: 'option',
+            },
+            model: ( viewElement, modelWriter ) => {
+                return modelWriter.createElement( 'selectOption', {
+                    'value': viewElement.getAttribute('value'),
+                } );
+            }
+        } );
+        conversion.for( 'dataDowncast' ).elementToElement( {
+            model: 'selectOption',
+            view: ( modelElement, viewWriter ) => {
+                const option = viewWriter.createContainerElement( 'option', {
+                    'value': modelElement.getAttribute('value'),
+                } );
+                return option;
+            }
+        } );
+        conversion.for( 'editingDowncast' ).elementToElement( {
+            model: 'selectOption',
+            view: ( modelElement, viewWriter ) => {
+                const option = viewWriter.createContainerElement( 'option', {
+                    'value': modelElement.getAttribute('value'),
+                } );
+                return toWidget( option, viewWriter );
             }
         } );
     }
