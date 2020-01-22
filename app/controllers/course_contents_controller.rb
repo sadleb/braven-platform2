@@ -68,6 +68,18 @@ class CourseContentsController < ApplicationController
   def publish
     respond_to do |format|
       if @course_content.publish(course_content_params)
+
+        # update publish time, save a version
+        @course_content.published_at = DateTime.now
+        new_version = CourseContentHistory.new({
+          course_content_id: @course_content.id,
+          title: @course_content.title,
+          body: @course_content.body
+        })
+        new_version.save
+        @course_content.save
+
+        # return
         format.html { redirect_to @course_content, notice: 'CourseContent was successfully published.' }
         format.json { render :show, status: :ok }
       else

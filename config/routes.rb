@@ -1,6 +1,7 @@
 Rails.application.routes.draw do
   resources :course_contents do
     post :publish
+    resources :course_content_histories
   end
 
   devise_for :users
