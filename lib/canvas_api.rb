@@ -1,6 +1,7 @@
 require 'rest-client'
 
 class CanvasAPI
+  attr_reader :canvas_url
 
   def initialize(canvas_url, canvas_token)
     @canvas_url = canvas_url

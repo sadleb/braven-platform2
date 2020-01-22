@@ -329,6 +329,7 @@ class ContentEditor extends Component {
                     this.setState( {'isPublished': true} );
                     // TODO: provide a way for the user to easily view the result, which will be in:
                     // `${CANVAS_URL}/courses/${result['course_id']}/pages/${result['secondary_id']}`
+                    window.open(result['canvas_url']);
                 },
                 // Note: it's important to handle errors here
                 // instead of a catch() block so that we don't swallow
