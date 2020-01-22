@@ -79,6 +79,18 @@ In all cases, to bring the container back up after a rebuild, run:
 
     docker-compose up -d
 
+### Testing
+
+You can run all tests like this:
+    
+    docker-compose exec platformweb bundle exec rspec
+
+Or only tests in a particular directory, like our feature tests which use Selenium to click around in the browser:
+
+    docker-compose exec platformweb bundle exec rspec spec/feature
+
+You can also run a single spec ofc.
+
 ### Project structure
 
 This app is built with React and Rails. Generally speaking, developers will spend the most time in the Rails code

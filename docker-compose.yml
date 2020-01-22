@@ -12,11 +12,15 @@ services:
       - "3035:3035"
       # rack-livereload (config/environments/development.rb)
       - "35729:35729"
+      # rspec server host port. The web server that rspec listens on when running tests. http://SPEC_HOST:SPEC_PORT
+      - "49883:49883"
     volumes:
       - .:/usr/src/app
       - node-modules:/usr/src/app/node_modules
       - /usr/src/app/tmp
       - /usr/src/app/log
+    depends_on:
+      - platform_chrome
     env_file:
       - .env
     networks:
@@ -38,6 +42,20 @@ services:
       - db-platform:/var/lib/postgresql/data
     networks:
       - bravendev
+
+  platform_chrome:
+    image: selenium/standalone-chrome
+    # SELENIUM_PORT
+    ports: ['4444:4444']
+    # remote debugging port
+    ports: ['9222:9222']
+    volumes:
+      - /dev/shm:/dev/shm
+    networks:
+      - bravendev
+    # Disable noisy logs.
+    #logging:
+    #  driver: none
 
 volumes:
   db-platform:

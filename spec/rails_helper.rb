@@ -2,6 +2,10 @@
 require 'codacy-coverage'
 Codacy::Reporter.start
 
+# Make sure the local ENV variables are loaded
+require 'dotenv'
+Dotenv.load('.env')
+
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 require 'spec_helper'
 
