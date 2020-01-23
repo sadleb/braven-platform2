@@ -29,6 +29,10 @@ tmp/
 log/
 /*.dev
 
+# Ignore vim related files
+*.swp
+*.swo
+
 ## Ignore bundler config
 /.bundle/
 /vendor/bundle
