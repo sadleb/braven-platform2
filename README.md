@@ -133,6 +133,10 @@ in the dev env so that when you get an error page in the browser, it includes an
 so that you can inspect the variables or run code. E.g. Type `instance_variables` or `local_variables` to see a list.
 Or, for example you can inspect one such as the `@current_user` by writing `instance_variable_get(:@current_user)`
 
+We also have the pry and rescue gems so that you can break and debug code. Here is an example for how to debug
+a spec that is throwing an exception.
+    bundle exec rescue rspec spec/a_failing_spec.rb --format documentation   
+
 **TODO:** talk about pry and other dev and troubleshooting techniques.
 
 ### Accessibility testing
