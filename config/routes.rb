@@ -13,7 +13,7 @@ Rails.application.routes.draw do
   resources :majors, except: [:show]
   resources :programs, except: [:show]
   resources :roles, except: [:show]
-  resources :people, only: [:index, :show]
+  resources :users, only: [:index, :show]
 
   resources :postal_codes, only: [:index, :show] do
     collection do

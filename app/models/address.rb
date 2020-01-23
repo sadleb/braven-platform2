@@ -1,8 +1,6 @@
 require 'state_abbreviations'
 
 class Address < ApplicationRecord
-  # allow this model to be used as a contact
-  include OwnerContactMap
   
   validates :line1, :city, :state, :zip, presence: true
   validates :state, format: {with: /\A[A-Z]{2}\z/}
