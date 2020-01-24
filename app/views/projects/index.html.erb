@@ -1,0 +1,19 @@
+<h1>Projects</h1>
+<br/>
+<br/>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Module</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @projects.each do |project| %>
+      <tr>
+        <td><%= link_to project.name, project %></td>
+        <td><%= link_to project.course_module.name, project.course_module %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

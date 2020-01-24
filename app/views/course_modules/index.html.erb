@@ -1,0 +1,19 @@
+<h1>Course Modules</h1>
+<br/>
+<br/>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Program</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @course_modules.each do |course_module| %>
+      <tr>
+        <td><%= link_to course_module.name, course_module %></td>
+        <td><%= link_to course_module.program.name, course_module.program %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

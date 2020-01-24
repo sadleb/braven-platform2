@@ -11,7 +11,25 @@ Rails.application.routes.draw do
   resources :interests, except: [:show]
   resources :locations, only: [:index, :show]
   resources :majors, except: [:show]
-  resources :programs, except: [:show]
+
+  # See this for why we nest things only 1 deep:
+  # http://weblog.jamisbuck.org/2007/2/5/nesting-resources
+  resources :programs do
+    resources :course_modules, only: [:index, :show]
+  end
+
+  resources :course_modules, only: [:index, :show] do
+    resources :projects, only: [:index, :show]
+    resources :lessons, only: [:index, :show]
+  end
+
+  resources :projects, only: [:index, :show] do
+    resources :project_submissions, only: [:index, :show], :path => 'submissions'
+  end
+  resources :lessons, only: [:index, :show] do
+    resources :lesson_submissions, only: [:index, :show], :path => 'submissions'
+  end
+
   resources :roles, except: [:show]
   resources :users, only: [:index, :show]
 

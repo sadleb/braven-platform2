@@ -46,6 +46,16 @@ ActiveRecord::Schema.define(version: 2020_02_20_212829) do
     t.string "course_name"
   end
 
+  create_table "course_modules", force: :cascade do |t|
+    t.bigint "program_id"
+    t.string "name", null: false
+    t.integer "position", null: false
+    t.float "percent_of_grade"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["program_id"], name: "index_course_modules_on_program_id"
+  end
+
   create_table "emails", force: :cascade do |t|
     t.string "value", null: false
     t.datetime "created_at", null: false
@@ -65,6 +75,26 @@ ActiveRecord::Schema.define(version: 2020_02_20_212829) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_interests_on_name"
+  end
+
+  create_table "lesson_submissions", force: :cascade do |t|
+    t.bigint "user_id"
+    t.bigint "lesson_id"
+    t.float "points_received"
+    t.datetime "submitted_at"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["lesson_id"], name: "index_lesson_submissions_on_lesson_id"
+    t.index ["user_id"], name: "index_lesson_submissions_on_user_id"
+  end
+
+  create_table "lessons", force: :cascade do |t|
+    t.bigint "course_module_id"
+    t.string "name", null: false
+    t.integer "points_possible"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["course_module_id"], name: "index_lessons_on_course_module_id"
   end
 
   create_table "location_relationships", id: false, force: :cascade do |t|
@@ -162,6 +192,29 @@ ActiveRecord::Schema.define(version: 2020_02_20_212829) do
     t.index ["name"], name: "index_programs_on_name", unique: true
   end
 
+  create_table "project_submissions", force: :cascade do |t|
+    t.bigint "user_id"
+    t.bigint "project_id"
+    t.float "points_received"
+    t.datetime "submitted_at"
+    t.datetime "graded_at"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["project_id"], name: "index_project_submissions_on_project_id"
+    t.index ["user_id"], name: "index_project_submissions_on_user_id"
+  end
+
+  create_table "projects", force: :cascade do |t|
+    t.bigint "course_module_id"
+    t.string "name", null: false
+    t.integer "points_possible"
+    t.boolean "grades_muted", default: false, null: false
+    t.datetime "grades_published_at"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["course_module_id"], name: "index_projects_on_course_module_id"
+  end
+
   create_table "proxy_granting_tickets", force: :cascade do |t|
     t.string "ticket", null: false
     t.datetime "created_on", null: false
@@ -241,4 +294,11 @@ ActiveRecord::Schema.define(version: 2020_02_20_212829) do
   add_foreign_key "sections", "programs"
   add_foreign_key "user_sections", "sections"
   add_foreign_key "user_sections", "users"
+  add_foreign_key "course_modules", "programs"
+  add_foreign_key "lesson_submissions", "lessons"
+  add_foreign_key "lesson_submissions", "users"
+  add_foreign_key "lessons", "course_modules"
+  add_foreign_key "project_submissions", "projects"
+  add_foreign_key "project_submissions", "users"
+  add_foreign_key "projects", "course_modules"
 end

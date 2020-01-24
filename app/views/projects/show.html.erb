@@ -1,0 +1,23 @@
+<h1>Project</h1>
+<br/>
+<br/>
+<table>
+  <thead>
+    <tr>
+      <th>Attribute</th>
+      <th>Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Name</td>
+      <td><%= @project.name %></td>
+    </tr>
+    <tr>
+      <td>Submissions</td>
+      <td><%= link_to 'click here', project_project_submissions_path(@project) %></td>
+    </tr>
+  </tbody>
+</table>
+<br/>
+<%= link_to 'Back To All Projects', course_module_projects_path(@project.course_module) %>

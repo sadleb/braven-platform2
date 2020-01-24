@@ -1,0 +1,23 @@
+<h1>Lesson Submissions</h1>
+<br/>
+<br/>
+<table>
+  <thead>
+    <tr>
+      <th>User</th>
+      <th>Lesson</th>
+      <th>Lesson Submission</th>
+      <th>Grade</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @lesson_submissions.each do |ls| %>
+      <tr>
+        <td><%= link_to ls.user.full_name, ls.user %></td>
+        <td><%= link_to ls.lesson.name, ls.lesson %></td>
+        <td><%= link_to ls.lesson.name + ' Submission', [ls.lesson, ls] %></td>
+        <td><%= as_percent(ls.points_received / ls.lesson.points_possible) %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

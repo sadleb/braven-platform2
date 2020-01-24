@@ -1,0 +1,21 @@
+<h1>Lesson</h1>
+<br/>
+<br/>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Module</th>
+      <th>Points</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @lessons.each do |lesson| %>
+      <tr>
+        <td><%= link_to lesson.name, lesson %></td>
+        <td><%= link_to lesson.course_module.name, lesson.course_module %></td>
+        <td><%= lesson.points_possible %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

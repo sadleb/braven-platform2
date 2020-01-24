@@ -79,6 +79,14 @@ In all cases, to bring the container back up after a rebuild, run:
 
     docker-compose up -d
 
+**Note:** there is a bug where on a Mac if you edit a file on the host machine (as opposed to inside the container)
+then live reloading doesn't work. To fix this for vim, add the following to your .vimrc to make it work:
+
+    set backupcopy=yes
+
+See [this](https://github.com/guard/listen/issues/434) for more info and a link talking about other editors and
+how they interact with gaurd.
+
 ### Testing
 
 You can run all tests like this:
@@ -130,6 +138,25 @@ Tests:
 
     spec/*
 
+### Adding new code
+
+Rails has generators that let you add new code more easily by automatically creating the scaffolding
+for the particular type of thing you are adding. Rails has a bunch of default generators you can use.
+For example, to create a new model you can do:
+
+    rails generate scaffold User name:string
+
+which will create the model, migration, routes, views, controllers, tests, etc.
+
+However, the default ones create a lot of cruft and things we don't use. Also, we can enforce our
+project structure and make it easier to get any boilerplate in that matches how we've set things up
+by creating our own generators. See [here](https://guides.rubyonrails.org/generators.html) for more info.
+
+**TODO:** We have one custom generator that let's us take a model that we've defined and add scaffolding
+that matches how the data-central project was structured. See [USAGE here](lib/generators/dscaffold/USAGE) 
+It is out of date and we're in the early stages of designing how the Braven Platform code will be structured
+and work together. Update it and add more generators that make it easy to add code properly to our codebase.
+
 ### Troubleshooting
 
 If something isn't working, you can watch the docker logs live with:
@@ -148,8 +175,6 @@ Or, for example you can inspect one such as the `@current_user` by writing `inst
 We also have the pry and rescue gems so that you can break and debug code. Here is an example for how to debug
 a spec that is throwing an exception.
     bundle exec rescue rspec spec/a_failing_spec.rb --format documentation   
-
-**TODO:** talk about pry and other dev and troubleshooting techniques.
 
 ### Accessibility testing
 
