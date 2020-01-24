@@ -9,7 +9,6 @@
 # and they were WikiPages in the code with the retained_data functionality
 # tacked on top.
 class Lesson < ApplicationRecord
-
   has_many :lesson_submissions
   has_many :users, :through => :lesson_submissions
   belongs_to :course_module

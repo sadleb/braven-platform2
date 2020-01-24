@@ -5,9 +5,10 @@
 #
 # Note: these were called assignments in the old Portal code.
 class Project < ApplicationRecord
+  belongs_to :course_module
   has_many :project_submissions
   has_many :users, :through => :project_submissions
-  belongs_to :course_module
+  has_one :rubric
   
   alias_attribute :submissions, :project_submissions
 
