@@ -1,4 +1,6 @@
 class CourseContentsController < ApplicationController
+  before_action :set_course_content, only: [:show, :edit, :update, :destroy, :publish]
+  before_action :set_course_contents, only: [:index, :edit, :new]
 
   # GET /course_contents
   # GET /course_contents.json
@@ -12,13 +14,11 @@ class CourseContentsController < ApplicationController
 
   # GET /course_contents/new
   def new
-    @course_contents = CourseContent.all
     @course_content = CourseContent.new
   end
 
   # GET /course_contents/1/edit
   def edit
-    @course_contents = CourseContent.all
   end
 
   # POST /course_contents
@@ -76,6 +76,10 @@ class CourseContentsController < ApplicationController
   end
 
   private
+
+    def set_course_contents
+      @course_contents = CourseContent.all
+    end
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def course_content_params
