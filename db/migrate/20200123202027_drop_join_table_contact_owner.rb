@@ -1,14 +1,8 @@
 class DropJoinTableContactOwner < ActiveRecord::Migration[6.0]
   def change
-    drop_table :contact_owners do |t|
-      t.integer :contact_id
-      t.string :contact_type
-
-      t.integer :owner_id
-      t.string :owner_type
-
-      t.index [:contact_id, :contact_type]
-      t.index [:owner_id, :owner_type]
-    end
+    # Irreversible and can't be rolled back.  This isn't used yet in prod.
+    # See: 20200123165835_move_person_columns_to_user.rb for more context 
+    # on why this is the desired behavior.
+    drop_table :contact_owners
   end
 end

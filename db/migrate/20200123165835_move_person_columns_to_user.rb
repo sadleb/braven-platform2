@@ -11,11 +11,13 @@ class MovePersonColumnsToUser < ActiveRecord::Migration[6.0]
       t.string :last_name, null: false, default: ''
     end
 
-    drop_table :people do |t|
-      t.string :first_name, null: false
-      t.string :middle_name
-      t.string :last_name, null: false
-      t.timestamps null: false
-    end
+    # This is irreversible. Trying to rollback this migration with throw
+    # an exception. This is the desired behavior b/c really we're just getting
+    # core data model infrastructure in place and haven't started using these
+    # yet in production. We want a clear point in the migration chain where
+    # before that it's clear the related data models weren't used and after
+    # they are future migrations have to plan for how to preserve data on rollbacks
+    # if they are altering actively used data.
+    drop_table :people 
   end
 end
