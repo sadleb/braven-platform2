@@ -21,7 +21,14 @@ services:
       - .env
     networks:
       - bravendev
-    command: bundle exec guard -dip
+    # Note: there are some issues with the listen gem and certain editors
+    # where gaurd won't detect changes made from the host machine on a Mac
+    # inside the container when the volume is mounted. For VIM, you need to add
+    #   set backupcopy=yes 
+    # in your .vimrc
+    # See: https://github.com/guard/listen/issues/434
+    # Also, if you force polling it will absolutely destroy your CPU.
+    command: bundle exec guard -di
 
   platformdb:
     image: postgres

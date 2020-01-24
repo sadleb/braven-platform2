@@ -8,7 +8,9 @@ RUN apk add --update --no-cache \
     nodejs \
     yarn \
     tzdata \
-    git 
+    libnotify \
+    git \
+    vim
 
 COPY Gemfile* /usr/src/app/
 COPY package.json /usr/src/app/

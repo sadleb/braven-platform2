@@ -41,6 +41,7 @@ group :development do
   gem 'guard-rails', require: false
   gem 'guard-rspec', require: false
   gem 'guard-livereload', require: false
+  gem 'libnotify', require: false
   gem 'rack-livereload'
   gem 'guard-webpacker'
   gem 'webpacker-react', "~> 1.0.0.beta.1"
