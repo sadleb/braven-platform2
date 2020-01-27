@@ -173,8 +173,9 @@ BalloonEditor.defaultConfig = {
 };
 
 function addRetainedDataID(element) {
-   console.log('todo');
-   return uuidv4();
+    const uuid = uuidv4();
+
+    return uuid;
 }
 
 window.addRetainedDataID = addRetainedDataID;
@@ -450,8 +451,28 @@ class ContentEditor extends Component {
                                             <label htmlFor='input-step'>Step</label>
                                         </>
                                     );
+                                } else if ( ['checkboxInput', 'radioInput'].includes( modelElement ) ) {
+                                    return (
+                                        <>
+                                            <h4>Option</h4>
+                                            <select
+                                                id='input-correctness'
+                                                defaultValue={this.state['selectedElement'].getAttribute('data-correctness')}
+                                                onChange={( evt ) => {
+                                                    this.editor.execute( 'setAttributes', { 'data-correctness': evt.target.value } );
+                                                }}
+                                            >
+                                                <option value="">CHOOSE ONE</option>
+                                                <option value="correct">Correct</option>
+                                                <option value="incorrect">Incorrect</option>
+                                                <option value="maybe">Maybe</option>
+                                            </select>
+                                            <label htmlFor='input-correctness'>Correctness</label>
+                                        </>
+                                    );
                                 }
-                            } ) }
+                            } )
+                        }
                         </div>
                         <div id="toolbar-components">
                             <h4>Insert Component</h4>

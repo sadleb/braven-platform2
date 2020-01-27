@@ -4,7 +4,7 @@ import { toWidget, toWidgetEditable } from '@ckeditor/ckeditor5-widget/src/utils
 import Widget from '@ckeditor/ckeditor5-widget/src/widget';
 import InsertChecklistQuestionCommand from './insertchecklistquestioncommand';
 import InsertCheckboxCommand from './insertcheckboxcommand';
-import { preventCKEditorHandling } from './utils';
+import SetAttributesCommand from './setattributescommand';
 
 export default class ChecklistQuestionEditing extends Plugin {
     static get requires() {
@@ -17,6 +17,7 @@ export default class ChecklistQuestionEditing extends Plugin {
 
         this.editor.commands.add( 'insertChecklistQuestion', new InsertChecklistQuestionCommand( this.editor ) );
         this.editor.commands.add( 'insertCheckbox', new InsertCheckboxCommand( this.editor ) );
+        this.editor.commands.add( 'setAttributes', new SetAttributesCommand( this.editor ) );
 
         // Override the default 'enter' key behavior for checkbox labels.
         this.listenTo( this.editor.editing.view.document, 'enter', ( evt, data ) => {
@@ -48,8 +49,9 @@ export default class ChecklistQuestionEditing extends Plugin {
 
         schema.register( 'checkboxInput', {
             isInline: true,
+            isObject: true,
             allowIn: [ 'checkboxDiv', 'tableCell' ],
-            allowAttributes: [ 'id', 'name', 'value', 'data-bz-retained' ]
+            allowAttributes: [ 'id', 'name', 'value', 'data-bz-retained', 'data-correctness' ]
         } );
 
         schema.register( 'checkboxLabel', {
@@ -137,33 +139,6 @@ export default class ChecklistQuestionEditing extends Plugin {
                     'class': 'module-checkbox-div'
                 } );
 
-                const widgetContents = viewWriter.createUIElement(
-                    'select',
-                    {
-                        'name': 'test',
-                        'onchange': 'addRetainedDataID(this)'
-                    },
-                    function( domDocument ) {
-                        const domElement = this.toDomElement( domDocument );
-
-                        // Set up the select values.
-                        domElement.innerHTML = `
-                            <option value="correct">Correct</option>
-                            <option value="incorrect">Incorrect</option>
-                            <option value="maybe">Maybe</option>`;
-
-                        // Default to the stored value.
-                        domElement.value = modelElement.getAttribute( 'data-correctness' );
-
-                        // Allow toggling this input in the editor UI.
-                        preventCKEditorHandling(domElement, editor);
-
-                        return domElement;
-                    } );
-
-                const insertPosition = viewWriter.createPositionAt( div, 0 );
-                viewWriter.insert( insertPosition, widgetContents );
-
                 return toWidget( div, viewWriter );
             }
         } );
@@ -179,7 +154,8 @@ export default class ChecklistQuestionEditing extends Plugin {
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'checkboxInput', {
                     'id': viewElement.getAttribute( 'id' ),
-                    'data-bz-retained': viewElement.getAttribute('data-bz-retained') || addRetainedDataID(viewElement)
+                    'data-bz-retained': viewElement.getAttribute('data-bz-retained') || addRetainedDataID(viewElement),
+                    'data-correctness': viewElement.getAttribute('data-correctness') || ''
                 } );
             }
         } );
@@ -189,7 +165,8 @@ export default class ChecklistQuestionEditing extends Plugin {
                 const input = viewWriter.createEmptyElement( 'input', {
                     'type': 'checkbox',
                     'id': modelElement.getAttribute( 'id' ),
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || addRetainedDataID(modelElement)
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || addRetainedDataID(modelElement),
+                    'data-correctness': modelElement.getAttribute('data-correctness') || ''
                 } );
                 return input;
             }
@@ -200,7 +177,8 @@ export default class ChecklistQuestionEditing extends Plugin {
                 const input = viewWriter.createEmptyElement( 'input', {
                     'type': 'checkbox',
                     'id': modelElement.getAttribute( 'id' ),
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || addRetainedDataID(modelElement)
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || addRetainedDataID(modelElement),
+                    'data-correctness': modelElement.getAttribute('data-correctness') || ''
                 } );
                 return toWidget( input, viewWriter );
             }

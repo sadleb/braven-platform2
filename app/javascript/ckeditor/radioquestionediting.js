@@ -4,7 +4,6 @@ import { toWidget, toWidgetEditable } from '@ckeditor/ckeditor5-widget/src/utils
 import Widget from '@ckeditor/ckeditor5-widget/src/widget';
 import InsertRadioQuestionCommand from './insertradioquestioncommand';
 import InsertRadioCommand from './insertradiocommand';
-import { preventCKEditorHandling } from './utils';
 
 export default class RadioQuestionEditing extends Plugin {
     static get requires() {
@@ -48,8 +47,9 @@ export default class RadioQuestionEditing extends Plugin {
 
         schema.register( 'radioInput', {
             isInline: true,
+            isObject: true,
             allowIn: [ 'radioDiv', 'tableCell' ],
-            allowAttributes: [ 'id', 'name', 'value' ]
+            allowAttributes: [ 'id', 'name', 'value', 'data-correctness' ]
         } );
 
         schema.register( 'radioLabel', {
@@ -137,33 +137,6 @@ export default class RadioQuestionEditing extends Plugin {
                     'class': 'module-radio-div'
                 } );
 
-                const widgetContents = viewWriter.createUIElement(
-                    'select',
-                    {
-                        'name': 'test',
-                        'onchange': 'console.log("TODO: SAVE CORRECTNESS")'
-                    },
-                    function( domDocument ) {
-                        const domElement = this.toDomElement( domDocument );
-
-                        // Set up the select values.
-                        domElement.innerHTML = `
-                            <option value="correct">Correct</option>
-                            <option value="incorrect">Incorrect</option>
-                            <option value="maybe">Maybe</option>`;
-
-                        // Default to the stored value.
-                        domElement.value = modelElement.getAttribute( 'data-correctness' );
-
-                        // Allow toggling this input in the editor UI.
-                        preventCKEditorHandling(domElement, editor);
-
-                        return domElement;
-                    } );
-
-                const insertPosition = viewWriter.createPositionAt( div, 0 );
-                viewWriter.insert( insertPosition, widgetContents );
-
                 return toWidget( div, viewWriter );
             }
         } );
@@ -196,8 +169,9 @@ export default class RadioQuestionEditing extends Plugin {
 
                 return modelWriter.createElement( 'radioInput', {
                     'id': viewElement.getAttribute( 'id' ),
-                    // HACK: Get the retained id of the question this radiobutton is inside.
-                    'name': radioGroupName
+                    'name': radioGroupName,
+                    'data-bz-retained': viewElement.getAttribute('data-bz-retained') || addRetainedDataID(viewElement),
+                    'data-correctness': viewElement.getAttribute('data-correctness') || ''
                 } );
             }
 
@@ -225,8 +199,9 @@ export default class RadioQuestionEditing extends Plugin {
                 const input = viewWriter.createEmptyElement( 'input', {
                     'type': 'radio',
                     'id': modelElement.getAttribute( 'id' ),
-                    // HACK: Get the retained id of the question this radiobutton is inside.
-                    'name': radioGroupName
+                    'name': radioGroupName,
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || addRetainedDataID(modelElement),
+                    'data-correctness': modelElement.getAttribute('data-correctness') || ''
                 } );
                 return input;
             }
@@ -254,8 +229,9 @@ export default class RadioQuestionEditing extends Plugin {
                 const input = viewWriter.createEmptyElement( 'input', {
                     'type': 'radio',
                     'id': modelElement.getAttribute( 'id' ),
-                    // HACK: Get the retained id of the question this radiobutton is inside.
-                    'name': radioGroupName
+                    'name': radioGroupName,
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || addRetainedDataID(modelElement),
+                    'data-correctness': modelElement.getAttribute('data-correctness') || ''
                 } );
                 return toWidget( input, viewWriter );
             }
