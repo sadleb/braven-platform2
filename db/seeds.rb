@@ -11,5 +11,5 @@ def yaml label
 end
 
 if User.count == 0
-  User.create [{email: 'admin@beyondz.org', admin: true}]
+  User.create [{first_name: 'Dev', last_name: 'Admin', email: 'admin@beyondz.org', admin: true}]
 end

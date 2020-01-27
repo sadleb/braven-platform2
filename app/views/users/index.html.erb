@@ -1,9 +1,9 @@
 <% content_for(:headline) do %>
-  People
+  Users 
 <% end %>
 
 <% content_for(:headline_buttons) do %>
-  <%= link_to 'JSON', people_path(format: 'json'), class: 'btn btn-sm btn-secondary', target: '_blank' %>
+  <%= link_to 'JSON', users_path(format: 'json'), class: 'btn btn-sm btn-secondary', target: '_blank' %>
 <% end %>
 
 <%= success(notice) %>
@@ -18,9 +18,9 @@
       </thead>
 
       <tbody>
-        <% @people.each do |person| %>
+        <% @users.each do |user| %>
           <tr>
-            <td><%= link_to person.full_name, person_path(person) %></td>
+            <td><%= link_to user.full_name, user_path(user) %></td>
           </tr>
         <% end %>
       </tbody>

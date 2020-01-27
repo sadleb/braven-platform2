@@ -17,7 +17,7 @@ RSpec.describe Program, type: :model do
   ##############
 
   it { should have_many :program_memberships }
-  it { should have_many(:people).through(:program_memberships) }
+  it { should have_many(:users).through(:program_memberships) }
   it { should have_many(:roles).through(:program_memberships) }
   
   ##################

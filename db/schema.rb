@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_11_25_140958) do
+ActiveRecord::Schema.define(version: 2020_01_23_202027) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -34,15 +34,6 @@ ActiveRecord::Schema.define(version: 2019_11_25_140958) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "contact_owners", force: :cascade do |t|
-    t.integer "contact_id"
-    t.string "contact_type"
-    t.integer "owner_id"
-    t.string "owner_type"
-    t.index ["contact_id", "contact_type"], name: "index_contact_owners_on_contact_id_and_contact_type"
-    t.index ["owner_id", "owner_type"], name: "index_contact_owners_on_owner_id_and_owner_type"
-  end
-
   create_table "course_contents", force: :cascade do |t|
     t.string "title"
     t.text "body"
@@ -51,8 +42,6 @@ ActiveRecord::Schema.define(version: 2019_11_25_140958) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.integer "course_id"
-    # secondary_id will represent different things depending on the content_type.
-    # e.g. for modules, it will be a page ID; for assignments an assignment ID.
     t.string "secondary_id"
     t.string "course_name"
   end
@@ -112,14 +101,6 @@ ActiveRecord::Schema.define(version: 2019_11_25_140958) do
     t.index ["parent_id"], name: "index_majors_on_parent_id"
   end
 
-  create_table "people", force: :cascade do |t|
-    t.string "first_name", null: false
-    t.string "middle_name"
-    t.string "last_name", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
   create_table "phones", force: :cascade do |t|
     t.string "value", null: false
     t.datetime "created_at", null: false
@@ -141,17 +122,17 @@ ActiveRecord::Schema.define(version: 2019_11_25_140958) do
   end
 
   create_table "program_memberships", force: :cascade do |t|
-    t.integer "person_id", null: false
+    t.integer "user_id", null: false
     t.integer "program_id", null: false
     t.integer "role_id", null: false
     t.date "start_date"
     t.date "end_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["person_id", "program_id", "role_id"], name: "program_memberships_index"
-    t.index ["person_id"], name: "index_program_memberships_on_person_id"
     t.index ["program_id"], name: "index_program_memberships_on_program_id"
     t.index ["role_id"], name: "index_program_memberships_on_role_id"
+    t.index ["user_id", "program_id", "role_id"], name: "program_memberships_index"
+    t.index ["user_id"], name: "index_program_memberships_on_user_id"
   end
 
   create_table "programs", force: :cascade do |t|
@@ -207,6 +188,9 @@ ActiveRecord::Schema.define(version: 2019_11_25_140958) do
     t.datetime "updated_at", null: false
     t.string "encrypted_password", default: "", null: false
     t.datetime "remember_created_at"
+    t.string "first_name", default: "", null: false
+    t.string "middle_name"
+    t.string "last_name", default: "", null: false
     t.index ["admin"], name: "index_users_on_admin"
     t.index ["email"], name: "index_users_on_email"
   end

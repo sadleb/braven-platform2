@@ -42,13 +42,13 @@ container](https://github.com/beyond-z/nginx-dev), you can also access the Platf
 
 ### Dummy Data
 
-In dev or staging environments, we may want a few people, contacts, etc to work with. Unlike the seed data above, 
+In dev or staging environments, we may want a few users, etc to work with. Unlike the seed data above, 
 this data is NOT meant for production. Therefore, it has a separate source file (db/dummies.rb) and rake task:
 
     rake db:dummies
 
-This currently generates a number of people, with contact info. It uses our the factories from our test suite,
-which have been updated to show more variety in names, emails, and addresses.
+This currently generates a number of users. It uses our the factories from our test suite,
+which have been updated to show more variety in names and emails.
 
 ## Making changes
 
