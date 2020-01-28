@@ -25,6 +25,7 @@ function createRadioQuestion( writer, id ) {
     const questionBody = writer.createElement( 'questionBody' );
     const questionForm = writer.createElement( 'questionForm' );
     const questionFieldset = writer.createElement( 'questionFieldset' );
+    const doneButton = writer.createElement( 'doneButton', { 'data-bz-retained': id } );
     const radioDiv = writer.createElement( 'radioDiv' );
     const radioInput = writer.createElement( 'radioInput' );
     const radioLabel = writer.createElement( 'radioLabel' );
@@ -41,6 +42,7 @@ function createRadioQuestion( writer, id ) {
     writer.append( questionBody, question );
     writer.append( questionForm, question );
     writer.append( questionFieldset, questionForm );
+    writer.append( doneButton, questionForm );
     writer.append( radioDiv, questionFieldset );
     writer.append( radioInput, radioDiv );
     writer.append( radioLabel, radioDiv );

@@ -25,6 +25,7 @@ function createChecklistQuestion( writer, id ) {
     const questionBody = writer.createElement( 'questionBody' );
     const questionForm = writer.createElement( 'questionForm' );
     const questionFieldset = writer.createElement( 'questionFieldset' );
+    const doneButton = writer.createElement( 'doneButton', { 'data-bz-retained': id } );
     const checkboxDiv = writer.createElement( 'checkboxDiv' );
     const checkboxInput = writer.createElement( 'checkboxInput' );
     const checkboxLabel = writer.createElement( 'checkboxLabel' );
@@ -41,6 +42,7 @@ function createChecklistQuestion( writer, id ) {
     writer.append( questionBody, question );
     writer.append( questionForm, question );
     writer.append( questionFieldset, questionForm );
+    writer.append( doneButton, questionForm );
     writer.append( checkboxDiv, questionFieldset );
     writer.append( checkboxInput, checkboxDiv );
     writer.append( checkboxLabel, checkboxDiv );

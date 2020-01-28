@@ -3,6 +3,7 @@ import { enablePlaceholder } from '@ckeditor/ckeditor5-engine/src/view/placehold
 import { toWidget, toWidgetEditable } from '@ckeditor/ckeditor5-widget/src/utils';
 import Widget from '@ckeditor/ckeditor5-widget/src/widget';
 import InsertTextInputCommand from './inserttextinputcommand';
+import InsertDoneButtonCommand from './insertdonebuttoncommand';
 
 export default class ContentCommonEditing extends Plugin {
     static get requires() {
@@ -14,6 +15,7 @@ export default class ContentCommonEditing extends Plugin {
         this._defineConverters();
 
         this.editor.commands.add( 'insertTextInput', new InsertTextInputCommand( this.editor ) );
+        this.editor.commands.add( 'insertDoneButton', new InsertDoneButtonCommand( this.editor ) );
     }
 
     _defineSchema() {
@@ -70,6 +72,12 @@ export default class ContentCommonEditing extends Plugin {
             // Cannot be split or left by the caret.
             isLimit: true,
             allowIn: 'questionForm',
+        } );
+
+        schema.register( 'doneButton', {
+            isObject: true,
+            allowIn: [ 'section', 'questionForm', 'question' ],
+            allowAttributes: [ 'data-bz-retained', 'type', 'value', 'data-time-updated' ],
         } );
 
         schema.register( 'legend', {
@@ -350,6 +358,49 @@ export default class ContentCommonEditing extends Plugin {
             model: 'questionFieldset',
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createContainerElement( 'fieldset' );
+            }
+        } );
+
+        // <doneButton> converters
+        conversion.for( 'upcast' ).elementToElement( {
+            view: {
+                name: 'input',
+                classes: 'done-button',
+                attributes: {
+                    'type': 'button',
+                    'value': 'Done',
+                }
+            },
+            model: ( viewElement, modelWriter ) => {
+                return modelWriter.createElement( 'doneButton', {
+                    'class': 'done-button '.concat(viewElement.getAttribute('class') || ''),
+                    'data-bz-retained': viewElement.getAttribute('data-bz-retained') || '',
+                    'data-time-updated': viewElement.getAttribute('data-time-updated') || '',
+                } );
+            }
+        } );
+        conversion.for( 'dataDowncast' ).elementToElement( {
+            model: 'doneButton',
+            view: ( modelElement, viewWriter ) => {
+                return viewWriter.createContainerElement( 'input', {
+                    'type': 'button',
+                    'value': 'Done',
+                    'class': 'done-button '.concat(modelElement.getAttribute('class') || ''),
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || '',
+                    'data-time-updated': modelElement.getAttribute('data-time-updated') || '',
+                } );
+            }
+        } );
+        conversion.for( 'editingDowncast' ).elementToElement( {
+            model: 'doneButton',
+            view: ( modelElement, viewWriter ) => {
+                return viewWriter.createContainerElement( 'input', {
+                    'type': 'button',
+                    'value': 'Done',
+                    'class': 'done-button '.concat(modelElement.getAttribute('class') || ''),
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || '',
+                    'data-time-updated': modelElement.getAttribute('data-time-updated') || '',
+                } );
             }
         } );
 

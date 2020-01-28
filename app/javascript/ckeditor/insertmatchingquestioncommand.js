@@ -17,6 +17,7 @@ export default class InsertMatchingQuestionCommand extends Command {
             const question = writer.createElement( 'question' );
             const questionTitle = writer.createElement( 'questionTitle' );
             const matchingTable = writer.createElement( 'matchingTable' );
+            const doneButton = writer.createElement( 'doneButton', { 'data-bz-retained': id } );
             const matchingTableBody = writer.createElement( 'matchingTableBody' );
             const matchingTableRow1 = writer.createElement( 'matchingTableRow' );
             const matchingTableRow2 = writer.createElement( 'matchingTableRow' );
@@ -31,6 +32,7 @@ export default class InsertMatchingQuestionCommand extends Command {
             writer.append( question, matchingQuestion );
             writer.append( questionTitle, question );
             writer.append( matchingTable, question );
+            writer.append( doneButton, question );
             writer.append( matchingTableBody, matchingTable );
             writer.append( matchingTableRow1, matchingTableBody );
             writer.append( matchingTableRow2, matchingTableBody );
