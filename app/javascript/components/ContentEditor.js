@@ -62,6 +62,9 @@ import CustomElementAttributePreservation from '../ckeditor/customelementattribu
 import ContentPartList from './ContentPartList';
 import ContentPartPreview from './ContentPartPreview';
 
+// Other local imports.
+import { getNamedAncestor } from '../ckeditor/utils';
+
 // Plugins to include in the build.
 BalloonEditor.builtinPlugins = [
     Essentials,
@@ -468,6 +471,25 @@ class ContentEditor extends Component {
                                                 <option value="maybe">Maybe</option>
                                             </select>
                                             <label htmlFor='input-correctness'>Correctness</label>
+                                        </>
+                                    );
+                                } else if ( ['question'].includes( modelElement ) ) {
+                                    const questionElem = getNamedAncestor( 'question', this.state['selectedElement'] );
+
+                                    return (
+                                        <>
+                                            <h4>Question</h4>
+                                            <input
+                                                type='checkbox'
+                                                id='input-instant'
+                                                defaultChecked={questionElem.getAttribute('data-instant-feedback') === 'true'}
+                                                onChange={( evt ) => {
+                                                    this.editor.execute( 'setAttributes', {
+                                                        'data-instant-feedback': evt.target.checked
+                                                    }, questionElem );
+                                                }}
+                                            />
+                                            <label htmlFor='input-instant'>Instant Feedback</label>
                                         </>
                                     );
                                 }

@@ -41,6 +41,7 @@ export default class ContentCommonEditing extends Plugin {
         schema.register( 'question', {
             isObject: true,
             allowIn: [ 'checklistQuestion', 'radioQuestion', 'matchingQuestion' ],
+            allowAttributes: [ 'data-instant-feedback' ]
         } );
 
         schema.extend( 'paragraph', {
@@ -225,23 +226,32 @@ export default class ContentCommonEditing extends Plugin {
 
         // <question> converters
         conversion.for( 'upcast' ).elementToElement( {
-            model: 'question',
             view: {
                 name: 'div',
                 classes: 'question'
+            },
+            model: ( viewElement, modelWriter ) => {
+                return modelWriter.createElement( 'question', {
+                    'data-instant-feedback': viewElement.getAttribute('data-instant-feedback') || false,
+                } );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'question',
-            view: {
-                name: 'div',
-                classes: 'question'
+            view: ( modelElement, viewWriter ) => {
+                return viewWriter.createContainerElement( 'div', {
+                    'class': 'question',
+                    'data-instant-feedback': modelElement.getAttribute('data-instant-feedback') || false,
+                } );
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'question',
             view: ( modelElement, viewWriter ) => {
-                return viewWriter.createContainerElement( 'div', { class: 'question' } );
+                return viewWriter.createContainerElement( 'div', {
+                    'class': 'question',
+                    'data-instant-feedback': modelElement.getAttribute('data-instant-feedback') || false,
+                } );
             }
         } );
 
