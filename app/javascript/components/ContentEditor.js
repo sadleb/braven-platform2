@@ -7,9 +7,6 @@ import Rails from '@rails/ujs';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 //import 'react-tabs/style/react-tabs.css';
 
-// Non-ckeditor Node imports
-const uuidv4 = require('uuid/v4');
-
 // The official CKEditor 5 instance inspector. It helps understand the editor view and model.
 import CKEditorInspector from '@ckeditor/ckeditor5-inspector';
 
@@ -176,9 +173,7 @@ BalloonEditor.defaultConfig = {
 };
 
 function addRetainedDataID(element) {
-    const uuid = uuidv4();
-
-    return uuid;
+    return 1;
 }
 
 window.addRetainedDataID = addRetainedDataID;
@@ -503,11 +498,11 @@ class ContentEditor extends Component {
                                 <ContentPartPreview
                                     key="insertSection"
                                     enabled={this.state.enabledCommands.includes('insertSection')}
-                                    onClick={( id ) => {
-                                        this.editor.execute( 'insertSection', id );
+                                    onClick={() => {
+                                        this.editor.execute( 'insertSection' );
                                         this.editor.editing.view.focus();
                                     }}
-                                    {...{name: 'Section', id: uuidv4()}}
+                                    {...{name: 'Section'}}
                                 />
                             </ul>
                             <ul key="content-part-list-questions" className="widget-list">
@@ -518,7 +513,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'insertChecklistQuestion', id );
                                         this.editor.editing.view.focus();
                                     }}
-                                    {...{name: 'Checklist Question', id: uuidv4()}}
+                                    {...{name: 'Checklist Question', id: 1}}
                                 />
                                 <ContentPartPreview
                                     key="insertRadioQuestion"
@@ -527,7 +522,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'insertRadioQuestion', id );
                                         this.editor.editing.view.focus();
                                     }}
-                                    {...{name: 'Radio Question', id: uuidv4()}}
+                                    {...{name: 'Radio Question', id: 1}}
                                 />
                                 <ContentPartPreview
                                     key="insertMatchingQuestion"
@@ -536,7 +531,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'insertMatchingQuestion', id );
                                         this.editor.editing.view.focus();
                                     }}
-                                    {...{name: 'Matching Question', id: uuidv4()}}
+                                    {...{name: 'Matching Question', id: 1}}
                                 />
                                 <ContentPartPreview
                                     key="insertTextAreaQuestion"
@@ -545,7 +540,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'insertTextAreaQuestion', id );
                                         this.editor.editing.view.focus();
                                     }}
-                                    {...{name: 'Text Area Question', id: uuidv4()}}
+                                    {...{name: 'Text Area Question', id: 1}}
                                 />
                             </ul>
                             <ul key="content-part-list-content" className="widget-list">
@@ -558,7 +553,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'insertTableContent', id , {rows: rows, columns: columns});
                                         this.editor.editing.view.focus();
                                     }}
-                                    {...{name: 'Table', id: uuidv4()}}
+                                    {...{name: 'Table', id: 1}}
                                 />
                                 <ContentPartPreview
                                     key="insertBlockquoteContent"
@@ -567,7 +562,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'insertBlockquoteContent', id );
                                         this.editor.editing.view.focus();
                                     }}
-                                    {...{name: 'Quote', id: uuidv4()}}
+                                    {...{name: 'Quote', id: 1}}
                                 />
                                 <ContentPartPreview
                                     key="insertIFrameContent"
@@ -577,7 +572,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'insertIFrameContent', id, url );
                                         this.editor.editing.view.focus();
                                     }}
-                                    {...{name: 'iFrame', id: uuidv4()}}
+                                    {...{name: 'iFrame', id: 1}}
                                 />
                                 <ContentPartPreview
                                     key="insertVideoContent"
@@ -587,7 +582,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'insertVideoContent', id, url );
                                         this.editor.editing.view.focus();
                                     }}
-                                    {...{name: 'Video', id: uuidv4()}}
+                                    {...{name: 'Video', id: 1}}
                                 />
                             </ul>
                             <ul key="content-part-list-elements" className="widget-list">
@@ -598,7 +593,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'insertTextArea', id );
                                         this.editor.editing.view.focus();
                                     }}
-                                    {...{name: 'Text Area', id: uuidv4()}}
+                                    {...{name: 'Text Area', id: 1}}
                                 />
                                 <ContentPartPreview
                                     key="insertSlider"
@@ -607,7 +602,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'insertSlider', id );
                                         this.editor.editing.view.focus();
                                     }}
-                                    {...{name: 'Slider', id: uuidv4()}}
+                                    {...{name: 'Slider', id: 1}}
                                 />
                                 <input
                                     type="file"
@@ -622,7 +617,7 @@ class ContentEditor extends Component {
                                     key="imageUpload"
                                     enabled={this.state.enabledCommands.includes('imageUpload')}
                                     onClick={this.showFileUpload}
-                                    {...{name: 'Image (Upload)', id: uuidv4()}}
+                                    {...{name: 'Image (Upload)', id: 1}}
                                 />
                                 <ContentPartPreview
                                     key="imageInsert"
@@ -632,7 +627,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'imageInsert', {source: url} );
                                         this.editor.editing.view.focus();
                                     }}
-                                    {...{name: 'Image (URL)', id: uuidv4()}}
+                                    {...{name: 'Image (URL)', id: 1}}
                                 />
                             </ul>
                             <ul key="content-part-list-rtm" className="widget-list">
@@ -643,7 +638,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'insertRateThisModuleQuestion', id );
                                         this.editor.editing.view.focus();
                                     }}
-                                    {...{name: 'Rate This Module', id: uuidv4()}}
+                                    {...{name: 'Rate This Module', id: 1}}
                                 />
                             </ul>
                         </div>

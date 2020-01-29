@@ -1,9 +1,9 @@
 import Command from '@ckeditor/ckeditor5-core/src/command';
 
 export default class InsertSectionCommand extends Command {
-    execute( id ) {
+    execute( ) {
         this.editor.model.change( writer => {
-            this.editor.model.insertContent( createSection( writer, id ) );
+            this.editor.model.insertContent( createSection( writer ) );
         } );
     }
 
@@ -16,8 +16,8 @@ export default class InsertSectionCommand extends Command {
     }
 }
 
-function createSection( writer, id ) {
-    const section = writer.createElement( 'section',  {id} );
+function createSection( writer ) {
+    const section = writer.createElement( 'section' );
 
     // There must be at least one paragraph for the section to be editable.
     // See https://github.com/ckeditor/ckeditor5/issues/1464.
