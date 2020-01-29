@@ -470,7 +470,7 @@ export default class ContentCommonEditing extends Plugin {
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'answerTitle',
             view: ( modelElement, viewWriter ) => {
-                const h5 = viewWriter.createEmptyElement( 'h5', {} );
+                const h5 = viewWriter.createContainerElement( 'h5', {} );
 
                 enablePlaceholder( {
                     view: editing.view,
