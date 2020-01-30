@@ -38,6 +38,7 @@ import SimpleUploadAdapter from '@ckeditor/ckeditor5-upload/src/adapters/simpleu
 
 
 // CKEditor plugin implementing a content part widget to be used in the editor content.
+import RetainedData from '../ckeditor/retaineddata';
 import ContentPartPreviewEditing from '../ckeditor/contentpartpreviewediting';
 import ContentCommonEditing from '../ckeditor/contentcommonediting';
 import ChecklistQuestionEditing from '../ckeditor/checklistquestionediting';
@@ -89,6 +90,7 @@ BalloonEditor.builtinPlugins = [
     TableToolbar,
     SimpleUploadAdapter,
 
+    RetainedData,
     ContentPartPreviewEditing,
     ContentCommonEditing,
     ChecklistQuestionEditing,
@@ -169,6 +171,9 @@ BalloonEditor.defaultConfig = {
             //Authorization: 'Bearer <JSON Web Token>'
             'X-CSRF-Token': Rails.csrfToken(),
         }
+    },
+    retainedData: {
+        pageId: 1,
     },
     // This value must be kept in sync with the language defined in webpack.config.js.
     language: 'en'
