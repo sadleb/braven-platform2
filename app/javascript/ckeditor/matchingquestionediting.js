@@ -35,12 +35,10 @@ export default class MatchingQuestionEditing extends Plugin {
         schema.register( 'matchingQuestion', {
             isObject: true,
             allowIn: 'section',
-            allowAttributes: [ 'id', 'class' ]
         } );
 
         schema.register( 'matchingTable', {
             allowIn: 'question',
-            allowAttributes: [ 'class' ],
         } );
 
         schema.register( 'matchingTableBody', {
@@ -50,14 +48,12 @@ export default class MatchingQuestionEditing extends Plugin {
 
         schema.register( 'matchingTableRow', {
             allowIn: 'matchingTableBody',
-            allowAttributes: [ 'class' ]
         } );
 
         schema.register( 'matchingTableCell', {
             isInline: true,
             allowIn: 'matchingTableRow',
             allowContentOf: '$block',
-            allowAttributes: [ 'class' ]
         } );
     }
 
@@ -73,10 +69,7 @@ export default class MatchingQuestionEditing extends Plugin {
                 classes: ['module-block', 'module-block-matching']
             },
             model: ( viewElement, modelWriter ) => {
-                // Read the "data-id" attribute from the view and set it as the "id" in the model.
-                return modelWriter.createElement( 'matchingQuestion', {
-                    id: viewElement.getAttribute( 'data-id' )
-                } );
+                return modelWriter.createElement( 'matchingQuestion' );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
@@ -84,7 +77,6 @@ export default class MatchingQuestionEditing extends Plugin {
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createEditableElement( 'div', {
                     'class': 'module-block module-block-matching',
-                    'data-id': modelElement.getAttribute( 'id' )
                 } );
             }
         } );
@@ -95,7 +87,6 @@ export default class MatchingQuestionEditing extends Plugin {
 
                 const matchingQuestion = viewWriter.createContainerElement( 'div', {
                     'class': 'module-block module-block-matching',
-                    'data-id': id
                 } );
 
                 return toWidget( matchingQuestion, viewWriter, { label: 'matching-question widget' } );

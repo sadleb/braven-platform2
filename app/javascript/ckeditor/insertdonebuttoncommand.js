@@ -1,9 +1,9 @@
 import Command from '@ckeditor/ckeditor5-core/src/command';
 
 export default class InsertDoneButtonCommand extends Command {
-    execute( id ) {
+    execute() {
         this.editor.model.change( writer => {
-            const doneButton = createDoneButton( writer, id );
+            const doneButton = createDoneButton( writer );
             this.editor.model.insertContent( doneButton );
             writer.setSelection( doneButton, 'on' );
         } );
@@ -18,7 +18,7 @@ export default class InsertDoneButtonCommand extends Command {
     }
 }
 
-function createDoneButton( writer, id ) {
-    const doneButton = writer.createElement( 'doneButton', { 'data-bz-retained': id } );
+function createDoneButton( writer ) {
+    const doneButton = writer.createElement( 'doneButton' );
     return doneButton;
 }

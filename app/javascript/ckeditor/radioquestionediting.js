@@ -2,12 +2,13 @@ import Plugin from '@ckeditor/ckeditor5-core/src/plugin';
 import { enablePlaceholder } from '@ckeditor/ckeditor5-engine/src/view/placeholder';
 import { toWidget, toWidgetEditable } from '@ckeditor/ckeditor5-widget/src/utils';
 import Widget from '@ckeditor/ckeditor5-widget/src/widget';
+import RetainedData from './setattributescommand';
 import InsertRadioQuestionCommand from './insertradioquestioncommand';
 import InsertRadioCommand from './insertradiocommand';
 
 export default class RadioQuestionEditing extends Plugin {
     static get requires() {
-        return [ Widget ];
+        return [ Widget, RetainedData ];
     }
 
     init() {
@@ -16,6 +17,9 @@ export default class RadioQuestionEditing extends Plugin {
 
         this.editor.commands.add( 'insertRadioQuestion', new InsertRadioQuestionCommand( this.editor ) );
         this.editor.commands.add( 'insertRadio', new InsertRadioCommand( this.editor ) );
+
+        // Add a shortcut to the retained data ID function.
+        this._nextRetainedDataId = this.editor.plugins.get('RetainedData').getNextId;
 
         // Override the default 'enter' key behavior for radio labels.
         this.listenTo( this.editor.editing.view.document, 'enter', ( evt, data ) => {
@@ -38,7 +42,7 @@ export default class RadioQuestionEditing extends Plugin {
         schema.register( 'radioQuestion', {
             isObject: true,
             allowIn: 'section',
-            allowAttributes: [ 'id' ]
+            allowAttributes: [ 'data-radio-group' ]
         } );
 
         schema.register( 'radioDiv', {
@@ -85,9 +89,8 @@ export default class RadioQuestionEditing extends Plugin {
                 classes: ['module-block', 'module-block-radio']
             },
             model: ( viewElement, modelWriter ) => {
-                // Read the "data-id" attribute from the view and set it as the "id" in the model.
                 return modelWriter.createElement( 'radioQuestion', {
-                    id: viewElement.getAttribute( 'data-id' )
+                    'data-radio-group': viewElement.getAttribute( 'data-radio-group' )
                 } );
             }
         } );
@@ -96,18 +99,16 @@ export default class RadioQuestionEditing extends Plugin {
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createEditableElement( 'div', {
                     class: 'module-block module-block-radio',
-                    'data-id': modelElement.getAttribute( 'id' )
+                    'data-radio-group': modelElement.getAttribute( 'data-radio-group' )
                 } );
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'radioQuestion',
             view: ( modelElement, viewWriter ) => {
-                const id = modelElement.getAttribute( 'id' );
-
                 const radioQuestion = viewWriter.createContainerElement( 'div', {
                     class: 'module-block module-block-radio',
-                    'data-id': id
+                    'data-radio-group': modelElement.getAttribute( 'data-radio-group' )
                 } );
 
                 return toWidget( radioQuestion, viewWriter, { label: 'radio-question widget' } );
@@ -150,13 +151,16 @@ export default class RadioQuestionEditing extends Plugin {
                 }
             },
             model: ( viewElement, modelWriter ) => {
+                const id = viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId();
+
                 // All radio buttons in the same question must share the same 'name' attribute,
-                // so let's get a reference to the ancestor module block and use its ID.
+                // so let's get a reference to the ancestor module block and use its group name
+                // attribute, if available.
                 let radioGroupName;
                 try {
                     const moduleBlockRadioDiv = viewElement.parent.parent.parent.parent.parent;
-                    // Try to use the existing name first; fall back to question ID.
-                    radioGroupName = viewElement.getAttribute('name') || moduleBlockRadioDiv.getAttribute('id');
+                    // Try to use the existing name first; fall back to question group attribute.
+                    radioGroupName = viewElement.getAttribute('name') || moduleBlockRadioDiv.getAttribute('data-radio-group');
                 }
                 catch (e) {
                     if (e instanceof TypeError) {
@@ -168,9 +172,9 @@ export default class RadioQuestionEditing extends Plugin {
                 }
 
                 return modelWriter.createElement( 'radioInput', {
-                    'id': viewElement.getAttribute( 'id' ),
+                    'id': id,
                     'name': radioGroupName,
-                    'data-bz-retained': viewElement.getAttribute('data-bz-retained') || addRetainedDataID(viewElement),
+                    'data-bz-retained': id,
                     'data-correctness': viewElement.getAttribute('data-correctness') || ''
                 } );
             }
@@ -179,13 +183,16 @@ export default class RadioQuestionEditing extends Plugin {
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'radioInput',
             view: ( modelElement, viewWriter ) => {
+                const id = modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId();
+
                 // All radio buttons in the same question must share the same 'name' attribute,
-                // so let's get a reference to the ancestor module block and use its ID.
+                // so let's get a reference to the ancestor module block and use its group name
+                // attribute, if available.
                 let radioGroupName;
                 try {
                     const moduleBlockRadioDiv = modelElement.parent.parent.parent.parent.parent;
-                    // Try to use the existing name first; fall back to question ID.
-                    radioGroupName = modelElement.getAttribute('name') || moduleBlockRadioDiv.getAttribute('id');
+                    // Try to use the existing name first; fall back to question group attribute.
+                    radioGroupName = modelElement.getAttribute('name') || moduleBlockRadioDiv.getAttribute('data-radio-group');
                 }
                 catch (e) {
                     if (e instanceof TypeError) {
@@ -196,26 +203,28 @@ export default class RadioQuestionEditing extends Plugin {
                     }
                 }
 
-                const input = viewWriter.createEmptyElement( 'input', {
+                return viewWriter.createEmptyElement( 'input', {
                     'type': 'radio',
-                    'id': modelElement.getAttribute( 'id' ),
+                    'id': id,
                     'name': radioGroupName,
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || addRetainedDataID(modelElement),
+                    'data-bz-retained': id,
                     'data-correctness': modelElement.getAttribute('data-correctness') || ''
                 } );
-                return input;
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'radioInput',
             view: ( modelElement, viewWriter ) => {
+                const id = modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId();
+
                 // All radio buttons in the same question must share the same 'name' attribute,
-                // so let's get a reference to the ancestor module block and use its ID.
+                // so let's get a reference to the ancestor module block and use its group name
+                // attribute, if available.
                 let radioGroupName;
                 try {
                     const moduleBlockRadioDiv = modelElement.parent.parent.parent.parent.parent;
-                    // Try to use the existing name first; fall back to question ID.
-                    radioGroupName = modelElement.getAttribute('name') || moduleBlockRadioDiv.getAttribute('id');
+                    // Try to use the existing name first; fall back to question group attribute.
+                    radioGroupName = modelElement.getAttribute('name') || moduleBlockRadioDiv.getAttribute('data-radio-group');
                 }
                 catch (e) {
                     if (e instanceof TypeError) {
@@ -228,9 +237,9 @@ export default class RadioQuestionEditing extends Plugin {
 
                 const input = viewWriter.createEmptyElement( 'input', {
                     'type': 'radio',
-                    'id': modelElement.getAttribute( 'id' ),
+                    'id': id,
                     'name': radioGroupName,
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || addRetainedDataID(modelElement),
+                    'data-bz-retained': id,
                     'data-correctness': modelElement.getAttribute('data-correctness') || ''
                 } );
                 return toWidget( input, viewWriter );
@@ -253,12 +262,10 @@ export default class RadioQuestionEditing extends Plugin {
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'radioLabel',
             view: ( modelElement, viewWriter ) => {
-                const label = viewWriter.createEditableElement( 'label', {
+                return viewWriter.createEditableElement( 'label', {
                     // HACK: Get the id of the radio this label corresponds to.
                     'for': modelElement.parent.getChild(0).getAttribute('id')
                 } );
-
-                return label;
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
@@ -286,19 +293,16 @@ export default class RadioQuestionEditing extends Plugin {
                 classes: ['inline', 'feedback']
             },
             model: ( viewElement, modelWriter ) => {
-                return modelWriter.createElement( 'radioInlineFeedback', {
-                } );
+                return modelWriter.createElement( 'radioInlineFeedback' );
             }
 
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'radioInlineFeedback',
             view: ( modelElement, viewWriter ) => {
-                const p = viewWriter.createEditableElement( 'p', {
+                return viewWriter.createEditableElement( 'p', {
                     'class': 'feedback inline',
                 } );
-
-                return p;
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {

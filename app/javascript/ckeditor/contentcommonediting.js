@@ -2,12 +2,13 @@ import Plugin from '@ckeditor/ckeditor5-core/src/plugin';
 import { enablePlaceholder } from '@ckeditor/ckeditor5-engine/src/view/placeholder';
 import { toWidget, toWidgetEditable } from '@ckeditor/ckeditor5-widget/src/utils';
 import Widget from '@ckeditor/ckeditor5-widget/src/widget';
+import RetainedData from './setattributescommand';
 import InsertTextInputCommand from './inserttextinputcommand';
 import InsertDoneButtonCommand from './insertdonebuttoncommand';
 
 export default class ContentCommonEditing extends Plugin {
     static get requires() {
-        return [ Widget ];
+        return [ Widget, RetainedData ];
     }
 
     init() {
@@ -16,6 +17,9 @@ export default class ContentCommonEditing extends Plugin {
 
         this.editor.commands.add( 'insertTextInput', new InsertTextInputCommand( this.editor ) );
         this.editor.commands.add( 'insertDoneButton', new InsertDoneButtonCommand( this.editor ) );
+
+        // Add a shortcut to the retained data ID function.
+        this._nextRetainedDataId = this.editor.plugins.get('RetainedData').getNextId;
     }
 
     _defineSchema() {
@@ -373,8 +377,7 @@ export default class ContentCommonEditing extends Plugin {
             },
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'doneButton', {
-                    'class': 'done-button '.concat(viewElement.getAttribute('class') || ''),
-                    'data-bz-retained': viewElement.getAttribute('data-bz-retained') || '',
+                    'data-bz-retained': viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'data-time-updated': viewElement.getAttribute('data-time-updated') || '',
                 } );
             }
@@ -385,8 +388,8 @@ export default class ContentCommonEditing extends Plugin {
                 return viewWriter.createContainerElement( 'input', {
                     'type': 'button',
                     'value': 'Done',
-                    'class': 'done-button '.concat(modelElement.getAttribute('class') || ''),
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || '',
+                    'class': 'done-button',
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'data-time-updated': modelElement.getAttribute('data-time-updated') || '',
                 } );
             }
@@ -397,8 +400,8 @@ export default class ContentCommonEditing extends Plugin {
                 return viewWriter.createContainerElement( 'input', {
                     'type': 'button',
                     'value': 'Done',
-                    'class': 'done-button '.concat(modelElement.getAttribute('class') || ''),
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || '',
+                    'class': 'done-button',
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'data-time-updated': modelElement.getAttribute('data-time-updated') || '',
                 } );
             }
@@ -523,7 +526,7 @@ export default class ContentCommonEditing extends Plugin {
             },
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'textInput', {
-                    'data-bz-retained': viewElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'placeholder': viewElement.getAttribute('placeholder') || ''
                 } );
             }
@@ -533,7 +536,7 @@ export default class ContentCommonEditing extends Plugin {
             view: ( modelElement, viewWriter ) => {
                 const input = viewWriter.createEmptyElement( 'input', {
                     'type': 'text',
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'placeholder': modelElement.getAttribute('placeholder') || ''
                 } );
                 return input;
@@ -544,7 +547,7 @@ export default class ContentCommonEditing extends Plugin {
             view: ( modelElement, viewWriter ) => {
                 const input = viewWriter.createEmptyElement( 'input', {
                     'type': 'text',
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'placeholder': modelElement.getAttribute('placeholder') || ''
                 } );
                 return toWidget( input, viewWriter );
@@ -558,7 +561,7 @@ export default class ContentCommonEditing extends Plugin {
             },
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'textArea', {
-                    'data-bz-retained': viewElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'placeholder': viewElement.getAttribute('placeholder') || ''
                 } );
             }
@@ -567,7 +570,7 @@ export default class ContentCommonEditing extends Plugin {
             model: 'textArea',
             view: ( modelElement, viewWriter ) => {
                 const textarea = viewWriter.createEmptyElement( 'textarea', {
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'placeholder': modelElement.getAttribute('placeholder') || ''
                 } );
                 return textarea;
@@ -577,7 +580,7 @@ export default class ContentCommonEditing extends Plugin {
             model: 'textArea',
             view: ( modelElement, viewWriter ) => {
                 const textarea = viewWriter.createEmptyElement( 'textarea', {
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'placeholder': modelElement.getAttribute('placeholder') || ''
                 } );
                 return toWidget( textarea, viewWriter );
@@ -595,7 +598,7 @@ export default class ContentCommonEditing extends Plugin {
             },
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'fileUpload', {
-                    'data-bz-retained': viewElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'data-bz-share-release': viewElement.getAttribute('data-bz-share-release') || '',
                 } );
             }
@@ -606,7 +609,7 @@ export default class ContentCommonEditing extends Plugin {
                 const input = viewWriter.createEmptyElement( 'input', {
                     'type': 'file',
                     'class': 'bz-optional-magic-field',
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'data-bz-share-release': modelElement.getAttribute('data-bz-share-release') || '',
                 } );
                 return input;
@@ -618,7 +621,7 @@ export default class ContentCommonEditing extends Plugin {
                 const input = viewWriter.createEmptyElement( 'input', {
                     'type': 'file',
                     'class': 'bz-optional-magic-field',
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'data-bz-share-release': modelElement.getAttribute('data-bz-share-release') || '',
                 } );
                 return toWidget( input, viewWriter );
@@ -636,7 +639,7 @@ export default class ContentCommonEditing extends Plugin {
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'slider', {
                     'class': viewElement.getAttribute('class') || '',
-                    'data-bz-retained': viewElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'min': viewElement.getAttribute('min') || 0,
                     'max': viewElement.getAttribute('max') || 10,
                     'step': viewElement.getAttribute('step') || 1,
@@ -649,7 +652,7 @@ export default class ContentCommonEditing extends Plugin {
                 const input = viewWriter.createEmptyElement( 'input', {
                     'type': 'range',
                     'class': modelElement.getAttribute('class') || '',
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'min': modelElement.getAttribute('min') || 0,
                     'max': modelElement.getAttribute('max') || 10, 
                     'step': modelElement.getAttribute('step') || 1,
@@ -663,7 +666,7 @@ export default class ContentCommonEditing extends Plugin {
                 const input = viewWriter.createEmptyElement( 'input', {
                     'type': 'range',
                     'class': modelElement.getAttribute('class') || '',
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'min': modelElement.getAttribute('min') || 0,
                     'max': modelElement.getAttribute('max') || 10,
                     'step': modelElement.getAttribute('step') || 1,
@@ -679,7 +682,7 @@ export default class ContentCommonEditing extends Plugin {
             },
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'select', {
-                    'data-bz-retained': viewElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'name': viewElement.getAttribute('name'),
                     'id': viewElement.getAttribute('id')
                 } );
@@ -689,7 +692,7 @@ export default class ContentCommonEditing extends Plugin {
             model: 'select',
             view: ( modelElement, viewWriter ) => {
                 const select = viewWriter.createContainerElement( 'select', {
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'name': modelElement.getAttribute('name'),
                     'id': modelElement.getAttribute('id'),
                 } );
@@ -700,7 +703,7 @@ export default class ContentCommonEditing extends Plugin {
             model: 'select',
             view: ( modelElement, viewWriter ) => {
                 const select = viewWriter.createContainerElement( 'select', {
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'name': modelElement.getAttribute('name'),
                     'id': modelElement.getAttribute('id')
                 } );

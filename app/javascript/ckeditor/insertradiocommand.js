@@ -1,7 +1,7 @@
 import Command from '@ckeditor/ckeditor5-core/src/command';
 
 export default class InsertRadioCommand extends Command {
-    execute( id ) {
+    execute() {
         this.editor.model.change( writer => {
             // NOTE: We're making a huge assumption here that we'll only ever call this command while
             // the current selection is *inside* a radio label. If that ever changes, we'll need to
@@ -10,7 +10,7 @@ export default class InsertRadioCommand extends Command {
             // of the current selection, iff the aforementioned assumption holds true).
             const grandparentRadioDiv = this.editor.model.document.selection.focus.parent.parent;
             writer.setSelection( grandparentRadioDiv, 'after' );
-            this.editor.model.insertContent( createRadio( writer, id ) );
+            this.editor.model.insertContent( createRadio( writer ) );
         } );
     }
 
@@ -23,8 +23,8 @@ export default class InsertRadioCommand extends Command {
     }
 }
 
-function createRadio( writer, id ) {
-    const radioDiv = writer.createElement( 'radioDiv' , {id} );
+function createRadio( writer ) {
+    const radioDiv = writer.createElement( 'radioDiv' );
     const radioInput = writer.createElement( 'radioInput' );
     const radioLabel = writer.createElement( 'radioLabel' );
     const radioInlineFeedback = writer.createElement( 'radioInlineFeedback' );

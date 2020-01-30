@@ -1,7 +1,7 @@
 import Command from '@ckeditor/ckeditor5-core/src/command';
 
 export default class InsertSectionCommand extends Command {
-    execute( ) {
+    execute() {
         this.editor.model.change( writer => {
             this.editor.model.insertContent( createSection( writer ) );
         } );

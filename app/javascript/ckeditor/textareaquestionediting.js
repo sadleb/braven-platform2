@@ -22,8 +22,7 @@ export default class TextAreaQuestionEditing extends Plugin {
 
         schema.register( 'textAreaQuestion', {
             isObject: true,
-            allowIn: 'section',
-            allowAttributes: [ 'data-bz-retained' ]
+            allowIn: 'section'
         } );
 
         schema.extend( 'question', {
@@ -50,29 +49,22 @@ export default class TextAreaQuestionEditing extends Plugin {
                 classes: ['module-block', 'module-block-textarea']
             },
             model: ( viewElement, modelWriter ) => {
-                // Read the "data-bz-retained" attribute from the view and set it as the "id" in the model.
-                return modelWriter.createElement( 'textAreaQuestion', {
-                    'data-bz-retained': viewElement.getAttribute( 'data-bz-retained' )
-                } );
+                return modelWriter.createElement( 'textAreaQuestion' );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'textAreaQuestion',
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createEditableElement( 'div', {
-                    class: 'module-block module-block-textarea',
-                    'data-bz-retained': modelElement.getAttribute( 'data-bz-retained' )
+                    'class': 'module-block module-block-textarea',
                 } );
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'textAreaQuestion',
             view: ( modelElement, viewWriter ) => {
-                const id = modelElement.getAttribute( 'data-bz-retained' );
-
                 const textAreaQuestion = viewWriter.createContainerElement( 'div', {
-                    class: 'module-block module-block-textarea',
-                    'data-bz-retained': id
+                    'class': 'module-block module-block-textarea',
                 } );
 
                 return toWidget( textAreaQuestion, viewWriter, { label: 'textArea-question widget' } );

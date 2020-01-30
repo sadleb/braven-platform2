@@ -1,11 +1,10 @@
 import Command from '@ckeditor/ckeditor5-core/src/command';
+import uid from '@ckeditor/ckeditor5-utils/src/uid';
 
 export default class InsertRadioQuestionCommand extends Command {
-    execute( id ) {
+    execute() {
         this.editor.model.change( writer => {
-            // Insert <radioQuestion id="...">*</radioQuestion> at the current selection position
-            // in a way which will result in creating a valid model structure.
-            this.editor.model.insertContent( createRadioQuestion( writer, id ) );
+            this.editor.model.insertContent( createRadioQuestion( writer ) );
         } );
     }
 
@@ -18,14 +17,14 @@ export default class InsertRadioQuestionCommand extends Command {
     }
 }
 
-function createRadioQuestion( writer, id ) {
-    const radioQuestion = writer.createElement( 'radioQuestion', {id} );
+function createRadioQuestion( writer ) {
+    const radioQuestion = writer.createElement( 'radioQuestion', {'data-radio-group': uid()} );
     const question = writer.createElement( 'question' );
     const questionTitle = writer.createElement( 'questionTitle' );
     const questionBody = writer.createElement( 'questionBody' );
     const questionForm = writer.createElement( 'questionForm' );
     const questionFieldset = writer.createElement( 'questionFieldset' );
-    const doneButton = writer.createElement( 'doneButton', { 'data-bz-retained': id } );
+    const doneButton = writer.createElement( 'doneButton' );
     const radioDiv = writer.createElement( 'radioDiv' );
     const radioInput = writer.createElement( 'radioInput' );
     const radioLabel = writer.createElement( 'radioLabel' );

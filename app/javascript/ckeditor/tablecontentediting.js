@@ -20,8 +20,7 @@ export default class TableContentEditing extends Plugin {
 
         schema.register( 'tableContent', {
             isObject: true,
-            allowIn: 'section',
-            allowAttributes: [ 'id', 'class' ]
+            allowIn: 'section'
         } );
 
         schema.extend( 'slider', {
@@ -41,10 +40,7 @@ export default class TableContentEditing extends Plugin {
                 classes: ['module-block', 'module-block-table']
             },
             model: ( viewElement, modelWriter ) => {
-                // Read the "data-id" attribute from the view and set it as the "id" in the model.
-                return modelWriter.createElement( 'tableContent', {
-                    id: viewElement.getAttribute( 'data-id' )
-                } );
+                return modelWriter.createElement( 'tableContent' );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
@@ -52,7 +48,6 @@ export default class TableContentEditing extends Plugin {
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createEditableElement( 'div', {
                     'class': 'module-block module-block-table',
-                    'data-id': modelElement.getAttribute( 'id' )
                 } );
             }
         } );
@@ -63,7 +58,6 @@ export default class TableContentEditing extends Plugin {
 
                 const tableContent = viewWriter.createContainerElement( 'div', {
                     'class': 'module-block module-block-table',
-                    'data-id': id
                 } );
 
                 return toWidget( tableContent, viewWriter, { label: 'table widget' } );

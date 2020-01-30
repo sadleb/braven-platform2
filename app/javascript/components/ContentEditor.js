@@ -39,7 +39,6 @@ import SimpleUploadAdapter from '@ckeditor/ckeditor5-upload/src/adapters/simpleu
 
 // CKEditor plugin implementing a content part widget to be used in the editor content.
 import RetainedData from '../ckeditor/retaineddata';
-import ContentPartPreviewEditing from '../ckeditor/contentpartpreviewediting';
 import ContentCommonEditing from '../ckeditor/contentcommonediting';
 import ChecklistQuestionEditing from '../ckeditor/checklistquestionediting';
 import RadioQuestionEditing from '../ckeditor/radioquestionediting';
@@ -91,7 +90,6 @@ BalloonEditor.builtinPlugins = [
     SimpleUploadAdapter,
 
     RetainedData,
-    ContentPartPreviewEditing,
     ContentCommonEditing,
     ChecklistQuestionEditing,
     RadioQuestionEditing,
@@ -385,10 +383,6 @@ class ContentEditor extends Component {
                             {this.state.modelPath.map( modelElement => {
                                 if ( ['textArea', 'textInput'].includes( modelElement ) ) {
                                     // Text inputs and textareas have placeholder settings.
-                                    const commandMap = {
-                                        'textArea': 'insertTextArea',
-                                        'textInput': 'insertTextInput',
-                                    }
                                     return (
                                         <>
                                             <h4>Text Input</h4>
@@ -397,18 +391,13 @@ class ContentEditor extends Component {
                                                 id='input-placeholder'
                                                 defaultValue={this.state['selectedElement'].getAttribute('placeholder')}
                                                 onChange={( evt ) => {
-                                                    this.editor.execute( commandMap[modelElement], 'retained-data-todo', evt.target.value );
+                                                    this.editor.execute( 'setAttributes', { 'placeholder': evt.target.value } );
                                                 }}
                                             />
                                             <label htmlFor='input-placeholder'>Placeholder</label>
                                         </>
                                     );
                                 } else if ( 'slider' === modelElement ) {
-                                    // Sliders have several different settings to change.
-                                    const min = this.state['selectedElement'].getAttribute('min');
-                                    const max = this.state['selectedElement'].getAttribute('max');
-                                    const step = this.state['selectedElement'].getAttribute('step');
-
                                     return (
                                         <>
                                             <h4>Slider</h4>
@@ -418,11 +407,7 @@ class ContentEditor extends Component {
                                                 id='input-min'
                                                 defaultValue={min}
                                                 onChange={( evt ) => {
-                                                    this.editor.execute( 'insertSlider', 'retained-data-todo', {
-                                                        min: evt.target.value,
-                                                        max: max,
-                                                        step: step,
-                                                    } );
+                                                    this.editor.execute( 'setAttributes', { 'min': evt.target.value } );
                                                 }}
                                             />
                                             <label htmlFor='input-min'>Min</label>
@@ -432,11 +417,7 @@ class ContentEditor extends Component {
                                                 id='input-max'
                                                 defaultValue={max}
                                                 onChange={( evt ) => {
-                                                    this.editor.execute( 'insertSlider', 'retained-data-todo', {
-                                                        min: min,
-                                                        max: evt.target.value,
-                                                        step: step,
-                                                    } );
+                                                    this.editor.execute( 'setAttributes', { 'max': evt.target.value } );
                                                 }}
                                             />
                                             <label htmlFor='input-max'>Max</label>
@@ -446,11 +427,7 @@ class ContentEditor extends Component {
                                                 id='input-step'
                                                 defaultValue={step}
                                                 onChange={( evt ) => {
-                                                    this.editor.execute( 'insertSlider', 'retained-data-todo', {
-                                                        min: min,
-                                                        max: max,
-                                                        step: evt.target.value,
-                                                    } );
+                                                    this.editor.execute( 'setAttributes', { 'step': evt.target.value } );
                                                 }}
                                             />
                                             <label htmlFor='input-step'>Step</label>
@@ -517,37 +494,37 @@ class ContentEditor extends Component {
                                     key="insertChecklistQuestion"
                                     enabled={this.state.enabledCommands.includes('insertChecklistQuestion')}
                                     onClick={( id ) => {
-                                        this.editor.execute( 'insertChecklistQuestion', id );
+                                        this.editor.execute( 'insertChecklistQuestion' );
                                         this.editor.editing.view.focus();
                                     }}
-                                    {...{name: 'Checklist Question', id: 1}}
+                                    {...{name: 'Checklist Question'}}
                                 />
                                 <ContentPartPreview
                                     key="insertRadioQuestion"
                                     enabled={this.state.enabledCommands.includes('insertRadioQuestion')}
                                     onClick={( id ) => {
-                                        this.editor.execute( 'insertRadioQuestion', id );
+                                        this.editor.execute( 'insertRadioQuestion' );
                                         this.editor.editing.view.focus();
                                     }}
-                                    {...{name: 'Radio Question', id: 1}}
+                                    {...{name: 'Radio Question'}}
                                 />
                                 <ContentPartPreview
                                     key="insertMatchingQuestion"
                                     enabled={this.state.enabledCommands.includes('insertMatchingQuestion')}
                                     onClick={( id ) => {
-                                        this.editor.execute( 'insertMatchingQuestion', id );
+                                        this.editor.execute( 'insertMatchingQuestion' );
                                         this.editor.editing.view.focus();
                                     }}
-                                    {...{name: 'Matching Question', id: 1}}
+                                    {...{name: 'Matching Question'}}
                                 />
                                 <ContentPartPreview
                                     key="insertTextAreaQuestion"
                                     enabled={this.state.enabledCommands.includes('insertTextAreaQuestion')}
                                     onClick={( id ) => {
-                                        this.editor.execute( 'insertTextAreaQuestion', id );
+                                        this.editor.execute( 'insertTextAreaQuestion' );
                                         this.editor.editing.view.focus();
                                     }}
-                                    {...{name: 'Text Area Question', id: 1}}
+                                    {...{name: 'Text Area Question'}}
                                 />
                             </ul>
                             <ul key="content-part-list-content" className="widget-list">
@@ -557,39 +534,39 @@ class ContentEditor extends Component {
                                     onClick={( id ) => {
                                         const rows = window.prompt('How many rows?', 2);
                                         const columns = window.prompt('How many columns?', 2);
-                                        this.editor.execute( 'insertTableContent', id , {rows: rows, columns: columns});
+                                        this.editor.execute( 'insertTableContent', {rows: rows, columns: columns} );
                                         this.editor.editing.view.focus();
                                     }}
-                                    {...{name: 'Table', id: 1}}
+                                    {...{name: 'Table'}}
                                 />
                                 <ContentPartPreview
                                     key="insertBlockquoteContent"
                                     enabled={this.state.enabledCommands.includes('insertBlockquoteContent')}
                                     onClick={( id ) => {
-                                        this.editor.execute( 'insertBlockquoteContent', id );
+                                        this.editor.execute( 'insertBlockquoteContent' );
                                         this.editor.editing.view.focus();
                                     }}
-                                    {...{name: 'Quote', id: 1}}
+                                    {...{name: 'Quote'}}
                                 />
                                 <ContentPartPreview
                                     key="insertIFrameContent"
                                     enabled={this.state.enabledCommands.includes('insertIFrameContent')}
                                     onClick={( id ) => {
                                         const url = window.prompt('URL', 'http://example.com' );
-                                        this.editor.execute( 'insertIFrameContent', id, url );
+                                        this.editor.execute( 'insertIFrameContent', url );
                                         this.editor.editing.view.focus();
                                     }}
-                                    {...{name: 'iFrame', id: 1}}
+                                    {...{name: 'iFrame'}}
                                 />
                                 <ContentPartPreview
                                     key="insertVideoContent"
                                     enabled={this.state.enabledCommands.includes('insertVideoContent')}
                                     onClick={( id ) => {
                                         const url = window.prompt('URL', 'https://www.youtube.com/embed/yyRrKMb8oIg?rel=0' );
-                                        this.editor.execute( 'insertVideoContent', id, url );
+                                        this.editor.execute( 'insertVideoContent', url );
                                         this.editor.editing.view.focus();
                                     }}
-                                    {...{name: 'Video', id: 1}}
+                                    {...{name: 'Video'}}
                                 />
                             </ul>
                             <ul key="content-part-list-elements" className="widget-list">
@@ -597,19 +574,19 @@ class ContentEditor extends Component {
                                     key="insertTextArea"
                                     enabled={this.state.enabledCommands.includes('insertTextArea')}
                                     onClick={( id ) => {
-                                        this.editor.execute( 'insertTextArea', id );
+                                        this.editor.execute( 'insertTextArea' );
                                         this.editor.editing.view.focus();
                                     }}
-                                    {...{name: 'Text Area', id: 1}}
+                                    {...{name: 'Text Area'}}
                                 />
                                 <ContentPartPreview
                                     key="insertSlider"
                                     enabled={this.state.enabledCommands.includes('insertSlider')}
                                     onClick={( id ) => {
-                                        this.editor.execute( 'insertSlider', id );
+                                        this.editor.execute( 'insertSlider' );
                                         this.editor.editing.view.focus();
                                     }}
-                                    {...{name: 'Slider', id: 1}}
+                                    {...{name: 'Slider'}}
                                 />
                                 <input
                                     type="file"
@@ -624,7 +601,7 @@ class ContentEditor extends Component {
                                     key="imageUpload"
                                     enabled={this.state.enabledCommands.includes('imageUpload')}
                                     onClick={this.showFileUpload}
-                                    {...{name: 'Image (Upload)', id: 1}}
+                                    {...{name: 'Image (Upload)'}}
                                 />
                                 <ContentPartPreview
                                     key="imageInsert"
@@ -634,7 +611,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'imageInsert', {source: url} );
                                         this.editor.editing.view.focus();
                                     }}
-                                    {...{name: 'Image (URL)', id: 1}}
+                                    {...{name: 'Image (URL)'}}
                                 />
                             </ul>
                             <ul key="content-part-list-rtm" className="widget-list">
@@ -642,10 +619,10 @@ class ContentEditor extends Component {
                                     key="insertRateThisModuleQuestion"
                                     enabled={this.state.enabledCommands.includes('insertRateThisModuleQuestion')}
                                     onClick={( id ) => {
-                                        this.editor.execute( 'insertRateThisModuleQuestion', id );
+                                        this.editor.execute( 'insertRateThisModuleQuestion' );
                                         this.editor.editing.view.focus();
                                     }}
-                                    {...{name: 'Rate This Module', id: 1}}
+                                    {...{name: 'Rate This Module'}}
                                 />
                             </ul>
                         </div>

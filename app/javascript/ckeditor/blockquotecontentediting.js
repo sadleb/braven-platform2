@@ -22,7 +22,7 @@ export default class BlockquoteContentEditing extends Plugin {
         schema.register( 'blockquoteContent', {
             isObject: true,
             allowIn: 'section',
-            allowAttributes: [ 'id', 'class' ]
+            allowAttributes: [ 'class' ]
         } );
 
         schema.register( 'blockquoteQuote', {
@@ -49,9 +49,7 @@ export default class BlockquoteContentEditing extends Plugin {
             },
             model: ( viewElement, modelWriter ) => {
                 // Read the "data-id" attribute from the view and set it as the "id" in the model.
-                return modelWriter.createElement( 'blockquoteContent', {
-                    id: viewElement.getAttribute( 'data-id' )
-                } );
+                return modelWriter.createElement( 'blockquoteContent' );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
@@ -59,7 +57,6 @@ export default class BlockquoteContentEditing extends Plugin {
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createEditableElement( 'div', {
                     'class': 'module-block module-block-quote',
-                    'data-id': modelElement.getAttribute( 'id' )
                 } );
 
             }
@@ -67,11 +64,9 @@ export default class BlockquoteContentEditing extends Plugin {
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'blockquoteContent',
             view: ( modelElement, viewWriter ) => {
-                const id = modelElement.getAttribute( 'id' );
 
                 const blockquoteContent = viewWriter.createContainerElement( 'div', {
                     'class': 'module-block module-block-quote',
-                    'data-id': id
                 } );
 
                 return toWidget( blockquoteContent, viewWriter, { label: 'blockquote widget' } );
@@ -129,7 +124,6 @@ export default class BlockquoteContentEditing extends Plugin {
                     element: small,
                     text: 'Citation'
                 } );
-
 
                 return toWidgetEditable( small, viewWriter );
             }

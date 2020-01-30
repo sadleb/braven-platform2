@@ -22,12 +22,10 @@ export default class VideoContentEditing extends Plugin {
         schema.register( 'videoContent', {
             isObject: true,
             allowIn: 'section',
-            allowAttributes: [ 'id', 'class' ]
         } );
 
         schema.register( 'videoFigure', {
             allowIn: 'content',
-            allowAttributes: [ 'class' ]
         } );
 
         schema.register( 'videoIFrame', {
@@ -37,25 +35,21 @@ export default class VideoContentEditing extends Plugin {
 
         schema.register( 'videoFigCaption', {
             allowIn: [ 'videoFigure' ],
-            allowAttributes: [ 'class' ]
         } );
 
         schema.register( 'videoCaption', {
             allowIn: 'videoFigCaption',
             allowContentOf: [ '$block' ],
-            allowAttributes: [ 'class' ]
         } );
 
         schema.register( 'videoDuration', {
             allowIn: 'videoFigCaption',
             allowContentOf: [ '$block' ],
-            allowAttributes: [ 'class' ]
         } );
 
         schema.register( 'videoTranscript', {
             allowIn: 'videoFigCaption',
             allowContentOf: [ '$root' ],
-            allowAttributes: [ 'class' ]
         } );
     }
 
@@ -70,9 +64,7 @@ export default class VideoContentEditing extends Plugin {
                 name: 'div',
                 classes: ['module-block', 'module-block-video']
             },
-            model: ( viewElement, modelWriter ) => {
-                return modelWriter.createElement( 'videoContent', {} );
-            }
+            model: 'videoContent'
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'videoContent',
@@ -99,9 +91,7 @@ export default class VideoContentEditing extends Plugin {
                 name: 'figure',
                 classes: ['media-test']
             },
-            model: ( viewElement, modelWriter ) => {
-                return modelWriter.createElement( 'videoFigure', {} );
-            }
+            model: 'videoFigure'
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'videoFigure',
@@ -113,12 +103,9 @@ export default class VideoContentEditing extends Plugin {
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'videoFigure',
             view: ( modelElement, viewWriter ) => {
-                const videoFigure = viewWriter.createContainerElement( 'figure', {
+                return viewWriter.createContainerElement( 'figure', {
                     'class': 'media-test',
                 } );
-                return videoFigure;
-
-                return toWidget( videoFigure, viewWriter );
             }
         } );
 
@@ -173,9 +160,7 @@ export default class VideoContentEditing extends Plugin {
                 name: 'figcaption',
                 classes: ['video-caption-container']
             },
-            model: ( viewElement, modelWriter ) => {
-                return modelWriter.createElement( 'videoFigCaption', {} );
-            }
+            model: 'videoFigCaption'
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'videoFigCaption',
@@ -188,12 +173,9 @@ export default class VideoContentEditing extends Plugin {
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'videoFigCaption',
             view: ( modelElement, viewWriter ) => {
-                const videoFigCaption = viewWriter.createContainerElement( 'figcaption', {
+                return viewWriter.createContainerElement( 'figcaption', {
                     'class': 'video-caption-container'
                 } );
-                return videoFigCaption;
-
-                return toWidget( videoFigCaption, viewWriter );
             }
         } );
 
@@ -203,9 +185,7 @@ export default class VideoContentEditing extends Plugin {
                 name: 'div',
                 classes: ['video-caption']
             },
-            model: ( viewElement, modelWriter ) => {
-                return modelWriter.createElement( 'videoCaption', {} );
-            }
+            model: 'videoCaption'
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'videoCaption',
@@ -238,9 +218,7 @@ export default class VideoContentEditing extends Plugin {
                 name: 'div',
                 classes: ['media-duration']
             },
-            model: ( viewElement, modelWriter ) => {
-                return modelWriter.createElement( 'videoDuration', {} );
-            }
+            model: 'videoDuration'
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'videoDuration',
@@ -273,9 +251,7 @@ export default class VideoContentEditing extends Plugin {
                 name: 'div',
                 classes: ['transcript']
             },
-            model: ( viewElement, modelWriter ) => {
-                return modelWriter.createElement( 'videoTranscript', {} );
-            }
+            model: 'videoTranscript'
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'videoTranscript',

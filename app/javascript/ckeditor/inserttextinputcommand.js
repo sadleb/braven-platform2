@@ -1,9 +1,9 @@
 import Command from '@ckeditor/ckeditor5-core/src/command';
 
 export default class InsertTextInputCommand extends Command {
-    execute( id, placeholder ) {
+    execute( placeholder ) {
         this.editor.model.change( writer => {
-            const textInput = createTextInput( writer, id, placeholder );
+            const textInput = createTextInput( writer, placeholder );
             this.editor.model.insertContent( textInput );
             writer.setSelection( textInput, 'on' );
         } );
@@ -18,7 +18,7 @@ export default class InsertTextInputCommand extends Command {
     }
 }
 
-function createTextInput( writer, id, placeholder ) {
-    const textInput = writer.createElement( 'textInput', { 'data-bz-retained': id, placeholder: placeholder } );
+function createTextInput( writer, placeholder ) {
+    const textInput = writer.createElement( 'textInput', {placeholder} );
     return textInput;
 }
