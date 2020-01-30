@@ -398,6 +398,11 @@ class ContentEditor extends Component {
                                         </>
                                     );
                                 } else if ( 'slider' === modelElement ) {
+                                    // Sliders have several different settings to change.
+                                    const min = this.state['selectedElement'].getAttribute('min');
+                                    const max = this.state['selectedElement'].getAttribute('max');
+                                    const step = this.state['selectedElement'].getAttribute('step');
+
                                     return (
                                         <>
                                             <h4>Slider</h4>
