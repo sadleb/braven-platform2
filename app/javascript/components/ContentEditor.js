@@ -50,6 +50,7 @@ import BlockquoteContentEditing from '../ckeditor/blockquotecontentediting';
 import IFrameContentEditing from '../ckeditor/iframecontentediting';
 import VideoContentEditing from '../ckeditor/videocontentediting';
 import SectionEditing from '../ckeditor/sectionediting';
+import ContentBlockEditing from '../ckeditor/contentblockediting';
 
 import Tooltip from '../ckeditor/tooltip';
 import ImageLink from '../ckeditor/imagelink';
@@ -100,6 +101,7 @@ BalloonEditor.builtinPlugins = [
     IFrameContentEditing,
     VideoContentEditing,
     SectionEditing,
+    ContentBlockEditing,
 ];
 
 // Editor configuration.

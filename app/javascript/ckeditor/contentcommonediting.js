@@ -65,7 +65,7 @@ export default class ContentCommonEditing extends Plugin {
         schema.register( 'questionForm', {
             // Cannot be split or left by the caret.
             isLimit: true,
-            allowIn: 'question',
+            allowIn: [ 'question', 'content' ]
         } );
 
         schema.register( 'questionFieldset', {
