@@ -34,6 +34,9 @@ export default class ContentBlockEditing extends Plugin {
         schema.extend( 'content', {
             allowIn: [ blockTypeContent ],
         });
+        schema.extend( 'question', {
+            allowIn: [ blockTypeContent ],
+        });
 
         schema.register( blockTypeContent, {
             isObject: true,
