@@ -89,7 +89,7 @@ export default class VideoContentEditing extends Plugin {
         conversion.for( 'upcast' ).elementToElement( {
             view: {
                 name: 'figure',
-                classes: ['media-test']
+                classes: ['video']
             },
             model: 'videoFigure'
         } );
@@ -97,14 +97,14 @@ export default class VideoContentEditing extends Plugin {
             model: 'videoFigure',
             view: {
                 name: 'figure',
-                classes: ['media-test']
+                classes: ['video']
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'videoFigure',
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createContainerElement( 'figure', {
-                    'class': 'media-test',
+                    'class': 'video',
                 } );
             }
         } );
