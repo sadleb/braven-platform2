@@ -170,18 +170,9 @@ BalloonEditor.defaultConfig = {
             'X-CSRF-Token': Rails.csrfToken(),
         }
     },
-    retainedData: {
-        pageId: 1,
-    },
     // This value must be kept in sync with the language defined in webpack.config.js.
     language: 'en'
 };
-
-function addRetainedDataID(element) {
-    return 1;
-}
-
-window.addRetainedDataID = addRetainedDataID;
 
 class ContentEditor extends Component {
     constructor( props ) {
@@ -215,7 +206,11 @@ class ContentEditor extends Component {
                         domElement
                     );
                 }
-            }
+            },
+            // Custom config for retained data plugin.
+            retainedData: {
+                pageId: props.course_content['id'],
+            },
         };
 
         this.handleEditorDataChange = this.handleEditorDataChange.bind( this );
