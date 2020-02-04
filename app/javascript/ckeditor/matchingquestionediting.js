@@ -41,19 +41,30 @@ export default class MatchingQuestionEditing extends Plugin {
             allowIn: 'question',
         } );
 
+        schema.register( 'matchingTableHeader', {
+            isLimit: true,
+            allowIn: 'matchingTable'
+        } );
+
         schema.register( 'matchingTableBody', {
             isLimit: true,
             allowIn: 'matchingTable'
         } );
 
         schema.register( 'matchingTableRow', {
-            allowIn: 'matchingTableBody',
+            allowIn: [ 'matchingTableHeader', 'matchingTableBody' ],
+        } );
+
+        schema.register( 'matchingTableHeaderCell', {
+            isInline: true,
+            allowIn: 'matchingTableRow',
+            allowContentOf: '$block',
         } );
 
         schema.register( 'matchingTableCell', {
             isInline: true,
             allowIn: 'matchingTableRow',
-            allowContentOf: '$block',
+            allowContentOf: '$root',
         } );
     }
 
@@ -119,6 +130,27 @@ export default class MatchingQuestionEditing extends Plugin {
             }
         } );
 
+        // <matchingTableHeader> converters
+        conversion.for( 'upcast' ).elementToElement( {
+            view: {
+                name: 'thead'
+            },
+            model: 'matchingTableHeader'
+        } );
+        conversion.for( 'dataDowncast' ).elementToElement( {
+            model: 'matchingTableHeader',
+            view: {
+                name: 'thead'
+            }
+        } );
+        conversion.for( 'editingDowncast' ).elementToElement( {
+            model: 'matchingTableHeader',
+            view: ( modelElement, viewWriter ) => {
+                const head = viewWriter.createContainerElement( 'thead' );
+                return toWidget( head, viewWriter );
+            }
+        } );
+
         // <matchingTableBody> converters
         conversion.for( 'upcast' ).elementToElement( {
             view: {
@@ -170,6 +202,39 @@ export default class MatchingQuestionEditing extends Plugin {
                 });
 
                 return toWidget( cell, viewWriter );
+            }
+        } );
+
+        // <matchingTableHeaderCell> converters
+        conversion.for( 'upcast' ).elementToElement( {
+            view: {
+                name: 'th',
+            },
+            model: ( viewElement, modelWriter ) => {
+                const classes = viewElement.getAttribute( 'class' );
+                return modelWriter.createElement( 'matchingTableHeaderCell', classes === undefined ? {} : {
+                    'class': classes
+                } );
+            }
+        } );
+        conversion.for( 'dataDowncast' ).elementToElement( {
+            model: 'matchingTableHeaderCell',
+            view: ( modelElement, viewWriter ) => {
+                const classes = modelElement.getAttribute( 'class' );
+                return viewWriter.createEditableElement( 'th', classes === undefined ? {} : {
+                    'class': classes
+                } );
+            }
+        } );
+        conversion.for( 'editingDowncast' ).elementToElement( {
+            model: 'matchingTableHeaderCell',
+            view: ( modelElement, viewWriter ) => {
+                const classes = modelElement.getAttribute( 'class' );
+                const cell = viewWriter.createEditableElement( 'th', classes === undefined ? {} : {
+                    'class': classes
+                });
+
+                return toWidgetEditable( cell, viewWriter );
             }
         } );
 

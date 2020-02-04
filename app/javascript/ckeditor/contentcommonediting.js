@@ -93,7 +93,7 @@ export default class ContentCommonEditing extends Plugin {
 
         schema.register( 'answer', {
             isObject: true,
-            allowIn: [ 'checklistQuestion', 'radioQuestion' ]
+            allowIn: [ 'checklistQuestion', 'radioQuestion', 'matchingQuestion' ]
         } );
 
         schema.register( 'answerTitle', {
