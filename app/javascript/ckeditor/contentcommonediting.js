@@ -48,7 +48,7 @@ export default class ContentCommonEditing extends Plugin {
         schema.register( 'question', {
             isObject: true,
             allowIn: [ 'checklistQuestion', 'radioQuestion', 'matchingQuestion' ],
-            allowAttributes: [ 'data-instant-feedback' ]
+            allowAttributes: [ 'data-instant-feedback', 'data-mastery' ]
         } );
 
         schema.extend( 'paragraph', {
@@ -260,6 +260,7 @@ export default class ContentCommonEditing extends Plugin {
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'question', {
                     'data-instant-feedback': viewElement.getAttribute('data-instant-feedback') || false,
+                    'data-mastery': viewElement.getAttribute('data-mastery') || false,
                 } );
             }
         } );
@@ -269,6 +270,7 @@ export default class ContentCommonEditing extends Plugin {
                 return viewWriter.createContainerElement( 'div', {
                     'class': 'question',
                     'data-instant-feedback': modelElement.getAttribute('data-instant-feedback') || false,
+                    'data-mastery': modelElement.getAttribute('data-mastery') || false,
                 } );
             }
         } );
@@ -278,6 +280,7 @@ export default class ContentCommonEditing extends Plugin {
                 return viewWriter.createContainerElement( 'div', {
                     'class': 'question',
                     'data-instant-feedback': modelElement.getAttribute('data-instant-feedback') || false,
+                    'data-mastery': modelElement.getAttribute('data-mastery') || false,
                 } );
             }
         } );

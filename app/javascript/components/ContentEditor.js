@@ -469,6 +469,20 @@ class ContentEditor extends Component {
                                                 }}
                                             />
                                             <label htmlFor='input-instant'>Instant Feedback</label>
+
+                                            <br/>
+
+                                            <input
+                                                type='checkbox'
+                                                id='input-mastery'
+                                                defaultChecked={questionElem.getAttribute('data-mastery') === 'true'}
+                                                onChange={( evt ) => {
+                                                    this.editor.execute( 'setAttributes', {
+                                                        'data-mastery': evt.target.checked
+                                                    }, questionElem );
+                                                }}
+                                            />
+                                            <label htmlFor='input-mastery'>Mastery Question</label>
                                         </>
                                     );
                                 }
