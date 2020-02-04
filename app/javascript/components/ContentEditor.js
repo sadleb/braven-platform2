@@ -41,6 +41,7 @@ import SimpleUploadAdapter from '@ckeditor/ckeditor5-upload/src/adapters/simpleu
 import RetainedData from '../ckeditor/retaineddata';
 import ContentCommonEditing from '../ckeditor/contentcommonediting';
 import ChecklistQuestionEditing from '../ckeditor/checklistquestionediting';
+import SliderQuestionEditing from '../ckeditor/sliderquestionediting';
 import RadioQuestionEditing from '../ckeditor/radioquestionediting';
 import TextAreaQuestionEditing from '../ckeditor/textareaquestionediting';
 import RateThisModuleQuestionEditing from '../ckeditor/ratethismodulequestionediting';
@@ -93,6 +94,7 @@ BalloonEditor.builtinPlugins = [
     ContentCommonEditing,
     ChecklistQuestionEditing,
     RadioQuestionEditing,
+    SliderQuestionEditing,
     TextAreaQuestionEditing,
     RateThisModuleQuestionEditing,
     MatchingQuestionEditing,
@@ -398,6 +400,9 @@ class ContentEditor extends Component {
                                     const max = this.state['selectedElement'].getAttribute('max');
                                     const step = this.state['selectedElement'].getAttribute('step');
 
+                                    const answer = this.state['selectedElement'].getAttribute('data-bz-answer');
+                                    const rangeAnswer = this.state['selectedElement'].getAttribute('data-bz-range-answer');
+
                                     return (
                                         <>
                                             <h4>Slider</h4>
@@ -431,6 +436,20 @@ class ContentEditor extends Component {
                                                 }}
                                             />
                                             <label htmlFor='input-step'>Step</label>
+
+                                            <input
+                                                type='number'
+                                                id='input-answer'
+                                                defaultValue={answer}
+                                                disabled={!(answer || rangeAnswer)}
+                                                onChange={( evt ) => {
+                                                    this.editor.execute( 'setAttributes', {
+                                                        'data-bz-answer': evt.target.value,
+                                                        'data-bz-range-answer': evt.target.value,
+                                                    } );
+                                                }}
+                                            />
+                                            <label htmlFor='input-answer'>Correct Answer</label>
                                         </>
                                     );
                                 } else if ( ['checkboxInput', 'radioInput'].includes( modelElement ) ) {
@@ -539,6 +558,15 @@ class ContentEditor extends Component {
                                         this.editor.editing.view.focus();
                                     }}
                                     {...{name: 'Text Area Question'}}
+                                />
+                                <ContentPartPreview
+                                    key="insertSliderQuestion"
+                                    enabled={this.state.enabledCommands.includes('insertSliderQuestion')}
+                                    onClick={( id ) => {
+                                        this.editor.execute( 'insertSliderQuestion' );
+                                        this.editor.editing.view.focus();
+                                    }}
+                                    {...{name: 'Slider Question'}}
                                 />
                             </ul>
                             <ul key="content-part-list-content" className="widget-list">

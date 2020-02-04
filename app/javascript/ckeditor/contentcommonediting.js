@@ -131,8 +131,8 @@ export default class ContentCommonEditing extends Plugin {
 
         schema.register( 'slider', {
             isObject: true,
-            allowAttributes: [ 'data-bz-retained', 'type', 'max', 'min', 'step' ],
-            allowIn: [ '$root' ],
+            allowAttributes: [ 'data-bz-answer', 'data-bz-range-answer', 'data-bz-retained', 'type', 'max', 'min', 'step' ],
+            allowIn: [ '$root', 'questionFieldset' ],
         } );
 
         schema.register( 'select', {
@@ -662,40 +662,78 @@ export default class ContentCommonEditing extends Plugin {
                 }
             },
             model: ( viewElement, modelWriter ) => {
-                return modelWriter.createElement( 'slider', {
+                let attrs = {
                     'class': viewElement.getAttribute('class') || '',
                     'data-bz-retained': viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'min': viewElement.getAttribute('min') || 0,
                     'max': viewElement.getAttribute('max') || 10,
                     'step': viewElement.getAttribute('step') || 1,
-                } );
+                };
+
+                // Only add these attributes if they are set.
+                const answer = viewElement.getAttribute('data-bz-answer');
+                if ( answer !== undefined ) {
+                    attrs['data-bz-answer'] = answer;
+                }
+
+                const rangeAnswer = viewElement.getAttribute('data-bz-range-answer');
+                if ( rangeAnswer !== undefined ) {
+                    attrs['data-bz-range-answer'] = rangeAnswer;
+                }
+
+                return modelWriter.createElement( 'slider', attrs );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'slider',
             view: ( modelElement, viewWriter ) => {
-                const input = viewWriter.createEmptyElement( 'input', {
+                let attrs = {
                     'type': 'range',
                     'class': modelElement.getAttribute('class') || '',
                     'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'min': modelElement.getAttribute('min') || 0,
                     'max': modelElement.getAttribute('max') || 10, 
                     'step': modelElement.getAttribute('step') || 1,
-                } );
-                return input;
+                };
+
+                // Only add these attributes if they are set.
+                const answer = modelElement.getAttribute('data-bz-answer');
+                if ( answer !== undefined ) {
+                    attrs['data-bz-answer'] = answer;
+                }
+
+                const rangeAnswer = modelElement.getAttribute('data-bz-range-answer');
+                if ( rangeAnswer !== undefined ) {
+                    attrs['data-bz-range-answer'] = rangeAnswer;
+                }
+
+                return viewWriter.createEmptyElement( 'input', attrs );
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'slider',
             view: ( modelElement, viewWriter ) => {
-                const input = viewWriter.createEmptyElement( 'input', {
+                let attrs = {
                     'type': 'range',
                     'class': modelElement.getAttribute('class') || '',
                     'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'min': modelElement.getAttribute('min') || 0,
                     'max': modelElement.getAttribute('max') || 10,
                     'step': modelElement.getAttribute('step') || 1,
-                } );
+                };
+
+                // Only add these attributes if they are set.
+                const answer = modelElement.getAttribute('data-bz-answer');
+                if ( answer !== undefined ) {
+                    attrs['data-bz-answer'] = answer;
+                }
+
+                const rangeAnswer = modelElement.getAttribute('data-bz-range-answer');
+                if ( rangeAnswer !== undefined ) {
+                    attrs['data-bz-range-answer'] = rangeAnswer;
+                }
+
+                const input = viewWriter.createEmptyElement( 'input', attrs );
                 return toWidget( input, viewWriter );
             }
         } );
