@@ -35,6 +35,7 @@ export default class ContentCommonEditing extends Plugin {
         schema.register( 'contentTitle', {
             isLimit: true,
             allowIn: 'content',
+            allowAttributes: [ 'id' ],
             allowContentOf: '$block'
         } );
 
@@ -57,6 +58,7 @@ export default class ContentCommonEditing extends Plugin {
         schema.register( 'questionTitle', {
             isLimit: true,
             allowIn: 'question',
+            allowAttributes: [ 'id' ],
             allowContentOf: '$block'
         } );
 
@@ -145,6 +147,12 @@ export default class ContentCommonEditing extends Plugin {
             allowIn: [ 'select' ],
             allowContentOf: '$block'
         } );
+
+        schema.register( 'heading6', {
+            allowAttributes: [ 'id' ],
+            allowIn: [ '$root' ],
+            allowContentOf: [ '$block' ],
+        });
     }
 
     _defineConverters() {
@@ -176,21 +184,28 @@ export default class ContentCommonEditing extends Plugin {
 
         // <contentTitle> converters
         conversion.for( 'upcast' ).elementToElement( {
-            model: 'contentTitle',
             view: {
                 name: 'h5'
+            },
+            model: ( viewElement, modelWriter ) => {
+                return modelWriter.createElement( 'contentTitle', {
+                    'id': viewElement.getAttribute('id'),
+                } );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'contentTitle',
-            view: {
-                name: 'h5'
+            view: ( modelElement, viewWriter ) => {
+                return viewWriter.createEditableElement( 'h5', {
+                    'id': modelElement.getAttribute( 'id' ),
+                } );
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'contentTitle',
             view: ( modelElement, viewWriter ) => {
                 const h5 = viewWriter.createEditableElement( 'h5', {
+                    'id': modelElement.getAttribute( 'id' ),
                 } );
 
                 enablePlaceholder( {
@@ -269,21 +284,28 @@ export default class ContentCommonEditing extends Plugin {
 
         // <questionTitle> converters
         conversion.for( 'upcast' ).elementToElement( {
-            model: 'questionTitle',
             view: {
                 name: 'h5'
+            },
+            model: ( viewElement, modelWriter ) => {
+                return modelWriter.createElement( 'questionTitle', {
+                    'id': viewElement.getAttribute('id'),
+                } );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'questionTitle',
-            view: {
-                name: 'h5'
+            view: ( modelElement, viewWriter ) => {
+                return viewWriter.createEditableElement( 'h5', {
+                    'id': modelElement.getAttribute( 'id' ),
+                } );
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'questionTitle',
             view: ( modelElement, viewWriter ) => {
                 const h5 = viewWriter.createEditableElement( 'h5', {
+                    'id': modelElement.getAttribute( 'id' ),
                 } );
 
                 enablePlaceholder( {
@@ -738,6 +760,34 @@ export default class ContentCommonEditing extends Plugin {
                     'value': modelElement.getAttribute('value'),
                 } );
                 return toWidget( option, viewWriter );
+            }
+        } );
+
+        // <heading6> converters
+        conversion.for( 'upcast' ).elementToElement( {
+            view: {
+                name: 'h6'
+            },
+            model: ( viewElement, modelWriter ) => {
+                return modelWriter.createElement( 'heading6', {
+                    'id': viewElement.getAttribute('id'),
+                } );
+            }
+        } );
+        conversion.for( 'dataDowncast' ).elementToElement( {
+            model: 'heading6',
+            view: ( modelElement, viewWriter ) => {
+                return viewWriter.createEditableElement( 'h6', {
+                    'id': modelElement.getAttribute( 'id' ),
+                } );
+            }
+        } );
+        conversion.for( 'editingDowncast' ).elementToElement( {
+            model: 'heading6',
+            view: ( modelElement, viewWriter ) => {
+                return viewWriter.createEditableElement( 'h6', {
+                    'id': modelElement.getAttribute( 'id' ),
+                } );
             }
         } );
     }
