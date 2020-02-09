@@ -1,15 +1,21 @@
 {
+  "buildpacks": [
+    { "url": "heroku/ruby" }
+  ],
   "environments": {
     "test": {
       "buildpacks": [
-        { "url": "https://github.com/heroku/heroku-buildpack-google-chrome" },
-        { "url": "heroku/ruby" }
+        { "url": "https://github.com/heroku/heroku-buildpack-google-chrome" }
       ],
       "addons": ["heroku-postgresql:in-dyno"],
       "scripts": {
-        "postdeploy": "bundle exec rake db:migrate db:seed",
         "test-setup": "yarn install",
         "test": "bundle exec rspec && yarn test"
+      }
+    },
+    "review": {
+      "scripts": {
+        "postdeploy": "bundle exec rake db:schema:load db:dummies"
       }
     }
   }
