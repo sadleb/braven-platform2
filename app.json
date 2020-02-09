@@ -16,7 +16,7 @@
         { "url": "heroku/ruby" }
       ],
       "scripts": {
-        "postdeploy": "bundle exec rake db:schema:load db:dummies"
+        "postdeploy": "bundle exec rake db:schema:load db:seed"
       }
     }
   }
