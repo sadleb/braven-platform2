@@ -1,5 +1,4 @@
 class PostalCodesController < ApplicationController
-  before_action :set_postal_code, only: [:show]
 
   # GET /postal_codes
   # GET /postal_codes.json
@@ -29,7 +28,4 @@ class PostalCodesController < ApplicationController
 
   private
 
-  def set_postal_code
-    @postal_code = PostalCode.find_by(code: params[:id])
-  end
 end

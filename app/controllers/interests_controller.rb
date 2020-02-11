@@ -1,5 +1,4 @@
 class InterestsController < ApplicationController
-  before_action :set_interest, only: [:show, :edit, :update, :destroy]
 
   # GET /interests
   # GET /interests.json
@@ -62,10 +61,6 @@ class InterestsController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_interest
-      @interest = Interest.find(params[:id])
-    end
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def interest_params

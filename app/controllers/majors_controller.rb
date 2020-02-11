@@ -1,5 +1,4 @@
 class MajorsController < ApplicationController
-  before_action :set_major, only: [:show, :edit, :update, :destroy]
 
   # GET /majors
   # GET /majors.json
@@ -62,10 +61,6 @@ class MajorsController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_major
-      @major = Major.find(params[:id])
-    end
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def major_params

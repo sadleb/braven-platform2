@@ -1,7 +1,9 @@
 require 'rubycas-server-core/tickets'
+require 'dry_crud'
 
 class ApplicationController < ActionController::Base
   include RubyCAS::Server::Core::Tickets
+  include DryCrud::Controllers
 
   before_action :authenticate_user!
   before_action :ensure_admin!

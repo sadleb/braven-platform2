@@ -1,5 +1,4 @@
 class CourseContentsController < ApplicationController
-  before_action :set_course_content, only: [:show, :edit, :update, :destroy, :publish]
 
   # GET /course_contents
   # GET /course_contents.json
@@ -76,10 +75,6 @@ class CourseContentsController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_course_content
-      @course_content = CourseContent.find(params[:id])
-    end
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def course_content_params
