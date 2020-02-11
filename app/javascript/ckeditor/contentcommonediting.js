@@ -2,13 +2,14 @@ import Plugin from '@ckeditor/ckeditor5-core/src/plugin';
 import { enablePlaceholder } from '@ckeditor/ckeditor5-engine/src/view/placeholder';
 import { toWidget, toWidgetEditable } from '@ckeditor/ckeditor5-widget/src/utils';
 import Widget from '@ckeditor/ckeditor5-widget/src/widget';
+import List from '@ckeditor/ckeditor5-list/src/list';
 import RetainedData from './retaineddata';
 import InsertTextInputCommand from './inserttextinputcommand';
 import InsertDoneButtonCommand from './insertdonebuttoncommand';
 
 export default class ContentCommonEditing extends Plugin {
     static get requires() {
-        return [ Widget, RetainedData ];
+        return [ Widget, RetainedData, List ];
     }
 
     init() {
@@ -78,6 +79,10 @@ export default class ContentCommonEditing extends Plugin {
             // Cannot be split or left by the caret.
             isLimit: true,
             allowIn: 'questionForm',
+        } );
+
+        schema.extend( 'listItem', {
+            allowIn: 'questionFieldset',
         } );
 
         schema.register( 'doneButton', {
