@@ -3,7 +3,6 @@ class AccessTokensController < ApplicationController
   # GET /access_tokens
   # GET /access_tokens.json
   def index
-    @access_tokens = AccessToken.all
   end
 
   # GET /access_tokens/1

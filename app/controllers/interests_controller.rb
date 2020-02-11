@@ -3,7 +3,6 @@ class InterestsController < ApplicationController
   # GET /interests
   # GET /interests.json
   def index
-    @interests = Interest.all
   end
 
   # GET /interests/1

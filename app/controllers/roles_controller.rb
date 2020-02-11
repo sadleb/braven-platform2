@@ -3,7 +3,6 @@ class RolesController < ApplicationController
   # GET /roles
   # GET /roles.json
   def index
-    @roles = Role.all
   end
 
   # GET /roles/new

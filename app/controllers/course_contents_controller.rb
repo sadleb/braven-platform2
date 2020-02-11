@@ -3,7 +3,6 @@ class CourseContentsController < ApplicationController
   # GET /course_contents
   # GET /course_contents.json
   def index
-    @course_contents = CourseContent.all
   end
 
   # GET /course_contents/1

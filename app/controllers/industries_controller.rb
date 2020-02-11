@@ -3,7 +3,6 @@ class IndustriesController < ApplicationController
   # GET /industries
   # GET /industries.json
   def index
-    @industries = Industry.all
   end
 
   # GET /industries/1
