@@ -50,7 +50,7 @@ class User < ApplicationRecord
     end
   end
   
-  def update_membershipr(program_id, old_role_id, new_role_id)
+  def update_membership(program_id, old_role_id, new_role_id)
     return if old_role_id == new_role_id
     
     end_membership(program_id, old_role_id)

@@ -6,6 +6,7 @@
     <tr>
       <th>Name</th>
       <th>Module</th>
+      <th>Points Possible</th>
     </tr>
   </thead>
   <tbody>
@@ -13,6 +14,7 @@
       <tr>
         <td><%= link_to project.name, project %></td>
         <td><%= link_to project.course_module.name, project.course_module %></td>
+        <td><%= project.points_possible %></td>
       </tr>
     <% end %>
   </tbody>

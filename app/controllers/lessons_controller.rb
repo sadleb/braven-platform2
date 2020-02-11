@@ -1,10 +1,11 @@
 class LessonsController < ApplicationController
-  before_action :set_lesson, only: [:show]
+  include DryCrud::Controllers::Nestable
+
+  nested_resource_of CourseModule
 
   # GET /lessons
   # GET /lessons.json
   def index
-    @lessons = params[:course_module_id] ? Lesson.where(course_module_id: params[:course_module_id]) : Lesson.all
   end
 
   # GET /lessons/1
@@ -14,8 +15,4 @@ class LessonsController < ApplicationController
 
   private
 
-  # Use callbacks to share common setup or constraints between actions.
-  def set_lesson
-    @lesson = Lesson.find(params[:id])
-  end
 end

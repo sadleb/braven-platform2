@@ -1,10 +1,11 @@
 class CourseModulesController < ApplicationController
-  before_action :set_course_module, only: [:show]
+  include DryCrud::Controllers::Nestable
+
+  nested_resource_of Program
 
   # GET /course_modules
   # GET /course_modules.json
   def index
-    @course_modules = params[:program_id] ? CourseModule.where(program_id: params[:program_id]) : CourseModule.all
   end
 
   # GET /course_modules/1
@@ -14,8 +15,4 @@ class CourseModulesController < ApplicationController
 
   private
 
-  # Use callbacks to share common setup or constraints between actions.
-  def set_course_module
-    @course_module = CourseModule.find(params[:id])
-  end
 end

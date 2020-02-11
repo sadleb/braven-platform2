@@ -1,10 +1,11 @@
 class LessonSubmissionsController < ApplicationController
-  before_action :set_lesson_submission, only: [:show]
+  include DryCrud::Controllers::Nestable
+
+  nested_resource_of Lesson
 
   # GET /lesson_submissions
   # GET /lesson_submissions.json
   def index
-    @lesson_submissions = params[:lesson_id] ? LessonSubmission.where(lesson_id: params[:lesson_id]) : LessonSubmission.all
   end
 
   # GET /lesson_submissions/1
@@ -14,8 +15,4 @@ class LessonSubmissionsController < ApplicationController
 
   private
 
-  # Use callbacks to share common setup or constraints between actions.
-  def set_lesson_submission
-    @lesson_submission = LessonSubmission.find(params[:id])
-  end
 end
