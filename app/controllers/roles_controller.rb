@@ -8,7 +8,6 @@ class RolesController < ApplicationController
 
   # GET /roles/new
   def new
-    @role = Role.new
   end
 
   # GET /roles/1/edit

@@ -13,7 +13,6 @@ class InterestsController < ApplicationController
 
   # GET /interests/new
   def new
-    @interest = Interest.new
   end
 
   # GET /interests/1/edit

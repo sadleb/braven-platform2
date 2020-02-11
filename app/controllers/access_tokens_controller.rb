@@ -13,7 +13,6 @@ class AccessTokensController < ApplicationController
 
   # GET /access_tokens/new
   def new
-    @access_token = AccessToken.new
   end
 
   # GET /access_tokens/1/edit

@@ -13,7 +13,6 @@ class MajorsController < ApplicationController
 
   # GET /majors/new
   def new
-    @major = Major.new
   end
 
   # GET /majors/1/edit

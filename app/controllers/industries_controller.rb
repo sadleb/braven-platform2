@@ -13,7 +13,6 @@ class IndustriesController < ApplicationController
 
   # GET /industries/new
   def new
-    @industry = Industry.new
   end
 
   # GET /industries/1/edit

@@ -13,7 +13,6 @@ class CourseContentsController < ApplicationController
 
   # GET /course_contents/new
   def new
-    @course_content = CourseContent.new
   end
 
   # GET /course_contents/1/edit
