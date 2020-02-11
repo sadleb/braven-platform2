@@ -46,6 +46,7 @@ import RadioQuestionEditing from '../ckeditor/radioquestionediting';
 import TextAreaQuestionEditing from '../ckeditor/textareaquestionediting';
 import RateThisModuleQuestionEditing from '../ckeditor/ratethismodulequestionediting';
 import MatchingQuestionEditing from '../ckeditor/matchingquestionediting';
+import MatrixQuestionEditing from '../ckeditor/matrixquestionediting';
 import TableContentEditing from '../ckeditor/tablecontentediting';
 import BlockquoteContentEditing from '../ckeditor/blockquotecontentediting';
 import IFrameContentEditing from '../ckeditor/iframecontentediting';
@@ -98,6 +99,7 @@ BalloonEditor.builtinPlugins = [
     TextAreaQuestionEditing,
     RateThisModuleQuestionEditing,
     MatchingQuestionEditing,
+    MatrixQuestionEditing,
     TableContentEditing,
     BlockquoteContentEditing,
     IFrameContentEditing,
@@ -549,6 +551,17 @@ class ContentEditor extends Component {
                                         this.editor.editing.view.focus();
                                     }}
                                     {...{name: 'Matching Question'}}
+                                />
+                                <ContentPartPreview
+                                    key="insertMatrixQuestion"
+                                    enabled={this.state.enabledCommands.includes('insertMatrixQuestion')}
+                                    onClick={( id ) => {
+                                        const rows = window.prompt('How many rows?', 4);
+                                        const columns = window.prompt('How many columns?', 4);
+                                        this.editor.execute( 'insertMatrixQuestion', {rows: rows, columns: columns} );
+                                        this.editor.editing.view.focus();
+                                    }}
+                                    {...{name: 'Matrix Question'}}
                                 />
                                 <ContentPartPreview
                                     key="insertTextAreaQuestion"

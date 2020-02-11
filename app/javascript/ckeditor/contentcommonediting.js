@@ -47,7 +47,7 @@ export default class ContentCommonEditing extends Plugin {
 
         schema.register( 'question', {
             isObject: true,
-            allowIn: [ 'checklistQuestion', 'radioQuestion', 'matchingQuestion' ],
+            allowIn: [ 'checklistQuestion', 'radioQuestion', 'matchingQuestion', 'matrixQuestion' ],
             allowAttributes: [ 'data-instant-feedback', 'data-mastery' ]
         } );
 
@@ -95,7 +95,7 @@ export default class ContentCommonEditing extends Plugin {
 
         schema.register( 'answer', {
             isObject: true,
-            allowIn: [ 'checklistQuestion', 'radioQuestion', 'matchingQuestion' ]
+            allowIn: [ 'checklistQuestion', 'radioQuestion', 'matchingQuestion', 'matrixQuestion' ]
         } );
 
         schema.register( 'answerTitle', {
