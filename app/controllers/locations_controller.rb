@@ -1,5 +1,4 @@
 class LocationsController < ApplicationController
-  before_action :set_location, only: [:show]
 
   # GET /locations
   # GET /locations.json
@@ -14,7 +13,4 @@ class LocationsController < ApplicationController
 
   private
   
-  def set_location
-    @location = Location.find(params[:id])
-  end
 end

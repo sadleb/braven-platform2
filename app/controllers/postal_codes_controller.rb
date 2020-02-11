@@ -1,6 +1,11 @@
 class PostalCodesController < ApplicationController
   before_action :set_postal_code, only: [:show]
 
+  # DryCrud doesn't handle: PostalCode.find_by(code: params[:id])
+  def dry_crud_enabled?
+    false
+  end
+
   # GET /postal_codes
   # GET /postal_codes.json
   def index
@@ -28,8 +33,7 @@ class PostalCodesController < ApplicationController
   end
 
   private
-
-  def set_postal_code
-    @postal_code = PostalCode.find_by(code: params[:id])
-  end
+    def set_postal_code
+      @postal_code = PostalCode.find_by(code: params[:id])
+    end
 end

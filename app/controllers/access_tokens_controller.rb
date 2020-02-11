@@ -1,10 +1,8 @@
 class AccessTokensController < ApplicationController
-  before_action :set_access_token, only: [:show, :edit, :update, :destroy]
 
   # GET /access_tokens
   # GET /access_tokens.json
   def index
-    @access_tokens = AccessToken.all
   end
 
   # GET /access_tokens/1
@@ -14,7 +12,6 @@ class AccessTokensController < ApplicationController
 
   # GET /access_tokens/new
   def new
-    @access_token = AccessToken.new
   end
 
   # GET /access_tokens/1/edit
@@ -62,11 +59,6 @@ class AccessTokensController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_access_token
-      @access_token = AccessToken.find(params[:id])
-    end
-
     # Never trust parameters from the scary internet, only allow the white list through.
     def access_token_params
       params.require(:access_token).permit(:name)
