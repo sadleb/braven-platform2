@@ -27,17 +27,14 @@ RSpec.describe ProgramsController, type: :controller do
   render_views
   
   let(:user) { create :user, admin: true }
-
+  let(:org) { create :organization }
+  let(:program) { create(:program, attributes) }
+  let(:attributes) { valid_attributes }
   # This should return the minimal set of attributes required to create a valid
   # Program. As you add validations to Program, be sure to
   # adjust the attributes here as well.
-  let(:valid_attributes) { attributes_for(:program) }
-
-  let(:invalid_attributes) {
-    {name: program.name }
-  }
-  
-  let(:program) { create :program }
+  let(:valid_attributes) { attributes_for(:program).merge(organization_id: org.id) }
+  let(:invalid_attributes) { { name: '' } }
 
   # This should return the minimal set of values that should be in the session
   # in order to pass any filters (e.g. authentication) defined in
@@ -71,52 +68,69 @@ RSpec.describe ProgramsController, type: :controller do
     end
 
     describe "POST #create" do
+      subject(:post_create) do
+        post(
+          :create,
+          params: {
+            program: attributes,
+            session: valid_session 
+          }
+        )
+      end
+
       context "with valid params" do
         it "creates a new Program" do
-          expect {
-            post :create, params: {program: valid_attributes}, session: valid_session
-          }.to change(Program, :count).by(1)
+          expect { post_create }.to change(Program, :count).by(1)
         end
 
         it "redirects to the program list" do
-          post :create, params: {program: valid_attributes}, session: valid_session
+          post_create
           expect(response).to redirect_to(programs_path)
         end
       end
 
       context "with invalid params" do
+        let(:attributes) { invalid_attributes }
         it "returns a success response (i.e. to display the 'new' template)" do
-          post :create, params: {program: invalid_attributes}, session: valid_session
+          post_create
           expect(response).to be_successful
         end
       end
     end
 
     describe "PUT #update" do
+      subject(:put_update) do
+        put(
+          :update,
+          params: {
+            id: program.to_param,
+            program: put_attributes,
+            session: valid_session
+          }
+        )
+      end
+
       context "with valid params" do
-        let(:new_attributes) {
+        let(:put_attributes) {
           { name: 'turtles' }
         }
+        before(:each) { put_update }
 
         it "updates the requested program" do
-          program = Program.create! valid_attributes
-          put :update, params: {id: program.to_param, program: new_attributes}, session: valid_session
           program.reload
-        
           expect(program.name).to eq('turtles')
         end
 
         it "redirects to the program" do
-          program = Program.create! valid_attributes
-          put :update, params: {id: program.to_param, program: valid_attributes}, session: valid_session
           expect(response).to redirect_to(programs_path)
         end
       end
 
       context "with invalid params" do
-        it "returns a success response (i.e. to display the 'edit' template)" do
-          program = Program.create! valid_attributes
-          put :update, params: {id: program.to_param, program: invalid_attributes}, session: valid_session
+        let(:put_attributes) { invalid_attributes }
+        before(:each) { put_update }
+
+        it "returns a success response (i.e. to display the 'edit' template)" do          
           expect(response).to be_successful
         end
       end
@@ -124,7 +138,7 @@ RSpec.describe ProgramsController, type: :controller do
 
     describe "DELETE #destroy" do
       it "destroys the requested program" do
-        program = Program.create! valid_attributes
+        program = create(:program, valid_attributes)
         expect {
           delete :destroy, params: {id: program.to_param}, session: valid_session
         }.to change(Program, :count).by(-1)

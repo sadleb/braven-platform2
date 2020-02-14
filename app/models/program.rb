@@ -1,8 +1,9 @@
 class Program < ApplicationRecord
+  belongs_to :organization
+  
   has_many :program_memberships
   has_many :users, through: :program_memberships
   has_many :roles, through: :program_memberships
-
 
   # PROPOSAL: as we model this out, here is goal I want to propose:
   # Divorce the logic of how a "course" is laid out including what content, projects, lessons
@@ -15,7 +16,7 @@ class Program < ApplicationRecord
   # tied to the program. So a program is an "instance" of a course that we are executing for
   # a given semester at a given school. 
 
-  validates :name, presence: true, uniqueness: {case_sensitive: false}
+  validates :name, presence: true
   
   def to_show
     attributes.slice('name')

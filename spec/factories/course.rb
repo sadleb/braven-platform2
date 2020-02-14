@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :program do
+  factory :course do
     sequence(:name) { |i| "Program #{i}" }
     sequence(:term) { |i| "Term #{i}" }
 

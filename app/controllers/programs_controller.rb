@@ -17,7 +17,6 @@ class ProgramsController < ApplicationController
   # POST /programs.json
   def create
     @program = Program.new(program_params)
-
     respond_to do |format|
       if @program.save
         format.html { redirect_to programs_path, notice: 'Program was successfully created.' }
@@ -57,6 +56,6 @@ class ProgramsController < ApplicationController
 
   # Never trust parameters from the scary internet, only allow the white list through.
   def program_params
-    params.require(:program).permit(:name)
+    params.require(:program).permit(:name, :term, :organization_id)
   end
 end

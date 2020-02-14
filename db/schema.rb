@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_02_11_142232) do
+ActiveRecord::Schema.define(version: 2020_02_11_154757) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -146,6 +146,10 @@ ActiveRecord::Schema.define(version: 2020_02_11_142232) do
     t.string "name", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "term", null: false
+    t.integer "organization_id", null: false
+    t.string "type"
+    t.index ["name", "term", "organization_id"], name: "index_programs_on_name_and_term_and_organization_id", unique: true
     t.index ["name"], name: "index_programs_on_name", unique: true
   end
 
@@ -202,4 +206,5 @@ ActiveRecord::Schema.define(version: 2020_02_11_142232) do
     t.index ["email"], name: "index_users_on_email"
   end
 
+  add_foreign_key "programs", "organizations"
 end
