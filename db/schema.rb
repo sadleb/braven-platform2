@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_02_11_154757) do
+ActiveRecord::Schema.define(version: 2020_02_20_170346) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -92,6 +92,15 @@ ActiveRecord::Schema.define(version: 2020_02_11_154757) do
     t.string "client_hostname", null: false
   end
 
+  create_table "logistics", force: :cascade do |t|
+    t.string "day_of_week", null: false
+    t.string "time_of_day", null: false
+    t.integer "program_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["day_of_week", "time_of_day", "program_id"], name: "index_logistics_on_day_of_week_and_time_of_day_and_program_id", unique: true
+  end
+
   create_table "majors", force: :cascade do |t|
     t.string "name"
     t.integer "parent_id"
@@ -170,6 +179,15 @@ ActiveRecord::Schema.define(version: 2020_02_11_154757) do
     t.index ["name"], name: "index_roles_on_name", unique: true
   end
 
+  create_table "sections", force: :cascade do |t|
+    t.string "name", null: false
+    t.integer "logistic_id", null: false
+    t.integer "program_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["name", "program_id"], name: "index_sections_on_name_and_program_id", unique: true
+  end
+
   create_table "service_tickets", force: :cascade do |t|
     t.string "ticket", null: false
     t.string "service", null: false
@@ -206,5 +224,8 @@ ActiveRecord::Schema.define(version: 2020_02_11_154757) do
     t.index ["email"], name: "index_users_on_email"
   end
 
+  add_foreign_key "logistics", "programs"
   add_foreign_key "programs", "organizations"
+  add_foreign_key "sections", "logistics"
+  add_foreign_key "sections", "programs"
 end
