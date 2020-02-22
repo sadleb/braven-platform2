@@ -7,6 +7,21 @@ class User < ApplicationRecord
   has_many :programs, through: :program_memberships
   has_many :roles, through: :program_memberships
 
+  has_many :user_sections
+  has_many :sections, through: :user_sections do
+    def as_fellow
+      merge(UserSection.enrolled)
+    end
+
+    def as_lc
+      merge(UserSection.facillitates)
+    end
+
+    def as_ta
+      merge(UserSection.assists)
+    end
+  end
+
   before_create :attempt_admin_set, unless: :admin?
   
   validates :email, uniqueness: true

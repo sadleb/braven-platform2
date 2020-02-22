@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_02_20_170346) do
+ActiveRecord::Schema.define(version: 2020_02_20_212829) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -210,6 +210,17 @@ ActiveRecord::Schema.define(version: 2020_02_20_170346) do
     t.string "extra_attributes", null: false
   end
 
+  create_table "user_sections", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "section_id", null: false
+    t.string "type", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["section_id"], name: "index_user_sections_on_section_id"
+    t.index ["user_id", "section_id"], name: "index_user_sections_on_user_id_and_section_id", unique: true
+    t.index ["user_id"], name: "index_user_sections_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email"
     t.boolean "admin", default: false
@@ -228,4 +239,6 @@ ActiveRecord::Schema.define(version: 2020_02_20_170346) do
   add_foreign_key "programs", "organizations"
   add_foreign_key "sections", "logistics"
   add_foreign_key "sections", "programs"
+  add_foreign_key "user_sections", "sections"
+  add_foreign_key "user_sections", "users"
 end
