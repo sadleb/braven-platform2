@@ -62,7 +62,6 @@ import CustomElementAttributePreservation from '../ckeditor/customelementattribu
 import ContentPartList from './ContentPartList';
 import ContentPartPreview from './ContentPartPreview';
 
-
 // Plugins to include in the build.
 BalloonEditor.builtinPlugins = [
     Essentials,
@@ -216,14 +215,14 @@ class ContentEditor extends Component {
         this.handleEditorFocusChange = this.handleEditorFocusChange.bind( this );
         this.handleEditorInit = this.handleEditorInit.bind( this );
 
+        // Non-CKE UI functions.
         this.fileUpload = React.createRef();
         this.showFileUpload = this.showFileUpload.bind(this);
-
     }
 
-  showFileUpload() {
-    this.fileUpload.current.click();
-  }
+    showFileUpload() {
+        this.fileUpload.current.click();
+    }
 
     // A handler executed when the user types or modifies the editor content.
     // It updates the state of the application.
