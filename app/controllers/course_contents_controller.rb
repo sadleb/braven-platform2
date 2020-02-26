@@ -76,6 +76,9 @@ class CourseContentsController < ApplicationController
   end
 
   private
+    def set_course_content
+      @course_content = CourseContent.find(params[:id])
+    end
 
     def set_course_contents
       @course_contents = CourseContent.all
