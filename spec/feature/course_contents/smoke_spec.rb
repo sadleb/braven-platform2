@@ -38,9 +38,6 @@ RSpec.describe CourseContentsController, type: :routing do
           # FIXME: Temporarily disable server errors, to stop the test from failing on the question icon 404
           Capybara.raise_server_errors = false
 
-          # Hide the ckeditor inspector.
-          find("button.ck-inspector-navbox__navigation__toggle").click
-
           # Insert a question.
           find("li", text: "Section").click
           find("li", text: "Checklist Question").click
