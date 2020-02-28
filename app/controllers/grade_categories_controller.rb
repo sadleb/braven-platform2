@@ -13,6 +13,4 @@ class GradeCategoriesController < ApplicationController
   def show
   end
 
-  private
-
 end

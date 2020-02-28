@@ -13,6 +13,4 @@ class LessonSubmissionsController < ApplicationController
   def show
   end
 
-  private
-
 end

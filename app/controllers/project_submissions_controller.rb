@@ -13,6 +13,4 @@ class ProjectSubmissionsController < ApplicationController
   def show
   end
 
-  private
-
 end
