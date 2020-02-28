@@ -46,21 +46,20 @@ ActiveRecord::Schema.define(version: 2020_02_20_212829) do
     t.string "course_name"
   end
 
-  create_table "course_modules", force: :cascade do |t|
-    t.bigint "program_id"
-    t.string "name", null: false
-    t.integer "position", null: false
-    t.float "percent_of_grade"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.index ["program_id"], name: "index_course_modules_on_program_id"
-  end
-
   create_table "emails", force: :cascade do |t|
     t.string "value", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["value"], name: "index_emails_on_value"
+  end
+
+  create_table "grade_categories", force: :cascade do |t|
+    t.bigint "program_id", null: false
+    t.string "name", null: false
+    t.float "percent_of_grade"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["program_id"], name: "index_grade_categories_on_program_id"
   end
 
   create_table "industries", force: :cascade do |t|
@@ -78,8 +77,8 @@ ActiveRecord::Schema.define(version: 2020_02_20_212829) do
   end
 
   create_table "lesson_submissions", force: :cascade do |t|
-    t.bigint "user_id"
-    t.bigint "lesson_id"
+    t.bigint "user_id", null: false
+    t.bigint "lesson_id", null: false
     t.float "points_received"
     t.datetime "submitted_at"
     t.datetime "created_at", precision: 6, null: false
@@ -89,12 +88,13 @@ ActiveRecord::Schema.define(version: 2020_02_20_212829) do
   end
 
   create_table "lessons", force: :cascade do |t|
-    t.bigint "course_module_id"
+    t.bigint "grade_category_id", null: false
     t.string "name", null: false
-    t.integer "points_possible"
+    t.integer "points_possible", null: false
+    t.float "percent_of_grade_category", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["course_module_id"], name: "index_lessons_on_course_module_id"
+    t.index ["grade_category_id"], name: "index_lessons_on_grade_category_id"
   end
 
   create_table "location_relationships", id: false, force: :cascade do |t|
@@ -193,8 +193,8 @@ ActiveRecord::Schema.define(version: 2020_02_20_212829) do
   end
 
   create_table "project_submissions", force: :cascade do |t|
-    t.bigint "user_id"
-    t.bigint "project_id"
+    t.bigint "user_id", null: false
+    t.bigint "project_id", null: false
     t.float "points_received"
     t.datetime "submitted_at"
     t.datetime "graded_at"
@@ -205,14 +205,15 @@ ActiveRecord::Schema.define(version: 2020_02_20_212829) do
   end
 
   create_table "projects", force: :cascade do |t|
-    t.bigint "course_module_id"
+    t.bigint "grade_category_id", null: false
     t.string "name", null: false
-    t.integer "points_possible"
+    t.integer "points_possible", null: false
+    t.float "percent_of_grade_category", null: false
     t.boolean "grades_muted", default: false, null: false
     t.datetime "grades_published_at"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["course_module_id"], name: "index_projects_on_course_module_id"
+    t.index ["grade_category_id"], name: "index_projects_on_grade_category_id"
   end
 
   create_table "proxy_granting_tickets", force: :cascade do |t|
@@ -230,15 +231,6 @@ ActiveRecord::Schema.define(version: 2020_02_20_212829) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_roles_on_name", unique: true
-  end
-
-  create_table "sections", force: :cascade do |t|
-    t.string "name", null: false
-    t.integer "logistic_id", null: false
-    t.integer "program_id", null: false
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.index ["name", "program_id"], name: "index_sections_on_name_and_program_id", unique: true
   end
 
   create_table "rubric_grades", force: :cascade do |t|
@@ -297,6 +289,15 @@ ActiveRecord::Schema.define(version: 2020_02_20_212829) do
     t.index ["project_id"], name: "index_rubrics_on_project_id", unique: true
   end
 
+  create_table "sections", force: :cascade do |t|
+    t.string "name", null: false
+    t.integer "logistic_id", null: false
+    t.integer "program_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["name", "program_id"], name: "index_sections_on_name_and_program_id", unique: true
+  end
+
   create_table "service_tickets", force: :cascade do |t|
     t.string "ticket", null: false
     t.string "service", null: false
@@ -344,19 +345,15 @@ ActiveRecord::Schema.define(version: 2020_02_20_212829) do
     t.index ["email"], name: "index_users_on_email"
   end
 
-  add_foreign_key "logistics", "programs"
-  add_foreign_key "programs", "organizations"
-  add_foreign_key "sections", "logistics"
-  add_foreign_key "sections", "programs"
-  add_foreign_key "user_sections", "sections"
-  add_foreign_key "user_sections", "users"
-  add_foreign_key "course_modules", "programs"
+  add_foreign_key "grade_categories", "programs"
   add_foreign_key "lesson_submissions", "lessons"
   add_foreign_key "lesson_submissions", "users"
-  add_foreign_key "lessons", "course_modules"
+  add_foreign_key "lessons", "grade_categories"
+  add_foreign_key "logistics", "programs"
+  add_foreign_key "programs", "organizations"
   add_foreign_key "project_submissions", "projects"
   add_foreign_key "project_submissions", "users"
-  add_foreign_key "projects", "course_modules"
+  add_foreign_key "projects", "grade_categories"
   add_foreign_key "rubric_grades", "project_submissions"
   add_foreign_key "rubric_grades", "rubrics"
   add_foreign_key "rubric_row_categories", "rubrics"
@@ -365,4 +362,8 @@ ActiveRecord::Schema.define(version: 2020_02_20_212829) do
   add_foreign_key "rubric_row_ratings", "rubric_rows"
   add_foreign_key "rubric_rows", "rubric_row_categories"
   add_foreign_key "rubrics", "projects"
+  add_foreign_key "sections", "logistics"
+  add_foreign_key "sections", "programs"
+  add_foreign_key "user_sections", "sections"
+  add_foreign_key "user_sections", "users"
 end

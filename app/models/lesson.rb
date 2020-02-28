@@ -9,11 +9,12 @@
 # and they were WikiPages in the code with the retained_data functionality
 # tacked on top.
 class Lesson < ApplicationRecord
+  belongs_to :grade_category 
   has_many :lesson_submissions
   has_many :users, :through => :lesson_submissions
-  belongs_to :course_module
 
   alias_attribute :submissions, :lesson_submissions
 
-  validates :name, presence: true
+  validates :name, :points_possible, presence: true
+  validates :percent_of_grade_category, numericality: { greater_than_or_equal_to: 0.0, less_than_or_equal_to: 1.0 }
 end

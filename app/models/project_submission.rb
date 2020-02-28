@@ -4,7 +4,7 @@ class ProjectSubmission < ApplicationRecord
   has_one :rubric_grade
 
   # Example Usage: 
-  # submissions = ProjectSubmission.for_projects_and_user(course_module.projects, user)
+  # submissions = ProjectSubmission.for_projects_and_user(grade_category.projects, user)
   scope :for_projects_and_user, ->(ps, u) { where(project: ps, user: u) }
 
 end

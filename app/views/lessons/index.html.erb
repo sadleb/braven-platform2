@@ -5,7 +5,7 @@
   <thead>
     <tr>
       <th>Name</th>
-      <th>Module</th>
+      <th>Category</th>
       <th>Points</th>
     </tr>
   </thead>
@@ -13,7 +13,7 @@
     <% @lessons.each do |lesson| %>
       <tr>
         <td><%= link_to lesson.name, lesson %></td>
-        <td><%= link_to lesson.course_module.name, lesson.course_module %></td>
+        <td><%= link_to lesson.grade_category.name, lesson.grade_category %></td>
         <td><%= lesson.points_possible %></td>
       </tr>
     <% end %>

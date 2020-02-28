@@ -4,7 +4,6 @@ class Program < ApplicationRecord
   has_many :program_memberships
   has_many :users, through: :program_memberships
   has_many :roles, through: :program_memberships
-  has_many :course_modules
 
   # PROPOSAL: as we model this out, here is goal I want to propose:
   # Divorce the logic of how a "course" is laid out including what content, projects, lessons

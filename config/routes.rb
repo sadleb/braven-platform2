@@ -12,13 +12,18 @@ Rails.application.routes.draw do
   resources :locations, only: [:index, :show]
   resources :majors, except: [:show]
 
+  resources :programs
+
   # See this for why we nest things only 1 deep:
   # http://weblog.jamisbuck.org/2007/2/5/nesting-resources
-  resources :programs do
-    resources :course_modules, only: [:index, :show]
+
+  resources :courses, only: [:index, :show] do
+    resources :grade_categories, only: [:index, :show]
+    resources :projects, only: [:index, :show]
+    resources :lessons, only: [:index, :show]
   end
 
-  resources :course_modules, only: [:index, :show] do
+  resources :grade_categories, only: [:index, :show] do
     resources :projects, only: [:index, :show]
     resources :lessons, only: [:index, :show]
   end
