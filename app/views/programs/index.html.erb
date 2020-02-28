@@ -22,7 +22,7 @@
       <tbody>
         <% @programs.each do |program| %>
           <tr>
-            <td><%= program.name %></td>
+            <td><%= link_to program.name, program %></td>
             <td class="text-right smaller">
               <%= link_to 'Edit', edit_program_path(program) %> |
               <%= link_to 'Delete', program, method: :delete, data: { confirm: 'Are you sure you want to delete this Program?' } %>

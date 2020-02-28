@@ -10,7 +10,44 @@ user_count = User.count
 FactoryBot.create_list(:user, 5) unless user_count > 1
 puts "Created #{User.count - user_count} users"
 
-program = Program.find_or_create_by name: 'SJSU'
-role = Role.find_or_create_by name: 'Participant'
+org = Organization.find_or_create_by! name: 'San Jose State University'
+course = Course.find_or_create_by! name: 'SJSU', organization: org, term: 'Spring 2020'
+role = Role.find_or_create_by! name: 'Participant'
 
-User.all.each{|p| p.start_membership(program.id, role.id) if p.program_memberships.empty?}
+User.all.each{|p| p.start_membership(course.id, role.id) if p.program_memberships.empty?}
+
+######
+# TODO: this is just quick and dirty for testing the grading related models I'm working on. Clean it up
+####
+
+# Add the admin users
+User.find_or_create_by email: 'admin@beyondz.org' do |u|
+  u.first_name = 'Dev'
+  u.last_name = 'Admin(BZ)'
+  u.admin = true
+end
+User.find_or_create_by email: 'admin@bebraven.org' do |u|
+  u.first_name = 'Dev'
+  u.last_name = 'Admin(BV)'
+  u.admin = true
+end
+
+grade_category1 = GradeCategory.find_or_create_by! name: 'Category 1', program: course, percent_of_grade: 0.75
+grade_category2 = GradeCategory.find_or_create_by! name: 'Category 2', program: course, percent_of_grade: 0.25
+
+project1 = Project.find_or_create_by! name: 'Test Project 1', grade_category: grade_category1, percent_of_grade_category: 0.5, points_possible: 10
+project2 = Project.find_or_create_by! name: 'Test Project 2', grade_category: grade_category2, percent_of_grade_category: 0.5, points_possible: 20, grades_published_at: DateTime.now 
+
+ProjectSubmission.find_or_create_by! user: User.first, project: project1, points_received: 10, submitted_at: DateTime.now
+ProjectSubmission.find_or_create_by! user: User.first, project: project2, points_received: 20, submitted_at: DateTime.now
+ProjectSubmission.find_or_create_by! user: User.second, project: project1, points_received: 5, submitted_at: DateTime.now
+ProjectSubmission.find_or_create_by! user: User.second, project: project2, points_received: 10, submitted_at: DateTime.now
+
+lesson1 = Lesson.find_or_create_by! name: 'Test Lesson 1', grade_category: grade_category1, percent_of_grade_category: 0.5, points_possible: 50
+lesson2 = Lesson.find_or_create_by! name: 'Test Lesson 2', grade_category: grade_category2, percent_of_grade_category: 0.5, points_possible: 100
+
+LessonSubmission.find_or_create_by! user: User.first, lesson: lesson1, points_received: 50, submitted_at: DateTime.now
+LessonSubmission.find_or_create_by! user: User.first, lesson: lesson2, points_received: 100, submitted_at: DateTime.now
+LessonSubmission.find_or_create_by! user: User.second, lesson: lesson1, points_received: 25, submitted_at: DateTime.now
+LessonSubmission.find_or_create_by! user: User.second, lesson: lesson2, points_received: 50, submitted_at: DateTime.now
+

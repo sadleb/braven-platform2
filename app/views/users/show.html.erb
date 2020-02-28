@@ -22,10 +22,12 @@
           <% @user.program_memberships.each do |membership| %>
             <li class="list-group-item">
               <b><%= membership.program.name %> <%= membership.role.name %></b>
-              <br>
+              <br/>
               
               <%= membership.start_date.strftime('%Y-%m-%d') %> to
               <%= membership.end_date ? membership.end_date.strftime('%Y-%m-%d') : 'Present' %>
+              <br/>
+              Total Grade: <%= as_percent @user.total_grade(membership.program) %>
             </li>
           <% end %>
         <% end %>

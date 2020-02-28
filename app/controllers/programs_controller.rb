@@ -5,6 +5,11 @@ class ProgramsController < ApplicationController
   def index
   end
 
+  # GET /programs/1
+  # GET /programs/1.json
+  def show
+  end
+
   # GET /programs/new
   def new
   end

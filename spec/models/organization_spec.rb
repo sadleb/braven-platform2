@@ -17,7 +17,7 @@ RSpec.describe Organization, type: :model do
     context 'when name is empty' do
       let(:org_name) { '' }
       it 'disallows saving' do
-        expect { org.save! }.to raise_error
+        expect { org.save! }.to raise_error(ActiveRecord::RecordInvalid)
       end
     end
   end
