@@ -76,8 +76,8 @@ class CourseContentsController < ApplicationController
           title: @course_content.title,
           body: @course_content.body
         })
-        new_version.save
-        @course_content.save
+        new_version.save!
+        @course_content.save!
 
         # return
         format.html { redirect_to @course_content, notice: 'CourseContent was successfully published.' }
