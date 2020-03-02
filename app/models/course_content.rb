@@ -5,6 +5,7 @@ class CourseContent < ApplicationRecord
   def publish(params)
     response = CanvasProdClient.update_course_page(params[:course_id], params[:secondary_id], params[:body])
 
-    response.code >= 200 && response.code < 300
+    # Some APIs return 200, some 201.
+    response.code == :ok or response.code == :created
   end
 end
