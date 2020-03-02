@@ -1,38 +1,16 @@
 require "rails_helper"
 
 RSpec.describe CourseContentHistoriesController, type: :routing do
+  let(:course_content) { create(:course_content) }
   describe "routing" do
     it "routes to #index" do
-      expect(:get => "/course_content_histories").to route_to("course_content_histories#index")
-    end
-
-    it "routes to #new" do
-      expect(:get => "/course_content_histories/new").to route_to("course_content_histories#new")
+      expect(:get => "/course_contents/#{course_content.id}/versions").to route_to("course_content_histories#index",
+          :course_content_id => course_content.id.to_s)
     end
 
     it "routes to #show" do
-      expect(:get => "/course_content_histories/1").to route_to("course_content_histories#show", :id => "1")
-    end
-
-    it "routes to #edit" do
-      expect(:get => "/course_content_histories/1/edit").to route_to("course_content_histories#edit", :id => "1")
-    end
-
-
-    it "routes to #create" do
-      expect(:post => "/course_content_histories").to route_to("course_content_histories#create")
-    end
-
-    it "routes to #update via PUT" do
-      expect(:put => "/course_content_histories/1").to route_to("course_content_histories#update", :id => "1")
-    end
-
-    it "routes to #update via PATCH" do
-      expect(:patch => "/course_content_histories/1").to route_to("course_content_histories#update", :id => "1")
-    end
-
-    it "routes to #destroy" do
-      expect(:delete => "/course_content_histories/1").to route_to("course_content_histories#destroy", :id => "1")
+      expect(:get => "/course_contents/#{course_content.id}/versions/1").to route_to("course_content_histories#show",
+          :id => "1", :course_content_id => course_content.id.to_s)
     end
   end
 end
