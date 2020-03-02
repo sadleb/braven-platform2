@@ -1,5 +1,5 @@
 class CourseContentHistoriesController < ApplicationController
-  before_action :set_course_content, only: [:index]
+  before_action :set_course_content, only: [:index, :show]
 
   include DryCrud::Controllers::Nestable
 
