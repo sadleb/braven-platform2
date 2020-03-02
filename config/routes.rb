@@ -1,7 +1,7 @@
 Rails.application.routes.draw do
   resources :course_contents do
     post :publish
-    resources :course_content_histories
+    resources :course_content_histories, path: 'versions', only: [:index, :show]
   end
 
   devise_for :users
