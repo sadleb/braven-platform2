@@ -21,6 +21,7 @@ services:
       - /usr/src/app/log
     depends_on:
       - platform_chrome
+      - platformdb
     env_file:
       - .env
     networks:
