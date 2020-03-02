@@ -1273,11 +1273,6 @@ table {
 	height: 378px;
 }
 
-.bz-box:not(.module-block-video > div.content):not(.module-block-flush > div.content) figure iframe {
-	width: 612px;
-	height: 344px;
-}
-
 iframe {
 	border: none;
 	outline: none;
