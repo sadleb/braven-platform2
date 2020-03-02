@@ -2,6 +2,11 @@ require 'rest-client'
 
 class CanvasAPI
 
+  # Custom HTML to prepend to each body.
+  PrependHTML = %q(
+    <!-- BRAVEN_NEW_HTML -->
+  )
+
   def initialize(canvas_url, canvas_token)
     @canvas_url = canvas_url
     @api_url = "#{@canvas_url}/api/v1"
@@ -12,7 +17,7 @@ class CanvasAPI
 
   def update_course_page(course_id, wiki_page_id, wiki_page_body)
     body = {
-      'wiki_page[body]' => wiki_page_body,
+      'wiki_page[body]' => PrependHTML + wiki_page_body,
     }
 
     put("/courses/#{course_id}/pages/#{wiki_page_id}", body)
