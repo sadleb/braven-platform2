@@ -24,6 +24,6 @@ RSpec.describe CanvasAPI do
     canvas.update_course_page(1, 'test', 'test-body')
 
     expect(WebMock).to have_requested(:put, "#{CANVAS_URL}/api/v1/courses/1/pages/test").
-      with(body: 'wiki_page%5Bbody%5D=test-body').once
+      with(body: 'wiki_page%5Bbody%5D=%0A++++%3C%21--+BRAVEN_NEW_HTML+--%3E%0A++test-body').once
   end
 end
