@@ -1,0 +1,2 @@
+module CourseContentHistoriesHelper
+end

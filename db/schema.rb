@@ -34,6 +34,15 @@ ActiveRecord::Schema.define(version: 2020_02_20_212829) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "course_content_histories", force: :cascade do |t|
+    t.bigint "course_content_id", null: false
+    t.string "title"
+    t.text "body"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["course_content_id"], name: "index_course_content_histories_on_course_content_id"
+  end
+
   create_table "course_contents", force: :cascade do |t|
     t.string "title"
     t.text "body"
@@ -345,6 +354,7 @@ ActiveRecord::Schema.define(version: 2020_02_20_212829) do
     t.index ["email"], name: "index_users_on_email"
   end
 
+  add_foreign_key "course_content_histories", "course_contents"
   add_foreign_key "grade_categories", "programs"
   add_foreign_key "lesson_submissions", "lessons"
   add_foreign_key "lesson_submissions", "users"

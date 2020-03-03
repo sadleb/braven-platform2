@@ -176,6 +176,14 @@ We also have the pry and rescue gems so that you can break and debug code. Here 
 a spec that is throwing an exception.
     bundle exec rescue rspec spec/a_failing_spec.rb --format documentation   
 
+For troubleshooting ckeditor-specific issues in the content editor, append '?debug' to the URL:
+
+    http://platformweb/course_contents/new?debug
+
+That will attach the [CKEditor Inspector](https://ckeditor.com/docs/ckeditor5/latest/framework/guides/development-tools.html#ckeditor-5-inspector).
+
+**TODO:** talk about pry and other dev and troubleshooting techniques.
+
 ### Accessibility testing
 
 This project includes [axe](https://www.deque.com/axe/) in development, for live, in-browser accessibility reporting.

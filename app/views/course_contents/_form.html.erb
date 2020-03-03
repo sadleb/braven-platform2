@@ -1,7 +1,7 @@
 <%= javascript_pack_tag 'sidebar' %>
 <%= javascript_pack_tag 'content_editor' %>
 
-<%= react_component('Sidebar', { 
+<%= react_component('Sidebar', {
     courseContents: @course_contents
 }) %>
 
@@ -19,7 +19,7 @@
     </div>
   <% end %>
 
-  <div class="field" >
+  <div class="field">
     <%= react_component('ContentEditor', { course_content: course_content,
         contentParts: [
             {

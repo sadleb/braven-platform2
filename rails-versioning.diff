@@ -1,0 +1,1250 @@
+diff --git a/app/assets/stylesheets/application.scss b/app/assets/stylesheets/application.scss
+index 606c0ce..b65fe67 100644
+--- a/app/assets/stylesheets/application.scss
++++ b/app/assets/stylesheets/application.scss
+@@ -38,9 +38,6 @@ div#raw-html-container > textarea {
+ .ck.ck-editor__editable_inline {
+   min-height: 370px;
+ }
+-span#autosave-indicator {
+-  display: none;
+-}
+ textarea.secret-html {
+   display: none;
+ }
+diff --git a/app/assets/stylesheets/course_content_histories.scss b/app/assets/stylesheets/course_content_histories.scss
+new file mode 100644
+index 0000000..8b11dac
+--- /dev/null
++++ b/app/assets/stylesheets/course_content_histories.scss
+@@ -0,0 +1,3 @@
++// Place all the styles related to the course_content_histories controller here.
++// They will automatically be included in application.css.
++// You can use Sass (SCSS) here: http://sass-lang.com/
+diff --git a/app/assets/stylesheets/course_content_undos.scss b/app/assets/stylesheets/course_content_undos.scss
+new file mode 100644
+index 0000000..60248c1
+--- /dev/null
++++ b/app/assets/stylesheets/course_content_undos.scss
+@@ -0,0 +1,3 @@
++// Place all the styles related to the course_content_undos controller here.
++// They will automatically be included in application.css.
++// You can use Sass (SCSS) here: http://sass-lang.com/
+diff --git a/app/controllers/course_content_histories_controller.rb b/app/controllers/course_content_histories_controller.rb
+new file mode 100644
+index 0000000..d78e4c3
+--- /dev/null
++++ b/app/controllers/course_content_histories_controller.rb
+@@ -0,0 +1,74 @@
++class CourseContentHistoriesController < ApplicationController
++  before_action :set_course_content_history, only: [:show, :edit, :update, :destroy]
++
++  # GET /course_content_histories
++  # GET /course_content_histories.json
++  def index
++    @course_content_histories = CourseContentHistory.all
++  end
++
++  # GET /course_content_histories/1
++  # GET /course_content_histories/1.json
++  def show
++  end
++
++  # GET /course_content_histories/new
++  def new
++    @course_content_history = CourseContentHistory.new
++  end
++
++  # GET /course_content_histories/1/edit
++  def edit
++  end
++
++  # POST /course_content_histories
++  # POST /course_content_histories.json
++  def create
++    @course_content_history = CourseContentHistory.new(course_content_history_params)
++
++    respond_to do |format|
++      if @course_content_history.save
++        format.html { redirect_to @course_content_history, notice: 'Course content history was successfully created.' }
++        format.json { render :show, status: :created, location: @course_content_history }
++      else
++        format.html { render :new }
++        format.json { render json: @course_content_history.errors, status: :unprocessable_entity }
++      end
++    end
++  end
++
++  # PATCH/PUT /course_content_histories/1
++  # PATCH/PUT /course_content_histories/1.json
++  def update
++    respond_to do |format|
++      if @course_content_history.update(course_content_history_params)
++        format.html { redirect_to @course_content_history, notice: 'Course content history was successfully updated.' }
++        format.json { render :show, status: :ok, location: @course_content_history }
++      else
++        format.html { render :edit }
++        format.json { render json: @course_content_history.errors, status: :unprocessable_entity }
++      end
++    end
++  end
++
++  # DELETE /course_content_histories/1
++  # DELETE /course_content_histories/1.json
++  def destroy
++    @course_content_history.destroy
++    respond_to do |format|
++      format.html { redirect_to course_content_histories_url, notice: 'Course content history was successfully destroyed.' }
++      format.json { head :no_content }
++    end
++  end
++
++  private
++    # Use callbacks to share common setup or constraints between actions.
++    def set_course_content_history
++      @course_content_history = CourseContentHistory.find(params[:id])
++    end
++
++    # Never trust parameters from the scary internet, only allow the white list through.
++    def course_content_history_params
++      params.require(:course_content_history).permit(:course_content_id, :title, :body)
++    end
++end
+diff --git a/app/controllers/course_content_undos_controller.rb b/app/controllers/course_content_undos_controller.rb
+new file mode 100644
+index 0000000..95b5c06
+--- /dev/null
++++ b/app/controllers/course_content_undos_controller.rb
+@@ -0,0 +1,74 @@
++class CourseContentUndosController < ApplicationController
++  before_action :set_course_content_undo, only: [:show, :edit, :update, :destroy]
++
++  # GET /course_content_undos
++  # GET /course_content_undos.json
++  def index
++    @course_content_undos = CourseContentUndo.all
++  end
++
++  # GET /course_content_undos/1
++  # GET /course_content_undos/1.json
++  def show
++  end
++
++  # GET /course_content_undos/new
++  def new
++    @course_content_undo = CourseContentUndo.new
++  end
++
++  # GET /course_content_undos/1/edit
++  def edit
++  end
++
++  # POST /course_content_undos
++  # POST /course_content_undos.json
++  def create
++    @course_content_undo = CourseContentUndo.new(course_content_undo_params)
++
++    respond_to do |format|
++      if @course_content_undo.save
++        format.html { redirect_to @course_content_undo, notice: 'Course content undo was successfully created.' }
++        format.json { render :show, status: :created, location: @course_content_undo }
++      else
++        format.html { render :new }
++        format.json { render json: @course_content_undo.errors, status: :unprocessable_entity }
++      end
++    end
++  end
++
++  # PATCH/PUT /course_content_undos/1
++  # PATCH/PUT /course_content_undos/1.json
++  def update
++    respond_to do |format|
++      if @course_content_undo.update(course_content_undo_params)
++        format.html { redirect_to @course_content_undo, notice: 'Course content undo was successfully updated.' }
++        format.json { render :show, status: :ok, location: @course_content_undo }
++      else
++        format.html { render :edit }
++        format.json { render json: @course_content_undo.errors, status: :unprocessable_entity }
++      end
++    end
++  end
++
++  # DELETE /course_content_undos/1
++  # DELETE /course_content_undos/1.json
++  def destroy
++    @course_content_undo.destroy
++    respond_to do |format|
++      format.html { redirect_to course_content_undos_url, notice: 'Course content undo was successfully destroyed.' }
++      format.json { head :no_content }
++    end
++  end
++
++  private
++    # Use callbacks to share common setup or constraints between actions.
++    def set_course_content_undo
++      @course_content_undo = CourseContentUndo.find(params[:id])
++    end
++
++    # Never trust parameters from the scary internet, only allow the white list through.
++    def course_content_undo_params
++      params.require(:course_content_undo).permit(:course_content_id, :operation, :version, :batch_version)
++    end
++end
+diff --git a/app/helpers/course_content_histories_helper.rb b/app/helpers/course_content_histories_helper.rb
+new file mode 100644
+index 0000000..dfd07c2
+--- /dev/null
++++ b/app/helpers/course_content_histories_helper.rb
+@@ -0,0 +1,2 @@
++module CourseContentHistoriesHelper
++end
+diff --git a/app/helpers/course_content_undos_helper.rb b/app/helpers/course_content_undos_helper.rb
+new file mode 100644
+index 0000000..6a878ed
+--- /dev/null
++++ b/app/helpers/course_content_undos_helper.rb
+@@ -0,0 +1,2 @@
++module CourseContentUndosHelper
++end
+diff --git a/app/models/course_content.rb b/app/models/course_content.rb
+index faa53b5..0e6c159 100644
+--- a/app/models/course_content.rb
++++ b/app/models/course_content.rb
+@@ -1,4 +1,7 @@
+ class CourseContent < ApplicationRecord
++  has_many :course_content_history
++  has_many :course_content_undo
++
+   def publish(params)
+     response = CanvasProdClient.update_course_page(params[:course_id], params[:secondary_id], params[:body])
+ 
+diff --git a/app/models/course_content_history.rb b/app/models/course_content_history.rb
+new file mode 100644
+index 0000000..b5f3cc1
+--- /dev/null
++++ b/app/models/course_content_history.rb
+@@ -0,0 +1,3 @@
++class CourseContentHistory < ApplicationRecord
++  belongs_to :course_content
++end
+diff --git a/app/models/course_content_undo.rb b/app/models/course_content_undo.rb
+new file mode 100644
+index 0000000..dea8758
+--- /dev/null
++++ b/app/models/course_content_undo.rb
+@@ -0,0 +1,3 @@
++class CourseContentUndo < ApplicationRecord
++  belongs_to :course_content
++end
+diff --git a/app/views/course_content_histories/_course_content_history.json.jbuilder b/app/views/course_content_histories/_course_content_history.json.jbuilder
+new file mode 100644
+index 0000000..95f2235
+--- /dev/null
++++ b/app/views/course_content_histories/_course_content_history.json.jbuilder
+@@ -0,0 +1,2 @@
++json.extract! course_content_history, :id, :course_content_id, :title, :body, :created_at, :updated_at
++json.url course_content_history_url(course_content_history, format: :json)
+diff --git a/app/views/course_content_histories/_form.html.erb b/app/views/course_content_histories/_form.html.erb
+new file mode 100644
+index 0000000..fae13ff
+--- /dev/null
++++ b/app/views/course_content_histories/_form.html.erb
+@@ -0,0 +1,32 @@
++<%= form_with(model: course_content_history, local: true) do |form| %>
++  <% if course_content_history.errors.any? %>
++    <div id="error_explanation">
++      <h2><%= pluralize(course_content_history.errors.count, "error") %> prohibited this course_content_history from being saved:</h2>
++
++      <ul>
++        <% course_content_history.errors.full_messages.each do |message| %>
++          <li><%= message %></li>
++        <% end %>
++      </ul>
++    </div>
++  <% end %>
++
++  <div class="field">
++    <%= form.label :course_content_id %>
++    <%= form.text_field :course_content_id %>
++  </div>
++
++  <div class="field">
++    <%= form.label :title %>
++    <%= form.text_field :title %>
++  </div>
++
++  <div class="field">
++    <%= form.label :body %>
++    <%= form.text_area :body %>
++  </div>
++
++  <div class="actions">
++    <%= form.submit %>
++  </div>
++<% end %>
+diff --git a/app/views/course_content_histories/edit.html.erb b/app/views/course_content_histories/edit.html.erb
+new file mode 100644
+index 0000000..8c2138f
+--- /dev/null
++++ b/app/views/course_content_histories/edit.html.erb
+@@ -0,0 +1,6 @@
++<h1>Editing Course Content History</h1>
++
++<%= render 'form', course_content_history: @course_content_history %>
++
++<%= link_to 'Show', @course_content_history %> |
++<%= link_to 'Back', course_content_histories_path %>
+diff --git a/app/views/course_content_histories/index.html.erb b/app/views/course_content_histories/index.html.erb
+new file mode 100644
+index 0000000..72682c3
+--- /dev/null
++++ b/app/views/course_content_histories/index.html.erb
+@@ -0,0 +1,31 @@
++<p id="notice"><%= notice %></p>
++
++<h1>Course Content Histories</h1>
++
++<table>
++  <thead>
++    <tr>
++      <th>Course content</th>
++      <th>Title</th>
++      <th>Body</th>
++      <th colspan="3"></th>
++    </tr>
++  </thead>
++
++  <tbody>
++    <% @course_content_histories.each do |course_content_history| %>
++      <tr>
++        <td><%= course_content_history.course_content_id %></td>
++        <td><%= course_content_history.title %></td>
++        <td><%= course_content_history.body %></td>
++        <td><%= link_to 'Show', course_content_history %></td>
++        <td><%= link_to 'Edit', edit_course_content_history_path(course_content_history) %></td>
++        <td><%= link_to 'Destroy', course_content_history, method: :delete, data: { confirm: 'Are you sure?' } %></td>
++      </tr>
++    <% end %>
++  </tbody>
++</table>
++
++<br>
++
++<%= link_to 'New Course Content History', new_course_content_history_path %>
+diff --git a/app/views/course_content_histories/index.json.jbuilder b/app/views/course_content_histories/index.json.jbuilder
+new file mode 100644
+index 0000000..1c3191c
+--- /dev/null
++++ b/app/views/course_content_histories/index.json.jbuilder
+@@ -0,0 +1 @@
++json.array! @course_content_histories, partial: "course_content_histories/course_content_history", as: :course_content_history
+diff --git a/app/views/course_content_histories/new.html.erb b/app/views/course_content_histories/new.html.erb
+new file mode 100644
+index 0000000..ea759cd
+--- /dev/null
++++ b/app/views/course_content_histories/new.html.erb
+@@ -0,0 +1,5 @@
++<h1>New Course Content History</h1>
++
++<%= render 'form', course_content_history: @course_content_history %>
++
++<%= link_to 'Back', course_content_histories_path %>
+diff --git a/app/views/course_content_histories/show.html.erb b/app/views/course_content_histories/show.html.erb
+new file mode 100644
+index 0000000..c72ab2d
+--- /dev/null
++++ b/app/views/course_content_histories/show.html.erb
+@@ -0,0 +1,19 @@
++<p id="notice"><%= notice %></p>
++
++<p>
++  <strong>Course content:</strong>
++  <%= @course_content_history.course_content_id %>
++</p>
++
++<p>
++  <strong>Title:</strong>
++  <%= @course_content_history.title %>
++</p>
++
++<p>
++  <strong>Body:</strong>
++  <%= @course_content_history.body %>
++</p>
++
++<%= link_to 'Edit', edit_course_content_history_path(@course_content_history) %> |
++<%= link_to 'Back', course_content_histories_path %>
+diff --git a/app/views/course_content_histories/show.json.jbuilder b/app/views/course_content_histories/show.json.jbuilder
+new file mode 100644
+index 0000000..643b119
+--- /dev/null
++++ b/app/views/course_content_histories/show.json.jbuilder
+@@ -0,0 +1 @@
++json.partial! "course_content_histories/course_content_history", course_content_history: @course_content_history
+diff --git a/app/views/course_content_undos/_course_content_undo.json.jbuilder b/app/views/course_content_undos/_course_content_undo.json.jbuilder
+new file mode 100644
+index 0000000..02cb2c1
+--- /dev/null
++++ b/app/views/course_content_undos/_course_content_undo.json.jbuilder
+@@ -0,0 +1,2 @@
++json.extract! course_content_undo, :id, :course_content_id, :operation, :version, :batch_version, :created_at, :updated_at
++json.url course_content_undo_url(course_content_undo, format: :json)
+diff --git a/app/views/course_content_undos/_form.html.erb b/app/views/course_content_undos/_form.html.erb
+new file mode 100644
+index 0000000..f812d3a
+--- /dev/null
++++ b/app/views/course_content_undos/_form.html.erb
+@@ -0,0 +1,32 @@
++<%= form_with(model: course_content_undo, local: true) do |form| %>
++  <% if course_content_undo.errors.any? %>
++    <div id="error_explanation">
++      <h2><%= pluralize(course_content_undo.errors.count, "error") %> prohibited this course_content_undo from being saved:</h2>
++
++      <ul>
++        <% course_content_undo.errors.full_messages.each do |message| %>
++          <li><%= message %></li>
++        <% end %>
++      </ul>
++    </div>
++  <% end %>
++
++  <div class="field">
++    <%= form.label :course_content_id %>
++    <%= form.text_field :course_content_id %>
++  </div>
++
++  <div class="field">
++    <%= form.label :operation %>
++    <%= form.text_area :operation %>
++  </div>
++
++  <div class="field">
++    <%= form.label :version %>
++    <%= form.text_field :version %>
++  </div>
++
++  <div class="actions">
++    <%= form.submit %>
++  </div>
++<% end %>
+diff --git a/app/views/course_content_undos/edit.html.erb b/app/views/course_content_undos/edit.html.erb
+new file mode 100644
+index 0000000..1ae3d24
+--- /dev/null
++++ b/app/views/course_content_undos/edit.html.erb
+@@ -0,0 +1,6 @@
++<h1>Editing Course Content Undo</h1>
++
++<%= render 'form', course_content_undo: @course_content_undo %>
++
++<%= link_to 'Show', @course_content_undo %> |
++<%= link_to 'Back', course_content_undos_path %>
+diff --git a/app/views/course_content_undos/index.html.erb b/app/views/course_content_undos/index.html.erb
+new file mode 100644
+index 0000000..4994840
+--- /dev/null
++++ b/app/views/course_content_undos/index.html.erb
+@@ -0,0 +1,31 @@
++<p id="notice"><%= notice %></p>
++
++<h1>Course Content Undos</h1>
++
++<table>
++  <thead>
++    <tr>
++      <th>Course content</th>
++      <th>Operation</th>
++      <th>Version</th>
++      <th colspan="3"></th>
++    </tr>
++  </thead>
++
++  <tbody>
++    <% @course_content_undos.each do |course_content_undo| %>
++      <tr>
++        <td><%= course_content_undo.course_content_id %></td>
++        <td><%= course_content_undo.operation %></td>
++        <td><%= course_content_undo.version %></td>
++        <td><%= link_to 'Show', course_content_undo %></td>
++        <td><%= link_to 'Edit', edit_course_content_undo_path(course_content_undo) %></td>
++        <td><%= link_to 'Destroy', course_content_undo, method: :delete, data: { confirm: 'Are you sure?' } %></td>
++      </tr>
++    <% end %>
++  </tbody>
++</table>
++
++<br>
++
++<%= link_to 'New Course Content Undo', new_course_content_undo_path %>
+diff --git a/app/views/course_content_undos/index.json.jbuilder b/app/views/course_content_undos/index.json.jbuilder
+new file mode 100644
+index 0000000..f3f4abd
+--- /dev/null
++++ b/app/views/course_content_undos/index.json.jbuilder
+@@ -0,0 +1 @@
++json.array! @course_content_undos, partial: "course_content_undos/course_content_undo", as: :course_content_undo
+diff --git a/app/views/course_content_undos/new.html.erb b/app/views/course_content_undos/new.html.erb
+new file mode 100644
+index 0000000..ef10482
+--- /dev/null
++++ b/app/views/course_content_undos/new.html.erb
+@@ -0,0 +1,5 @@
++<h1>New Course Content Undo</h1>
++
++<%= render 'form', course_content_undo: @course_content_undo %>
++
++<%= link_to 'Back', course_content_undos_path %>
+diff --git a/app/views/course_content_undos/show.html.erb b/app/views/course_content_undos/show.html.erb
+new file mode 100644
+index 0000000..d531ba7
+--- /dev/null
++++ b/app/views/course_content_undos/show.html.erb
+@@ -0,0 +1,19 @@
++<p id="notice"><%= notice %></p>
++
++<p>
++  <strong>Course content:</strong>
++  <%= @course_content_undo.course_content_id %>
++</p>
++
++<p>
++  <strong>Operation:</strong>
++  <%= @course_content_undo.operation %>
++</p>
++
++<p>
++  <strong>Version:</strong>
++  <%= @course_content_undo.version %>
++</p>
++
++<%= link_to 'Edit', edit_course_content_undo_path(@course_content_undo) %> |
++<%= link_to 'Back', course_content_undos_path %>
+diff --git a/app/views/course_content_undos/show.json.jbuilder b/app/views/course_content_undos/show.json.jbuilder
+new file mode 100644
+index 0000000..c0da73e
+--- /dev/null
++++ b/app/views/course_content_undos/show.json.jbuilder
+@@ -0,0 +1 @@
++json.partial! "course_content_undos/course_content_undo", course_content_undo: @course_content_undo
+diff --git a/app/views/course_contents/_course_content.json.jbuilder b/app/views/course_contents/_course_content.json.jbuilder
+index 7f029bc..625ba6c 100644
+--- a/app/views/course_contents/_course_content.json.jbuilder
++++ b/app/views/course_contents/_course_content.json.jbuilder
+@@ -1,3 +1,3 @@
+ json.extract! course_content, :id, :title, :body, :published_at, :content_type, :created_at, :updated_at, :course_id,
+-        :course_name, :secondary_id
++        :course_name, :secondary_id, :course_content_undo
+ json.url course_content_url(course_content, format: :json)
+diff --git a/app/views/course_contents/_form.html.erb b/app/views/course_contents/_form.html.erb
+index 33715ad..c33e7a2 100644
+--- a/app/views/course_contents/_form.html.erb
++++ b/app/views/course_contents/_form.html.erb
+@@ -19,8 +19,9 @@
+     </div>
+   <% end %>
+ 
+-  <div class="field" >
+-    <%= react_component('ContentEditor', { course_content: course_content,
++  <div class="field">
++    <%= react_component('ContentEditor', { course_content: course_content, 
++        undos: course_content.course_content_undo,
+         contentParts: [
+             {
+                 id: 1,
+diff --git a/db/migrate/20191212193241_create_course_content_histories.rb b/db/migrate/20191212193241_create_course_content_histories.rb
+new file mode 100644
+index 0000000..d271a0d
+--- /dev/null
++++ b/db/migrate/20191212193241_create_course_content_histories.rb
+@@ -0,0 +1,11 @@
++class CreateCourseContentHistories < ActiveRecord::Migration[6.0]
++  def change
++    create_table :course_content_histories do |t|
++      t.references :course_content, null: false, foreign_key: true
++      t.string :title
++      t.text :body
++
++      t.timestamps
++    end
++  end
++end
+diff --git a/db/migrate/20191212193546_create_course_content_undos.rb b/db/migrate/20191212193546_create_course_content_undos.rb
+new file mode 100644
+index 0000000..3d5d08d
+--- /dev/null
++++ b/db/migrate/20191212193546_create_course_content_undos.rb
+@@ -0,0 +1,11 @@
++class CreateCourseContentUndos < ActiveRecord::Migration[6.0]
++  def change
++    create_table :course_content_undos do |t|
++      t.references :course_content, null: false, foreign_key: true
++      t.text :operation
++      t.integer :version
++
++      t.timestamps
++    end
++  end
++end
+diff --git a/db/migrate/20191212211536_add_course_content_undos_unique_constraint.rb b/db/migrate/20191212211536_add_course_content_undos_unique_constraint.rb
+new file mode 100644
+index 0000000..8f1ca78
+--- /dev/null
++++ b/db/migrate/20191212211536_add_course_content_undos_unique_constraint.rb
+@@ -0,0 +1,9 @@
++class AddCourseContentUndosUniqueConstraint < ActiveRecord::Migration[6.0]
++  def up
++    add_index :course_content_undos, [:course_content_id, :version], :unique => true
++  end
++
++  def down
++    remove_index :course_content_undos
++  end
++end
+diff --git a/db/migrate/20200121203650_add_batch_version_to_course_content_undos.rb b/db/migrate/20200121203650_add_batch_version_to_course_content_undos.rb
+new file mode 100644
+index 0000000..1eaca0b
+--- /dev/null
++++ b/db/migrate/20200121203650_add_batch_version_to_course_content_undos.rb
+@@ -0,0 +1,5 @@
++class AddBatchVersionToCourseContentUndos < ActiveRecord::Migration[6.0]
++  def change
++    add_column :course_content_undos, :batch_version, :integer
++  end
++end
+diff --git a/db/schema.rb b/db/schema.rb
+index 710ef57..74b177a 100644
+--- a/db/schema.rb
++++ b/db/schema.rb
+@@ -10,7 +10,7 @@
+ #
+ # It's strongly recommended that you check this file into your version control system.
+ 
+-ActiveRecord::Schema.define(version: 2019_11_25_140958) do
++ActiveRecord::Schema.define(version: 2020_01_21_203650) do
+ 
+   # These are extensions that must be enabled in order to support this database
+   enable_extension "plpgsql"
+@@ -43,6 +43,26 @@ ActiveRecord::Schema.define(version: 2019_11_25_140958) do
+     t.index ["owner_id", "owner_type"], name: "index_contact_owners_on_owner_id_and_owner_type"
+   end
+ 
++  create_table "course_content_histories", force: :cascade do |t|
++    t.bigint "course_content_id", null: false
++    t.string "title"
++    t.text "body"
++    t.datetime "created_at", precision: 6, null: false
++    t.datetime "updated_at", precision: 6, null: false
++    t.index ["course_content_id"], name: "index_course_content_histories_on_course_content_id"
++  end
++
++  create_table "course_content_undos", force: :cascade do |t|
++    t.bigint "course_content_id", null: false
++    t.text "operation"
++    t.integer "version"
++    t.datetime "created_at", precision: 6, null: false
++    t.datetime "updated_at", precision: 6, null: false
++    t.integer "batch_version"
++    t.index ["course_content_id", "version"], name: "index_course_content_undos_on_course_content_id_and_version", unique: true
++    t.index ["course_content_id"], name: "index_course_content_undos_on_course_content_id"
++  end
++
+   create_table "course_contents", force: :cascade do |t|
+     t.string "title"
+     t.text "body"
+@@ -51,8 +71,6 @@ ActiveRecord::Schema.define(version: 2019_11_25_140958) do
+     t.datetime "created_at", precision: 6, null: false
+     t.datetime "updated_at", precision: 6, null: false
+     t.integer "course_id"
+-    # secondary_id will represent different things depending on the content_type.
+-    # e.g. for modules, it will be a page ID; for assignments an assignment ID.
+     t.string "secondary_id"
+     t.string "course_name"
+   end
+@@ -211,4 +229,6 @@ ActiveRecord::Schema.define(version: 2019_11_25_140958) do
+     t.index ["email"], name: "index_users_on_email"
+   end
+ 
++  add_foreign_key "course_content_histories", "course_contents"
++  add_foreign_key "course_content_undos", "course_contents"
+ end
+diff --git a/spec/controllers/course_content_histories_controller_spec.rb b/spec/controllers/course_content_histories_controller_spec.rb
+new file mode 100644
+index 0000000..6b6411a
+--- /dev/null
++++ b/spec/controllers/course_content_histories_controller_spec.rb
+@@ -0,0 +1,147 @@
++require 'rails_helper'
++
++# This spec was generated by rspec-rails when you ran the scaffold generator.
++# It demonstrates how one might use RSpec to specify the controller code that
++# was generated by Rails when you ran the scaffold generator.
++#
++# It assumes that the implementation code is generated by the rails scaffold
++# generator.  If you are using any extension libraries to generate different
++# controller code, this generated spec may or may not pass.
++#
++# It only uses APIs available in rails and/or rspec-rails.  There are a number
++# of tools you can use to make these specs even more expressive, but we're
++# sticking to rails and rspec-rails APIs to keep things simple and stable.
++#
++# Compared to earlier versions of this generator, there is very limited use of
++# stubs and message expectations in this spec.  Stubs are only used when there
++# is no simpler way to get a handle on the object needed for the example.
++# Message expectations are only used when there is no simpler way to specify
++# that an instance is receiving a specific message.
++#
++# Also compared to earlier versions of this generator, there are no longer any
++# expectations of assigns and templates rendered. These features have been
++# removed from Rails core in Rails 5, but can be added back in via the
++# `rails-controller-testing` gem.
++
++RSpec.describe CourseContentHistoriesController, type: :controller do
++  render_views
++  let(:user) { create :user, admin: true }
++
++  before do
++    sign_in user
++  end
++
++  # This should return the minimal set of attributes required to create a valid
++  # CourseContentHistory. As you add validations to CourseContentHistory, be sure to
++  # adjust the attributes here as well.
++  let(:valid_attributes) {
++    skip("Add a hash of attributes valid for your model")
++  }
++
++  let(:invalid_attributes) {
++    skip("Add a hash of attributes invalid for your model")
++  }
++
++  # This should return the minimal set of values that should be in the session
++  # in order to pass any filters (e.g. authentication) defined in
++  # CourseContentHistoriesController. Be sure to keep this updated too.
++  let(:valid_session) { {} }
++
++  describe "GET #index" do
++    it "returns a success response" do
++      CourseContentHistory.create! valid_attributes
++      get :index, params: {}, session: valid_session
++      expect(response).to be_successful
++    end
++  end
++
++  describe "GET #show" do
++    it "returns a success response" do
++      course_content_history = CourseContentHistory.create! valid_attributes
++      get :show, params: {id: course_content_history.to_param}, session: valid_session
++      expect(response).to be_successful
++    end
++  end
++
++  describe "GET #new" do
++    it "returns a success response" do
++      get :new, params: {}, session: valid_session
++      expect(response).to be_successful
++    end
++  end
++
++  describe "GET #edit" do
++    it "returns a success response" do
++      course_content_history = CourseContentHistory.create! valid_attributes
++      get :edit, params: {id: course_content_history.to_param}, session: valid_session
++      expect(response).to be_successful
++    end
++  end
++
++  describe "POST #create" do
++    context "with valid params" do
++      it "creates a new CourseContentHistory" do
++        expect {
++          post :create, params: {course_content_history: valid_attributes}, session: valid_session
++        }.to change(CourseContentHistory, :count).by(1)
++      end
++
++      it "redirects to the created course_content_history" do
++        post :create, params: {course_content_history: valid_attributes}, session: valid_session
++        expect(response).to redirect_to(CourseContentHistory.last)
++      end
++    end
++
++    context "with invalid params" do
++      it "returns a success response (i.e. to display the 'new' template)" do
++        post :create, params: {course_content_history: invalid_attributes}, session: valid_session
++        expect(response).to be_successful
++      end
++    end
++  end
++
++  describe "PUT #update" do
++    context "with valid params" do
++      let(:new_attributes) {
++        skip("Add a hash of attributes valid for your model")
++      }
++
++      it "updates the requested course_content_history" do
++        course_content_history = CourseContentHistory.create! valid_attributes
++        put :update, params: {id: course_content_history.to_param, course_content_history: new_attributes}, session: valid_session
++        course_content_history.reload
++        skip("Add assertions for updated state")
++      end
++
++      it "redirects to the course_content_history" do
++        course_content_history = CourseContentHistory.create! valid_attributes
++        put :update, params: {id: course_content_history.to_param, course_content_history: valid_attributes}, session: valid_session
++        expect(response).to redirect_to(course_content_history)
++      end
++    end
++
++    context "with invalid params" do
++      it "returns a success response (i.e. to display the 'edit' template)" do
++        course_content_history = CourseContentHistory.create! valid_attributes
++        put :update, params: {id: course_content_history.to_param, course_content_history: invalid_attributes}, session: valid_session
++        expect(response).to be_successful
++      end
++    end
++  end
++
++  describe "DELETE #destroy" do
++    it "destroys the requested course_content_history" do
++      course_content_history = CourseContentHistory.create! valid_attributes
++      expect {
++        delete :destroy, params: {id: course_content_history.to_param}, session: valid_session
++      }.to change(CourseContentHistory, :count).by(-1)
++    end
++
++    it "redirects to the course_content_histories list" do
++      course_content_history = CourseContentHistory.create! valid_attributes
++      delete :destroy, params: {id: course_content_history.to_param}, session: valid_session
++      expect(response).to redirect_to(course_content_histories_url)
++    end
++  end
++
++end
+diff --git a/spec/controllers/course_content_undos_controller_spec.rb b/spec/controllers/course_content_undos_controller_spec.rb
+new file mode 100644
+index 0000000..092f4a6
+--- /dev/null
++++ b/spec/controllers/course_content_undos_controller_spec.rb
+@@ -0,0 +1,147 @@
++require 'rails_helper'
++
++# This spec was generated by rspec-rails when you ran the scaffold generator.
++# It demonstrates how one might use RSpec to specify the controller code that
++# was generated by Rails when you ran the scaffold generator.
++#
++# It assumes that the implementation code is generated by the rails scaffold
++# generator.  If you are using any extension libraries to generate different
++# controller code, this generated spec may or may not pass.
++#
++# It only uses APIs available in rails and/or rspec-rails.  There are a number
++# of tools you can use to make these specs even more expressive, but we're
++# sticking to rails and rspec-rails APIs to keep things simple and stable.
++#
++# Compared to earlier versions of this generator, there is very limited use of
++# stubs and message expectations in this spec.  Stubs are only used when there
++# is no simpler way to get a handle on the object needed for the example.
++# Message expectations are only used when there is no simpler way to specify
++# that an instance is receiving a specific message.
++#
++# Also compared to earlier versions of this generator, there are no longer any
++# expectations of assigns and templates rendered. These features have been
++# removed from Rails core in Rails 5, but can be added back in via the
++# `rails-controller-testing` gem.
++
++RSpec.describe CourseContentUndosController, type: :controller do
++  render_views
++  let(:user) { create :user, admin: true }
++
++  before do
++    sign_in user
++  end
++
++  # This should return the minimal set of attributes required to create a valid
++  # CourseContentUndo. As you add validations to CourseContentUndo, be sure to
++  # adjust the attributes here as well.
++  let(:valid_attributes) {
++    skip("Add a hash of attributes valid for your model")
++  }
++
++  let(:invalid_attributes) {
++    skip("Add a hash of attributes invalid for your model")
++  }
++
++  # This should return the minimal set of values that should be in the session
++  # in order to pass any filters (e.g. authentication) defined in
++  # CourseContentUndosController. Be sure to keep this updated too.
++  let(:valid_session) { {} }
++
++  describe "GET #index" do
++    it "returns a success response" do
++      CourseContentUndo.create! valid_attributes
++      get :index, params: {}, session: valid_session
++      expect(response).to be_successful
++    end
++  end
++
++  describe "GET #show" do
++    it "returns a success response" do
++      course_content_undo = CourseContentUndo.create! valid_attributes
++      get :show, params: {id: course_content_undo.to_param}, session: valid_session
++      expect(response).to be_successful
++    end
++  end
++
++  describe "GET #new" do
++    it "returns a success response" do
++      get :new, params: {}, session: valid_session
++      expect(response).to be_successful
++    end
++  end
++
++  describe "GET #edit" do
++    it "returns a success response" do
++      course_content_undo = CourseContentUndo.create! valid_attributes
++      get :edit, params: {id: course_content_undo.to_param}, session: valid_session
++      expect(response).to be_successful
++    end
++  end
++
++  describe "POST #create" do
++    context "with valid params" do
++      it "creates a new CourseContentUndo" do
++        expect {
++          post :create, params: {course_content_undo: valid_attributes}, session: valid_session
++        }.to change(CourseContentUndo, :count).by(1)
++      end
++
++      it "redirects to the created course_content_undo" do
++        post :create, params: {course_content_undo: valid_attributes}, session: valid_session
++        expect(response).to redirect_to(CourseContentUndo.last)
++      end
++    end
++
++    context "with invalid params" do
++      it "returns a success response (i.e. to display the 'new' template)" do
++        post :create, params: {course_content_undo: invalid_attributes}, session: valid_session
++        expect(response).to be_successful
++      end
++    end
++  end
++
++  describe "PUT #update" do
++    context "with valid params" do
++      let(:new_attributes) {
++        skip("Add a hash of attributes valid for your model")
++      }
++
++      it "updates the requested course_content_undo" do
++        course_content_undo = CourseContentUndo.create! valid_attributes
++        put :update, params: {id: course_content_undo.to_param, course_content_undo: new_attributes}, session: valid_session
++        course_content_undo.reload
++        skip("Add assertions for updated state")
++      end
++
++      it "redirects to the course_content_undo" do
++        course_content_undo = CourseContentUndo.create! valid_attributes
++        put :update, params: {id: course_content_undo.to_param, course_content_undo: valid_attributes}, session: valid_session
++        expect(response).to redirect_to(course_content_undo)
++      end
++    end
++
++    context "with invalid params" do
++      it "returns a success response (i.e. to display the 'edit' template)" do
++        course_content_undo = CourseContentUndo.create! valid_attributes
++        put :update, params: {id: course_content_undo.to_param, course_content_undo: invalid_attributes}, session: valid_session
++        expect(response).to be_successful
++      end
++    end
++  end
++
++  describe "DELETE #destroy" do
++    it "destroys the requested course_content_undo" do
++      course_content_undo = CourseContentUndo.create! valid_attributes
++      expect {
++        delete :destroy, params: {id: course_content_undo.to_param}, session: valid_session
++      }.to change(CourseContentUndo, :count).by(-1)
++    end
++
++    it "redirects to the course_content_undos list" do
++      course_content_undo = CourseContentUndo.create! valid_attributes
++      delete :destroy, params: {id: course_content_undo.to_param}, session: valid_session
++      expect(response).to redirect_to(course_content_undos_url)
++    end
++  end
++
++end
+diff --git a/spec/factories/course_content_histories.rb b/spec/factories/course_content_histories.rb
+new file mode 100644
+index 0000000..3652370
+--- /dev/null
++++ b/spec/factories/course_content_histories.rb
+@@ -0,0 +1,7 @@
++FactoryBot.define do
++  factory :course_content_history do
++    course_content { nil }
++    title { "MyString" }
++    body { "MyText" }
++  end
++end
+diff --git a/spec/factories/course_content_undos.rb b/spec/factories/course_content_undos.rb
+new file mode 100644
+index 0000000..6c282c6
+--- /dev/null
++++ b/spec/factories/course_content_undos.rb
+@@ -0,0 +1,7 @@
++FactoryBot.define do
++  factory :course_content_undo do
++    course_content { nil }
++    operation { "MyText" }
++    version { "" }
++  end
++end
+diff --git a/spec/helpers/course_content_histories_helper_spec.rb b/spec/helpers/course_content_histories_helper_spec.rb
+new file mode 100644
+index 0000000..8ee39b6
+--- /dev/null
++++ b/spec/helpers/course_content_histories_helper_spec.rb
+@@ -0,0 +1,15 @@
++require 'rails_helper'
++
++# Specs in this file have access to a helper object that includes
++# the CourseContentHistoriesHelper. For example:
++#
++# describe CourseContentHistoriesHelper do
++#   describe "string concat" do
++#     it "concats two strings with spaces" do
++#       expect(helper.concat_strings("this","that")).to eq("this that")
++#     end
++#   end
++# end
++RSpec.describe CourseContentHistoriesHelper, type: :helper do
++  pending "add some examples to (or delete) #{__FILE__}"
++end
+diff --git a/spec/helpers/course_content_undos_helper_spec.rb b/spec/helpers/course_content_undos_helper_spec.rb
+new file mode 100644
+index 0000000..797b031
+--- /dev/null
++++ b/spec/helpers/course_content_undos_helper_spec.rb
+@@ -0,0 +1,15 @@
++require 'rails_helper'
++
++# Specs in this file have access to a helper object that includes
++# the CourseContentUndosHelper. For example:
++#
++# describe CourseContentUndosHelper do
++#   describe "string concat" do
++#     it "concats two strings with spaces" do
++#       expect(helper.concat_strings("this","that")).to eq("this that")
++#     end
++#   end
++# end
++RSpec.describe CourseContentUndosHelper, type: :helper do
++  pending "add some examples to (or delete) #{__FILE__}"
++end
+diff --git a/spec/models/course_content_history_spec.rb b/spec/models/course_content_history_spec.rb
+new file mode 100644
+index 0000000..a90c748
+--- /dev/null
++++ b/spec/models/course_content_history_spec.rb
+@@ -0,0 +1,5 @@
++require 'rails_helper'
++
++RSpec.describe CourseContentHistory, type: :model do
++  pending "add some examples to (or delete) #{__FILE__}"
++end
+diff --git a/spec/models/course_content_undo_spec.rb b/spec/models/course_content_undo_spec.rb
+new file mode 100644
+index 0000000..708da8d
+--- /dev/null
++++ b/spec/models/course_content_undo_spec.rb
+@@ -0,0 +1,5 @@
++require 'rails_helper'
++
++RSpec.describe CourseContentUndo, type: :model do
++  pending "add some examples to (or delete) #{__FILE__}"
++end
+diff --git a/spec/routing/course_content_histories_routing_spec.rb b/spec/routing/course_content_histories_routing_spec.rb
+new file mode 100644
+index 0000000..2cce515
+--- /dev/null
++++ b/spec/routing/course_content_histories_routing_spec.rb
+@@ -0,0 +1,38 @@
++require "rails_helper"
++
++RSpec.describe CourseContentHistoriesController, type: :routing do
++  describe "routing" do
++    it "routes to #index" do
++      expect(:get => "/course_content_histories").to route_to("course_content_histories#index")
++    end
++
++    it "routes to #new" do
++      expect(:get => "/course_content_histories/new").to route_to("course_content_histories#new")
++    end
++
++    it "routes to #show" do
++      expect(:get => "/course_content_histories/1").to route_to("course_content_histories#show", :id => "1")
++    end
++
++    it "routes to #edit" do
++      expect(:get => "/course_content_histories/1/edit").to route_to("course_content_histories#edit", :id => "1")
++    end
++
++
++    it "routes to #create" do
++      expect(:post => "/course_content_histories").to route_to("course_content_histories#create")
++    end
++
++    it "routes to #update via PUT" do
++      expect(:put => "/course_content_histories/1").to route_to("course_content_histories#update", :id => "1")
++    end
++
++    it "routes to #update via PATCH" do
++      expect(:patch => "/course_content_histories/1").to route_to("course_content_histories#update", :id => "1")
++    end
++
++    it "routes to #destroy" do
++      expect(:delete => "/course_content_histories/1").to route_to("course_content_histories#destroy", :id => "1")
++    end
++  end
++end
+diff --git a/spec/routing/course_content_undos_routing_spec.rb b/spec/routing/course_content_undos_routing_spec.rb
+new file mode 100644
+index 0000000..f4a8819
+--- /dev/null
++++ b/spec/routing/course_content_undos_routing_spec.rb
+@@ -0,0 +1,38 @@
++require "rails_helper"
++
++RSpec.describe CourseContentUndosController, type: :routing do
++  describe "routing" do
++    it "routes to #index" do
++      expect(:get => "/course_content_undos").to route_to("course_content_undos#index")
++    end
++
++    it "routes to #new" do
++      expect(:get => "/course_content_undos/new").to route_to("course_content_undos#new")
++    end
++
++    it "routes to #show" do
++      expect(:get => "/course_content_undos/1").to route_to("course_content_undos#show", :id => "1")
++    end
++
++    it "routes to #edit" do
++      expect(:get => "/course_content_undos/1/edit").to route_to("course_content_undos#edit", :id => "1")
++    end
++
++
++    it "routes to #create" do
++      expect(:post => "/course_content_undos").to route_to("course_content_undos#create")
++    end
++
++    it "routes to #update via PUT" do
++      expect(:put => "/course_content_undos/1").to route_to("course_content_undos#update", :id => "1")
++    end
++
++    it "routes to #update via PATCH" do
++      expect(:patch => "/course_content_undos/1").to route_to("course_content_undos#update", :id => "1")
++    end
++
++    it "routes to #destroy" do
++      expect(:delete => "/course_content_undos/1").to route_to("course_content_undos#destroy", :id => "1")
++    end
++  end
++end
+diff --git a/spec/views/course_content_histories/index.html.erb_spec.rb b/spec/views/course_content_histories/index.html.erb_spec.rb
+new file mode 100644
+index 0000000..1460d69
+--- /dev/null
++++ b/spec/views/course_content_histories/index.html.erb_spec.rb
+@@ -0,0 +1,31 @@
++require 'rails_helper'
++
++RSpec.describe "course_content_histories/index", type: :view do
++  before(:each) do
++    assign(:course_contents, [
++      CourseContent.create!(
++        :title => "Title",
++        :body => "MyText"
++      )
++    ])
++    assign(:course_content_histories, [
++      CourseContentHistory.create!(
++        :course_content => CourseContent.first,
++        :title => "Title",
++        :body => "MyText"
++      ),
++      CourseContentHistory.create!(
++        :course_content => CourseContent.first,
++        :title => "Title",
++        :body => "MyText"
++      )
++    ])
++  end
++
++  it "renders a list of course_content_histories" do
++    render
++    assert_select "tr>td", :text => CourseContent.first.id.to_s, :count => 2
++    assert_select "tr>td", :text => "Title".to_s, :count => 2
++    assert_select "tr>td", :text => "MyText".to_s, :count => 2
++  end
++end
+diff --git a/spec/views/course_content_histories/new.html.erb_spec.rb b/spec/views/course_content_histories/new.html.erb_spec.rb
+new file mode 100644
+index 0000000..4a42f2c
+--- /dev/null
++++ b/spec/views/course_content_histories/new.html.erb_spec.rb
+@@ -0,0 +1,24 @@
++require 'rails_helper'
++
++RSpec.describe "course_content_histories/new", type: :view do
++  before(:each) do
++    assign(:course_content_history, CourseContentHistory.new(
++      :course_content => nil,
++      :title => "MyString",
++      :body => "MyText"
++    ))
++  end
++
++  it "renders new course_content_history form" do
++    render
++
++    assert_select "form[action=?][method=?]", course_content_histories_path, "post" do
++
++      assert_select "input[name=?]", "course_content_history[course_content_id]"
++
++      assert_select "input[name=?]", "course_content_history[title]"
++
++      assert_select "textarea[name=?]", "course_content_history[body]"
++    end
++  end
++end
+diff --git a/spec/views/course_content_histories/show.html.erb_spec.rb b/spec/views/course_content_histories/show.html.erb_spec.rb
+new file mode 100644
+index 0000000..9a8f358
+--- /dev/null
++++ b/spec/views/course_content_histories/show.html.erb_spec.rb
+@@ -0,0 +1,24 @@
++require 'rails_helper'
++
++RSpec.describe "course_content_histories/show", type: :view do
++  before(:each) do
++    assign(:course_contents, [
++      CourseContent.create!(
++        :title => "Title",
++        :body => "MyText"
++      )
++    ])
++    @course_content_history = assign(:course_content_history, CourseContentHistory.create!(
++      :course_content => CourseContent.first,
++      :title => "Title",
++      :body => "MyText"
++    ))
++  end
++
++  it "renders attributes in <p>" do
++    render
++    expect(rendered).to match(Regexp.new(CourseContent.first.id.to_s))
++    expect(rendered).to match(/Title/)
++    expect(rendered).to match(/MyText/)
++  end
++end

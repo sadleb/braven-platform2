@@ -14,11 +14,13 @@ class CourseContentsController < ApplicationController
 
   # GET /course_contents/new
   def new
+    @course_contents = CourseContent.all
     @course_content = CourseContent.new
   end
 
   # GET /course_contents/1/edit
   def edit
+    @course_contents = CourseContent.all
   end
 
   # POST /course_contents
@@ -66,6 +68,20 @@ class CourseContentsController < ApplicationController
   def publish
     respond_to do |format|
       if @course_content.publish(course_content_params)
+
+        # update publish time, save a version
+        @course_content.published_at = DateTime.now
+        new_version = CourseContentHistory.new({
+          course_content_id: @course_content.id,
+          title: @course_content.title,
+          body: @course_content.body
+        })
+        @course_content.transaction do
+          new_version.save!
+          @course_content.save!
+        end
+
+        # return
         format.html { redirect_to @course_content, notice: 'CourseContent was successfully published.' }
         format.json { render :show, status: :ok }
       else

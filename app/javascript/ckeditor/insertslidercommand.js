@@ -1,9 +1,9 @@
 import Command from '@ckeditor/ckeditor5-core/src/command';
 
 export default class InsertSliderCommand extends Command {
-    execute( id ) {
+    execute( id, options ) {
         this.editor.model.change( writer => {
-            this.editor.model.insertContent( createSlider( writer, id ) );
+            this.editor.model.insertContent( createSlider( writer, id, options ) );
         } );
     }
 
@@ -16,7 +16,7 @@ export default class InsertSliderCommand extends Command {
     }
 }
 
-function createSlider( writer, id ) {
-    const sliderInput = writer.createElement( 'slider' );
+function createSlider( writer, id, options ) {
+    const sliderInput = writer.createElement( 'slider', options );
     return sliderInput;
 }

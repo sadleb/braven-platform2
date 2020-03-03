@@ -34,26 +34,30 @@ header {
   background: white;
   box-shadow: 0 0 3px #D1D1D1; }
 
-ul#view-mode, header ul, ul#component-types, ul#widget-list, ul#edit-page {
+ul#view-mode, header ul, ul#component-types, ul.widget-list, ul#edit-page {
   list-style: none;
   margin: 0;
   padding: 0;
   overflow: auto; }
 
+ul.widget-list {
+  padding-bottom: 15px;
+}
+
 ul#view-mode {
   margin: 0 0 1px 0; }
 
-ul#widget-list li {
+ul.widget-list li {
   border-radius: 4px;
   border: 1px solid #CCC;
   padding: 0.5em;
   margin-bottom: 0.5em; }
 
-ul#widget-list li:hover {
+ul.widget-list li:hover {
   background: #C4E6E7;
   border-color: #9AD7D7; }
 
-ul#component-types li, ul#widget-list li, ul#view-mode li, ul#edit-page li {
+ul#component-types li, ul.widget-list li, ul#view-mode li, ul#edit-page li {
   display: block; }
 
 ul#component-types li, ul#view-mode li, ul#edit-page li {
@@ -127,7 +131,8 @@ main {
   background: #F3F3F3; }
 
 #toolbar-page-settings,
-#toolbar-components {
+#toolbar-components,
+#toolbar-contextual {
   padding: 1em; }
 
 #workspace {
@@ -135,6 +140,14 @@ main {
 
 #toolbar-components {
   border-top: 1px solid #ccc; }
+
+#toolbar-contextual {
+  border-top: 1px solid #ccc; }
+
+#toolbar-contextual:empty {
+          transform:translate(9999px);
+
+  display: none; }
 
 #workspace {
   border-top: 1px solid #D1D1D1; }
@@ -148,12 +161,12 @@ ul#component-types li {
   font-size: 80%;
   background: #F3F3F3; }
 
-ul#widget-list li {
+ul.widget-list li {
   position: relative;
   padding-right: 2.5em;
   border-bottom-width: 2px; }
 
-ul#widget-list li:after {
+ul.widget-list li:after {
   content: "+";
   position: absolute;
   right: 0.5em;
@@ -173,7 +186,7 @@ ul#component-types li:hover, ul#component-types li.active {
   position: relative;
   border-bottom-color: #F3F3F3; }
 
-ul#widget-list li:hover:after {
+ul.widget-list li:hover:after {
   background: #5BBBBA; }
 
 /*# sourceMappingURL=style.css.map */
