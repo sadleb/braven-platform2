@@ -15,3 +15,10 @@ export function preventCKEditorHandling( domElement, editor ) {
         editor.editing.view._renderer.isFocused = false;
     }
 }
+
+// Return the model element that is a parent of modelElement, with the model
+// name ancestorName. If there are multiple matching elements, return only the
+// topmost one.
+export function getNamedAncestor( ancestorName, modelElement ) {
+    return modelElement.getAncestors().filter( x => { return x.name == 'question' } )[0];
+}

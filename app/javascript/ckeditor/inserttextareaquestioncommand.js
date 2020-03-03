@@ -1,9 +1,9 @@
 import Command from '@ckeditor/ckeditor5-core/src/command';
 
 export default class InsertTextAreaQuestionCommand extends Command {
-    execute( id ) {
+    execute() {
         this.editor.model.change( writer => {
-            this.editor.model.insertContent( createTextAreaQuestion( writer, id ) );
+            this.editor.model.insertContent( createTextAreaQuestion( writer ) );
         } );
     }
 
@@ -16,13 +16,14 @@ export default class InsertTextAreaQuestionCommand extends Command {
     }
 }
 
-function createTextAreaQuestion( writer, id ) {
-    const textAreaQuestion = writer.createElement( 'textAreaQuestion', {id} );
+function createTextAreaQuestion( writer ) {
+    const textAreaQuestion = writer.createElement( 'textAreaQuestion' );
     const question = writer.createElement( 'question' );
     const questionTitle = writer.createElement( 'questionTitle' );
     const questionBody = writer.createElement( 'questionBody' );
     const questionForm = writer.createElement( 'questionForm' );
     const questionFieldset = writer.createElement( 'questionFieldset' );
+    const doneButton = writer.createElement( 'doneButton' );
     const textArea = writer.createElement( 'textArea' );
 
     const questionParagraph = writer.createElement( 'paragraph' );
@@ -32,6 +33,7 @@ function createTextAreaQuestion( writer, id ) {
     writer.append( questionBody, question );
     writer.append( questionForm, question );
     writer.append( questionFieldset, questionForm );
+    writer.append( doneButton, questionForm );
     writer.append( textArea, questionFieldset );
     // There must be at least one paragraph for the description to be editable.
     // See https://github.com/ckeditor/ckeditor5/issues/1464.

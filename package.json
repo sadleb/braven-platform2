@@ -49,7 +49,6 @@
     "react_ujs": "^2.6.0",
     "style-loader": "1",
     "turbolinks": "^5.2.0",
-    "uuid": "^3.3.3",
     "webpack": "4",
     "webpack-cli": "3",
     "webpack-merge": "^4.2.2",

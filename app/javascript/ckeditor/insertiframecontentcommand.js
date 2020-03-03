@@ -1,11 +1,9 @@
 import Command from '@ckeditor/ckeditor5-core/src/command';
 
 export default class InsertIFrameContentCommand extends Command {
-    execute( id, url ) {
+    execute( url ) {
         this.editor.model.change( writer => {
-            // Insert <iframeContent id="...">*</iframeContent> at the current selection position
-            // in a way which will result in creating a valid model structure.
-            this.editor.model.insertContent( createIFrameContent( writer, id, url ) );
+            this.editor.model.insertContent( createIFrameContent( writer, url ) );
         } );
     }
 
@@ -18,8 +16,8 @@ export default class InsertIFrameContentCommand extends Command {
     }
 }
 
-function createIFrameContent( writer, id, url ) {
-    const iframeContent = writer.createElement( 'iframeContent', {id} );
+function createIFrameContent( writer, url ) {
+    const iframeContent = writer.createElement( 'iframeContent' );
     const content = writer.createElement( 'content' );
     const iframe = writer.createElement( 'iframe', {src: url} );
 

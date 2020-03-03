@@ -1,30 +1,31 @@
 import Plugin from '@ckeditor/ckeditor5-core/src/plugin';
 import { toWidget, toWidgetEditable } from '@ckeditor/ckeditor5-widget/src/utils';
 import Widget from '@ckeditor/ckeditor5-widget/src/widget';
-import InsertTableContentCommand from './inserttablecontentcommand';
+import Table from '@ckeditor/ckeditor5-table/src/table';
+import InsertMatrixQuestionCommand from './insertmatrixquestioncommand';
 
-export default class TableContentEditing extends Plugin {
+export default class MatrixQuestionEditing extends Plugin {
     static get requires() {
-        return [ Widget ];
+        return [ Widget, Table ];
     }
 
     init() {
         this._defineSchema();
         this._defineConverters();
 
-        this.editor.commands.add( 'insertTableContent', new InsertTableContentCommand( this.editor ) );
+        this.editor.commands.add( 'insertMatrixQuestion', new InsertMatrixQuestionCommand( this.editor ) );
     }
 
     _defineSchema() {
         const schema = this.editor.model.schema;
 
-        schema.register( 'tableContent', {
+        schema.register( 'matrixQuestion', {
             isObject: true,
-            allowIn: 'section'
+            allowIn: 'section',
         } );
 
-        schema.extend( 'slider', {
-            allowIn: 'tableCell'
+        schema.extend( 'table', {
+            allowIn: 'questionFieldset',
         } );
     }
 
@@ -33,35 +34,34 @@ export default class TableContentEditing extends Plugin {
         const conversion = editor.conversion;
         const { editing, data, model } = editor;
 
-        // <tableContent> converters
+        // <matrixQuestion> converters
         conversion.for( 'upcast' ).elementToElement( {
             view: {
                 name: 'div',
-                classes: ['module-block', 'module-block-table']
+                classes: [ 'module-block', 'module-block-matrix' ]
             },
             model: ( viewElement, modelWriter ) => {
-                return modelWriter.createElement( 'tableContent' );
+                return modelWriter.createElement( 'matrixQuestion' );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
-            model: 'tableContent',
+            model: 'matrixQuestion',
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createEditableElement( 'div', {
-                    'class': 'module-block module-block-table',
+                    'class': 'module-block module-block-matrix',
                 } );
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
-            model: 'tableContent',
+            model: 'matrixQuestion',
             view: ( modelElement, viewWriter ) => {
-                const id = modelElement.getAttribute( 'id' );
-
-                const tableContent = viewWriter.createContainerElement( 'div', {
-                    'class': 'module-block module-block-table',
+                const matrixQuestion = viewWriter.createContainerElement( 'div', {
+                    'class': 'module-block module-block-matrix',
                 } );
 
-                return toWidget( tableContent, viewWriter, { label: 'table widget' } );
+                return toWidget( matrixQuestion, viewWriter, { label: 'matrix-question widget' } );
             }
         } );
+
     }
 }

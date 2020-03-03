@@ -21,7 +21,6 @@ export default class IFrameContentEditing extends Plugin {
         schema.register( 'iframeContent', {
             isObject: true,
             allowIn: 'section',
-            allowAttributes: [ 'id', 'class' ]
         } );
 
         schema.register( 'iframe', {
@@ -43,9 +42,7 @@ export default class IFrameContentEditing extends Plugin {
             },
             model: ( viewElement, modelWriter ) => {
                 // Read the "data-id" attribute from the view and set it as the "id" in the model.
-                return modelWriter.createElement( 'iframeContent', {
-                    id: viewElement.getAttribute( 'data-id' )
-                } );
+                return modelWriter.createElement( 'iframeContent' );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
@@ -53,18 +50,14 @@ export default class IFrameContentEditing extends Plugin {
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createEditableElement( 'div', {
                     'class': 'module-block module-iframe',
-                    'data-id': modelElement.getAttribute( 'id' )
                 } );
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'iframeContent',
             view: ( modelElement, viewWriter ) => {
-                const id = modelElement.getAttribute( 'id' );
-
                 const iframeContent = viewWriter.createContainerElement( 'div', {
                     'class': 'module-block module-iframe',
-                    'data-id': id
                 } );
 
                 return toWidget( iframeContent, viewWriter, { label: 'iframe widget' } );
@@ -95,7 +88,6 @@ export default class IFrameContentEditing extends Plugin {
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'iframe',
             view: ( modelElement, viewWriter ) => {
-                alert('here');
                 return viewWriter.createEditableElement( 'iframe', {
                     'src': modelElement.getAttribute( 'src' ),
                     'class': 'iframe-content'

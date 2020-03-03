@@ -1,9 +1,9 @@
 import Command from '@ckeditor/ckeditor5-core/src/command';
 
 export default class InsertRateThisModuleQuestionCommand extends Command {
-    execute( id ) {
+    execute() {
         this.editor.model.change( writer => {
-            this.editor.model.insertContent( createRateThisModuleQuestion( writer, id ) );
+            this.editor.model.insertContent( createRateThisModuleQuestion( writer ) );
         } );
     }
 
@@ -16,7 +16,7 @@ export default class InsertRateThisModuleQuestionCommand extends Command {
     }
 }
 
-function createRateThisModuleQuestion( writer, id ) {
+function createRateThisModuleQuestion( writer ) {
     const rateThisModuleQuestion = writer.createElement( 'rateThisModuleQuestion' );
     const question = writer.createElement( 'question' );
     const questionTitle = writer.createElement( 'questionTitle' );

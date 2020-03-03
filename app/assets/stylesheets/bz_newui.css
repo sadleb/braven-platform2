@@ -365,7 +365,7 @@ progress[value]::-webkit-progress-bar {
 .student-logged-in #menu #grades_menu_item,
 .student-logged-in #quiz-attributes-student,
 .student-logged-in #quiz_student_details,
-.student-logged-in div #quiz_show .alert,
+.student-logged-in div #quiz_show .module-block-alert > div.content,
 .student-logged-in .question .mce-toolbar-grp,
 .student-logged-in .question .mce-path,
 .hide-next-module-button .module-sequence-footer, /* this one depends on other factors on the page; the hide-next-button will be set by javascript */
@@ -1126,24 +1126,24 @@ input[type='button'].add-other-field {
 
 .question,
 .answer,
-.reflection,
-.video,
-.pulse,
-.alert,
-.key,
-.action,
-.values,
-.read,
-.video .box-title,
-.flush .box-title {
+.module-block-reflection > div.content,
+.module-block-video > div.content,
+.module-block-pulse > div.content,
+.module-block-alert > div.content,
+.module-block-key > div.content,
+.module-block-action > div.content,
+.module-block-values > div.content,
+.module-block-read > div.content,
+.module-block-video > div.content h5,
+.module-block-flush > div.content h5 {
 	padding-left: 60px;
 	background: 0px 50px no-repeat;
 	position: relative;
 	color: inherit;
 }
 
-.video,
-.flush {
+.module-block-video > div.content,
+.module-block-flush > div.content {
 	padding-left: 0;
 }
 
@@ -1187,35 +1187,35 @@ figure {
 	color: #C1272D;
 }
 
-.reflection {
+.module-block-reflection > div.content {
 	background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/lms-icons-14.png');
 }
 
-.video {
+.module-block-video > div.content {
 	background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/lms-icons-23.png');
 }
 
-.pulse {
+.module-block-pulse > div.content {
 	background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/lms-icons-30.png');
 }
 
-.alert {
+.module-block-alert > div.content {
 	background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/lms-icons-11.png');
 }
 
-.key {
+.module-block-key > div.content {
 	background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/lms-icons-33.png');
 }
 
-.action {
+.module-block-action > div.content {
 	background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/lms-icons-41.png');
 }
 
-.values {
+.module-block-values > div.content {
 	background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/lms-icons-47.png');
 }
 
-.read {
+.module-block-read > div.content {
 	background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/lms-icons-read-56.png');
 }
 li input:not([type="button"]):not([type="radio"]):not([type="checkbox"]), li textarea {
@@ -1271,11 +1271,6 @@ table {
 .bz-box figure iframe {
 	width: 672px;
 	height: 378px;
-}
-
-.bz-box:not(.video):not(.flush) figure iframe {
-	width: 612px;
-	height: 344px;
 }
 
 iframe {
@@ -2331,7 +2326,7 @@ table.sort-to-match tr {
 		width: 100%;
 		padding: 5px;
 	}
-	.bz-box.video iframe {
+	.bz-box.module-block-video > div.content iframe {
 		width: 100%;
 	}
 	.to-columns {

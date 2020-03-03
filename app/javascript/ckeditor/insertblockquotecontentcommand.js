@@ -1,9 +1,9 @@
 import Command from '@ckeditor/ckeditor5-core/src/command';
 
 export default class InsertBlockquoteContentCommand extends Command {
-    execute( id ) {
+    execute() {
         this.editor.model.change( writer => {
-            const { blockquoteContent, selection } = createBlockquoteContent( writer, id );
+            const { blockquoteContent, selection } = createBlockquoteContent( writer );
             this.editor.model.insertContent( blockquoteContent );
             writer.setSelection( selection );
         } );
@@ -18,8 +18,8 @@ export default class InsertBlockquoteContentCommand extends Command {
     }
 }
 
-function createBlockquoteContent( writer, id ) {
-    const blockquoteContent = writer.createElement( 'blockquoteContent', {id} );
+function createBlockquoteContent( writer ) {
+    const blockquoteContent = writer.createElement( 'blockquoteContent' );
     const content = writer.createElement( 'content' );
     const quote = writer.createElement( 'blockquoteQuote' );
     const paragraph = writer.createElement( 'paragraph' );

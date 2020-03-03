@@ -1,9 +1,9 @@
 import Command from '@ckeditor/ckeditor5-core/src/command';
 
 export default class InsertVideoContentCommand extends Command {
-    execute( id, url ) {
+    execute( url ) {
         this.editor.model.change( writer => {
-            this.editor.model.insertContent( createVideoContent( writer, id, url ) );
+            this.editor.model.insertContent( createVideoContent( writer, url ) );
         } );
     }
 
@@ -16,7 +16,7 @@ export default class InsertVideoContentCommand extends Command {
     }
 }
 
-function createVideoContent( writer, id, url ) {
+function createVideoContent( writer, url ) {
     const videoContent = writer.createElement( 'videoContent' );
     const content = writer.createElement( 'content' );
     const contentTitle = writer.createElement( 'contentTitle' );

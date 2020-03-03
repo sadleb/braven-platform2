@@ -2,7 +2,7 @@ import Command from '@ckeditor/ckeditor5-core/src/command';
 import { findOptimalInsertionPosition } from '@ckeditor/ckeditor5-widget/src/utils';
 
 export default class InsertMatchingQuestionCommand extends Command {
-    execute( id ) {
+    execute() {
         const model = this.editor.model;
         const selection = model.document.selection;
         const tableUtils = this.editor.plugins.get( 'TableUtils' );
@@ -13,10 +13,11 @@ export default class InsertMatchingQuestionCommand extends Command {
         //const insertPosition = findOptimalInsertionPosition( selection, model );
 
         this.editor.model.change( writer => {
-            const matchingQuestion = writer.createElement( 'matchingQuestion', {id} );
+            const matchingQuestion = writer.createElement( 'matchingQuestion' );
             const question = writer.createElement( 'question' );
             const questionTitle = writer.createElement( 'questionTitle' );
             const matchingTable = writer.createElement( 'matchingTable' );
+            const doneButton = writer.createElement( 'doneButton' );
             const matchingTableBody = writer.createElement( 'matchingTableBody' );
             const matchingTableRow1 = writer.createElement( 'matchingTableRow' );
             const matchingTableRow2 = writer.createElement( 'matchingTableRow' );
@@ -31,6 +32,7 @@ export default class InsertMatchingQuestionCommand extends Command {
             writer.append( question, matchingQuestion );
             writer.append( questionTitle, question );
             writer.append( matchingTable, question );
+            writer.append( doneButton, question );
             writer.append( matchingTableBody, matchingTable );
             writer.append( matchingTableRow1, matchingTableBody );
             writer.append( matchingTableRow2, matchingTableBody );

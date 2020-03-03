@@ -21,11 +21,7 @@ export default class SectionEditing extends Plugin {
 
         schema.register( 'section', {
             allowIn: '$root',
-
-            // Allow content which is allowed in the root (e.g. paragraphs).
             allowContentOf: '$root',
-
-            allowAttributes: [ 'id' ]
         } );
 
         schema.addChildCheck( ( context, childDefinition ) => {
@@ -48,10 +44,7 @@ export default class SectionEditing extends Plugin {
                 classes: ['content-section']
             },
             model: ( viewElement, modelWriter ) => {
-                // Read the "data-id" attribute from the view and set it as the "id" in the model.
-                return modelWriter.createElement( 'section', {
-                    'id': viewElement.getAttribute( 'data-id' )
-                } );
+                return modelWriter.createElement( 'section' );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
@@ -59,7 +52,6 @@ export default class SectionEditing extends Plugin {
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createContainerElement( 'section', {
                     'class': 'content-section',
-                    'data-id': modelElement.getAttribute( 'id' )
                 } );
             }
         } );
@@ -68,7 +60,6 @@ export default class SectionEditing extends Plugin {
             view: ( modelElement, viewWriter ) => {
                 const section = viewWriter.createContainerElement( 'section', {
                     'class': 'content-section',
-                    'data-id': modelElement.getAttribute( 'id' )
                 } );
 
                 enablePlaceholder( {

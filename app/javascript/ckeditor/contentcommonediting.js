@@ -2,11 +2,14 @@ import Plugin from '@ckeditor/ckeditor5-core/src/plugin';
 import { enablePlaceholder } from '@ckeditor/ckeditor5-engine/src/view/placeholder';
 import { toWidget, toWidgetEditable } from '@ckeditor/ckeditor5-widget/src/utils';
 import Widget from '@ckeditor/ckeditor5-widget/src/widget';
+import List from '@ckeditor/ckeditor5-list/src/list';
+import RetainedData from './retaineddata';
 import InsertTextInputCommand from './inserttextinputcommand';
+import InsertDoneButtonCommand from './insertdonebuttoncommand';
 
 export default class ContentCommonEditing extends Plugin {
     static get requires() {
-        return [ Widget ];
+        return [ Widget, RetainedData, List ];
     }
 
     init() {
@@ -14,6 +17,10 @@ export default class ContentCommonEditing extends Plugin {
         this._defineConverters();
 
         this.editor.commands.add( 'insertTextInput', new InsertTextInputCommand( this.editor ) );
+        this.editor.commands.add( 'insertDoneButton', new InsertDoneButtonCommand( this.editor ) );
+
+        // Add a shortcut to the retained data ID function.
+        this._nextRetainedDataId = this.editor.plugins.get('RetainedData').getNextId;
     }
 
     _defineSchema() {
@@ -29,6 +36,7 @@ export default class ContentCommonEditing extends Plugin {
         schema.register( 'contentTitle', {
             isLimit: true,
             allowIn: 'content',
+            allowAttributes: [ 'id' ],
             allowContentOf: '$block'
         } );
 
@@ -40,7 +48,8 @@ export default class ContentCommonEditing extends Plugin {
 
         schema.register( 'question', {
             isObject: true,
-            allowIn: [ 'checklistQuestion', 'radioQuestion', 'matchingQuestion' ],
+            allowIn: [ 'checklistQuestion', 'radioQuestion', 'matchingQuestion', 'matrixQuestion' ],
+            allowAttributes: [ 'data-instant-feedback', 'data-mastery' ]
         } );
 
         schema.extend( 'paragraph', {
@@ -50,6 +59,7 @@ export default class ContentCommonEditing extends Plugin {
         schema.register( 'questionTitle', {
             isLimit: true,
             allowIn: 'question',
+            allowAttributes: [ 'id' ],
             allowContentOf: '$block'
         } );
 
@@ -62,13 +72,23 @@ export default class ContentCommonEditing extends Plugin {
         schema.register( 'questionForm', {
             // Cannot be split or left by the caret.
             isLimit: true,
-            allowIn: 'question',
+            allowIn: [ 'question', 'content' ]
         } );
 
         schema.register( 'questionFieldset', {
             // Cannot be split or left by the caret.
             isLimit: true,
             allowIn: 'questionForm',
+        } );
+
+        schema.extend( 'listItem', {
+            allowIn: 'questionFieldset',
+        } );
+
+        schema.register( 'doneButton', {
+            isObject: true,
+            allowIn: [ 'section', 'questionForm', 'question' ],
+            allowAttributes: [ 'data-bz-retained', 'type', 'value', 'data-time-updated' ],
         } );
 
         schema.register( 'legend', {
@@ -80,7 +100,7 @@ export default class ContentCommonEditing extends Plugin {
 
         schema.register( 'answer', {
             isObject: true,
-            allowIn: [ 'checklistQuestion', 'radioQuestion' ]
+            allowIn: [ 'checklistQuestion', 'radioQuestion', 'matchingQuestion', 'matrixQuestion' ]
         } );
 
         schema.register( 'answerTitle', {
@@ -116,8 +136,8 @@ export default class ContentCommonEditing extends Plugin {
 
         schema.register( 'slider', {
             isObject: true,
-            allowAttributes: [ 'data-bz-retained', 'type', 'max', 'min', 'step' ],
-            allowIn: [ '$root' ],
+            allowAttributes: [ 'data-bz-answer', 'data-bz-range-answer', 'data-bz-retained', 'type', 'max', 'min', 'step' ],
+            allowIn: [ '$root', 'questionFieldset' ],
         } );
 
         schema.register( 'select', {
@@ -132,6 +152,12 @@ export default class ContentCommonEditing extends Plugin {
             allowIn: [ 'select' ],
             allowContentOf: '$block'
         } );
+
+        schema.register( 'heading6', {
+            allowAttributes: [ 'id' ],
+            allowIn: [ '$root' ],
+            allowContentOf: [ '$block' ],
+        });
     }
 
     _defineConverters() {
@@ -163,21 +189,28 @@ export default class ContentCommonEditing extends Plugin {
 
         // <contentTitle> converters
         conversion.for( 'upcast' ).elementToElement( {
-            model: 'contentTitle',
             view: {
                 name: 'h5'
+            },
+            model: ( viewElement, modelWriter ) => {
+                return modelWriter.createElement( 'contentTitle', {
+                    'id': viewElement.getAttribute('id'),
+                } );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'contentTitle',
-            view: {
-                name: 'h5'
+            view: ( modelElement, viewWriter ) => {
+                return viewWriter.createEditableElement( 'h5', {
+                    'id': modelElement.getAttribute( 'id' ),
+                } );
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'contentTitle',
             view: ( modelElement, viewWriter ) => {
                 const h5 = viewWriter.createEditableElement( 'h5', {
+                    'id': modelElement.getAttribute( 'id' ),
                 } );
 
                 enablePlaceholder( {
@@ -225,43 +258,62 @@ export default class ContentCommonEditing extends Plugin {
 
         // <question> converters
         conversion.for( 'upcast' ).elementToElement( {
-            model: 'question',
             view: {
                 name: 'div',
                 classes: 'question'
+            },
+            model: ( viewElement, modelWriter ) => {
+                return modelWriter.createElement( 'question', {
+                    'data-instant-feedback': viewElement.getAttribute('data-instant-feedback') || false,
+                    'data-mastery': viewElement.getAttribute('data-mastery') || false,
+                } );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'question',
-            view: {
-                name: 'div',
-                classes: 'question'
+            view: ( modelElement, viewWriter ) => {
+                return viewWriter.createContainerElement( 'div', {
+                    'class': 'question',
+                    'data-instant-feedback': modelElement.getAttribute('data-instant-feedback') || false,
+                    'data-mastery': modelElement.getAttribute('data-mastery') || false,
+                } );
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'question',
             view: ( modelElement, viewWriter ) => {
-                return viewWriter.createContainerElement( 'div', { class: 'question' } );
+                return viewWriter.createContainerElement( 'div', {
+                    'class': 'question',
+                    'data-instant-feedback': modelElement.getAttribute('data-instant-feedback') || false,
+                    'data-mastery': modelElement.getAttribute('data-mastery') || false,
+                } );
             }
         } );
 
         // <questionTitle> converters
         conversion.for( 'upcast' ).elementToElement( {
-            model: 'questionTitle',
             view: {
                 name: 'h5'
+            },
+            model: ( viewElement, modelWriter ) => {
+                return modelWriter.createElement( 'questionTitle', {
+                    'id': viewElement.getAttribute('id'),
+                } );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'questionTitle',
-            view: {
-                name: 'h5'
+            view: ( modelElement, viewWriter ) => {
+                return viewWriter.createEditableElement( 'h5', {
+                    'id': modelElement.getAttribute( 'id' ),
+                } );
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'questionTitle',
             view: ( modelElement, viewWriter ) => {
                 const h5 = viewWriter.createEditableElement( 'h5', {
+                    'id': modelElement.getAttribute( 'id' ),
                 } );
 
                 enablePlaceholder( {
@@ -343,6 +395,48 @@ export default class ContentCommonEditing extends Plugin {
             }
         } );
 
+        // <doneButton> converters
+        conversion.for( 'upcast' ).elementToElement( {
+            view: {
+                name: 'input',
+                classes: 'done-button',
+                attributes: {
+                    'type': 'button',
+                    'value': 'Done',
+                }
+            },
+            model: ( viewElement, modelWriter ) => {
+                return modelWriter.createElement( 'doneButton', {
+                    'data-bz-retained': viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
+                    'data-time-updated': viewElement.getAttribute('data-time-updated') || '',
+                } );
+            }
+        } );
+        conversion.for( 'dataDowncast' ).elementToElement( {
+            model: 'doneButton',
+            view: ( modelElement, viewWriter ) => {
+                return viewWriter.createContainerElement( 'input', {
+                    'type': 'button',
+                    'value': 'Done',
+                    'class': 'done-button',
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
+                    'data-time-updated': modelElement.getAttribute('data-time-updated') || '',
+                } );
+            }
+        } );
+        conversion.for( 'editingDowncast' ).elementToElement( {
+            model: 'doneButton',
+            view: ( modelElement, viewWriter ) => {
+                return viewWriter.createContainerElement( 'input', {
+                    'type': 'button',
+                    'value': 'Done',
+                    'class': 'done-button',
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
+                    'data-time-updated': modelElement.getAttribute('data-time-updated') || '',
+                } );
+            }
+        } );
+
         // <questionLegend> converters
         conversion.for( 'upcast' ).elementToElement( {
             model: 'legend',
@@ -409,7 +503,7 @@ export default class ContentCommonEditing extends Plugin {
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'answerTitle',
             view: ( modelElement, viewWriter ) => {
-                const h5 = viewWriter.createEmptyElement( 'h5', {} );
+                const h5 = viewWriter.createContainerElement( 'h5', {} );
 
                 enablePlaceholder( {
                     view: editing.view,
@@ -462,7 +556,7 @@ export default class ContentCommonEditing extends Plugin {
             },
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'textInput', {
-                    'data-bz-retained': viewElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'placeholder': viewElement.getAttribute('placeholder') || ''
                 } );
             }
@@ -472,7 +566,7 @@ export default class ContentCommonEditing extends Plugin {
             view: ( modelElement, viewWriter ) => {
                 const input = viewWriter.createEmptyElement( 'input', {
                     'type': 'text',
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'placeholder': modelElement.getAttribute('placeholder') || ''
                 } );
                 return input;
@@ -483,7 +577,7 @@ export default class ContentCommonEditing extends Plugin {
             view: ( modelElement, viewWriter ) => {
                 const input = viewWriter.createEmptyElement( 'input', {
                     'type': 'text',
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'placeholder': modelElement.getAttribute('placeholder') || ''
                 } );
                 return toWidget( input, viewWriter );
@@ -497,7 +591,7 @@ export default class ContentCommonEditing extends Plugin {
             },
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'textArea', {
-                    'data-bz-retained': viewElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'placeholder': viewElement.getAttribute('placeholder') || ''
                 } );
             }
@@ -506,7 +600,7 @@ export default class ContentCommonEditing extends Plugin {
             model: 'textArea',
             view: ( modelElement, viewWriter ) => {
                 const textarea = viewWriter.createEmptyElement( 'textarea', {
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'placeholder': modelElement.getAttribute('placeholder') || ''
                 } );
                 return textarea;
@@ -516,7 +610,7 @@ export default class ContentCommonEditing extends Plugin {
             model: 'textArea',
             view: ( modelElement, viewWriter ) => {
                 const textarea = viewWriter.createEmptyElement( 'textarea', {
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'placeholder': modelElement.getAttribute('placeholder') || ''
                 } );
                 return toWidget( textarea, viewWriter );
@@ -534,7 +628,7 @@ export default class ContentCommonEditing extends Plugin {
             },
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'fileUpload', {
-                    'data-bz-retained': viewElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'data-bz-share-release': viewElement.getAttribute('data-bz-share-release') || '',
                 } );
             }
@@ -545,7 +639,7 @@ export default class ContentCommonEditing extends Plugin {
                 const input = viewWriter.createEmptyElement( 'input', {
                     'type': 'file',
                     'class': 'bz-optional-magic-field',
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'data-bz-share-release': modelElement.getAttribute('data-bz-share-release') || '',
                 } );
                 return input;
@@ -557,7 +651,7 @@ export default class ContentCommonEditing extends Plugin {
                 const input = viewWriter.createEmptyElement( 'input', {
                     'type': 'file',
                     'class': 'bz-optional-magic-field',
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'data-bz-share-release': modelElement.getAttribute('data-bz-share-release') || '',
                 } );
                 return toWidget( input, viewWriter );
@@ -573,40 +667,78 @@ export default class ContentCommonEditing extends Plugin {
                 }
             },
             model: ( viewElement, modelWriter ) => {
-                return modelWriter.createElement( 'slider', {
+                let attrs = {
                     'class': viewElement.getAttribute('class') || '',
-                    'data-bz-retained': viewElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'min': viewElement.getAttribute('min') || 0,
                     'max': viewElement.getAttribute('max') || 10,
                     'step': viewElement.getAttribute('step') || 1,
-                } );
+                };
+
+                // Only add these attributes if they are set.
+                const answer = viewElement.getAttribute('data-bz-answer');
+                if ( answer !== undefined ) {
+                    attrs['data-bz-answer'] = answer;
+                }
+
+                const rangeAnswer = viewElement.getAttribute('data-bz-range-answer');
+                if ( rangeAnswer !== undefined ) {
+                    attrs['data-bz-range-answer'] = rangeAnswer;
+                }
+
+                return modelWriter.createElement( 'slider', attrs );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'slider',
             view: ( modelElement, viewWriter ) => {
-                const input = viewWriter.createEmptyElement( 'input', {
+                let attrs = {
                     'type': 'range',
                     'class': modelElement.getAttribute('class') || '',
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'min': modelElement.getAttribute('min') || 0,
                     'max': modelElement.getAttribute('max') || 10, 
                     'step': modelElement.getAttribute('step') || 1,
-                } );
-                return input;
+                };
+
+                // Only add these attributes if they are set.
+                const answer = modelElement.getAttribute('data-bz-answer');
+                if ( answer !== undefined ) {
+                    attrs['data-bz-answer'] = answer;
+                }
+
+                const rangeAnswer = modelElement.getAttribute('data-bz-range-answer');
+                if ( rangeAnswer !== undefined ) {
+                    attrs['data-bz-range-answer'] = rangeAnswer;
+                }
+
+                return viewWriter.createEmptyElement( 'input', attrs );
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'slider',
             view: ( modelElement, viewWriter ) => {
-                const input = viewWriter.createEmptyElement( 'input', {
+                let attrs = {
                     'type': 'range',
                     'class': modelElement.getAttribute('class') || '',
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'min': modelElement.getAttribute('min') || 0,
                     'max': modelElement.getAttribute('max') || 10,
                     'step': modelElement.getAttribute('step') || 1,
-                } );
+                };
+
+                // Only add these attributes if they are set.
+                const answer = modelElement.getAttribute('data-bz-answer');
+                if ( answer !== undefined ) {
+                    attrs['data-bz-answer'] = answer;
+                }
+
+                const rangeAnswer = modelElement.getAttribute('data-bz-range-answer');
+                if ( rangeAnswer !== undefined ) {
+                    attrs['data-bz-range-answer'] = rangeAnswer;
+                }
+
+                const input = viewWriter.createEmptyElement( 'input', attrs );
                 return toWidget( input, viewWriter );
             }
         } );
@@ -618,7 +750,7 @@ export default class ContentCommonEditing extends Plugin {
             },
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'select', {
-                    'data-bz-retained': viewElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'name': viewElement.getAttribute('name'),
                     'id': viewElement.getAttribute('id')
                 } );
@@ -628,7 +760,7 @@ export default class ContentCommonEditing extends Plugin {
             model: 'select',
             view: ( modelElement, viewWriter ) => {
                 const select = viewWriter.createContainerElement( 'select', {
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'name': modelElement.getAttribute('name'),
                     'id': modelElement.getAttribute('id'),
                 } );
@@ -639,7 +771,7 @@ export default class ContentCommonEditing extends Plugin {
             model: 'select',
             view: ( modelElement, viewWriter ) => {
                 const select = viewWriter.createContainerElement( 'select', {
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
                     'name': modelElement.getAttribute('name'),
                     'id': modelElement.getAttribute('id')
                 } );
@@ -674,6 +806,34 @@ export default class ContentCommonEditing extends Plugin {
                     'value': modelElement.getAttribute('value'),
                 } );
                 return toWidget( option, viewWriter );
+            }
+        } );
+
+        // <heading6> converters
+        conversion.for( 'upcast' ).elementToElement( {
+            view: {
+                name: 'h6'
+            },
+            model: ( viewElement, modelWriter ) => {
+                return modelWriter.createElement( 'heading6', {
+                    'id': viewElement.getAttribute('id'),
+                } );
+            }
+        } );
+        conversion.for( 'dataDowncast' ).elementToElement( {
+            model: 'heading6',
+            view: ( modelElement, viewWriter ) => {
+                return viewWriter.createEditableElement( 'h6', {
+                    'id': modelElement.getAttribute( 'id' ),
+                } );
+            }
+        } );
+        conversion.for( 'editingDowncast' ).elementToElement( {
+            model: 'heading6',
+            view: ( modelElement, viewWriter ) => {
+                return viewWriter.createEditableElement( 'h6', {
+                    'id': modelElement.getAttribute( 'id' ),
+                } );
             }
         } );
     }

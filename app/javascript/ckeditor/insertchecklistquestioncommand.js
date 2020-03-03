@@ -1,9 +1,9 @@
 import Command from '@ckeditor/ckeditor5-core/src/command';
 
 export default class InsertChecklistQuestionCommand extends Command {
-    execute( id ) {
+    execute() {
         this.editor.model.change( writer => {
-            const { checklistQuestion, selection } = createChecklistQuestion( writer, id );
+            const { checklistQuestion, selection } = createChecklistQuestion( writer );
             this.editor.model.insertContent( checklistQuestion );
             writer.setSelection( selection );
         } );
@@ -18,13 +18,14 @@ export default class InsertChecklistQuestionCommand extends Command {
     }
 }
 
-function createChecklistQuestion( writer, id ) {
-    const checklistQuestion = writer.createElement( 'checklistQuestion', {id} );
+function createChecklistQuestion( writer ) {
+    const checklistQuestion = writer.createElement( 'checklistQuestion' );
     const question = writer.createElement( 'question' );
     const questionTitle = writer.createElement( 'questionTitle' );
     const questionBody = writer.createElement( 'questionBody' );
     const questionForm = writer.createElement( 'questionForm' );
     const questionFieldset = writer.createElement( 'questionFieldset' );
+    const doneButton = writer.createElement( 'doneButton' );
     const checkboxDiv = writer.createElement( 'checkboxDiv' );
     const checkboxInput = writer.createElement( 'checkboxInput' );
     const checkboxLabel = writer.createElement( 'checkboxLabel' );
@@ -41,6 +42,7 @@ function createChecklistQuestion( writer, id ) {
     writer.append( questionBody, question );
     writer.append( questionForm, question );
     writer.append( questionFieldset, questionForm );
+    writer.append( doneButton, questionForm );
     writer.append( checkboxDiv, questionFieldset );
     writer.append( checkboxInput, checkboxDiv );
     writer.append( checkboxLabel, checkboxDiv );
