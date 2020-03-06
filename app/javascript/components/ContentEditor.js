@@ -682,10 +682,10 @@ class ContentEditor extends Component {
                             </ul>
                         </div>
                     </div>
-                    <Tabs>
+                    <Tabs defaultIndex={window.location.search.includes('html=true') ? 1 : 0}>
                         <div id="workspace">
                             <TabList id="view-mode">
-                                <Tab className="active">Design</Tab>
+                                <Tab>Design</Tab>
                                 <Tab>Code</Tab>
                             </TabList>
                             <TabPanel>

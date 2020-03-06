@@ -918,18 +918,20 @@ html {
   overflow-y: scroll;
 }
 
+/*
 .bz-module,
 .bz-view-box {
 	width: 672px;
 	position: relative;
 }
+*/
 
-.bz-module {
+/*.bz-module {
 	margin: 0px;
-	margin-bottom: 200px;
+/*	margin-bottom: 200px;
 	/* margin: 0 auto 200px; */
-	position: relative;
-}
+/*	position: relative;
+}*/
 
 .bz-module .roll-back-left {
 	margin-left: -200px !important;
@@ -943,15 +945,15 @@ html {
 	left: -60px;
 }
 
-.bz-box {
+/*.bz-box {
 	padding: 60px;
 	padding-right: 0;
 	border-top: 1px solid #CCC;
 	border-bottom: 1px solid #CCC;
 	margin-bottom:-1px;
-}
+}*/
 
-.bz-module  .bz-box h3 {
+.bz-module  .module-block h3 {
 	margin-top:0;
 }
 
@@ -1069,7 +1071,7 @@ input[type="button"] {
 	color: #FFF;
 }
 
-.bz-box input[type="button"] {
+.module-block input[type="button"] {
     margin: 20px 0;
 }
 
@@ -1158,9 +1160,9 @@ figure {
 	margin: 10px;
 }
 
-.question {
+/*.question {
 	background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/lms-icons-04.png');
-}
+}*/
 
 .question.survey-question {
 	/* Don't want question image on retro survey */
@@ -1268,7 +1270,7 @@ table {
 	border-collapse: collapse;
 }
 
-.bz-box figure iframe {
+.module-block figure iframe {
 	width: 672px;
 	height: 378px;
 }
@@ -1283,7 +1285,7 @@ figcaption {
 	margin: 0.5em 17%;
 }
 
-.bz-box textarea {
+.module-block textarea {
 	width: calc( 100% - 2em );
 	height: 5em;
 }
@@ -2326,7 +2328,7 @@ table.sort-to-match tr {
 		width: 100%;
 		padding: 5px;
 	}
-	.bz-box.module-block-video > div.content iframe {
+	.module-block.module-block-video > div.content iframe {
 		width: 100%;
 	}
 	.to-columns {
@@ -3247,4 +3249,90 @@ form.bz-app-ritual-opportunity a.bz-app-ritual-calculate-link {
 	font-size: 1.3em;
 	margin-top: 10px;
 	margin-bottom: 0;
+}
+
+
+
+
+
+
+/* New CSS */
+.module-checkbox-div,
+.module-radio-div {
+    padding-left: 2em;
+    position: relative;
+    /* vertical-align: middle; */
+    margin: 0.5em 0;
+}
+
+/* .module-checkbox-div > input {
+    position: absolute;
+    left: 0;
+} */
+
+.module-checkbox-div input {
+    position: absolute;
+    left: 0;
+}
+
+.question {
+    background-image: url('https://s3.amazonaws.com/canvas-prod-assets/images/lms-icons-04.png');
+    /* background-repeat: no-repeat; */
+    /* background: 0px 50px no-repeat; */
+}
+
+.module-block > div {
+    padding: 60px;
+    padding-right: 0;
+    border-top: 1px solid #CCC;
+    border-bottom: 1px solid #CCC;
+    margin-bottom: -1px;
+}
+
+.module-block.module-block-quote > div {
+    background: bottom center no-repeat #D1AB5C;
+    background-image: url(images/bkg700-01.jpg);
+    position: relative;
+    margin: 3em 0;
+    width: calc( 100% - 6em );
+    padding: 3em;
+    font-style: italic;
+    font-size: 1.2em;
+    text-align: center;
+    color: #FFF;
+}
+
+blockquote small {
+    display: block;
+    line-height: 20px;
+    margin: 1em 0;
+    font-size: 75%;
+}
+
+blockquote {
+    margin: 0 0 20px;
+}
+
+.bz-module .answer.correct h5 {
+	color: #22B573;
+}
+
+.bz-module .answer.incorrect h5 {
+	color: #C1272D;
+}
+.bz-module input {
+    margin-top: 4px
+}
+
+.bz-module input[data-correctness="correct"] + label {
+    color: green;
+}
+
+.bz-module input[data-correctness="incorrect"] + label {
+    color: red;
+}
+
+.bz-module input[data-correctness="maybe"] + label,
+.bz-module input[data-correctness=""] + label {
+    color: #a54c2a;
 }
