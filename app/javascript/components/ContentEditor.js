@@ -689,7 +689,7 @@ class ContentEditor extends Component {
                                 <Tab>Code</Tab>
                             </TabList>
                             <TabPanel>
-                                <div id="wysiwyg-container">
+                                <div id="wysiwyg-container" className="bz-module">
                                     <CKEditor
                                         editor={BalloonEditor}
                                         data={this.state.editorData}
