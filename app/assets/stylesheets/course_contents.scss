@@ -253,3 +253,8 @@ legend {
         transform: translateY(0);
     }
 }
+
+/* React Tabs */
+.react-tabs__tab--selected {
+    border: 0 !important;
+}

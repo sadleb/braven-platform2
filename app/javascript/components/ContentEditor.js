@@ -5,7 +5,7 @@ import Rails from '@rails/ujs';
 
 // Non-ckeditor React imports
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
-//import 'react-tabs/style/react-tabs.css';
+import 'react-tabs/style/react-tabs.css';
 
 // The official CKEditor 5 instance inspector. It helps understand the editor view and model.
 import CKEditorInspector from '@ckeditor/ckeditor5-inspector';
