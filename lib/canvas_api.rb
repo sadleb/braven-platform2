@@ -6,6 +6,11 @@ class CanvasAPI
   # Custom HTML to prepend to each body.
   PrependHTML = %q(
     <!-- BRAVEN_NEW_HTML -->
+    <div class="bz-module">
+  )
+
+  AppendHTML = %q(
+    </div>
   )
 
   def initialize(canvas_url, canvas_token)
@@ -18,7 +23,7 @@ class CanvasAPI
 
   def update_course_page(course_id, wiki_page_id, wiki_page_body)
     body = {
-      'wiki_page[body]' => PrependHTML + wiki_page_body,
+      'wiki_page[body]' => PrependHTML + wiki_page_body + AppendHTML,
     }
 
     put("/courses/#{course_id}/pages/#{wiki_page_id}", body)
