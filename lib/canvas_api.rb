@@ -4,11 +4,16 @@ class CanvasAPI
   attr_reader :canvas_url
 
   # Custom HTML to prepend to each body.
+  # Note: We add a "new HTML" comment here to flag this page as coming from the
+  # new content editor. This is referenced in several places in Canvas code.
+  # We also wrap the entire contents in a "bz-module" div, so the CSS selectors
+  # work as expected.
   PrependHTML = %q(
     <!-- BRAVEN_NEW_HTML -->
     <div class="bz-module">
   )
 
+  # Custom HTML to append to each body.
   AppendHTML = %q(
     </div>
   )
