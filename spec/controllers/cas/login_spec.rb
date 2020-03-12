@@ -53,18 +53,18 @@ RSpec.describe CasController, type: :routing do
         let(:username) { valid_user[:email] }
         let(:password) { valid_user[:password] }
         
-        xit "logs in successfully" do
+        it "logs in successfully" do
           # Ensure that the login was successful
           expect(current_url).to include(return_service)
           expect(current_url).to include("ticket")
         end
 
-        xit "validates existing tickets" do
+        it "validates existing tickets" do
           @params = parse_query(current_url, "&?,")
           expect(@params).to include("ticket")
         end
 
-        xit "generates new ticket when revisiting login page" do
+        it "generates new ticket when revisiting login page" do
           # Get current ticket to check against next generated ticket
           @params = parse_query(current_url, "&?,")
           visit "/cas/login?service=#{url_encode(return_service)}"

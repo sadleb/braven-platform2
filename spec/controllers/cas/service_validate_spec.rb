@@ -40,13 +40,13 @@ RSpec.describe CasController, type: :routing do
           before(:each) do
             @params = parse_query(current_url, "&?,")
           end
-          xit "logs in successfully and validates service" do
+          it "logs in successfully and validates service" do
             visit "/cas/serviceValidate?ticket=#{@params['ticket']}&service=#{url_encode(return_service)}"
             expect(page.body).to include("cas:authenticationSuccess>")
             expect(page.body).to include('platform_user')
           end
 
-          xit "logs in successfully and validates service with proxy url" do
+          it "logs in successfully and validates service with proxy url" do
             pending "Need to get proxy service set up"
 
             visit "/cas/serviceValidate?ticket=#{@params['ticket']}&service=#{url_encode(return_service)}&pgtUrl=#{proxy_service}"
@@ -54,7 +54,7 @@ RSpec.describe CasController, type: :routing do
             expect(page.body).to include('platform_usr')
           end
 
-          xit "fails validate a service because no service specified" do
+          it "fails validate a service because no service specified" do
             # Attempt to validate the service
             visit "/cas/serviceValidate?ticket=#{@params['ticket']}"
             expect(page.body).to include("cas:authenticationFailure")
@@ -62,7 +62,7 @@ RSpec.describe CasController, type: :routing do
             expect(page.body).to include("Ticket or service parameter was missing in the request.")
           end
 
-          xit "fails validate a service because ticket is consumed" do
+          it "fails validate a service because ticket is consumed" do
             # Validate service ticket
             visit "/cas/serviceValidate?ticket=#{@params["ticket"]}&service=#{return_service}"
 
