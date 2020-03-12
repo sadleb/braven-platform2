@@ -37,7 +37,7 @@ RSpec.describe CasController, type: :routing do
             fill_and_submit_login(username, password)
           end
         end
-        xit "logout successfully" do
+        it "logout successfully" do
           visit "/cas/logout"
           expect(page).to have_content('You have successfully logged out')
         end
