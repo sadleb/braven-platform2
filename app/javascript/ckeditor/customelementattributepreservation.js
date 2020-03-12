@@ -2,9 +2,21 @@
 // and https://github.com/ckeditor/ckeditor5/issues/5569
 import Plugin from '@ckeditor/ckeditor5-core/src/plugin';
 
-const ALLOWED_ATTRIBUTES = [
+export const ALLOWED_ATTRIBUTES = [
     'class',
-    'data-bz-retained'
+    'data-bz-retained',
+    'data-bz-weight',
+    'data-bz-partial-credit',
+    'data-bz-answer',
+    'data-bz-dont-mix',
+    'data-bz-range-answer',
+    'data-bz-insert-offset-year',
+    'data-bz-max-score',
+    'data-bz-optional-magic-field',
+    'data-bz-range-clg',
+    'data-bz-range-flr',
+    'data-bz-reference',
+    'data-bz-share-release',
 ]
 
 export default class CustomElementAttributePreservation extends Plugin {
@@ -230,7 +242,7 @@ function setupAllowedAttributePreservation( editor ) {
 
 // Filter out attributes that aren't in ALLOWED_ATTRIBUTES.
 // Return a map of key:value pairs as expected by createElement.
-function filterAllowedAttributes( attributeGenerator ) {
+export function filterAllowedAttributes( attributeGenerator ) {
     return new Map( [...attributeGenerator].filter( item => {
         // item == [key, value]
         return ALLOWED_ATTRIBUTES.includes( item[0] );

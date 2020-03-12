@@ -6,6 +6,7 @@ import RetainedData from './retaineddata';
 import InsertChecklistQuestionCommand from './insertchecklistquestioncommand';
 import InsertCheckboxCommand from './insertcheckboxcommand';
 import SetAttributesCommand from './setattributescommand';
+import { ALLOWED_ATTRIBUTES, filterAllowedAttributes } from './customelementattributepreservation.js';
 
 export default class ChecklistQuestionEditing extends Plugin {
     static get requires() {
@@ -54,7 +55,7 @@ export default class ChecklistQuestionEditing extends Plugin {
             isInline: true,
             isObject: true,
             allowIn: [ 'checkboxDiv', 'tableCell' ],
-            allowAttributes: [ 'id', 'name', 'value', 'data-bz-retained', 'data-correctness' ]
+            allowAttributes: [ 'id', 'name', 'value', 'data-correctness' ].concat(ALLOWED_ATTRIBUTES),
         } );
 
         schema.register( 'checkboxLabel', {
@@ -150,11 +151,12 @@ export default class ChecklistQuestionEditing extends Plugin {
             model: ( viewElement, modelWriter ) => {
                 const id = viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId();
 
-                return modelWriter.createElement( 'checkboxInput', {
-                    'id': id,
-                    'data-bz-retained': id,
-                    'data-correctness': viewElement.getAttribute('data-correctness') || ''
-                } );
+                return modelWriter.createElement( 'checkboxInput', new Map( [
+                    ...filterAllowedAttributes(viewElement.getAttributes()),
+                    ['id', id],
+                    ['data-bz-retained', id],
+                    ['data-correctness', viewElement.getAttribute('data-correctness') || '']
+                ] ) );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
@@ -162,12 +164,13 @@ export default class ChecklistQuestionEditing extends Plugin {
             view: ( modelElement, viewWriter ) => {
                 const id = modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId();
 
-                return viewWriter.createEmptyElement( 'input', {
-                    'type': 'checkbox',
-                    'id': id,
-                    'data-bz-retained': id,
-                    'data-correctness': modelElement.getAttribute('data-correctness') || ''
-                } );
+                return viewWriter.createEmptyElement( 'input', new Map( [
+                    ...filterAllowedAttributes(modelElement.getAttributes()),
+                    ['type', 'checkbox'],
+                    ['id', id],
+                    ['data-bz-retained', id],
+                    ['data-correctness', modelElement.getAttribute('data-correctness') || '']
+                ] ) );
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
@@ -175,12 +178,13 @@ export default class ChecklistQuestionEditing extends Plugin {
             view: ( modelElement, viewWriter ) => {
                 const id = modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId();
 
-                const input = viewWriter.createEmptyElement( 'input', {
-                    'type': 'checkbox',
-                    'id': id,
-                    'data-bz-retained': id,
-                    'data-correctness': modelElement.getAttribute('data-correctness') || ''
-                } );
+                return viewWriter.createEmptyElement( 'input', new Map( [
+                    ...filterAllowedAttributes(modelElement.getAttributes()),
+                    ['type', 'checkbox'],
+                    ['id', id],
+                    ['data-bz-retained', id],
+                    ['data-correctness', modelElement.getAttribute('data-correctness') || '']
+                ] ) );
 
                 return toWidget( input, viewWriter );
             }

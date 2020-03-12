@@ -5,6 +5,7 @@ import Widget from '@ckeditor/ckeditor5-widget/src/widget';
 import RetainedData from './retaineddata';
 import InsertRadioQuestionCommand from './insertradioquestioncommand';
 import InsertRadioCommand from './insertradiocommand';
+import { ALLOWED_ATTRIBUTES, filterAllowedAttributes } from './customelementattributepreservation.js';
 
 export default class RadioQuestionEditing extends Plugin {
     static get requires() {
@@ -53,7 +54,7 @@ export default class RadioQuestionEditing extends Plugin {
             isInline: true,
             isObject: true,
             allowIn: [ 'radioDiv', 'tableCell' ],
-            allowAttributes: [ 'id', 'name', 'value', 'data-correctness' ]
+            allowAttributes: [ 'id', 'name', 'value', 'data-correctness' ].concat(ALLOWED_ATTRIBUTES),
         } );
 
         schema.register( 'radioLabel', {
@@ -171,12 +172,13 @@ export default class RadioQuestionEditing extends Plugin {
                     }
                 }
 
-                return modelWriter.createElement( 'radioInput', {
-                    'id': id,
-                    'name': radioGroupName,
-                    'data-bz-retained': id,
-                    'data-correctness': viewElement.getAttribute('data-correctness') || ''
-                } );
+                return modelWriter.createElement( 'radioInput', new Map( [
+                    ...filterAllowedAttributes(viewElement.getAttributes()),
+                    ['id', id],
+                    ['name', radioGroupName],
+                    ['data-bz-retained', id],
+                    ['data-correctness', viewElement.getAttribute('data-correctness') || '']
+                ] ) );
             }
 
         } );
@@ -203,13 +205,14 @@ export default class RadioQuestionEditing extends Plugin {
                     }
                 }
 
-                return viewWriter.createEmptyElement( 'input', {
-                    'type': 'radio',
-                    'id': id,
-                    'name': radioGroupName,
-                    'data-bz-retained': id,
-                    'data-correctness': modelElement.getAttribute('data-correctness') || ''
-                } );
+                return viewWriter.createEmptyElement( 'input', new Map( [
+                    ...filterAllowedAttributes(modelElement.getAttributes()),
+                    ['type', 'radio'],
+                    ['id', id],
+                    ['name', radioGroupName],
+                    ['data-bz-retained', id],
+                    ['data-correctness', modelElement.getAttribute('data-correctness') || '']
+                ] ) );
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
@@ -235,13 +238,14 @@ export default class RadioQuestionEditing extends Plugin {
                     }
                 }
 
-                const input = viewWriter.createEmptyElement( 'input', {
-                    'type': 'radio',
-                    'id': id,
-                    'name': radioGroupName,
-                    'data-bz-retained': id,
-                    'data-correctness': modelElement.getAttribute('data-correctness') || ''
-                } );
+                return viewWriter.createEmptyElement( 'input', new Map( [
+                    ...filterAllowedAttributes(modelElement.getAttributes()),
+                    ['type', 'radio'],
+                    ['id', id],
+                    ['name', radioGroupName],
+                    ['data-bz-retained', id],
+                    ['data-correctness', modelElement.getAttribute('data-correctness') || '']
+                ] ) );
                 return toWidget( input, viewWriter );
             }
         } );
