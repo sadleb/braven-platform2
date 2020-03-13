@@ -4,8 +4,18 @@ class CanvasAPI
   attr_reader :canvas_url
 
   # Custom HTML to prepend to each body.
+  # Note: We add a "new HTML" comment here to flag this page as coming from the
+  # new content editor. This is referenced in several places in Canvas code.
+  # We also wrap the entire contents in a "bz-module" div, so the CSS selectors
+  # work as expected.
   PrependHTML = %q(
     <!-- BRAVEN_NEW_HTML -->
+    <div class="bz-module">
+  )
+
+  # Custom HTML to append to each body.
+  AppendHTML = %q(
+    </div>
   )
 
   def initialize(canvas_url, canvas_token)
@@ -18,7 +28,7 @@ class CanvasAPI
 
   def update_course_page(course_id, wiki_page_id, wiki_page_body)
     body = {
-      'wiki_page[body]' => PrependHTML + wiki_page_body,
+      'wiki_page[body]' => PrependHTML + wiki_page_body + AppendHTML,
     }
 
     put("/courses/#{course_id}/pages/#{wiki_page_id}", body)

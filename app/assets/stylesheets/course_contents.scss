@@ -3,6 +3,91 @@
 // You can use Sass (SCSS) here: http://sass-lang.com/
 /* assets/styles.css */
 
+/* --- Editor / Content styles --- */
+.bz-module,
+.bz-view-box {
+	width: 100%;
+	position: relative;
+	background-color: white;
+}
+
+.bz-module > .ck {
+	max-width: 708px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.bz-module input[data-correctness="correct"] + label {
+    color: green;
+}
+
+.bz-module input[data-correctness="incorrect"] + label {
+    color: red;
+}
+
+.bz-module input[data-correctness="maybe"] + label,
+.bz-module input[data-correctness=""] + label {
+    color: #a54c2a;
+}
+
+/* TYPOGRAPHY */
+body {
+	font-family: Georgia, serif;
+}
+
+.bz-module th,
+.bz-module h1,
+.bz-module h2,
+.bz-module h3,
+.bz-module h4,
+.bz-module h5,
+.bz-module h6,
+.bz-module nav li,
+.bz-module input[type="button"],
+.bz-module th {
+	font-family: "TradeGothicNo.20-CondBold", "Oswald", sans-serif;
+	text-transform: uppercase;
+	line-height: normal;
+	font-weight: normal;
+}
+
+/* Unhide "display: none" things. */
+.conditional-show {
+	display: block;
+}
+
+.revealable,
+.feedback {
+	display: block;
+}
+
+.instant-range-feedback .feedback {
+	display: block;
+}
+
+.bz-ajax-loaded-rubric .learning_outcome_flag,
+.bz-ajax-loaded-rubric .links,
+.bz-ajax-loaded-rubric .points_form,
+.bz-ajax-loaded-rubric .editing,
+.bz-ajax-loaded-rubric .long_description_holder,
+.bz-ajax-loaded-rubric .threshold {
+	display: block;
+}
+
+/* more overrides */
+.module-block-quote > div.content,
+div.content > blockquote {
+        width: 100%;
+}
+
+div.content > blockquote:focus,
+div.content > blockquote:focus > small {
+        color: black;
+        background: none;
+}
+
+
+
 /* --- Right sidebar styles --- */
 ul.widget-list li.disabled,
 ul.widget-list li.disabled:hover {
@@ -252,4 +337,9 @@ legend {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* React Tabs */
+.react-tabs__tab--selected {
+    border: 0 !important;
 }

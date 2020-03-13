@@ -5,7 +5,7 @@ import Rails from '@rails/ujs';
 
 // Non-ckeditor React imports
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
-//import 'react-tabs/style/react-tabs.css';
+import 'react-tabs/style/react-tabs.css';
 
 // The official CKEditor 5 instance inspector. It helps understand the editor view and model.
 import CKEditorInspector from '@ckeditor/ckeditor5-inspector';
@@ -682,14 +682,14 @@ class ContentEditor extends Component {
                             </ul>
                         </div>
                     </div>
-                    <Tabs>
+                    <Tabs defaultIndex={window.location.search.includes('html=true') ? 1 : 0}>
                         <div id="workspace">
                             <TabList id="view-mode">
-                                <Tab className="active">Design</Tab>
+                                <Tab>Design</Tab>
                                 <Tab>Code</Tab>
                             </TabList>
                             <TabPanel>
-                                <div id="wysiwyg-container">
+                                <div id="wysiwyg-container" className="bz-module">
                                     <CKEditor
                                         editor={BalloonEditor}
                                         data={this.state.editorData}
