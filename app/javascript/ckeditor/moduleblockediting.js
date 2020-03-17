@@ -49,7 +49,7 @@ export default class ModuleBlockEditing extends Plugin {
             },
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'moduleBlock', {
-                    'class': viewElement.getAttribute('class'),
+                    'class': viewElement.getAttribute('class') || 'module-block',
                 });
             }
         } );
@@ -57,7 +57,7 @@ export default class ModuleBlockEditing extends Plugin {
             model: 'moduleBlock',
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createEditableElement( 'div', {
-                    'class': modelElement.getAttribute('class'),
+                    'class': modelElement.getAttribute('class') || 'module-block',
                 } );
             }
         } );
@@ -65,7 +65,7 @@ export default class ModuleBlockEditing extends Plugin {
             model: 'moduleBlock',
             view: ( modelElement, viewWriter ) => {
                 const moduleBlock = viewWriter.createContainerElement( 'div', {
-                    'class': modelElement.getAttribute('class'),
+                    'class': modelElement.getAttribute('class') || 'module-block',
                 } );
 
                 return toWidget( moduleBlock, viewWriter, { label: 'module-block widget' } );

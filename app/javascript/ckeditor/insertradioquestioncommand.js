@@ -11,15 +11,15 @@ export default class InsertRadioQuestionCommand extends Command {
     refresh() {
         const model = this.editor.model;
         const selection = model.document.selection;
-        const allowedIn = model.schema.findAllowedParent( selection.getFirstPosition(), 'radioQuestion' );
+        const allowedIn = model.schema.findAllowedParent( selection.getFirstPosition(), 'moduleBlock' );
 
         this.isEnabled = allowedIn !== null;
     }
 }
 
 function createRadioQuestion( writer ) {
-    const radioQuestion = writer.createElement( 'radioQuestion', {'data-radio-group': uid()} );
-    const question = writer.createElement( 'question' );
+    const radioQuestion = writer.createElement( 'moduleBlock', {'data-radio-group': uid()} );
+    const question = writer.createElement( 'question', { 'data-grade-as': 'radio' } );
     const questionTitle = writer.createElement( 'questionTitle' );
     const questionBody = writer.createElement( 'questionBody' );
     const questionForm = writer.createElement( 'questionForm' );

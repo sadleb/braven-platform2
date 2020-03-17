@@ -49,7 +49,7 @@ export default class ContentCommonEditing extends Plugin {
         schema.register( 'question', {
             isObject: true,
             allowIn: [ 'checklistQuestion', 'radioQuestion', 'matchingQuestion', 'matrixQuestion' ],
-            allowAttributes: [ 'data-instant-feedback', 'data-mastery' ]
+            allowAttributes: [ 'data-instant-feedback', 'data-mastery', 'data-grade-as' ]
         } );
 
         schema.extend( 'paragraph', {
@@ -266,6 +266,7 @@ export default class ContentCommonEditing extends Plugin {
                 return modelWriter.createElement( 'question', {
                     'data-instant-feedback': viewElement.getAttribute('data-instant-feedback') || false,
                     'data-mastery': viewElement.getAttribute('data-mastery') || false,
+                    'data-grade-as': viewElement.getAttribute('data-grade-as') || undefined,
                 } );
             }
         } );
@@ -276,6 +277,7 @@ export default class ContentCommonEditing extends Plugin {
                     'class': 'question',
                     'data-instant-feedback': modelElement.getAttribute('data-instant-feedback') || false,
                     'data-mastery': modelElement.getAttribute('data-mastery') || false,
+                    'data-grade-as': modelElement.getAttribute('data-grade-as') || undefined,
                 } );
             }
         } );
@@ -286,6 +288,7 @@ export default class ContentCommonEditing extends Plugin {
                     'class': 'question',
                     'data-instant-feedback': modelElement.getAttribute('data-instant-feedback') || false,
                     'data-mastery': modelElement.getAttribute('data-mastery') || false,
+                    'data-grade-as': modelElement.getAttribute('data-grade-as') || undefined,
                 } );
             }
         } );

@@ -18,7 +18,7 @@ export default class InsertTextAreaQuestionCommand extends Command {
 
 function createTextAreaQuestion( writer ) {
     const textAreaQuestion = writer.createElement( 'textAreaQuestion' );
-    const question = writer.createElement( 'question' );
+    const question = writer.createElement( 'question', { 'data-grade-as': 'textarea' } );
     const questionTitle = writer.createElement( 'questionTitle' );
     const questionBody = writer.createElement( 'questionBody' );
     const questionForm = writer.createElement( 'questionForm' );

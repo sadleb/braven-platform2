@@ -20,7 +20,7 @@ export default class InsertMatrixQuestionCommand extends Command {
 
 function createMatrixQuestion( writer, options ) {
     const matrixQuestion = writer.createElement( 'matrixQuestion' );
-    const question = writer.createElement( 'question' );
+    const question = writer.createElement( 'question', {'data-grade-as': 'matrix'} );
     const questionTitle = writer.createElement( 'questionTitle' );
     const questionBody = writer.createElement( 'questionBody' );
     const questionForm = writer.createElement( 'questionForm' );
