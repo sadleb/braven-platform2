@@ -1,8 +1,6 @@
 import Plugin from '@ckeditor/ckeditor5-core/src/plugin';
-import { enablePlaceholder } from '@ckeditor/ckeditor5-engine/src/view/placeholder';
-import { toWidget, toWidgetEditable } from '@ckeditor/ckeditor5-widget/src/utils';
+import { toWidget } from '@ckeditor/ckeditor5-widget/src/utils';
 import Widget from '@ckeditor/ckeditor5-widget/src/widget';
-import SetAttributesCommand from './setattributescommand';
 
 export default class ModuleBlockEditing extends Plugin {
     static get requires() {
@@ -56,7 +54,7 @@ export default class ModuleBlockEditing extends Plugin {
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'moduleBlock',
             view: ( modelElement, viewWriter ) => {
-                return viewWriter.createEditableElement( 'div', {
+                return viewWriter.createContainerElement( 'div', {
                     'class': modelElement.getAttribute('class') || 'module-block',
                 } );
             }
