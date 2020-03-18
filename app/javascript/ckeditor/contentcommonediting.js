@@ -801,6 +801,7 @@ export default class ContentCommonEditing extends Plugin {
             },
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'heading6', {
+                    'class': viewElement.getAttribute('class'),
                     'id': viewElement.getAttribute('id'),
                 } );
             }
@@ -809,6 +810,7 @@ export default class ContentCommonEditing extends Plugin {
             model: 'heading6',
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createEditableElement( 'h6', {
+                    'class': modelElement.getAttribute('class'),
                     'id': modelElement.getAttribute( 'id' ),
                 } );
             }
@@ -817,6 +819,7 @@ export default class ContentCommonEditing extends Plugin {
             model: 'heading6',
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createEditableElement( 'h6', {
+                    'class': modelElement.getAttribute('class'),
                     'id': modelElement.getAttribute( 'id' ),
                 } );
             }
