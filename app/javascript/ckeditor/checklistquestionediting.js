@@ -153,9 +153,9 @@ export default class ChecklistQuestionEditing extends Plugin {
 
                 return modelWriter.createElement( 'checkboxInput', new Map( [
                     ...filterAllowedAttributes(viewElement.getAttributes()),
-                    ['id', id],
-                    ['data-bz-retained', id],
-                    ['data-correctness', viewElement.getAttribute('data-correctness') || '']
+                    [ 'id', id ],
+                    [ 'data-bz-retained', id ],
+                    [ 'data-correctness', viewElement.getAttribute('data-correctness') || '' ]
                 ] ) );
             }
         } );
@@ -166,10 +166,10 @@ export default class ChecklistQuestionEditing extends Plugin {
 
                 return viewWriter.createEmptyElement( 'input', new Map( [
                     ...filterAllowedAttributes(modelElement.getAttributes()),
-                    ['type', 'checkbox'],
-                    ['id', id],
-                    ['data-bz-retained', id],
-                    ['data-correctness', modelElement.getAttribute('data-correctness') || '']
+                    [ 'type', 'checkbox' ],
+                    [ 'id', id ],
+                    [ 'data-bz-retained', id ],
+                    [ 'data-correctness', modelElement.getAttribute('data-correctness') || '' ]
                 ] ) );
             }
         } );
@@ -180,10 +180,10 @@ export default class ChecklistQuestionEditing extends Plugin {
 
                 return viewWriter.createEmptyElement( 'input', new Map( [
                     ...filterAllowedAttributes(modelElement.getAttributes()),
-                    ['type', 'checkbox'],
-                    ['id', id],
-                    ['data-bz-retained', id],
-                    ['data-correctness', modelElement.getAttribute('data-correctness') || '']
+                    [ 'type', 'checkbox' ],
+                    [ 'id', id ],
+                    [ 'data-bz-retained', id ],
+                    [ 'data-correctness', modelElement.getAttribute('data-correctness') || '' ]
                 ] ) );
 
                 return toWidget( input, viewWriter );
