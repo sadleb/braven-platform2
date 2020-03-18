@@ -6,6 +6,7 @@ import List from '@ckeditor/ckeditor5-list/src/list';
 import RetainedData from './retaineddata';
 import InsertTextInputCommand from './inserttextinputcommand';
 import InsertDoneButtonCommand from './insertdonebuttoncommand';
+import { ALLOWED_ATTRIBUTES, filterAllowedAttributes } from './customelementattributepreservation.js';
 
 export default class ContentCommonEditing extends Plugin {
     static get requires() {
@@ -118,31 +119,31 @@ export default class ContentCommonEditing extends Plugin {
         // Shared inputs.
         schema.register( 'textInput', {
             isObject: true,
-            allowAttributes: [ 'data-bz-retained', 'type', 'placeholder' ],
+            allowAttributes: [ 'type', 'placeholder' ].concat(ALLOWED_ATTRIBUTES),
             allowIn: [ '$root', '$block', 'tableCell' ],
         } );
 
         schema.register( 'textArea', {
             isObject: true,
-            allowAttributes: [ 'data-bz-retained', 'placeholder' ],
+            allowAttributes: [ 'placeholder' ].concat(ALLOWED_ATTRIBUTES),
             allowIn: [ '$root', '$block', 'checkboxDiv', 'radioDiv', 'tableCell', 'questionFieldset' ],
         } );
 
         schema.register( 'fileUpload', {
             isObject: true,
-            allowAttributes: [ 'class', 'data-bz-retained', 'data-bz-share-release', 'type' ],
+            allowAttributes: [ 'class', 'type' ].concat(ALLOWED_ATTRIBUTES),
             allowIn: [ '$root' ],
         } );
 
         schema.register( 'slider', {
             isObject: true,
-            allowAttributes: [ 'data-bz-answer', 'data-bz-range-answer', 'data-bz-retained', 'type', 'max', 'min', 'step' ],
+            allowAttributes: [ 'type', 'max', 'min', 'step' ].concat(ALLOWED_ATTRIBUTES),
             allowIn: [ '$root', 'questionFieldset' ],
         } );
 
         schema.register( 'select', {
             isObject: true,
-            allowAttributes: [ 'data-bz-retained', 'id', 'name' ],
+            allowAttributes: [ 'id', 'name' ].concat(ALLOWED_ATTRIBUTES),
             allowIn: [ '$root' ],
         } );
 
@@ -558,31 +559,34 @@ export default class ContentCommonEditing extends Plugin {
                 }
             },
             model: ( viewElement, modelWriter ) => {
-                return modelWriter.createElement( 'textInput', {
-                    'data-bz-retained': viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
-                    'placeholder': viewElement.getAttribute('placeholder') || ''
-                } );
+                return modelWriter.createElement( 'textInput', new Map( [
+                    ...filterAllowedAttributes(viewElement.getAttributes()),
+                    ['data-bz-retained', viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId()],
+                    ['placeholder', viewElement.getAttribute('placeholder') || ''],
+                ] ) );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'textInput',
             view: ( modelElement, viewWriter ) => {
-                const input = viewWriter.createEmptyElement( 'input', {
-                    'type': 'text',
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
-                    'placeholder': modelElement.getAttribute('placeholder') || ''
-                } );
+                const input = viewWriter.createEmptyElement( 'input', new Map( [
+                    ...filterAllowedAttributes(modelElement.getAttributes()),
+                    [ 'type', 'text' ],
+                    [ 'data-bz-retained', modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
+                    [ 'placeholder', modelElement.getAttribute('placeholder') || '' ],
+                ] ) );
                 return input;
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'textInput',
             view: ( modelElement, viewWriter ) => {
-                const input = viewWriter.createEmptyElement( 'input', {
-                    'type': 'text',
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
-                    'placeholder': modelElement.getAttribute('placeholder') || ''
-                } );
+                const input = viewWriter.createEmptyElement( 'input', new Map( [
+                    ...filterAllowedAttributes(modelElement.getAttributes()),
+                    [ 'type', 'text' ],
+                    [ 'data-bz-retained', modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
+                    [ 'placeholder', modelElement.getAttribute('placeholder') || '' ],
+                ] ) );
                 return toWidget( input, viewWriter );
             }
         } );
@@ -593,29 +597,32 @@ export default class ContentCommonEditing extends Plugin {
                 name: 'textarea',
             },
             model: ( viewElement, modelWriter ) => {
-                return modelWriter.createElement( 'textArea', {
-                    'data-bz-retained': viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
-                    'placeholder': viewElement.getAttribute('placeholder') || ''
-                } );
+                return modelWriter.createElement( 'textArea', new Map( [
+                    ...filterAllowedAttributes(viewElement.getAttributes()),
+                    [ 'data-bz-retained', viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
+                    [ 'placeholder', viewElement.getAttribute('placeholder') || '' ],
+                ] ) );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'textArea',
             view: ( modelElement, viewWriter ) => {
-                const textarea = viewWriter.createEmptyElement( 'textarea', {
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
-                    'placeholder': modelElement.getAttribute('placeholder') || ''
-                } );
+                const textarea = viewWriter.createEmptyElement( 'textarea', new Map( [
+                    ...filterAllowedAttributes(modelElement.getAttributes()),
+                    [ 'data-bz-retained', modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
+                    [ 'placeholder', modelElement.getAttribute('placeholder') || '' ],
+                ] ) );
                 return textarea;
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'textArea',
             view: ( modelElement, viewWriter ) => {
-                const textarea = viewWriter.createEmptyElement( 'textarea', {
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
-                    'placeholder': modelElement.getAttribute('placeholder') || ''
-                } );
+                const textarea = viewWriter.createEmptyElement( 'textarea', new Map( [
+                    ...filterAllowedAttributes(modelElement.getAttributes()),
+                    [ 'data-bz-retained', modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
+                    [ 'placeholder', modelElement.getAttribute('placeholder') || '' ],
+                ] ) );
                 return toWidget( textarea, viewWriter );
             }
         } );
@@ -624,44 +631,44 @@ export default class ContentCommonEditing extends Plugin {
         conversion.for( 'upcast' ).elementToElement( {
             view: {
                 name: 'input',
-                classes: [ 'bz-optional-magic-field' ],
                 attributes: {
                     'type': 'file',
                 }
             },
             model: ( viewElement, modelWriter ) => {
-                return modelWriter.createElement( 'fileUpload', {
-                    'data-bz-retained': viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
-                    'data-bz-share-release': viewElement.getAttribute('data-bz-share-release') || '',
-                } );
+                return modelWriter.createElement( 'fileUpload', new Map( [
+                    ...filterAllowedAttributes(viewElement.getAttributes()),
+                    [ 'data-bz-retained': viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
+                ] ) );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'fileUpload',
             view: ( modelElement, viewWriter ) => {
-                const input = viewWriter.createEmptyElement( 'input', {
-                    'type': 'file',
-                    'class': 'bz-optional-magic-field',
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
-                    'data-bz-share-release': modelElement.getAttribute('data-bz-share-release') || '',
-                } );
+                const input = viewWriter.createEmptyElement( 'input', new Map( [
+                    ...filterAllowedAttributes(modelElement.getAttributes()),
+                    [ 'type', 'file' ],
+                    [ 'data-bz-retained', modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
+                ] ) );
                 return input;
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'fileUpload',
             view: ( modelElement, viewWriter ) => {
-                const input = viewWriter.createEmptyElement( 'input', {
-                    'type': 'file',
-                    'class': 'bz-optional-magic-field',
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
-                    'data-bz-share-release': modelElement.getAttribute('data-bz-share-release') || '',
-                } );
+                const input = viewWriter.createEmptyElement( 'input', new Map( [
+                    ...filterAllowedAttributes(modelElement.getAttributes()),
+                    [ 'type', 'file' ],
+                    [ 'data-bz-retained', modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
+                ] ) );
                 return toWidget( input, viewWriter );
             }
         } );
 
         // <slider> converters
+        const sliderMin = 0;
+        const sliderMax = 10;
+        const sliderStep = 1;
         conversion.for( 'upcast' ).elementToElement( {
             view: {
                 name: 'input',
@@ -670,78 +677,39 @@ export default class ContentCommonEditing extends Plugin {
                 }
             },
             model: ( viewElement, modelWriter ) => {
-                let attrs = {
-                    'class': viewElement.getAttribute('class') || '',
-                    'data-bz-retained': viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
-                    'min': viewElement.getAttribute('min') || 0,
-                    'max': viewElement.getAttribute('max') || 10,
-                    'step': viewElement.getAttribute('step') || 1,
-                };
-
-                // Only add these attributes if they are set.
-                const answer = viewElement.getAttribute('data-bz-answer');
-                if ( answer !== undefined ) {
-                    attrs['data-bz-answer'] = answer;
-                }
-
-                const rangeAnswer = viewElement.getAttribute('data-bz-range-answer');
-                if ( rangeAnswer !== undefined ) {
-                    attrs['data-bz-range-answer'] = rangeAnswer;
-                }
-
-                return modelWriter.createElement( 'slider', attrs );
+                return modelWriter.createElement( 'slider', new Map( [
+                    ...filterAllowedAttributes(viewElement.getAttributes()),
+                    [ 'data-bz-retained': viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
+                    [ 'min', viewElement.getAttribute('min') || sliderMin ],
+                    [ 'max', viewElement.getAttribute('max') || sliderMax ],
+                    [ 'step', viewElement.getAttribute('step') || sliderStep ],
+                ] ) );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'slider',
             view: ( modelElement, viewWriter ) => {
-                let attrs = {
-                    'type': 'range',
-                    'class': modelElement.getAttribute('class') || '',
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
-                    'min': modelElement.getAttribute('min') || 0,
-                    'max': modelElement.getAttribute('max') || 10, 
-                    'step': modelElement.getAttribute('step') || 1,
-                };
-
-                // Only add these attributes if they are set.
-                const answer = modelElement.getAttribute('data-bz-answer');
-                if ( answer !== undefined ) {
-                    attrs['data-bz-answer'] = answer;
-                }
-
-                const rangeAnswer = modelElement.getAttribute('data-bz-range-answer');
-                if ( rangeAnswer !== undefined ) {
-                    attrs['data-bz-range-answer'] = rangeAnswer;
-                }
-
-                return viewWriter.createEmptyElement( 'input', attrs );
+                return viewWriter.createEmptyElement( 'input', new Map( [
+                    ...filterAllowedAttributes(modelElement.getAttributes()),
+                    [ 'type', 'range' ],
+                    [ 'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
+                    [ 'min', modelElement.getAttribute('min') || sliderMin ],
+                    [ 'max', modelElement.getAttribute('max') || sliderMax ],
+                    [ 'step', modelElement.getAttribute('step') || sliderStep ],
+                ] ) );
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'slider',
             view: ( modelElement, viewWriter ) => {
-                let attrs = {
-                    'type': 'range',
-                    'class': modelElement.getAttribute('class') || '',
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
-                    'min': modelElement.getAttribute('min') || 0,
-                    'max': modelElement.getAttribute('max') || 10,
-                    'step': modelElement.getAttribute('step') || 1,
-                };
-
-                // Only add these attributes if they are set.
-                const answer = modelElement.getAttribute('data-bz-answer');
-                if ( answer !== undefined ) {
-                    attrs['data-bz-answer'] = answer;
-                }
-
-                const rangeAnswer = modelElement.getAttribute('data-bz-range-answer');
-                if ( rangeAnswer !== undefined ) {
-                    attrs['data-bz-range-answer'] = rangeAnswer;
-                }
-
-                const input = viewWriter.createEmptyElement( 'input', attrs );
+                const input = viewWriter.createEmptyElement( 'input', new Map( [
+                    ...filterAllowedAttributes(modelElement.getAttributes()),
+                    [ 'type', 'range' ],
+                    [ 'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
+                    [ 'min', modelElement.getAttribute('min') || sliderMin ],
+                    [ 'max', modelElement.getAttribute('max') || sliderMax ],
+                    [ 'step', modelElement.getAttribute('step') || sliderStep ],
+                ] ) );
                 return toWidget( input, viewWriter );
             }
         } );
@@ -752,32 +720,35 @@ export default class ContentCommonEditing extends Plugin {
                 name: 'select',
             },
             model: ( viewElement, modelWriter ) => {
-                return modelWriter.createElement( 'select', {
-                    'data-bz-retained': viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
-                    'name': viewElement.getAttribute('name'),
-                    'id': viewElement.getAttribute('id')
-                } );
+                return modelWriter.createElement( 'select', new Map( [
+                    ...filterAllowedAttributes(viewElement.getAttributes()),
+                    [ 'data-bz-retained', viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
+                    [ 'name', viewElement.getAttribute('name') ],
+                    [ 'id', viewElement.getAttribute('id') ],
+                ] ) );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'select',
             view: ( modelElement, viewWriter ) => {
-                const select = viewWriter.createContainerElement( 'select', {
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
-                    'name': modelElement.getAttribute('name'),
-                    'id': modelElement.getAttribute('id'),
-                } );
+                const select = viewWriter.createContainerElement( 'select', new Map( [
+                    ...filterAllowedAttributes(modelElement.getAttributes()),
+                    [ 'data-bz-retained', modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
+                    [ 'name', modelElement.getAttribute('name') ],
+                    [ 'id', modelElement.getAttribute('id') ],
+                ] ) );
                 return select;
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'select',
             view: ( modelElement, viewWriter ) => {
-                const select = viewWriter.createContainerElement( 'select', {
-                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
-                    'name': modelElement.getAttribute('name'),
-                    'id': modelElement.getAttribute('id')
-                } );
+                const select = viewWriter.createContainerElement( 'select', new Map( [
+                    ...filterAllowedAttributes(modelElement.getAttributes()),
+                    [ 'data-bz-retained', modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
+                    [ 'name', modelElement.getAttribute('name') ],
+                    [ 'id', modelElement.getAttribute('id') ],
+                ] ) );
                 return toWidget( select, viewWriter );
             }
         } );
