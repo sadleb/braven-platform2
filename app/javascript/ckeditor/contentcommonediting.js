@@ -638,7 +638,7 @@ export default class ContentCommonEditing extends Plugin {
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'fileUpload', new Map( [
                     ...filterAllowedAttributes(viewElement.getAttributes()),
-                    [ 'data-bz-retained': viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
+                    [ 'data-bz-retained', viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
                 ] ) );
             }
         } );
@@ -679,7 +679,7 @@ export default class ContentCommonEditing extends Plugin {
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'slider', new Map( [
                     ...filterAllowedAttributes(viewElement.getAttributes()),
-                    [ 'data-bz-retained': viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
+                    [ 'data-bz-retained', viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
                     [ 'min', viewElement.getAttribute('min') || sliderMin ],
                     [ 'max', viewElement.getAttribute('max') || sliderMax ],
                     [ 'step', viewElement.getAttribute('step') || sliderStep ],
@@ -692,7 +692,7 @@ export default class ContentCommonEditing extends Plugin {
                 return viewWriter.createEmptyElement( 'input', new Map( [
                     ...filterAllowedAttributes(modelElement.getAttributes()),
                     [ 'type', 'range' ],
-                    [ 'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
+                    [ 'data-bz-retained', modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
                     [ 'min', modelElement.getAttribute('min') || sliderMin ],
                     [ 'max', modelElement.getAttribute('max') || sliderMax ],
                     [ 'step', modelElement.getAttribute('step') || sliderStep ],
@@ -705,7 +705,7 @@ export default class ContentCommonEditing extends Plugin {
                 const input = viewWriter.createEmptyElement( 'input', new Map( [
                     ...filterAllowedAttributes(modelElement.getAttributes()),
                     [ 'type', 'range' ],
-                    [ 'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
+                    [ 'data-bz-retained', modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
                     [ 'min', modelElement.getAttribute('min') || sliderMin ],
                     [ 'max', modelElement.getAttribute('max') || sliderMax ],
                     [ 'step', modelElement.getAttribute('step') || sliderStep ],
