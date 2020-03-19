@@ -476,6 +476,13 @@ class ContentEditor extends Component {
                                 } else if ( ['question'].includes( modelElement ) ) {
                                     const questionElem = getNamedAncestor( 'question', this.state['selectedElement'] );
 
+                                    if (questionElem === undefined) {
+                                        // The selected element no longer has 'question' as an ancestor - it was
+                                        // probably deleted. We can just return and let React re-render with the new
+                                        // selection.
+                                        return;
+                                    }
+
                                     return (
                                         <>
                                             <h4>Question</h4>
