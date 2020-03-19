@@ -74,7 +74,8 @@ class CourseContentsController < ApplicationController
         new_version = CourseContentHistory.new({
           course_content_id: @course_content.id,
           title: @course_content.title,
-          body: @course_content.body
+          body: @course_content.body,
+          user: @current_user,
         })
         @course_content.transaction do
           new_version.save!

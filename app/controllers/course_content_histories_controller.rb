@@ -23,6 +23,6 @@ class CourseContentHistoriesController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def course_content_history_params
-      params.require(:course_content_history).permit(:course_content_id, :title, :body)
+      params.require(:course_content_history).permit(:course_content_id, :title, :body, :user)
     end
 end
