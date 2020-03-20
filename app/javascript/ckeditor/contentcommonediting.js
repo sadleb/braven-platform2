@@ -381,21 +381,32 @@ export default class ContentCommonEditing extends Plugin {
 
         // <questionFieldset> converters
         conversion.for( 'upcast' ).elementToElement( {
-            model: 'questionFieldset',
             view: {
                 name: 'fieldset'
+            },
+            model: ( viewElement, modelWriter ) => {
+                // Only include the class attribute if it's set.
+                const classes = viewElement.getAttribute('class');
+                const attrs = classes ? { 'class': classes } : {};
+                return modelWriter.createElement( 'questionFieldset', attrs );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'questionFieldset',
-            view: {
-                name: 'fieldset'
+            view: ( modelElement, viewWriter ) => {
+                // Only include the class attribute if it's set.
+                const classes = modelElement.getAttribute('class');
+                const attrs = classes ? { 'class': classes } : {};
+                return viewWriter.createEditableElement( 'fieldset', attrs );
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'questionFieldset',
             view: ( modelElement, viewWriter ) => {
-                return viewWriter.createContainerElement( 'fieldset' );
+                // Only include the class attribute if it's set.
+                const classes = modelElement.getAttribute('class');
+                const attrs = classes ? { 'class': classes } : {};
+                return viewWriter.createContainerElement( 'fieldset', attrs );
             }
         } );
 
@@ -790,6 +801,7 @@ export default class ContentCommonEditing extends Plugin {
             },
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'heading6', {
+                    'class': viewElement.getAttribute('class'),
                     'id': viewElement.getAttribute('id'),
                 } );
             }
@@ -798,6 +810,7 @@ export default class ContentCommonEditing extends Plugin {
             model: 'heading6',
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createEditableElement( 'h6', {
+                    'class': modelElement.getAttribute('class'),
                     'id': modelElement.getAttribute( 'id' ),
                 } );
             }
@@ -806,6 +819,7 @@ export default class ContentCommonEditing extends Plugin {
             model: 'heading6',
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createEditableElement( 'h6', {
+                    'class': modelElement.getAttribute('class'),
                     'id': modelElement.getAttribute( 'id' ),
                 } );
             }
