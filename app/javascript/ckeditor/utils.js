@@ -20,5 +20,5 @@ export function preventCKEditorHandling( domElement, editor ) {
 // name ancestorName. If there are multiple matching elements, return only the
 // topmost one.
 export function getNamedAncestor( ancestorName, modelElement ) {
-    return modelElement.getAncestors().filter( x => { return x.name == 'question' } )[0];
+    return modelElement.getAncestors().filter( x => { return x.name == ancestorName } )[0];
 }
