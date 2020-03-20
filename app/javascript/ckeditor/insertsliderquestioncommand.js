@@ -18,7 +18,7 @@ export default class InsertSliderQuestionCommand extends Command {
 
 function createSliderQuestion( writer ) {
     const sliderQuestion = writer.createElement( 'sliderQuestion' );
-    const question = writer.createElement( 'question' );
+    const question = writer.createElement( 'question', { 'data-grade-as': 'range' } );
     const questionTitle = writer.createElement( 'questionTitle' );
     const questionBody = writer.createElement( 'questionBody' );
     const questionBodyParagraph = writer.createElement( 'paragraph' );

@@ -12,15 +12,15 @@ export default class InsertChecklistQuestionCommand extends Command {
     refresh() {
         const model = this.editor.model;
         const selection = model.document.selection;
-        const allowedIn = model.schema.findAllowedParent( selection.getFirstPosition(), 'checklistQuestion' );
+        const allowedIn = model.schema.findAllowedParent( selection.getFirstPosition(), 'moduleBlock' );
 
         this.isEnabled = allowedIn !== null;
     }
 }
 
 function createChecklistQuestion( writer ) {
-    const checklistQuestion = writer.createElement( 'checklistQuestion' );
-    const question = writer.createElement( 'question' );
+    const checklistQuestion = writer.createElement( 'moduleBlock' );
+    const question = writer.createElement( 'question', {'data-grade-as': 'checklist'});
     const questionTitle = writer.createElement( 'questionTitle' );
     const questionBody = writer.createElement( 'questionBody' );
     const questionForm = writer.createElement( 'questionForm' );

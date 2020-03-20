@@ -40,6 +40,7 @@ import SimpleUploadAdapter from '@ckeditor/ckeditor5-upload/src/adapters/simpleu
 // CKEditor plugin implementing a content part widget to be used in the editor content.
 import RetainedData from '../ckeditor/retaineddata';
 import ContentCommonEditing from '../ckeditor/contentcommonediting';
+import ModuleBlockEditing from '../ckeditor/moduleblockediting';
 import ChecklistQuestionEditing from '../ckeditor/checklistquestionediting';
 import SliderQuestionEditing from '../ckeditor/sliderquestionediting';
 import RadioQuestionEditing from '../ckeditor/radioquestionediting';
@@ -52,7 +53,6 @@ import BlockquoteContentEditing from '../ckeditor/blockquotecontentediting';
 import IFrameContentEditing from '../ckeditor/iframecontentediting';
 import VideoContentEditing from '../ckeditor/videocontentediting';
 import SectionEditing from '../ckeditor/sectionediting';
-import ContentBlockEditing from '../ckeditor/contentblockediting';
 
 import Tooltip from '../ckeditor/tooltip';
 import ImageLink from '../ckeditor/imagelink';
@@ -93,6 +93,7 @@ BalloonEditor.builtinPlugins = [
 
     RetainedData,
     ContentCommonEditing,
+    ModuleBlockEditing,
     ChecklistQuestionEditing,
     RadioQuestionEditing,
     SliderQuestionEditing,
@@ -105,7 +106,6 @@ BalloonEditor.builtinPlugins = [
     IFrameContentEditing,
     VideoContentEditing,
     SectionEditing,
-    ContentBlockEditing,
 ];
 
 // Editor configuration.

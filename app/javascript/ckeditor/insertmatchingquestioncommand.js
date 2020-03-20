@@ -14,7 +14,7 @@ export default class InsertMatchingQuestionCommand extends Command {
 
         this.editor.model.change( writer => {
             const matchingQuestion = writer.createElement( 'matchingQuestion' );
-            const question = writer.createElement( 'question' );
+            const question = writer.createElement( 'question', {'data-grade-as': 'matching'} );
             const questionTitle = writer.createElement( 'questionTitle' );
             const matchingTable = writer.createElement( 'matchingTable' );
             const doneButton = writer.createElement( 'doneButton' );

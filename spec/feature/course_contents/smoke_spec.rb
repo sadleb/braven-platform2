@@ -35,17 +35,13 @@ RSpec.describe CourseContentsController, type: :routing do
         end
 
         it "loads the editor view and renders react components" do
-          # FIXME: Temporarily disable server errors, to stop the test from failing on the question icon 404
-          Capybara.raise_server_errors = false
-
           # Insert a question.
           find("li", text: "Section").click
           find("li", text: "Checklist Question").click
 
           # Make sure the question was inserted.
           expect(page).to have_selector("h5.ck-editor__editable.ck-editor__nested-editable")
-          expect(page).to have_selector('input[type="checkbox"].ck-widget')
-
+          expect(page).to have_selector('input[type="checkbox"]')
         end
       end
     end

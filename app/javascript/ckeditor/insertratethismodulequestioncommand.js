@@ -18,7 +18,7 @@ export default class InsertRateThisModuleQuestionCommand extends Command {
 
 function createRateThisModuleQuestion( writer ) {
     const rateThisModuleQuestion = writer.createElement( 'rateThisModuleQuestion' );
-    const question = writer.createElement( 'question' );
+    const question = writer.createElement( 'question', { 'data-grade-as': 'ratethismodule' } );
     const questionTitle = writer.createElement( 'questionTitle' );
     const questionForm = writer.createElement( 'questionForm' );
     const questionFieldset = writer.createElement( 'questionFieldset' );
