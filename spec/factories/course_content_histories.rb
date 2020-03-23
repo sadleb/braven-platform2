@@ -3,6 +3,7 @@ FactoryBot.define do
     title { "MyString" }
     body { "MyText" }
 
+    user
     course_content
   end
 end
