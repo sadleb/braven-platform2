@@ -153,12 +153,6 @@ export default class ContentCommonEditing extends Plugin {
             allowIn: [ 'select' ],
             allowContentOf: '$block'
         } );
-
-        schema.register( 'heading6', {
-            allowAttributes: [ 'id' ],
-            allowIn: [ '$root' ],
-            allowContentOf: [ '$block' ],
-        });
     }
 
     _defineConverters() {
@@ -197,7 +191,10 @@ export default class ContentCommonEditing extends Plugin {
                 return modelWriter.createElement( 'contentTitle', {
                     'id': viewElement.getAttribute('id'),
                 } );
-            }
+            },
+            // Use high priority to overwrite heading converters defined in
+            // customelementattributepreservation.js.
+            converterPriority: 'high'
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'contentTitle',
@@ -205,7 +202,10 @@ export default class ContentCommonEditing extends Plugin {
                 return viewWriter.createEditableElement( 'h5', {
                     'id': modelElement.getAttribute( 'id' ),
                 } );
-            }
+            },
+            // Use high priority to overwrite heading converters defined in
+            // customelementattributepreservation.js.
+            converterPriority: 'high'
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'contentTitle',
@@ -221,7 +221,10 @@ export default class ContentCommonEditing extends Plugin {
                 } );
 
                 return toWidgetEditable( h5, viewWriter );
-            }
+            },
+            // Use high priority to overwrite heading converters defined in
+            // customelementattributepreservation.js.
+            converterPriority: 'high'
         } );
 
         // <contentBody> converters
@@ -303,7 +306,10 @@ export default class ContentCommonEditing extends Plugin {
                 return modelWriter.createElement( 'questionTitle', {
                     'id': viewElement.getAttribute('id'),
                 } );
-            }
+            },
+            // Use high priority to overwrite heading converters defined in
+            // customelementattributepreservation.js.
+            converterPriority: 'high'
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'questionTitle',
@@ -311,7 +317,10 @@ export default class ContentCommonEditing extends Plugin {
                 return viewWriter.createEditableElement( 'h5', {
                     'id': modelElement.getAttribute( 'id' ),
                 } );
-            }
+            },
+            // Use high priority to overwrite heading converters defined in
+            // customelementattributepreservation.js.
+            converterPriority: 'high'
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'questionTitle',
@@ -327,7 +336,10 @@ export default class ContentCommonEditing extends Plugin {
                 } );
 
                 return toWidgetEditable( h5, viewWriter );
-            }
+            },
+            // Use high priority to overwrite heading converters defined in
+            // customelementattributepreservation.js.
+            converterPriority: 'high'
         } );
 
         // <questionBody> converters
@@ -335,7 +347,7 @@ export default class ContentCommonEditing extends Plugin {
             model: 'questionBody',
             view: {
                 name: 'div'
-            }
+            },
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'questionBody',
@@ -507,13 +519,19 @@ export default class ContentCommonEditing extends Plugin {
             model: 'answerTitle',
             view: {
                 name: 'h5'
-            }
+            },
+            // Use high priority to overwrite heading converters defined in
+            // customelementattributepreservation.js.
+            converterPriority: 'high'
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'answerTitle',
             view: {
                 name: 'h5'
-            }
+            },
+            // Use high priority to overwrite heading converters defined in
+            // customelementattributepreservation.js.
+            converterPriority: 'high'
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'answerTitle',
@@ -527,7 +545,10 @@ export default class ContentCommonEditing extends Plugin {
                 } );
 
                 return h5;
-            }
+            },
+            // Use high priority to overwrite heading converters defined in
+            // customelementattributepreservation.js.
+            converterPriority: 'high'
         } );
 
         // <answerText> converters
@@ -791,37 +812,6 @@ export default class ContentCommonEditing extends Plugin {
                     'value': modelElement.getAttribute('value'),
                 } );
                 return toWidget( option, viewWriter );
-            }
-        } );
-
-        // <heading6> converters
-        conversion.for( 'upcast' ).elementToElement( {
-            view: {
-                name: 'h6'
-            },
-            model: ( viewElement, modelWriter ) => {
-                return modelWriter.createElement( 'heading6', {
-                    'class': viewElement.getAttribute('class'),
-                    'id': viewElement.getAttribute('id'),
-                } );
-            }
-        } );
-        conversion.for( 'dataDowncast' ).elementToElement( {
-            model: 'heading6',
-            view: ( modelElement, viewWriter ) => {
-                return viewWriter.createEditableElement( 'h6', {
-                    'class': modelElement.getAttribute('class'),
-                    'id': modelElement.getAttribute( 'id' ),
-                } );
-            }
-        } );
-        conversion.for( 'editingDowncast' ).elementToElement( {
-            model: 'heading6',
-            view: ( modelElement, viewWriter ) => {
-                return viewWriter.createEditableElement( 'h6', {
-                    'class': modelElement.getAttribute('class'),
-                    'id': modelElement.getAttribute( 'id' ),
-                } );
             }
         } );
     }

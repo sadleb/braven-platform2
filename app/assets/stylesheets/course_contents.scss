@@ -42,6 +42,11 @@ body {
 .bz-module h4,
 .bz-module h5,
 .bz-module h6,
+button.ck.ck-button.ck-heading_h2 .ck-button__label,
+button.ck.ck-button.ck-heading_h3 .ck-button__label,
+button.ck.ck-button.ck-heading_h4 .ck-button__label,
+button.ck.ck-button.ck-heading_h5 .ck-button__label,
+button.ck.ck-button.ck-heading_h6 .ck-button__label,
 .bz-module nav li,
 .bz-module input[type="button"],
 .bz-module th {
@@ -49,6 +54,33 @@ body {
 	text-transform: uppercase;
 	line-height: normal;
 	font-weight: normal;
+}
+
+button.ck.ck-button.ck-heading_h2 .ck-button__label,
+button.ck.ck-button.ck-heading_h4 .ck-button__label,
+button.ck.ck-button.ck-heading_h6 .ck-button__label {
+	color: #EB3B46;
+}
+
+button.ck.ck-button.ck-heading_h2 .ck-button__label {
+	font-size: 40px;
+}
+
+button.ck.ck-button.ck-heading_h3 .ck-button__label {
+	font-size: 34px;
+}
+
+button.ck.ck-button.ck-heading_h4 .ck-button__label {
+	font-size: 27px;
+}
+
+button.ck.ck-button.ck-heading_h6 .ck-button__label {
+ font-size: 16px;
+ letter-spacing: 0.1em;
+}
+
+button.ck.ck-button.ck-heading_h5 .ck-button__label {
+	font-size: 24px;
 }
 
 /* Unhide "display: none" things. */
@@ -85,8 +117,6 @@ div.content > blockquote:focus > small {
         color: black;
         background: none;
 }
-
-
 
 /* --- Right sidebar styles --- */
 ul.widget-list li.disabled,
