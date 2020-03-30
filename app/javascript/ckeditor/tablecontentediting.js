@@ -26,10 +26,6 @@ export default class TableContentEditing extends Plugin {
         schema.extend( 'slider', {
             allowIn: 'tableCell'
         } );
-
-        schema.extend( 'heading6', {
-            allowIn: 'tableCell'
-        } );
     }
 
     _defineConverters() {
