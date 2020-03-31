@@ -680,7 +680,7 @@ class ContentEditor extends Component {
                                 />
                                 <ContentPartPreview
                                     key="imageUpload"
-                                    enabled={this.state.enabledCommands.includes('imageUpload')}
+                                    enabled={false}
                                     onClick={this.showFileUpload}
                                     {...{name: 'Image (Upload)'}}
                                 />
