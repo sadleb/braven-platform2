@@ -63,7 +63,7 @@ import ContentPartList from './ContentPartList';
 import ContentPartPreview from './ContentPartPreview';
 
 // Other local imports.
-import { getNamedAncestor } from '../ckeditor/utils';
+import { getNamedAncestor, getNamedChildOrSibling } from '../ckeditor/utils';
 
 // Plugins to include in the build.
 BalloonEditor.builtinPlugins = [
@@ -464,15 +464,21 @@ class ContentEditor extends Component {
                                             <label htmlFor='input-answer'>Correct Answer</label>
                                         </>
                                     );
-                                } else if ( ['checkboxInput', 'radioInput'].includes( modelElement ) ) {
+                                } else if ( ['checkboxDiv', 'radioDiv'].includes( modelElement ) ) {
+                                    const inputTypes = {
+                                        'checkboxDiv': 'checkboxInput',
+                                        'radioDiv': 'radioInput',
+                                    }
+                                    const inputElement = getNamedChildOrSibling( inputTypes[modelElement], this.state['selectedElement'] );
+
                                     return (
                                         <>
                                             <h4>Option</h4>
                                             <select
                                                 id='input-correctness'
-                                                defaultValue={this.state['selectedElement'].getAttribute('data-correctness')}
+                                                defaultValue={inputElement.getAttribute('data-correctness')}
                                                 onChange={( evt ) => {
-                                                    this.editor.execute( 'setAttributes', { 'data-correctness': evt.target.value } );
+                                                    this.editor.execute( 'setAttributes', { 'data-correctness': evt.target.value }, inputElement );
                                                 }}
                                             >
                                                 <option value="">CHOOSE ONE</option>
