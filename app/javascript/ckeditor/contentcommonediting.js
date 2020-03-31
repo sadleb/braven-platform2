@@ -6,6 +6,7 @@ import List from '@ckeditor/ckeditor5-list/src/list';
 import RetainedData from './retaineddata';
 import InsertTextInputCommand from './inserttextinputcommand';
 import InsertDoneButtonCommand from './insertdonebuttoncommand';
+import InsertContentBlockCommand from './insertcontentblockcommand';
 import { ALLOWED_ATTRIBUTES, filterAllowedAttributes } from './customelementattributepreservation.js';
 
 export default class ContentCommonEditing extends Plugin {
@@ -19,6 +20,7 @@ export default class ContentCommonEditing extends Plugin {
 
         this.editor.commands.add( 'insertTextInput', new InsertTextInputCommand( this.editor ) );
         this.editor.commands.add( 'insertDoneButton', new InsertDoneButtonCommand( this.editor ) );
+        this.editor.commands.add( 'insertContentBlock', new InsertContentBlockCommand( this.editor ) );
 
         // Add a shortcut to the retained data ID function.
         this._nextRetainedDataId = this.editor.plugins.get('RetainedData').getNextId;

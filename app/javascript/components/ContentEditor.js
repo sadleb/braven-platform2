@@ -601,6 +601,15 @@ class ContentEditor extends Component {
                             </ul>
                             <ul key="content-part-list-content" className="widget-list">
                                 <ContentPartPreview
+                                    key="insertContentBlock"
+                                    enabled={this.state.enabledCommands.includes('insertContentBlock')}
+                                    onClick={( id ) => {
+                                        this.editor.execute( 'insertContentBlock' );
+                                        this.editor.editing.view.focus();
+                                    }}
+                                    {...{name: 'Text'}}
+                                />
+                                <ContentPartPreview
                                     key="insertTableContent"
                                     enabled={this.state.enabledCommands.includes('insertTableContent')}
                                     onClick={( id ) => {
@@ -621,16 +630,6 @@ class ContentEditor extends Component {
                                     {...{name: 'Quote'}}
                                 />
                                 <ContentPartPreview
-                                    key="insertIFrameContent"
-                                    enabled={this.state.enabledCommands.includes('insertIFrameContent')}
-                                    onClick={( id ) => {
-                                        const url = window.prompt('URL', 'http://example.com' );
-                                        this.editor.execute( 'insertIFrameContent', url );
-                                        this.editor.editing.view.focus();
-                                    }}
-                                    {...{name: 'iFrame'}}
-                                />
-                                <ContentPartPreview
                                     key="insertVideoContent"
                                     enabled={this.state.enabledCommands.includes('insertVideoContent')}
                                     onClick={( id ) => {
@@ -642,6 +641,16 @@ class ContentEditor extends Component {
                                 />
                             </ul>
                             <ul key="content-part-list-elements" className="widget-list">
+                                <ContentPartPreview
+                                    key="insertIFrameContent"
+                                    enabled={this.state.enabledCommands.includes('insertIFrameContent')}
+                                    onClick={( id ) => {
+                                        const url = window.prompt('URL', 'http://example.com' );
+                                        this.editor.execute( 'insertIFrameContent', url );
+                                        this.editor.editing.view.focus();
+                                    }}
+                                    {...{name: 'IFrame'}}
+                                />
                                 <ContentPartPreview
                                     key="insertTextArea"
                                     enabled={this.state.enabledCommands.includes('insertTextArea')}

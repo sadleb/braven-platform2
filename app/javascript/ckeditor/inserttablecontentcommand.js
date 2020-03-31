@@ -12,11 +12,16 @@ export default class InsertTableCommand extends Command {
         this.editor.model.change( writer => {
             const tableContent = writer.createElement( 'tableContent' );
             const content = writer.createElement( 'content' );
+            const contentTitle = writer.createElement( 'contentTitle' );
+            const contentBody = writer.createElement( 'contentBody' );
 
-            writer.append(content, tableContent);
+            writer.append( content, tableContent );
+            writer.append( contentTitle, content );
+            writer.append( contentBody, content );
 
+            // Insert table after the title and body.
             model.insertContent( tableContent );
-            writer.setSelection( writer.createPositionAt( content, 0 ) );
+            writer.setSelection( writer.createPositionAt( content, 2 ) );
             this.editor.execute( 'insertTable', { rows: rows, columns: columns } );
         } );
     }
