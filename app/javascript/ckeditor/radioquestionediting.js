@@ -176,6 +176,7 @@ export default class RadioQuestionEditing extends Plugin {
                     ...filterAllowedAttributes(viewElement.getAttributes()),
                     [ 'id', id ],
                     [ 'name', radioGroupName ],
+                    [ 'value', viewElement.getAttribute('value') ],
                     [ 'data-bz-retained', id ],
                     [ 'data-correctness', viewElement.getAttribute('data-correctness') || '' ]
                 ] ) );
@@ -210,6 +211,7 @@ export default class RadioQuestionEditing extends Plugin {
                     [ 'type', 'radio' ],
                     [ 'id', id ],
                     [ 'name', radioGroupName ],
+                    [ 'value', modelElement.getAttribute('value') ],
                     [ 'data-bz-retained', id ],
                     [ 'data-correctness', modelElement.getAttribute('data-correctness') || '' ]
                 ] ) );
@@ -243,6 +245,7 @@ export default class RadioQuestionEditing extends Plugin {
                     [ 'type', 'radio' ],
                     [ 'id', id ],
                     [ 'name', radioGroupName ],
+                    [ 'value', modelElement.getAttribute('value') ],
                     [ 'data-bz-retained', id ],
                     [ 'data-correctness', modelElement.getAttribute('data-correctness') || '' ]
                 ] ) );
