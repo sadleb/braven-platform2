@@ -26,6 +26,7 @@ export default class SliderQuestionEditing extends Plugin {
         schema.register( 'displayValueDiv', {
             isObject: true,
             allowIn: 'questionFieldset',
+            allowContentOf: [ '$block' ],
         } );
 
         schema.register( 'currentValueSpan', {
