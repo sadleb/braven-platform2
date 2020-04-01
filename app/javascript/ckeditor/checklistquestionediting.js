@@ -183,10 +183,11 @@ export default class ChecklistQuestionEditing extends Plugin {
                     [ 'type', 'checkbox' ],
                     [ 'id', id ],
                     [ 'data-bz-retained', id ],
-                    [ 'data-correctness', modelElement.getAttribute('data-correctness') || '' ]
+                    [ 'data-correctness', modelElement.getAttribute('data-correctness') || '' ],
+                    [ 'disabled', 'disabled' ],
                 ] ) );
 
-                return toWidget( input, viewWriter );
+                return input;
             }
         } );
 
