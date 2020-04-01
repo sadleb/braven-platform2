@@ -107,6 +107,7 @@ export default class ContentCommonEditing extends Plugin {
         schema.register( 'answerTitle', {
             isLimit: true,
             allowIn: 'answer',
+            allowAttributes: [ 'id' ],
             allowContentOf: '$block'
         } );
 
@@ -516,9 +517,13 @@ export default class ContentCommonEditing extends Plugin {
 
         // <answerTitle> converters
         conversion.for( 'upcast' ).elementToElement( {
-            model: 'answerTitle',
             view: {
                 name: 'h5'
+            },
+            model: ( viewElement, modelWriter ) => {
+                return modelWriter.createElement( 'answerTitle', {
+                    'id': viewElement.getAttribute('id'),
+                } );
             },
             // Use high priority to overwrite heading converters defined in
             // customelementattributepreservation.js.
@@ -526,8 +531,10 @@ export default class ContentCommonEditing extends Plugin {
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'answerTitle',
-            view: {
-                name: 'h5'
+            view: ( modelElement, viewWriter ) => {
+                return viewWriter.createEditableElement( 'h5', {
+                    'id': modelElement.getAttribute( 'id' ),
+                } );
             },
             // Use high priority to overwrite heading converters defined in
             // customelementattributepreservation.js.
@@ -536,7 +543,9 @@ export default class ContentCommonEditing extends Plugin {
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'answerTitle',
             view: ( modelElement, viewWriter ) => {
-                const h5 = viewWriter.createEditableElement( 'h5', {} );
+                const h5 = viewWriter.createEditableElement( 'h5', {
+                    'id': modelElement.getAttribute( 'id' ),
+                } );
 
                 enablePlaceholder( {
                     view: editing.view,
