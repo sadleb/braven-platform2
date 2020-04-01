@@ -200,12 +200,16 @@ function setupAllowedAttributePreservation( editor ) {
         model: ( viewElement, modelWriter ) => {
             return modelWriter.createElement( 'div', filterAllowedAttributes( viewElement.getAttributes() ) );
         },
+        // Use low priority to make sure existing converters run first.
+        converterPriority: 'low'
     } );
     editor.conversion.for( 'upcast' ).elementToElement( {
         view: 'span',
         model: ( viewElement, modelWriter ) => {
             return modelWriter.createElement( 'span', filterAllowedAttributes( viewElement.getAttributes() ) );
         },
+        // Use low priority to make sure existing converters run first.
+        converterPriority: 'low'
     } );
 
     // Model-to-view converter for the <div> element (attrbiutes are converted separately).

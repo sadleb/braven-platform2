@@ -7,11 +7,12 @@ import RetainedData from './retaineddata';
 import InsertTextInputCommand from './inserttextinputcommand';
 import InsertDoneButtonCommand from './insertdonebuttoncommand';
 import InsertContentBlockCommand from './insertcontentblockcommand';
-import { ALLOWED_ATTRIBUTES, filterAllowedAttributes } from './customelementattributepreservation.js';
+import CustomElementAttributePreservation from './customelementattributepreservation';
+import { ALLOWED_ATTRIBUTES, filterAllowedAttributes } from './customelementattributepreservation';
 
 export default class ContentCommonEditing extends Plugin {
     static get requires() {
-        return [ Widget, RetainedData, List ];
+        return [ Widget, RetainedData, List, CustomElementAttributePreservation ];
     }
 
     init() {
@@ -85,6 +86,10 @@ export default class ContentCommonEditing extends Plugin {
         } );
 
         schema.extend( 'listItem', {
+            allowIn: 'questionFieldset',
+        } );
+
+        schema.extend( 'div', {
             allowIn: 'questionFieldset',
         } );
 
