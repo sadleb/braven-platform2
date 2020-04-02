@@ -54,7 +54,7 @@ export default class ChecklistQuestionEditing extends Plugin {
         schema.register( 'checkboxInput', {
             isInline: true,
             isObject: true,
-            allowIn: [ 'checkboxDiv', 'tableCell', 'div' ],
+            allowIn: [ 'checkboxDiv', 'tableCell', '$root' ],
             allowAttributes: [ 'id', 'name', 'value', 'data-correctness' ].concat(ALLOWED_ATTRIBUTES),
         } );
 
