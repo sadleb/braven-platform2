@@ -159,12 +159,15 @@ function setupAllowedAttributePreservation( editor ) {
     // Allow <div> elements in the model.
     editor.model.schema.register( 'div', {
         allowWhere: '$block',
+        allowIn: [ 'questionFieldset', 'checkboxDiv' ],
         allowContentOf: '$root'
     } );
 
     // Allow <span> elements in the model.
     editor.model.schema.register( 'span', {
+        isInline: true,
         allowWhere: '$block',
+        allowIn: '$block',
         allowContentOf: '$block'
     } );
 
@@ -188,8 +191,6 @@ function setupAllowedAttributePreservation( editor ) {
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( elements[key], filterAllowedAttributes( viewElement.getAttributes() ) );
             },
-            // Use high priority to overwrite existing converters.
-            converterPriority: 'high'
         } );
     } );
 
@@ -200,8 +201,6 @@ function setupAllowedAttributePreservation( editor ) {
         model: ( viewElement, modelWriter ) => {
             return modelWriter.createElement( 'div', filterAllowedAttributes( viewElement.getAttributes() ) );
         },
-        // Use low priority to make sure existing converters run first.
-        converterPriority: 'low'
     } );
     editor.conversion.for( 'upcast' ).elementToElement( {
         view: 'span',

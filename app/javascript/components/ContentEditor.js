@@ -166,12 +166,12 @@ BalloonEditor.defaultConfig = {
     },
     heading: {
         options: [
-            { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
-            { model: 'heading1', view: 'h2', title: 'Heading 1', class: 'ck-heading_h2' },
-            { model: 'heading2', view: 'h3', title: 'Heading 2', class: 'ck-heading_h3' },
-            { model: 'heading3', view: 'h4', title: 'Heading 3', class: 'ck-heading_h4' },
-            { model: 'heading4', view: 'h5', title: 'Heading 4', class: 'ck-heading_h5' },
-            { model: 'heading5', view: 'h6', title: 'Heading 5', class: 'ck-heading_h6' },
+            { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph', converterPriority: 'low' },
+            { model: 'heading1', view: 'h2', title: 'Heading 1', class: 'ck-heading_h2', converterPriority: 'low' },
+            { model: 'heading2', view: 'h3', title: 'Heading 2', class: 'ck-heading_h3', converterPriority: 'low' },
+            { model: 'heading3', view: 'h4', title: 'Heading 3', class: 'ck-heading_h4', converterPriority: 'low' },
+            { model: 'heading4', view: 'h5', title: 'Heading 4', class: 'ck-heading_h5', converterPriority: 'low' },
+            { model: 'heading5', view: 'h6', title: 'Heading 5', class: 'ck-heading_h6', converterPriority: 'low' },
         ]
     },
     simpleUpload: {

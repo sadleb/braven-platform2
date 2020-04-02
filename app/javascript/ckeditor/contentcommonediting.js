@@ -7,12 +7,11 @@ import RetainedData from './retaineddata';
 import InsertTextInputCommand from './inserttextinputcommand';
 import InsertDoneButtonCommand from './insertdonebuttoncommand';
 import InsertContentBlockCommand from './insertcontentblockcommand';
-import CustomElementAttributePreservation from './customelementattributepreservation';
 import { ALLOWED_ATTRIBUTES, filterAllowedAttributes } from './customelementattributepreservation';
 
 export default class ContentCommonEditing extends Plugin {
     static get requires() {
-        return [ Widget, RetainedData, List, CustomElementAttributePreservation ];
+        return [ Widget, RetainedData, List ];
     }
 
     init() {
@@ -86,10 +85,6 @@ export default class ContentCommonEditing extends Plugin {
         } );
 
         schema.extend( 'listItem', {
-            allowIn: 'questionFieldset',
-        } );
-
-        schema.extend( 'div', {
             allowIn: 'questionFieldset',
         } );
 
@@ -354,13 +349,14 @@ export default class ContentCommonEditing extends Plugin {
         conversion.for( 'upcast' ).elementToElement( {
             model: 'questionBody',
             view: {
-                name: 'div'
+                name: 'div',
             },
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'questionBody',
             view: {
-                name: 'div'
+                name: 'div',
+                classes: [ 'question-body' ],
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
@@ -571,13 +567,14 @@ export default class ContentCommonEditing extends Plugin {
         conversion.for( 'upcast' ).elementToElement( {
             model: 'answerText',
             view: {
-                name: 'div'
+                name: 'div',
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'answerText',
             view: {
-                name: 'div'
+                name: 'div',
+                classes: [ 'answer-body' ],
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
