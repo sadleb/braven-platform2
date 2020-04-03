@@ -213,6 +213,24 @@ That will attach the [CKEditor Inspector](https://ckeditor.com/docs/ckeditor5/la
 
 **TODO:** talk about pry and other dev and troubleshooting techniques.
 
+### Development environment setup
+
+If when you're running `docker-compose up -d` and running into "file not found"/"no such file/directory" errors, it could be a `LF/CRLF` issue that will cause the scripts to execute, for example, `/bin/bash^M`.
+
+This is caused by `autocrlf=true` in your Git configuration.
+
+Try re-cloning your repository with the flag:
+
+    --config core.autocrlf=input
+
+so it uses whatever exists in the repository instead of having Git control it.
+
+You can also add the following to your `~/.gitconfig` and `./.git/config`or:
+
+    [core]
+        autocrlf = input
+
+
 ### Accessibility testing
 
 This project includes [axe](https://www.deque.com/axe/) in development, for live, in-browser accessibility reporting.
