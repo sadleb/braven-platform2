@@ -14,9 +14,8 @@ First, we need to copy a couple of environment files in the app directory:
     cp .env.example .env
     cp .env.database.example .env.database
 
-*Note:* At the time of writing, the SSO login requires the Join server to be running locally at [http://joinweb](http://joinweb).
-Look at the `server` config value in `config/rubycas.yml` for where that comes from. You can login with any user that
-exists in the Join server's database and admins are anyone with an `@bebraven.org` email.
+**Note: At the time of writing, the SSO login requires the Join server to be running locally at http://joinweb.** Look at the `server` config value in `config/rubycas.yml` for where that comes from. You can login with any user that
+exists in the Join server's database and admins are anyone with an `@bebraven.org` email. See the section below on setting up the join server.
 
 You don't really need to change the database passwords in these files, so we're doing this mainly to conform to "best
 practices" for Rails apps in general. But if you do want to pick a different database password, make sure it matches in
@@ -37,12 +36,42 @@ Now create the needed databases:
 We've configured Docker to run our Rails app on port 3020, so go to http://localhost:3020 in your favorite browser. If
 everything's working correctly, you should be brought to the app's homepage.
 
-If you have a `127.0.0.1   platformweb` entry in your `/etc/hosts` file, and are using the [nginx-dev
-container](https://github.com/beyond-z/nginx-dev), you can also access the Platform app via http://platformweb:3020.
+Add a `127.0.0.1   platformweb` to your `/etc/hosts` file to access the Platform app via http://platformweb:3020.
+
+You can also use [nginx-dev
+container](https://github.com/beyond-z/nginx-dev) to access the app without specifying the port number.
+
+### Join server
+
+First, you'll need AWS credentials and to add them to your `~/.bash_profile`:
+
+    export AWS_ACCESS_KEY_ID=<your_key>
+    export AWS_SECRET_ACCESS_KEY=<your_secret>
+
+Then, fork the [development](https://github.com/beyond-z/development) and [beyondz-platform](https://github.com/beyond-z/beyondz-platform) repositories from the [beyondz project](https://github.com/beyond-z).
+
+Clone the repositories, with `beyondz-platform` under `development`:
+
+    git clone https://github.com/[your_username]/development.git development
+    cd development/
+    git clone https://github.com/[your_username]/beyondz-platform.git beyondz-platform
+
+Now build the Docker environment:
+
+    cd beyondz-platform/
+    docker-compose up -d
+
+And set up the database in your Join server's dev environment:
+
+    docker-compose exec joinweb bundle exec rake db:create && ./docker-compose/scripts/dbrefresh.sh
+
+(These commands are from `development/setup.sh`. Search for `$join_src_path` to see what it's doing.)
+
+Add `127.0.0.1   joinserver` to your `/etc/hosts` and access via http://platformweb:3020/.
 
 ### Dummy Data
 
-In dev or staging environments, we may want a few users, etc to work with. Unlike the seed data above, 
+In dev or staging environments, we may want a few users, etc to work with. Unlike the seed data above,
 this data is NOT meant for production. Therefore, it has a separate source file (db/dummies.rb) and rake task:
 
     rake db:dummies
@@ -90,7 +119,7 @@ how they interact with gaurd.
 ### Testing
 
 You can run all tests like this:
-    
+
     docker-compose exec platformweb bundle exec rspec
 
 Or only tests in a particular directory, like our feature tests which use Selenium to click around in the browser:
@@ -153,7 +182,7 @@ project structure and make it easier to get any boilerplate in that matches how 
 by creating our own generators. See [here](https://guides.rubyonrails.org/generators.html) for more info.
 
 **TODO:** We have one custom generator that let's us take a model that we've defined and add scaffolding
-that matches how the data-central project was structured. See [USAGE here](lib/generators/dscaffold/USAGE) 
+that matches how the data-central project was structured. See [USAGE here](lib/generators/dscaffold/USAGE)
 It is out of date and we're in the early stages of designing how the Braven Platform code will be structured
 and work together. Update it and add more generators that make it easy to add code properly to our codebase.
 
@@ -167,7 +196,7 @@ Or search through them with e.g.:
 
     docker-compose logs | grep "ERROR_I_WANT_TO_SEE"
 
-We also have the [web-console gem](https://github.com/rails/web-console) 
+We also have the [web-console gem](https://github.com/rails/web-console)
 in the dev env so that when you get an error page in the browser, it includes an interactive ruby console at the bottom
 so that you can inspect the variables or run code. E.g. Type `instance_variables` or `local_variables` to see a list.
 Or, for example you can inspect one such as the `@current_user` by writing `instance_variable_get(:@current_user)`
