@@ -159,21 +159,25 @@ function setupAllowedAttributePreservation( editor ) {
     // Allow <div> elements in the model.
     editor.model.schema.register( 'div', {
         allowWhere: '$block',
+        allowIn: [ 'questionFieldset', 'checkboxDiv' ],
         allowContentOf: '$root'
     } );
 
     // Allow <span> elements in the model.
     editor.model.schema.register( 'span', {
+        isInline: true,
         allowWhere: '$block',
+        allowIn: '$block',
         allowContentOf: '$block'
     } );
 
     // Elements we want to allow custom attribute preservation on.
     // { view: model }
     // Note: hN = heading(N-1) is a ckeditor5 convention.
+    // We can do all these with normal priority because the ones we define in ContentEditor.js
+    // in the CKE heading options are set to `low` priority.
     const elements = {
         'p': 'paragraph',
-        'td': 'tableCell',
         'h2': 'heading1',
         'h3': 'heading2',
         'h4': 'heading3',
@@ -188,13 +192,20 @@ function setupAllowedAttributePreservation( editor ) {
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( elements[key], filterAllowedAttributes( viewElement.getAttributes() ) );
             },
-            // Use high priority to overwrite existing converters.
-            converterPriority: 'high'
         } );
     } );
 
+    // TD converter must be high priority so it overrides the CKE builtin tableCell converters.
+    editor.conversion.for( 'upcast' ).elementToElement( {
+        view: 'td',
+        model: ( viewElement, modelWriter ) => {
+            return modelWriter.createElement( 'tableCell', filterAllowedAttributes( viewElement.getAttributes() ) );
+        },
+        // Use low priority to make sure existing converters run first.
+        converterPriority: 'high'
+    } );
 
-    // Div and span converters must be regular priority so they don't override more specific converters defined elsewhere.
+    // Div and span converters must be normal priority or lower so they don't override more specific converters defined elsewhere.
     editor.conversion.for( 'upcast' ).elementToElement( {
         view: 'div',
         model: ( viewElement, modelWriter ) => {
@@ -206,6 +217,8 @@ function setupAllowedAttributePreservation( editor ) {
         model: ( viewElement, modelWriter ) => {
             return modelWriter.createElement( 'span', filterAllowedAttributes( viewElement.getAttributes() ) );
         },
+        // Use low priority to make sure existing converters run first.
+        converterPriority: 'low'
     } );
 
     // Model-to-view converter for the <div> element (attrbiutes are converted separately).

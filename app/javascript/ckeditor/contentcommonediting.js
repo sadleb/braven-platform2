@@ -7,7 +7,7 @@ import RetainedData from './retaineddata';
 import InsertTextInputCommand from './inserttextinputcommand';
 import InsertDoneButtonCommand from './insertdonebuttoncommand';
 import InsertContentBlockCommand from './insertcontentblockcommand';
-import { ALLOWED_ATTRIBUTES, filterAllowedAttributes } from './customelementattributepreservation.js';
+import { ALLOWED_ATTRIBUTES, filterAllowedAttributes } from './customelementattributepreservation';
 
 export default class ContentCommonEditing extends Plugin {
     static get requires() {
@@ -349,13 +349,14 @@ export default class ContentCommonEditing extends Plugin {
         conversion.for( 'upcast' ).elementToElement( {
             model: 'questionBody',
             view: {
-                name: 'div'
+                name: 'div',
             },
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'questionBody',
             view: {
-                name: 'div'
+                name: 'div',
+                classes: [ 'question-body' ],
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
@@ -566,13 +567,14 @@ export default class ContentCommonEditing extends Plugin {
         conversion.for( 'upcast' ).elementToElement( {
             model: 'answerText',
             view: {
-                name: 'div'
+                name: 'div',
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'answerText',
             view: {
-                name: 'div'
+                name: 'div',
+                classes: [ 'answer-body' ],
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {

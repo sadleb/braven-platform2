@@ -6,7 +6,7 @@ import RetainedData from './retaineddata';
 import InsertChecklistQuestionCommand from './insertchecklistquestioncommand';
 import InsertCheckboxCommand from './insertcheckboxcommand';
 import SetAttributesCommand from './setattributescommand';
-import { ALLOWED_ATTRIBUTES, filterAllowedAttributes } from './customelementattributepreservation.js';
+import { ALLOWED_ATTRIBUTES, filterAllowedAttributes } from './customelementattributepreservation';
 
 export default class ChecklistQuestionEditing extends Plugin {
     static get requires() {
@@ -54,7 +54,7 @@ export default class ChecklistQuestionEditing extends Plugin {
         schema.register( 'checkboxInput', {
             isInline: true,
             isObject: true,
-            allowIn: [ 'checkboxDiv', 'tableCell' ],
+            allowIn: [ 'checkboxDiv', 'tableCell', '$root' ],
             allowAttributes: [ 'id', 'name', 'value', 'data-correctness' ].concat(ALLOWED_ATTRIBUTES),
         } );
 
