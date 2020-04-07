@@ -1,4 +1,5 @@
 import Command from '@ckeditor/ckeditor5-core/src/command';
+import { findAllowedParentIgnoreLimit } from './utils.js';
 
 export default class InsertCheckboxCommand extends Command {
     execute() {
@@ -17,7 +18,7 @@ export default class InsertCheckboxCommand extends Command {
     refresh() {
         const model = this.editor.model;
         const selection = model.document.selection;
-        const allowedIn = model.schema.findAllowedParent( selection.getFirstPosition(), 'checkboxDiv' );
+        const allowedIn = findAllowedParentIgnoreLimit( model.schema, selection.getFirstPosition(), 'checkboxDiv' );
 
         this.isEnabled = allowedIn !== null;
     }

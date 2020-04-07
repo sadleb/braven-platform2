@@ -24,6 +24,13 @@ export default class ChecklistQuestionEditing extends Plugin {
         // Add a shortcut to the retained data ID function.
         this._nextRetainedDataId = this.editor.plugins.get('RetainedData').getNextId;
 
+        // Listen for 'delete' events (includes Backspace).
+        this.listenTo( this.editor.editing.view.document, 'delete', ( evt, data ) => {
+            console.log(evt, data, this.editor.model.document.selection.getLastPosition());
+            data.preventDefault();
+            evt.stop();
+        } );
+
         // Override the default 'enter' key behavior for checkbox labels.
         this.listenTo( this.editor.editing.view.document, 'enter', ( evt, data ) => {
             const positionParent = this.editor.model.document.selection.getLastPosition().parent;
@@ -48,6 +55,7 @@ export default class ChecklistQuestionEditing extends Plugin {
         } );
 
         schema.register( 'checkboxDiv', {
+            isObject: true,
             allowIn: [ 'questionFieldset' ],
         } );
 
@@ -59,6 +67,7 @@ export default class ChecklistQuestionEditing extends Plugin {
         } );
 
         schema.register( 'checkboxLabel', {
+            isObject: true,
             isInline: true,
             allowIn: 'checkboxDiv',
             allowContentOf: '$block',
@@ -66,7 +75,7 @@ export default class ChecklistQuestionEditing extends Plugin {
         } );
 
         schema.register( 'checkboxInlineFeedback', {
-            isLimit: true,
+            isObject: true,
             allowIn: 'checkboxDiv',
             allowContentOf: '$block'
         } );
