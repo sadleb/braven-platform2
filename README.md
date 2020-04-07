@@ -69,6 +69,32 @@ And set up the database in your Join server's dev environment:
 
 Add `127.0.0.1   joinserver` to your `/etc/hosts` and access via http://platformweb:3020/.
 
+### Salesforce
+
+If you need to work on anything that hits the Salesforce API, you'll need to setup the following
+environment variables in your `~/.bash_profile`.
+[Here is an article](https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/quickstart_oauth.htm) to help you through the below steps.
+
+
+    export SALESFORCE_PLATFORM_CONSUMER_KEY=<the_key>
+    export SALESFORCE_PLATFORM_CONSUMER_SECRET=<the_secret>
+    export SALESFORCE_PLATFORM_USERNAME=<the_username>
+    export SALESFORCE_PLATFORM_PASSWORD=<the_password>
+    export SALESFORCE_PLATFORM_SECURITY_TOKEN=<the_security_token>
+
+The values to use come from the Connected App in the Salesforce environment you are working against and
+for the user that setup that connected app. To create them in a given Salesforce environment (prod, staging, dev)
+first ask someone to create a Salesforce account for you (or get the admin account). 
+
+1. Login and go to Setup (the little gear in the top right)
+2. In the Quick Find type "App Manager". 
+3. Under App Manager, you can create a "New Connected App" in the top right.
+
+*Tip*: If you want to get the key/secret for an existing app click on the little dropdown arrow to the right of it and choose "View".
+
+**Important Note**: whenever you change the password for the account that created the connected app, a new security token
+will be emailed to that user in an email titled "Your new Salesforce security token".
+
 ### Dummy Data
 
 In dev or staging environments, we may want a few users, etc to work with. Unlike the seed data above,

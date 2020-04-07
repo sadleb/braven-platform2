@@ -34,6 +34,26 @@ class CanvasAPI
     put("/courses/#{course_id}/pages/#{wiki_page_id}", body)
   end
 
+  def create_user(first_name, last_name, username, email, timezone, docusign_template_id=nil)
+    body = {
+#        'user[name]' => nil,
+        'user[short_name]' => first_name,
+        'user[sortable_name]' => "#{last_name}, #{first_name}",
+        'user[skip_registration]' => true,
+        'user[time_zone]' => timezone,
+        'user[docusign_template_id]' => docusign_template_id,
+        'pseudonym[unique_id]' => username,
+        'pseudonym[send_confirmation]' => false,
+        'communication_channel[type]' => 'email',
+        'communication_channel[address]' => email,
+        'communication_channel[skip_confirmation]' => true,
+        'communication_channel[confirmation_url]' => true
+         # TODO: how to handle this?
+         # 'pseudonym[sis_user_id]' => "BVID#{user.id}-SISID#{user_student_id}"
+    }
+    post('/accounts/1/users', body)
+  end
+
   def get(path, params={}, headers={})
     RestClient.get("#{@api_url}#{path}", {params: params}.merge(@global_headers.merge(headers)))
   end
