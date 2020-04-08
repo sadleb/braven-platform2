@@ -369,6 +369,9 @@ class ContentEditor extends Component {
                         <li onClick={(evt) => this.handlePublish(evt)} className={this.state['isPublished'] ? "success" : ""}>
                           Publish{this.state['isPublished'] ? "ed" : ""} {this.state['isPublished']}
                         </li>
+                        <li onClick={(evt) => document.forms[0].submit()}>
+                          Save
+                        </li>
                     </ul>
 
                 </header>
