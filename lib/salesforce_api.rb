@@ -2,6 +2,9 @@ require 'rest-client'
 
 class SalesforceAPI
 
+  # Pass these into any POST or PUT request where the body is json.
+  JSON_HEADERS = {content_type: :json, accept: :json}
+
   def initialize()
     # For authentication against the Salesforce API we use what is called a Session ID token as detailed here:
     # https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/quickstart_oauth.htm 
@@ -32,8 +35,29 @@ class SalesforceAPI
     @global_headers = { 'Authorization' => "Bearer #{@access_token}" }
   end
 
-  def get_participant_data()
-    get("/services/apexrest/participants/currentandfuture/")
+  # Gets information about all current for future Participants in the program. These are folks who are
+  # enrolled and should have Portal access.
+  #
+  # last_modified_since: specifies that we should only get data modified since this value.
+
+  # TODO: ACTUALLY, need to figure out what format we need to use. The below format is what is sent back from SF
+  # for the date, but need to make sure I can convert that to a SOQL query and filter on it.
+
+  # The format is the Salesforce database datetime format in GMT. For example:
+  #    2020-04-06T20:19:23.000+0000 
+  # Also, it's only down to the second precision, not millisecond.
+  def get_participant_data(last_modified_since = nil)
+    query_params = (last_modified_since ? "?last_modified_since=#{last_modified_since}" : '')
+    get("/services/apexrest/participants/currentandfuture/#{query_params}") # Defined in CourseParticipantInfoService apex class in Salesforce
+  end
+
+  # Same as get_participant_data(), but only for the specified course_id
+  def get_participant_data_for_course(course_id, last_modified_since = nil)
+    body = {
+      "courseId" => "#{course_id}",
+      "last_modified_since" => last_modified_since
+    }
+    post("/services/apexrest/participants/currentandfuture/", body.to_json, JSON_HEADERS) # Defined in CourseParticipantInfoService apex class in Salesforce
   end
 
   def get(path, params={}, headers={})
