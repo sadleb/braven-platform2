@@ -387,6 +387,25 @@ class ContentEditor extends Component {
                                        placeholder="Page Title"
                                 />
                             </h2>
+                            <details>
+                              <summary>Advanced</summary>
+                              <select name="course_content[content_type]"
+                                      defaultValue={this.props.course_content['content_type']}
+                                      placeholder="Content Type">
+                                <option value="">SELECT PAGE TYPE</option>
+                                <option value="wiki_page">Module</option>
+                                <option value="assignment">Project</option>
+                              </select>
+                              <br/>
+                              <input type="number" name="course_content[course_id]"
+                                     defaultValue={this.props.course_content['course_id']}
+                                     placeholder="Course ID"
+                              />
+                              <input type="text" name="course_content[secondary_id]"
+                                     defaultValue={this.props.course_content['secondary_id']}
+                                     placeholder="Secondary ID"
+                              />
+                            </details>
                         </div>
                         <div id="toolbar-contextual">
                             {this.state.modelPath.map( modelElement => {
