@@ -26,7 +26,6 @@ export default class ChecklistQuestionEditing extends Plugin {
 
         // Listen for 'delete' events (includes Backspace).
         this.listenTo( this.editor.editing.view.document, 'delete', ( evt, data ) => {
-            console.log(evt, data, this.editor.model.document.selection.getLastPosition());
             data.preventDefault();
             evt.stop();
         } );
