@@ -89,7 +89,7 @@ RSpec.describe CourseContentsController, type: :controller do
 
       it "redirects to the created course_content" do
         post :create, params: {course_content: valid_attributes}, session: valid_session
-        expect(response).to redirect_to(CourseContent.last)
+        expect(response).to redirect_to(edit_course_content_path(CourseContent.last))
       end
     end
 
@@ -118,7 +118,7 @@ RSpec.describe CourseContentsController, type: :controller do
       it "redirects to the course_content" do
         course_content = CourseContent.create! valid_attributes
         put :update, params: {id: course_content.to_param, course_content: valid_attributes}, session: valid_session
-        expect(response).to redirect_to(course_content)
+        expect(response).to redirect_to(edit_course_content_path(course_content))
       end
     end
 
