@@ -1,5 +1,5 @@
 import Command from '@ckeditor/ckeditor5-core/src/command';
-import { findAllowedParentIgnoreLimit } from './utils.js';
+import { findAllowedParentIgnoreLimit } from './utils';
 
 export default class InsertCheckboxCommand extends Command {
     execute() {

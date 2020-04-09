@@ -47,6 +47,7 @@ export default class RadioQuestionEditing extends Plugin {
         } );
 
         schema.register( 'radioDiv', {
+            isObject: true,
             allowIn: [ 'questionFieldset' ]
         } );
 
@@ -58,6 +59,7 @@ export default class RadioQuestionEditing extends Plugin {
         } );
 
         schema.register( 'radioLabel', {
+            isObject: true,
             isInline: true,
             allowIn: 'radioDiv',
             allowContentOf: '$block',
