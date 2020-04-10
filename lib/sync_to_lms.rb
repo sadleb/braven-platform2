@@ -58,22 +58,21 @@ class SyncToLMS
       # Figure out how to implement this properly.
       # The DocuSign template could have changed after we first created the user with it. So update it for existing users.
       # update_user_in_canvas(user, :docusign_template_id => docusign_template_id)
-    else
+    elsif participant_status == 'Enrolled'
       new_canvas_user = CanvasProdClient.create_user(first_name, last_name, username, email, salesforce_id, student_id, @program.timezone, @program.docusign_template_id)
       canvas_user_id = new_canvas_user['id']
       Rails.logger.debug("Created new canvas_user_id = #{canvas_user_id}")
     end
 
-    # TODO: handle folks marked as something other than Enrolled. E.g. Dropped.
-
-    # Enroll or update their enrollment in the proper course and section
-    if role == :Fellow
-      sync_course_enrollment(canvas_user_id, @program.fellow_course_id, :StudentEnrollment, section_name)
-    elsif role == :'Leadership Coach'
-      sync_course_enrollment(canvas_user_id, @program.fellow_course_id, :TaEnrollment, section_name)
-      sync_course_enrollment(canvas_user_id, @program.leadership_coach_course_id, :StudentEnrollment, @program.leadership_coach_course_section_name)
+    case participant_status
+    when 'Enrolled'
+      enroll_user(canvas_user_id, role, section_name)
+    when 'Dropped'
+      drop_user_enrollment(canvas_user_id, role)
+    when 'Completed'
+      complete_user_enrollment(canvas_user_id)
     else
-      Rails.logger.error("Unrecognized role = '#{role}' returned from Salesforce. Skipping Sync To LMS for Salesforce Participant = #{salesforce_id}")
+      Rails.logger.warn("Unrecognized Participant.Status sent from Salesforce: #{participant_status}. canvas_user_id = #{canvas_user_id}, salesforce_id = #{salesforce_id}")
     end
 
     # TODO: reimplement the following logic to sync their enrollment info
@@ -82,12 +81,44 @@ class SyncToLMS
 
   end
 
+  # Enroll or update their enrollment in the proper course and section
+  def enroll_user(canvas_user_id, role, fellow_course_section_name)
+    if role == :Fellow
+      sync_course_enrollment(canvas_user_id, @program.fellow_course_id, :StudentEnrollment, fellow_course_section_name)
+    elsif role == :'Leadership Coach'
+      sync_course_enrollment(canvas_user_id, @program.fellow_course_id, :TaEnrollment, fellow_course_section_name)
+      sync_course_enrollment(canvas_user_id, @program.leadership_coach_course_id, :StudentEnrollment, @program.leadership_coach_course_section_name)
+    else
+      Rails.logger.error("Unrecognized role = '#{role}' returned from Salesforce. Skipping Sync To LMS for Salesforce Participant = #{salesforce_id}")
+    end
+  end
+
+  def drop_user_enrollment(canvas_user_id, role)
+    existing_fellow_course_enrollment = get_enrollment(canvas_user_id, @program.fellow_course_id)
+    if existing_fellow_course_enrollment 
+      Rails.logger.debug("Cancelling enrollment for canvas_user_id = #{canvas_user_id} in course_id #{@program.fellow_course_id} because they Dropped.")
+      CanvasProdClient.cancel_enrollment(existing_fellow_course_enrollment)
+    end
+
+    if role == :'Leadership Coach'
+      existing_lc_course_enrollment = get_enrollment(canvas_user_id, @program.leadership_coach_course_id)
+      if existing_lc_course_enrollment
+        Rails.logger.debug("Cancelling enrollment for canvas_user_id = #{canvas_user_id} in course_id #{@program.leadership_coach_course_id} because they Dropped.")
+        CanvasProdClient.cancel_enrollment(existing_lc_course_enrollment)
+      end
+    end
+  end
+
+  def complete_user_enrollment(canvas_user_id)
+    # NOOP right now. In the future, maybe we remove course access after the program completes and that would be implemented here.
+  end
+
   # Syncs the Canvas enrollments for the given user in the given course, by unenrolling
   # from existing courses, if necessary, and enrolling them in the new course+section.
   #
   # Note: canvas_role = [:StudentEnrollment, :TaEnrollment, :DesignerEnrollment, :TeacherEnrollment]
   def sync_course_enrollment(canvas_user_id, course_id, canvas_role, section_name)
-    existing_enrollment = get_enrollment(course_id, canvas_user_id)
+    existing_enrollment = get_enrollment(canvas_user_id, course_id)
     section = get_section(course_id, section_name)
     unless section
       section = CanvasProdClient.create_section(course_id, section_name) 
@@ -120,7 +151,7 @@ class SyncToLMS
   end
 
   # Loads all enrollments for the course on the first call and caches that for future calls.
-  def get_enrollment(course_id, canvas_user_id)
+  def get_enrollment(canvas_user_id, course_id)
     unless @all_existing_course_enrollments[course_id]
       @all_existing_course_enrollments[course_id] = CanvasProdClient.get_enrollments(course_id)
     end
