@@ -230,6 +230,21 @@ You can also add the following to your `~/.gitconfig` and `./.git/config`or:
     [core]
         autocrlf = input
 
+### Updating dependencies
+
+To update Ruby dependencies, run:
+
+    bundle update
+
+To update JavaScript dependencies, run:
+
+    yarn upgrade-interactive --latest
+
+CKEditor updates tend to have major breaking changes often, so be sure to test and make sure everything still works.
+
+Once the dependencies are updated, you will need to rebuild your container:
+
+    docker-compose build && docker-compose run platformweb yarn
 
 ### Accessibility testing
 
