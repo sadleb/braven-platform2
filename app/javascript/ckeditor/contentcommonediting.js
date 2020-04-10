@@ -123,7 +123,7 @@ export default class ContentCommonEditing extends Plugin {
         schema.register( 'textInput', {
             isObject: true,
             allowAttributes: [ 'type', 'placeholder' ].concat(ALLOWED_ATTRIBUTES),
-            allowIn: [ '$root', '$block', 'tableCell' ],
+            allowIn: [ '$root', '$block', 'tableCell', 'questionFieldset' ],
         } );
 
         schema.register( 'textArea', {
@@ -135,7 +135,7 @@ export default class ContentCommonEditing extends Plugin {
         schema.register( 'fileUpload', {
             isObject: true,
             allowAttributes: [ 'class', 'type' ].concat(ALLOWED_ATTRIBUTES),
-            allowIn: [ '$root' ],
+            allowIn: [ '$root', 'questionFieldset' ],
         } );
 
         schema.register( 'slider', {
@@ -147,7 +147,7 @@ export default class ContentCommonEditing extends Plugin {
         schema.register( 'select', {
             isObject: true,
             allowAttributes: [ 'id', 'name' ].concat(ALLOWED_ATTRIBUTES),
-            allowIn: [ '$root' ],
+            allowIn: [ '$root', 'questionFieldset' ],
         } );
 
         schema.register( 'selectOption', {
