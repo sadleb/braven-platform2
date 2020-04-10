@@ -58,6 +58,7 @@ Rails.application.routes.draw do
 
   # Salesforce Routes
   get 'salesforce/sync_to_lms'
+  post 'salesforce/sync_to_lms'
 
 
   # RubyCAS Routes

@@ -7,14 +7,17 @@ RSpec.describe SyncToLMS do
 
   describe 'fetch from Salesforce' do
 
-    xit 'fetches Participant Data only for the course being synced ' do
+    xit 'fetches Participants only for the course being synced ' do
     end
 
-    xit 'parses Participant Data for Fellow' do
+    xit 'fetches only modified Participant objects' do
+    end
+
+    xit 'parses Participant objects for Fellow' do
       # Make sure the fields needed for the Canvas create user call are properly parsed from the returend Participant Data object.
     end
 
-    xit 'parses Participant Data for LC' do
+    xit 'parses Participant objects for LC' do
       # Make sure the fields needed for the Canvas create user call are properly parsed from the returend Participant Data object.
     end
 
@@ -37,6 +40,9 @@ RSpec.describe SyncToLMS do
     end
 
     xit 'handles missing LC Playbook course id for LC' do
+    end
+
+    xit 'handles missing Student ID' do
     end
 
     xit 'handles missing timezone ' do
@@ -65,6 +71,12 @@ RSpec.describe SyncToLMS do
     end
 
     xit 'creates users in correct section' do
+    end
+
+    xit 'moves existing users between sections' do
+    end
+
+    xit 'puts users in placeholder sections based on Learning Lab meeting day/times if cohort not set' do
     end
 
     xit 'creates users with the correct role (aka Student vs TA)' do

@@ -1,0 +1,10 @@
+<%= form_with(url: salesforce_sync_to_lms_path, method: "post", local: true) do |form| %>
+  <div class="field">
+    <%= form.label :course_id, "Course ID:" %>
+    <%= form.text_field :course_id %>
+  </div>
+
+  <div class="actions">
+    <%= form.submit %>
+  </div>
+<% end %>    

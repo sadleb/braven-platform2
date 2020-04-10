@@ -17,7 +17,7 @@ class SalesforceAPI
     }
   
     # TODO: this endpoint is really only supposed to be for dev env testing. Once we figure out how to hookup this stuff
-    # to Salesforce, either use the JWT/JWK bearer flow:
+    # to Salesforce, ideally switch to use the JWT/JWK bearer flow:
     #  - https://help.salesforce.com/articleView?id=remoteaccess_oauth_jwt_flow.htm&type=5
     # or one of the other OAuth flows if we want the access token to be on a per user basis.
     #  - https://help.salesforce.com/articleView?id=remoteaccess_oauth_flows.htm&type=5
@@ -35,31 +35,6 @@ class SalesforceAPI
     @global_headers = { 'Authorization' => "Bearer #{@access_token}" }
   end
 
-  # Gets information about all current for future Participants in the program. These are folks who are
-  # enrolled and should have Portal access.
-  #
-  # last_modified_since: specifies that we should only get data modified since this value.
-
-  # TODO: ACTUALLY, need to figure out what format we need to use. The below format is what is sent back from SF
-  # for the date, but need to make sure I can convert that to a SOQL query and filter on it.
-
-  # The format is the Salesforce database datetime format in GMT. For example:
-  #    2020-04-06T20:19:23.000+0000 
-  # Also, it's only down to the second precision, not millisecond.
-  def get_participant_data(last_modified_since = nil)
-    query_params = (last_modified_since ? "?last_modified_since=#{last_modified_since}" : '')
-    get("/services/apexrest/participants/currentandfuture/#{query_params}") # Defined in CourseParticipantInfoService apex class in Salesforce
-  end
-
-  # Same as get_participant_data(), but only for the specified course_id
-  def get_participant_data_for_course(course_id, last_modified_since = nil)
-    body = {
-      "courseId" => "#{course_id}",
-      "last_modified_since" => last_modified_since
-    }
-    post("/services/apexrest/participants/currentandfuture/", body.to_json, JSON_HEADERS) # Defined in CourseParticipantInfoService apex class in Salesforce
-  end
-
   def get(path, params={}, headers={})
     RestClient.get("#{@salesforce_url}#{path}", {params: params}.merge(@global_headers.merge(headers)))
   end
@@ -71,5 +46,65 @@ class SalesforceAPI
   def put(path, body, headers={})
     RestClient.put("#{@salesforce_url}#{path}", body, @global_headers.merge(headers))
   end
+
+  def get_program_info(course_id)
+    soql_query = 
+      "SELECT Id, Name, Target_Course_ID_in_LMS__c, LMS_Coach_Course_Id__c, School__c, " +
+        "Section_Name_in_LMS_Coach_Course__c, Default_Timezone__c, Docusign_Template_ID__c, " + 
+        "Preaccelerator_Qualtrics_Survey_ID__c, Postaccelerator_Qualtrics_Survey_ID__c " + 
+      "FROM Program__c WHERE Target_Course_ID_in_LMS__c = '#{course_id}'"
+
+    response = get("/services/data/v48.0/query?q=#{CGI.escape(soql_query)}")
+    program_info = JSON.parse(response.body)['records'][0]
+    # Note: these match the attributes on the Program model. Keep them in sync.
+    ret = {
+      :name                                 => program_info['Name'],
+      :salesforce_id                        => program_info['Id'],
+      :salesforce_school_id                 => program_info['SchoolId'],
+      :fellow_course_id                     => program_info['Target_Course_ID_in_LMS__c'].to_i,
+      :leadership_coach_course_id           => program_info['LMS_Coach_Course_Id__c'].to_i,
+      :leadership_coach_course_section_name => program_info['Section_Name_in_LMS_Coach_Course__c'],
+      :timezone                             => program_info['Default_Timezone__c'].to_sym,
+      :docusign_template_id                 => program_info['Docusign_Template_ID__c'],
+      :pre_accelerator_qualtrics_survey_id  => program_info['Preaccelerator_Qualtrics_Survey_ID__c'],
+      :post_accelerator_qualtrics_survey_id => program_info['Postaccelerator_Qualtrics_Survey_ID__c']
+    }
+  end
+
+  # Gets a list of all Participants in the Program. These are folks who are
+  # enrolled and should have Portal access.
+  #
+  # last_modified_since: specifies that we should only get participants whose info has been  modified since this value.
+
+  # TODO: need to figure out what format we need to use. The below format is what is sent back from SF
+  # for the date, but need to make sure I can convert that to a SOQL query and filter on it.
+
+  # The format is the Salesforce database datetime format in GMT. For example:
+  #    2020-04-06T20:19:23.000+0000 
+  # Also, it's only down to the second precision, not millisecond.
+  def get_participants(course_id, last_modified_since = nil)
+    query_params = ''
+    if course_id || last_modified_since
+      query_params = '?'
+      query_params += "course_id=#{course_id}" if course_id
+      query_params += '&' if course_id && last_modified_since
+      query_params += "last_modified_since=#{CGI.escape(last_modified_since)}" if last_modified_since 
+    end
+    # Defined in CourseParticipantInfoService Apex class in Salesforce
+    response = get("/services/apexrest/participants/currentandfuture/#{query_params}") 
+    JSON.parse(response.body)
+  end
+
+# TODO: delete me if we don't need to use a POST for any reason. I figured out how to accept query params in the get after I had implement this.
+# I'm assuming we'll be fine sending the request to SF in a get and not need this, but just in case I"m leaving this around until we've fully
+# implemented the flow and know we won't use it.
+#  # Same as get_participant_data(), but only for the specified course_id
+#  def get_participant_data_for_course(course_id, last_modified_since = nil)
+#    body = {
+#      "courseId" => "#{course_id}",
+#      "last_modified_since" => last_modified_since
+#    }
+#    post("/services/apexrest/participants/currentandfuture/", body.to_json, JSON_HEADERS) # Defined in CourseParticipantInfoService apex class in Salesforce
+#  end
 
 end
