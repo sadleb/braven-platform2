@@ -1,4 +1,5 @@
 import Command from '@ckeditor/ckeditor5-core/src/command';
+import { findAllowedParentIgnoreLimit } from './utils';
 
 export default class InsertRadioCommand extends Command {
     execute() {
@@ -17,7 +18,7 @@ export default class InsertRadioCommand extends Command {
     refresh() {
         const model = this.editor.model;
         const selection = model.document.selection;
-        const allowedIn = model.schema.findAllowedParent( selection.getFirstPosition(), 'radioDiv' );
+        const allowedIn = findAllowedParentIgnoreLimit( model.schema, selection.getFirstPosition(), 'radioDiv' );
 
         this.isEnabled = allowedIn !== null;
     }
