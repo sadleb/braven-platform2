@@ -18,6 +18,7 @@ export default class ModuleBlockEditing extends Plugin {
         schema.register( 'moduleBlock', {
             isObject: true,
             allowIn: 'section',
+            allowAttribute: [ 'blockClasses' ],
         } );
 
         // Allow question, answer, and content divs inside module-block divs.
@@ -47,7 +48,7 @@ export default class ModuleBlockEditing extends Plugin {
             },
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'moduleBlock', {
-                    'class': viewElement.getAttribute('class') || 'module-block',
+                    'blockClasses': viewElement.getAttribute('class') || 'module-block',
                 });
             }
         } );
@@ -55,7 +56,7 @@ export default class ModuleBlockEditing extends Plugin {
             model: 'moduleBlock',
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createContainerElement( 'div', {
-                    'class': modelElement.getAttribute('class') || 'module-block',
+                    'class': modelElement.getAttribute('blockClasses') || 'module-block',
                 } );
             }
         } );
@@ -63,10 +64,10 @@ export default class ModuleBlockEditing extends Plugin {
             model: 'moduleBlock',
             view: ( modelElement, viewWriter ) => {
                 const moduleBlock = viewWriter.createContainerElement( 'div', {
-                    'class': modelElement.getAttribute('class') || 'module-block',
+                    'class': modelElement.getAttribute('blockClasses') || 'module-block',
                 } );
 
-                return toWidget( moduleBlock, viewWriter, { label: 'module-block widget' } );
+                return toWidget( moduleBlock, viewWriter, { label: 'module-block widget', hasSelectionHandle: true } );
             }
         } );
     }
