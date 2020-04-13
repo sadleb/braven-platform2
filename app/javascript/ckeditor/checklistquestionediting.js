@@ -144,7 +144,7 @@ export default class ChecklistQuestionEditing extends Plugin {
                     'class': 'module-checkbox-div'
                 } );
 
-                return toWidget( div, viewWriter );
+                return toWidget( div, viewWriter, { label: 'checklist option widget' } );
             }
         } );
 

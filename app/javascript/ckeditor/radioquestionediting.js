@@ -141,7 +141,7 @@ export default class RadioQuestionEditing extends Plugin {
                     'class': 'module-radio-div'
                 } );
 
-                return toWidget( div, viewWriter );
+                return toWidget( div, viewWriter, { label: 'radio option widget' } );
             }
         } );
 
