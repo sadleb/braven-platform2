@@ -18,14 +18,9 @@ export default class IFrameContentEditing extends Plugin {
     _defineSchema() {
         const schema = this.editor.model.schema;
 
-        schema.register( 'iframeContent', {
-            isObject: true,
-            allowIn: 'section',
-        } );
-
         schema.register( 'iframe', {
-            allowIn: 'content',
-            allowAttributes: [ 'src' ]
+            allowIn: [ 'content', 'contentBody', '$root' ],
+            allowAttributes: [ 'src', 'width' ]
         } );
     }
 
@@ -33,36 +28,6 @@ export default class IFrameContentEditing extends Plugin {
         const editor = this.editor;
         const conversion = editor.conversion;
         const { editing, data, model } = editor;
-
-        // <iframeContent> converters
-        conversion.for( 'upcast' ).elementToElement( {
-            view: {
-                name: 'div',
-                classes: ['module-block', 'module-iframe']
-            },
-            model: ( viewElement, modelWriter ) => {
-                // Read the "data-id" attribute from the view and set it as the "id" in the model.
-                return modelWriter.createElement( 'iframeContent' );
-            }
-        } );
-        conversion.for( 'dataDowncast' ).elementToElement( {
-            model: 'iframeContent',
-            view: ( modelElement, viewWriter ) => {
-                return viewWriter.createEditableElement( 'div', {
-                    'class': 'module-block module-iframe',
-                } );
-            }
-        } );
-        conversion.for( 'editingDowncast' ).elementToElement( {
-            model: 'iframeContent',
-            view: ( modelElement, viewWriter ) => {
-                const iframeContent = viewWriter.createContainerElement( 'div', {
-                    'class': 'module-block module-iframe',
-                } );
-
-                return toWidget( iframeContent, viewWriter, { label: 'iframe widget' } );
-            }
-        } );
 
         // <iframe> converters
         conversion.for( 'upcast' ).elementToElement( {
@@ -72,7 +37,8 @@ export default class IFrameContentEditing extends Plugin {
             },
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'iframe', {
-                    'src': viewElement.getAttribute( 'src' )
+                    'src': viewElement.getAttribute( 'src' ),
+                    'width': viewElement.getAttribute( 'width' ),
                 } );
             }
         } );
@@ -81,6 +47,7 @@ export default class IFrameContentEditing extends Plugin {
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createEditableElement( 'iframe', {
                     'src': modelElement.getAttribute( 'src' ),
+                    'width': modelElement.getAttribute( 'width' ),
                     'class': 'iframe-content'
                 } );
             }
@@ -90,6 +57,7 @@ export default class IFrameContentEditing extends Plugin {
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createEditableElement( 'iframe', {
                     'src': modelElement.getAttribute( 'src' ),
+                    'width': modelElement.getAttribute( 'width' ),
                     'class': 'iframe-content'
                 } );
             }
