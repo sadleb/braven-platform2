@@ -232,6 +232,7 @@ class ContentEditor extends Component {
         this.handleEditorDataChange = this.handleEditorDataChange.bind( this );
         this.handleEditorFocusChange = this.handleEditorFocusChange.bind( this );
         this.handleEditorInit = this.handleEditorInit.bind( this );
+        this.handleTabSelect = this.handleTabSelect.bind(this);
 
         // Non-CKE UI functions.
         this.fileUpload = React.createRef();
@@ -243,12 +244,14 @@ class ContentEditor extends Component {
     }
 
     // A handler executed when the user types or modifies the editor content.
-    // It updates the state of the application.
-    handleEditorDataChange( evt, editor ) {
-        this.setState( {
-            editorData: editor.getData(),
-            isPublished: false
-        } );
+    // Tracking content data for the "Design" tab is done by this.editor, so 
+    // we aren't constantly updating and re-rendering state. 
+    handleEditorDataChange( evt, _editor ) {
+        if (this.state.isPublished) {
+            this.setState({
+                isPublished: false,
+            });
+        }
     }
 
     // A handler executed when the current selection changes inside the CKEditor view.
@@ -352,6 +355,15 @@ class ContentEditor extends Component {
                     console.log(error);
                 }
             );
+    }
+
+    handleTabSelect(event) {
+        if (event == 1) { // Switching to "Code" tab
+            // Update the raw HTML for "Code" tab display and editing
+            this.setState({
+                editorData: this.editor.getData(),
+            });
+        }
     }
 
     render() {
@@ -738,7 +750,9 @@ class ContentEditor extends Component {
                             </ul>
                         </div>
                     </div>
-                    <Tabs defaultIndex={window.location.search.includes('html=true') ? 1 : 0}>
+                    <Tabs 
+                        defaultIndex={window.location.search.includes('html=true') ? 1 : 0}
+                        onSelect={(evt) => this.handleTabSelect(evt)}>
                         <div id="workspace">
                             <TabList id="view-mode">
                                 <Tab>Design</Tab>
@@ -754,7 +768,7 @@ class ContentEditor extends Component {
                                         onInit={this.handleEditorInit}
                                     />
                                 </div>
-                                <textarea value={this.state.editorData}
+                                <textarea value={this.editor ? this.editor.getData() : this.state.editorData}
                                           className="secret-html"
                                           readOnly={true}
                                           name="course_content[body]"></textarea>
