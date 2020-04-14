@@ -87,3 +87,7 @@ end
 def should_not condition
   expect(subject).to_not condition
 end
+
+# Helps with formatting JSON using factories.
+require 'api_helper'
+
