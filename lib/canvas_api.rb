@@ -1,5 +1,4 @@
 require 'rest-client'
-#require 'cgi'
 
 class CanvasAPI
   attr_reader :canvas_url
@@ -133,14 +132,10 @@ class CanvasAPI
       link = response.headers[:link]
       break if link.nil?
 
-      next_url = nil
-      link.split(',').each do |part|
-        if part.ends_with?('; rel="next"')
-          next_url = part[1 .. link.index('>')-1]
-          break
-        end
-      end
-
+      # Find the line in the link header that looks like the following and pull the URL out:
+      # <https://bebraven.instructure.com/api/v1/courses/:id/assignements>; rel="next"
+      match = link.match /.*<(?<url>.+)>; rel="next"/
+      next_url = (match ? match[:url] : nil)
       if next_url
         # Turn something like this: https://portal.bebraven.org/api/v1/courses/71/enrollments?page=2&per_page=100
         # into this: /courses/71/enrollments?page=2&per_page=100
