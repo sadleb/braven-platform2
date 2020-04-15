@@ -28,7 +28,7 @@ RSpec.describe SalesforceAPI do
 
   end
 
-  describe 'authentication' do
+  describe '#new' do
     let(:salesforce) { SalesforceAPI.new() }
 
     it 'gets an access token' do
@@ -37,7 +37,7 @@ RSpec.describe SalesforceAPI do
         .with(body: 'grant_type=password&client_id=testkey&client_secret=testsecret&username=testuser%40example.com&password=testpasswordtesttoken').once
     end
 
-    it 'correctly sets authorization header' do
+    it 'sets the authorization header' do
       stub_request(:any, /#{SALESFORCE_INSTANCE_URL}.*/)
 
       salesforce.get('/test')
@@ -48,11 +48,11 @@ RSpec.describe SalesforceAPI do
     
   end
 
-  describe 'sync_to_lms' do
+  describe '#get_program_info(course_id)' do
     let(:salesforce) { SalesforceAPI.new() }
     let(:course_id) { 71 }
 
-    it 'gets program info' do
+    it 'calls the correct endpoint' do
       request_url_regex = /#{SALESFORCE_INSTANCE_URL}\/services\/data\/.*/
       program_json = FactoryBot.json(:salesforce_program)
       stub_request(:get, request_url_regex).to_return(body: program_json )
@@ -63,8 +63,13 @@ RSpec.describe SalesforceAPI do
       # Note: I'm going to test the actual response contents in the controller spec since the API returns a hash
       # meant for use in constructing a program model.
     end
+  end
 
-    it 'gets users to sync' do
+  describe '#get_participants(course_id)' do
+    let(:salesforce) { SalesforceAPI.new() }
+    let(:course_id) { 71 }
+
+    it 'calls the correct endpoint' do
       request_url = "#{SALESFORCE_INSTANCE_URL}/services/apexrest/participants/currentandfuture/?course_id=#{course_id}" 
       participant_json = "[#{FactoryBot.json(:salesforce_participant_fellow)}]"
       stub_request(:get, request_url).to_return(body: participant_json)
