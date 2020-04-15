@@ -117,6 +117,20 @@ div.content > blockquote:focus > small {
         color: black;
         background: none;
 }
+div.module-block:not(.module-block-quote) blockquote {
+        padding: 0 1.5em;
+        margin: 0;
+        border-left: none;
+        width: 100%;
+        background: none;
+        color: black;
+        font-size: 18px;
+}
+
+/* custom components */
+div.modal {
+  display: none;
+}
 
 /* --- Right sidebar styles --- */
 ul.widget-list li.disabled,
