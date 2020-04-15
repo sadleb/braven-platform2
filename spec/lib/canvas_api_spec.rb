@@ -69,7 +69,7 @@ RSpec.describe CanvasAPI do
 
     it 'enrolls user in course / section' do
       request_url = "#{CANVAS_API_URL}/courses/#{course_id}/enrollments"
-      stub_request(:post, request_url).to_return( body: FactoryBot.json(:canvas_enrollment) )
+      stub_request(:post, request_url).to_return( body: FactoryBot.json(:canvas_enrollment_student) )
 
       canvas.enroll_user_in_course(user_id, course_id, canvas_role, section_id)
 

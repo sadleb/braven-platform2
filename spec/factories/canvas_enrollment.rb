@@ -11,6 +11,14 @@ FactoryBot.define do
 
     canvas_user
 
+    factory :canvas_enrollment_student do
+      role { :StudentEnrollment }
+    end
+
+    factory :canvas_enrollment_ta do
+      role { :TaEnrollment }
+    end
+
     initialize_with { attributes.stringify_keys }
   end
 end
