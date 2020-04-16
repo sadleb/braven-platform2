@@ -209,7 +209,8 @@ function setupAllowedAttributePreservation( editor ) {
         model: ( viewElement, modelWriter ) => {
             return modelWriter.createElement( 'paragraph', filterAllowedAttributes( viewElement.getAttributes() ) );
         },
-        // Use low priority to make sure existing converters run first.
+        // Use high priority because the 'low' we defined for the cke paragraph converter in ContentEditor.js doesn't
+        // work for some reason.
         converterPriority: 'high'
     } );
     editor.conversion.for( 'upcast' ).elementToElement( {
