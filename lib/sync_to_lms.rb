@@ -9,13 +9,18 @@ class SyncToLMS
   # hacky "translate this param to that param" between the APIs without involving local models to make it clean and build upon in this
   # iteration.
 
+  def initialize(salesforce_api = SalesforceAPI.new, canvas_api = CanvasProdClient)
+    @salesforce_api = salesforce_api
+    @canvas_api = canvas_api
+  end
+
   # Syncs all folks from Salesforce to Canvas for the specified course.
   def execute(course_id)
     @all_existing_course_enrollments = {}
     @all_existing_course_sections_by_name = {}
-    @salesforce_api = SalesforceAPI.new
     @program = Program.new
     @program.attributes = @salesforce_api.get_program_info(course_id)
+    raise SalesforceDataError.new("Missing Default Timezone") unless @program.timezone
 
     # TODO: store the last time this was run for this course and in subsequent calls, pass that in as the last_modified_since parameter.
     participants = @salesforce_api.get_participants(course_id)
@@ -50,7 +55,7 @@ class SyncToLMS
 
     # Create or update the Canvas user account.
     canvas_user_id = nil
-    existing_user = CanvasProdClient.find_user_in_canvas(email)
+    existing_user = @canvas_api.find_user_in_canvas(email)
     if existing_user
       canvas_user_id = existing_user['id']
       Rails.logger.debug("Skipping Canvas account creation for existing canvas_user_id = #{canvas_user_id}")
@@ -59,7 +64,7 @@ class SyncToLMS
       # The DocuSign template could have changed after we first created the user with it. So update it for existing users.
       # update_user_in_canvas(user, :docusign_template_id => docusign_template_id)
     elsif participant_status == 'Enrolled'
-      new_canvas_user = CanvasProdClient.create_user(first_name, last_name, username, email, salesforce_id, student_id, @program.timezone, @program.docusign_template_id)
+      new_canvas_user = @canvas_api.create_user(first_name, last_name, username, email, salesforce_id, student_id, @program.timezone, @program.docusign_template_id)
       canvas_user_id = new_canvas_user['id']
       Rails.logger.debug("Created new canvas_user_id = #{canvas_user_id}")
     end
@@ -97,14 +102,14 @@ class SyncToLMS
     existing_fellow_course_enrollment = get_enrollment(canvas_user_id, @program.fellow_course_id)
     if existing_fellow_course_enrollment 
       Rails.logger.debug("Cancelling enrollment for canvas_user_id = #{canvas_user_id} in course_id #{@program.fellow_course_id} because they Dropped.")
-      CanvasProdClient.cancel_enrollment(existing_fellow_course_enrollment)
+      @canvas_api.cancel_enrollment(existing_fellow_course_enrollment)
     end
 
     if role == :'Leadership Coach'
       existing_lc_course_enrollment = get_enrollment(canvas_user_id, @program.leadership_coach_course_id)
       if existing_lc_course_enrollment
         Rails.logger.debug("Cancelling enrollment for canvas_user_id = #{canvas_user_id} in course_id #{@program.leadership_coach_course_id} because they Dropped.")
-        CanvasProdClient.cancel_enrollment(existing_lc_course_enrollment)
+        @canvas_api.cancel_enrollment(existing_lc_course_enrollment)
       end
     end
   end
@@ -121,7 +126,7 @@ class SyncToLMS
     existing_enrollment = get_enrollment(canvas_user_id, course_id)
     section = get_section(course_id, section_name)
     unless section
-      section = CanvasProdClient.create_section(course_id, section_name) 
+      section = @canvas_api.create_section(course_id, section_name) 
       # Add it to the cache so that other folks being sync'ed to this section don't create dupes.
       @all_existing_course_sections_by_name[course_id][section['name']] = section
       Rails.logger.debug("Created new Section in Canvas course_id = #{course_id} called '#{section['name']}' with section_id = #{section['id']}")
@@ -130,19 +135,19 @@ class SyncToLMS
 
     if existing_enrollment && existing_enrollment['course_section_id'] != section_id
       Rails.logger.debug("Moving canvas_user_id = #{canvas_user_id} in course_id = #{course_id} from section_id = #{existing_enrollment['course_section_id']} to a new one")
-      CanvasProdClient.cancel_enrollment(existing_enrollment)
+      @canvas_api.cancel_enrollment(existing_enrollment)
       existing_enrollment = nil
     end
 
     if existing_enrollment && existing_enrollment['type'].to_sym != canvas_role
       Rails.logger.debug("Re-enrolling canvas_user_id = #{canvas_user_id} in course_id = #{course_id} because their role changed from #{existing_enrollment['type']} to #{canvas_role}")
-      CanvasProdClient.cancel_enrollment(existing_enrollment)
+      @canvas_api.cancel_enrollment(existing_enrollment)
       existing_enrollment = nil
     end
 
     if existing_enrollment.nil?
       # They aren't enrolled properly, enroll them now
-      CanvasProdClient.enroll_user_in_course(canvas_user_id, course_id, canvas_role, section_id)
+      @canvas_api.enroll_user_in_course(canvas_user_id, course_id, canvas_role, section_id)
       Rails.logger.debug("Enrolled canvas_user_id = #{canvas_user_id} in section_id = #{section_id}")
     end
 
@@ -153,7 +158,7 @@ class SyncToLMS
   # Loads all enrollments for the course on the first call and caches that for future calls.
   def get_enrollment(canvas_user_id, course_id)
     unless @all_existing_course_enrollments[course_id]
-      @all_existing_course_enrollments[course_id] = CanvasProdClient.get_enrollments(course_id)
+      @all_existing_course_enrollments[course_id] = @canvas_api.get_enrollments(course_id)
     end
     @all_existing_course_enrollments[course_id].find { |enrollment| enrollment['user_id'] == canvas_user_id }
   end
@@ -162,9 +167,11 @@ class SyncToLMS
   def get_section(course_id, section_name)
     unless @all_existing_course_sections_by_name[course_id]
       @all_existing_course_sections_by_name[course_id] = {}
-      CanvasProdClient.get_sections(course_id).each { |section| @all_existing_course_sections_by_name[course_id][section['name']] = section }
+      @canvas_api.get_sections(course_id).each { |section| @all_existing_course_sections_by_name[course_id][section['name']] = section }
     end
     @all_existing_course_sections_by_name[course_id][section_name]
   end
 
 end
+
+class SalesforceDataError < StandardError; end

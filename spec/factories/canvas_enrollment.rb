@@ -3,20 +3,21 @@ FactoryBot.define do
   factory :canvas_enrollment, class: Hash do
     skip_create # This isn't stored in the DB.
     sequence(:id) 
-    sequence(:user_id) 
-    role { :StudentEnrollment }
+    user_id { user['id'] } 
     sequence(:course_id)
     sequence(:course_section_id)
     # The rest aren't used in our code. Add them as necessary.
 
-    canvas_user
+    association :user, factory: :canvas_user
 
     factory :canvas_enrollment_student do
       role { :StudentEnrollment }
+      type { role }
     end
 
     factory :canvas_enrollment_ta do
       role { :TaEnrollment }
+      type { role }
     end
 
     initialize_with { attributes.stringify_keys }

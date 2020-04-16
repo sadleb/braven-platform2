@@ -3,91 +3,169 @@ require 'sync_to_lms'
 
 RSpec.describe SyncToLMS do
 
-# TODO: implement these. 
+  describe '#execute' do
+    let(:program_info) { build(:salesforce_program_info) }
+    let(:fellow_course_id) { program_info['fellow_course_id'] }
+    let(:lc_course_id) { program_info['leadership_coach_course_id'] }
+    let(:section) { build(:canvas_section) }
+    let(:user) { build(:canvas_user) }
+    let(:users) { build_list(:canvas_user, 2) }
+    let(:enrollment) { build(:canvas_enrollment_student) }
+    let(:enrollments) { build_list(:canvas_enrollment_student, 2) }
+    let(:participants) { build_list(:salesforce_participant_fellow, 2) }
 
-  describe 'fetch from Salesforce' do
+    # Basic mocks that return a default value that is good enough to get
+    # SyncToLMS not to throw any exceptions when running. Override how they 
+    # respond depending on what each test is targeting.
+    let(:sf_api) { instance_double(SalesforceAPI, :get_program_info => program_info, :get_participants => []) }
+    let(:canvas_api) { 
+      instance_double(CanvasAPI, 
+        :find_user_in_canvas => nil, :create_user => user, 
+        :get_enrollments => [], :enroll_user_in_course => enrollment,
+        :get_sections => [], :create_section => section)
+    }
 
-    xit 'fetches Participants only for the course being synced ' do
+    subject(:sync) { SyncToLMS.new(sf_api, canvas_api) }
+
+    it 'fetches Program info' do
+      expect(sf_api).to receive(:get_program_info).with(fellow_course_id).and_return(program_info)
+      sync.execute(fellow_course_id)
     end
 
-    xit 'fetches only modified Participant objects' do
+    context 'when there are Participants' do
+      let(:sf_api) { instance_double(SalesforceAPI, :get_program_info => program_info, :get_participants => participants) }
+
+      it 'fetches Participants' do
+        expect(sf_api).to receive(:get_participants).with(fellow_course_id).once
+        sync.execute(fellow_course_id)
+      end
+
+      it 'creates new Canvas users' do
+        expect(canvas_api).to receive(:create_user).with(anything, anything, anything, participants[0]['Email'], any_args).and_return(users[0]).once
+        expect(canvas_api).to receive(:create_user).with(anything, anything, anything, participants[1]['Email'], any_args).and_return(users[1]).once
+        sync.execute(fellow_course_id)
+      end
+
+      it 'skips creating existing Canvas users' do
+        allow(canvas_api).to receive(:find_user_in_canvas).with(participants[0]['Email']).and_return(users[0])
+        expect(canvas_api).not_to receive(:create_user).with(anything, anything, anything, participants[0]['Email'], any_args)
+        expect(canvas_api).to receive(:create_user).with(anything, anything, anything, participants[1]['Email'], any_args).and_return(users[1]).once
+        sync.execute(fellow_course_id)
+      end
+
+      it 'creates a new Canvas section' do
+        section['name'] = participants[0]['CohortName']
+        expect(canvas_api).to receive(:create_section).with(fellow_course_id, section['name']).and_return(section).once
+        sync.execute(fellow_course_id)
+      end
+
+      it 'does not create a duplicate Canvas section' do
+        section['name'] = participants[0]['CohortName']
+        allow(canvas_api).to receive(:get_sections).and_return([section])
+        expect(canvas_api).not_to receive(:create_section).with(anything, section['name'])
+        sync.execute(fellow_course_id)
+      end
+
+      it 'gets Canvas section list once' do
+        expect(canvas_api).to receive(:get_sections).once
+        sync.execute(fellow_course_id)
+      end
+
+      it 'gets Canvas enrollments list once' do
+        expect(canvas_api).to receive(:get_enrollments).once
+        sync.execute(fellow_course_id)
+      end
+
+      it 'handles missing timezone' do
+        program_info['timezone'] = nil
+        expect { sync.execute(fellow_course_id) }.to raise_error(SalesforceDataError)
+      end
+
+      it 'handles missing DocuSign template' do
+        program_info['docusign_template_id'] = nil
+        expect(canvas_api).to receive(:create_user).with(anything, anything, anything, anything, anything, anything, anything, nil ).twice
+        sync.execute(fellow_course_id)
+      end
+
     end
 
-    xit 'parses Participant objects for Fellow' do
-      # Make sure the fields needed for the Canvas create user call are properly parsed from the returend Participant Data object.
+    context 'when they are a Fellow' do
+      let(:sf_api) { instance_double(SalesforceAPI, :get_program_info => program_info, :get_participants => participants) }
+
+      it 'adds them to the correct section + role' do
+        allow(canvas_api).to receive(:find_user_in_canvas).with(participants[0]['Email']).and_return(users[0])
+        allow(canvas_api).to receive(:find_user_in_canvas).with(participants[1]['Email']).and_return(users[1])
+        expect(canvas_api).to receive(:enroll_user_in_course).with(users[0]['id'], fellow_course_id, :StudentEnrollment, section['id']).once
+        expect(canvas_api).to receive(:enroll_user_in_course).with(users[1]['id'], fellow_course_id, :StudentEnrollment, section['id']).once
+        sync.execute(fellow_course_id)
+      end
+
+      let(:old_section) { build(:canvas_section, :name => 'Old Section') }
+      let(:new_section) { build(:canvas_section, :name => participants[0]['CohortName']) }
+
+      it 'moves them to a new section' do
+        enrollment['course_section_id'] = old_section['id']
+        allow(canvas_api).to receive(:get_sections).and_return([old_section])
+        allow(canvas_api).to receive(:get_enrollments).and_return([enrollment])
+        allow(canvas_api).to receive(:find_user_in_canvas).with(participants[0]['Email']).and_return(enrollment['user']).once
+        expect(canvas_api).to receive(:create_section).with(fellow_course_id, new_section['name']).and_return(new_section).once
+        expect(canvas_api).to receive(:cancel_enrollment).with(enrollment).once
+        expect(canvas_api).to receive(:enroll_user_in_course).with(enrollment['user']['id'], fellow_course_id, :StudentEnrollment, new_section['id']).once
+        sync.execute(fellow_course_id)
+      end
+
+      it 'skips them if theyre in the right section' do
+        enrollment['course_section_id'] = section['id']
+        section['name'] = participants[0]['CohortName']
+        allow(canvas_api).to receive(:get_sections).and_return([section])
+        allow(canvas_api).to receive(:get_enrollments).and_return([enrollment])
+        allow(canvas_api).to receive(:find_user_in_canvas).with(participants[0]['Email']).and_return(enrollment['user']).once
+        expect(canvas_api).not_to receive(:enroll_user_in_course).with(enrollment['user']['id'], any_args)
+        sync.execute(fellow_course_id)
+      end
+
+#      xit 'handles a missing Student ID' do
+#      end
+#
+#      xit 'sets NLU usernames correctly' do
+#        # For NLU, their username isn't their email. It's "#{user_student_id}@nlu.edu" 
+#      end
+#
+#    xit 'handles missing Pre-Accelerator survey Qualtrics id' do
+#    end
+#
+#    xit 'handles missing Post-Accelerator survey Qualtrics id' do
+#    end
+#
+#    xit 'puts users in placeholder sections based on Learning Lab meeting day/times if cohort not set' do
+#      # TODO: the logic will be to lookup their LL day/time and map them to generic canvas sections based on that.
+#      # See: https://bebraven.slack.com/archives/CLNA91PD3/p1586272915014600
+#    end
+
     end
 
-    xit 'parses Participant objects for LC' do
-      # Make sure the fields needed for the Canvas create user call are properly parsed from the returend Participant Data object.
+    context 'when they are a Leadership Coach' do
+      let(:participants) { build_list(:salesforce_participant_lc, 2) }
+      let(:sf_api) { instance_double(SalesforceAPI, :get_program_info => program_info, :get_participants => participants) }
+
+      it 'adds them to correct section Accelerator section + role' do
+        allow(canvas_api).to receive(:find_user_in_canvas).with(participants[0]['Email']).and_return(users[0])
+        allow(canvas_api).to receive(:find_user_in_canvas).with(participants[1]['Email']).and_return(users[1])
+        expect(canvas_api).to receive(:enroll_user_in_course).with(users[0]['id'], fellow_course_id, :TaEnrollment, section['id']).once
+        expect(canvas_api).to receive(:enroll_user_in_course).with(users[1]['id'], fellow_course_id, :TaEnrollment, section['id']).once
+        sync.execute(fellow_course_id)
+      end
+
+      it 'adds them to the correct LC Playbook section + role' do
+        allow(canvas_api).to receive(:find_user_in_canvas).with(participants[0]['Email']).and_return(users[0])
+        allow(canvas_api).to receive(:find_user_in_canvas).with(participants[1]['Email']).and_return(users[1])
+        expect(canvas_api).to receive(:enroll_user_in_course).with(users[0]['id'], lc_course_id, :StudentEnrollment, section['id']).once
+        expect(canvas_api).to receive(:enroll_user_in_course).with(users[1]['id'], lc_course_id, :StudentEnrollment, section['id']).once
+        sync.execute(fellow_course_id)
+      end
+
     end
 
-    xit 'processes Enrolled participants with a Cohort set' do
-    end
-   
-    xit 'processes Enrolled participants with no Cohort set' do
-      # TODO: the logic will be to lookup their LL day/time and map them to generic canvas sections based on that.
-      # See: https://bebraven.slack.com/archives/CLNA91PD3/p1586272915014600
-    end
-
-    xit 'handles missing Accelerator course id for Fellow' do
-    end
-
-    xit 'handles missing LC Playbook course id for Fellow' do
-      # TODO: shoiuld just skip it, we don't need it
-    end
-
-    xit 'handles missing Accelerator course id for LC' do
-    end
-
-    xit 'handles missing LC Playbook course id for LC' do
-    end
-
-    xit 'handles missing Student ID' do
-    end
-
-    xit 'handles missing timezone ' do
-    end
-
-    xit 'handles missing DocuSign template' do
-    end
-
-    xit 'handles missing Pre-Accelerator survey Qualtrics id' do
-    end
-
-    xit 'handles missing Post-Accelerator survey Qualtrics id' do
-    end
-
-  end
-
-  describe 'push to Canvas' do
-
-    xit 'creates new users' do
-    end
-
-    xit 'updates existing users' do
-    end
-
-    xit 'creates users in correct course' do
-    end
-
-    xit 'creates users in correct section' do
-    end
-
-    xit 'moves existing users between sections' do
-    end
-
-    xit 'puts users in placeholder sections based on Learning Lab meeting day/times if cohort not set' do
-    end
-
-    xit 'creates users with the correct role (aka Student vs TA)' do
-    end
-
-    xit 'puts leadership coaches in both the Accelerator and LC Playbook course' do
-    end
-
-    xit 'sets NLU usernames correctly' do
-      # For NLU, their username isn't their email. It's "#{user_student_id}@nlu.edu" 
-    end
   end
 
 end

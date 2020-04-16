@@ -7,7 +7,7 @@ FactoryBot.define do
 
     CandidateStatus { 'Fully Confirmed' }
     sequence(:CohortName) { |i| "TEST Cohort#{1}" }
-    sequence(:ContactId) { |i| 'a2Y1700000#{i}WLxqEAG' }
+    sequence(:ContactId) { |i| "a2Y1700000#{i}WLxqEAG" }
     sequence(:Email) { |i| "test#{i}@example.com" }
     sequence(:FirstName) { |i| "TestFirstName#{i}" }
     sequence(:LastName) { |i| "TestLastName#{i}" }
@@ -16,11 +16,11 @@ FactoryBot.define do
     sequence(:StudentId) { |i| "TestSisId#{i}" }
 
     factory :salesforce_participant_fellow do
-      Role { 'Fellow' }
+      Role { :Fellow }
     end
 
     factory :salesforce_participant_lc do
-      Role { 'Leadership Coach"' }
+      Role { :'Leadership Coach' }
     end
 
     initialize_with { attributes.stringify_keys }
