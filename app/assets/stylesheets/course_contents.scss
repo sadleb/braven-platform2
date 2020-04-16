@@ -128,8 +128,11 @@ div.module-block:not(.module-block-quote) blockquote {
 }
 
 /* custom components */
-div.modal {
-  display: none;
+div.partial-html-document:after {
+   content: " ";
+   display: block;
+   height: 0;
+   clear: both;
 }
 
 /* --- Right sidebar styles --- */
@@ -215,7 +218,7 @@ section.content-section {
 }
 
 div#wysiwyg-container {
-    max-height: 640px;
+    max-height: 672px;
     overflow-y: auto;
 }
 

@@ -18,6 +18,15 @@ export const ALLOWED_ATTRIBUTES = [
     'data-bz-range-flr',
     'data-bz-reference',
     'data-bz-share-release',
+    'data-content',
+    'data-placement',
+    'data-original-title',
+    'data-target',
+    'data-toggle',
+    'title',
+    'tabindex',
+    'style',
+    'align',
 ]
 
 export default class CustomElementAttributePreservation extends Plugin {
@@ -177,7 +186,6 @@ function setupAllowedAttributePreservation( editor ) {
     // We can do all these with normal priority because the ones we define in ContentEditor.js
     // in the CKE heading options are set to `low` priority.
     const elements = {
-        'p': 'paragraph',
         'h2': 'heading1',
         'h3': 'heading2',
         'h4': 'heading3',
@@ -195,7 +203,15 @@ function setupAllowedAttributePreservation( editor ) {
         } );
     } );
 
-    // TD converter must be high priority so it overrides the CKE builtin tableCell converters.
+    // Paragraph and converter must be high priority so it overrides the CKE builtin converters.
+    editor.conversion.for( 'upcast' ).elementToElement( {
+        view: 'p',
+        model: ( viewElement, modelWriter ) => {
+            return modelWriter.createElement( 'paragraph', filterAllowedAttributes( viewElement.getAttributes() ) );
+        },
+        // Use low priority to make sure existing converters run first.
+        converterPriority: 'high'
+    } );
     editor.conversion.for( 'upcast' ).elementToElement( {
         view: 'td',
         model: ( viewElement, modelWriter ) => {
