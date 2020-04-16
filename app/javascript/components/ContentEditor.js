@@ -66,6 +66,12 @@ import ContentPartPreview from './ContentPartPreview';
 // Other local imports.
 import { getNamedAncestor, getNamedChildOrSibling } from '../ckeditor/utils';
 
+// Tabs for different content views
+const TABS = {
+    DESIGN: 0,
+    CODE: 1,
+};
+
 // Plugins to include in the build.
 BalloonEditor.builtinPlugins = [
     Essentials,
@@ -207,6 +213,7 @@ class ContentEditor extends Component {
             modelPath: [],
             viewPath: [],
             selectedElement: undefined,
+            tabIndex: window.location.search.includes('html=true') ? TABS.CODE : TABS.DESIGN,
         };
 
         // The configuration of the <CKEditor> instance.
@@ -233,6 +240,7 @@ class ContentEditor extends Component {
         this.handleEditorFocusChange = this.handleEditorFocusChange.bind( this );
         this.handleEditorInit = this.handleEditorInit.bind( this );
         this.handleTabSelect = this.handleTabSelect.bind(this);
+        this.handleSave = this.handleSave.bind(this);
 
         // Non-CKE UI functions.
         this.fileUpload = React.createRef();
@@ -357,8 +365,29 @@ class ContentEditor extends Component {
             );
     }
 
-    handleTabSelect(event) {
-        if (event == 1) { // Switching to "Code" tab
+    handleSave(event) {
+        if (this.state.tabIndex == TABS.DESIGN) { 
+            // Update the raw HTML for "Code" tab
+            this.setState({
+                editorData: this.editor.getData(),
+            });
+
+            // Find the secret html field and overwrite it before we submit
+            // because we won't re-render to update the value
+            // before the form submission
+            let element = document.getElementById("secret-html");
+            element.value = this.editor.getData();
+        }
+
+        // Save
+        document.forms[0].submit();
+    }
+
+    handleTabSelect(nextTab) {
+        this.setState({
+            tabIndex: nextTab,
+        });
+        if (nextTab == TABS.CODE) {
             // Update the raw HTML for "Code" tab display and editing
             this.setState({
                 editorData: this.editor.getData(),
@@ -383,7 +412,7 @@ class ContentEditor extends Component {
                         <li onClick={(evt) => this.handlePublish(evt)} className={this.state['isPublished'] ? "success" : ""}>
                           Publish{this.state['isPublished'] ? "ed" : ""} {this.state['isPublished']}
                         </li>
-                        <li onClick={(evt) => document.forms[0].submit()}>
+                        <li onClick={(evt) => this.handleSave(evt)}>
                           Save
                         </li>
                     </ul>
@@ -751,7 +780,7 @@ class ContentEditor extends Component {
                         </div>
                     </div>
                     <Tabs 
-                        defaultIndex={window.location.search.includes('html=true') ? 1 : 0}
+                        defaultIndex={this.state.tabIndex}
                         onSelect={(evt) => this.handleTabSelect(evt)}>
                         <div id="workspace">
                             <TabList id="view-mode">
@@ -767,11 +796,13 @@ class ContentEditor extends Component {
                                         onChange={this.handleEditorDataChange}
                                         onInit={this.handleEditorInit}
                                     />
+                                    <textarea
+                                        id="secret-html"
+                                        value={this.state.editorData}
+                                        className="secret-html"                                                                                                                                                                                                        
+                                        readOnly={true}                                                                                                                                                                                                                
+                                        name="course_content[body]"></textarea> 
                                 </div>
-                                <textarea value={this.editor ? this.editor.getData() : this.state.editorData}
-                                          className="secret-html"
-                                          readOnly={true}
-                                          name="course_content[body]"></textarea>
                             </TabPanel>
                             <TabPanel>
                                 <div id="raw-html-container">
