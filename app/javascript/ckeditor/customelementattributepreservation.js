@@ -45,8 +45,9 @@ export default class CustomElementAttributePreservation extends Plugin {
         
         editor.conversion.for( 'upcast' ).add( upcastCustomClasses( 'figure' ), { priority: 'low' } );
 
-        // Enable <a class="..." />
+        // Enable link extensions.
         allowLinkClass( editor );
+        allowLinkRetainedData( editor );
     }
 }
 
@@ -307,6 +308,33 @@ function allowLinkClass( editor ) {
             key: 'class'
         },
         model: 'linkClass',
+        converterPriority: 'low'
+    } );
+}
+
+function allowLinkRetainedData( editor ) {
+    // Allow the "linkRetainedData" attribute in the editor model.
+    editor.model.schema.extend( '$text', { allowAttributes: 'linkRetainedData' } );
+
+    // Tell the editor that the model "linkRetainedData" attribute converts into <a data-bz-retained="..."></a>
+    editor.conversion.for( 'downcast' ).attributeToElement( {
+        model: 'linkRetainedData',
+        view: ( attributeValue, writer ) => {
+            const linkElement = writer.createAttributeElement( 'a', { 'data-bz-retained': attributeValue }, { priority: 5 } );
+            writer.setCustomProperty( 'link', true, linkElement );
+
+            return linkElement;
+        },
+        converterPriority: 'low'
+    } );
+
+    // Tell the editor that <a data-bz-retained="..."></a> converts into the "linkRetainedData" attribute in the model.
+    editor.conversion.for( 'upcast' ).attributeToAttribute( {
+        view: {
+            name: 'a',
+            key: 'data-bz-retained'
+        },
+        model: 'linkRetainedData',
         converterPriority: 'low'
     } );
 }
