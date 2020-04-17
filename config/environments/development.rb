@@ -17,15 +17,14 @@ Rails.application.configure do
   if Rails.root.join('tmp', 'caching-dev.txt').exist?
     config.action_controller.perform_caching = true
 
-    config.cache_store = :file_store, "tmp/cache"
+    config.cache_store = :memory_store
     config.public_file_server.headers = {
       'Cache-Control' => "public, max-age=#{2.days.to_i}"
     }
   else
-    # Disable automatic caching for the rails stuff, but all explicit calls in the code can still use a cache
     config.action_controller.perform_caching = false
 
-    config.cache_store = :file_store, "tmp/cache"
+    config.cache_store = :null_store
   end
 
   # Store uploaded files on the local file system (see config/storage.yml for options)
