@@ -25,7 +25,7 @@ export default class VideoContentEditing extends Plugin {
         } );
 
         schema.register( 'videoFigure', {
-            allowIn: 'content',
+            allowIn: [ 'content', 'question', '$root' ],
         } );
 
         schema.register( 'videoIFrame', {
