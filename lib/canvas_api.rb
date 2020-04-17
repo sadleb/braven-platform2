@@ -86,7 +86,7 @@ class CanvasAPI
   #   get_course_enrollments(71, [:StudentEnrollment, :TaEnrollment])
   def get_enrollments(course_id, types=[])
     query_params = "per_page=100"
-    types.each_with_index { |t,i| query_params += "&type[]=#{types[i]}"}
+    types.each { |t| query_params += "&type[]=#{t}"}
     response = get("/courses/#{course_id}/enrollments?#{query_params}")
     get_all_from_pagination(response)
   end
@@ -134,7 +134,7 @@ class CanvasAPI
 
       # Find the line in the link header that looks like the following and pull the URL out:
       # <https://bebraven.instructure.com/api/v1/courses/:id/assignements>; rel="next"
-      match = link.match /.*<(?<url>.+)>; rel="next"/
+      match = link.match(/.*<(?<url>.+)>; rel="next"/)
       next_url = (match ? match[:url] : nil)
       if next_url
         # Turn something like this: https://portal.bebraven.org/api/v1/courses/71/enrollments?page=2&per_page=100

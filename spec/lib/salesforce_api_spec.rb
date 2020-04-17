@@ -60,8 +60,7 @@ RSpec.describe SalesforceAPI do
       response = salesforce.get_program_info(course_id)
 
       expect(WebMock).to have_requested(:get, request_url_regex).once
-      # Note: I'm going to test the actual response contents in the controller spec since the API returns a hash
-      # meant for use in constructing a program model.
+      expect(response).to eq(JSON.parse(program_json)['records'][0])
     end
   end
 

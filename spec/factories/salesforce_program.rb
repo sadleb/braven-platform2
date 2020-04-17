@@ -26,30 +26,6 @@ FactoryBot.define do
     initialize_with { attributes.stringify_keys }
   end
 
-  # The SalesforceAPI converts the JSON returned from Salesforce into a "program_info"
-  # hash that can be used to construct an app/models/program.rb object. This
-  # represents that hash
-  factory :salesforce_program_info, class: Hash do
-    skip_create
-
-    transient do
-      program_info { build(:salesforce_program_record) }
-    end
-    
-    name { program_info['Name'] }
-    salesforce_id { program_info['Id'] }
-    salesforce_school_id { program_info['SchoolId'] }
-    fellow_course_id { program_info['Target_Course_ID_in_LMS__c'].to_i }
-    leadership_coach_course_id { program_info['LMS_Coach_Course_Id__c'].to_i }
-    leadership_coach_course_section_name { program_info['Section_Name_in_LMS_Coach_Course__c'] }
-    timezone { program_info['Default_Timezone__c'].to_sym }
-    docusign_template_id { program_info['Docusign_Template_ID__c'] }
-    pre_accelerator_qualtrics_survey_id  { program_info['Preaccelerator_Qualtrics_Survey_ID__c'] }
-    post_accelerator_qualtrics_survey_id { program_info['Postaccelerator_Qualtrics_Survey_ID__c'] }
-
-    initialize_with { attributes.stringify_keys }
-  end
-
 end
 
 # Example

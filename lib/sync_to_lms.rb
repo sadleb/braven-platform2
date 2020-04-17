@@ -18,9 +18,7 @@ class SyncToLMS
   def execute(course_id)
     @all_existing_course_enrollments = {}
     @all_existing_course_sections_by_name = {}
-    @program = Program.new
-    @program.attributes = @salesforce_api.get_program_info(course_id)
-    raise SalesforceDataError.new("Missing Default Timezone") unless @program.timezone
+    @program = get_program(course_id)
 
     # TODO: store the last time this was run for this course and in subsequent calls, pass that in as the last_modified_since parameter.
     participants = @salesforce_api.get_participants(course_id)
@@ -42,12 +40,12 @@ class SyncToLMS
     email = participant['Email']
     role = participant['Role'].to_sym
     salesforce_id = participant['ContactId']
-    last_modified_date = participant['LastModifiedDate']
+    #last_modified_date = participant['LastModifiedDate'] # TODO: implement me
     section_name = participant['CohortName']
     participant_status = participant['ParticipantStatus'] # E.g. 'Enrolled' 
-    candidate_status = participant['CandidateStatus']  # E.g. 'Fully Confirmed'
+    #candidate_status = participant['CandidateStatus']  # E.g. 'Fully Confirmed'
     student_id = participant['StudentId']
-    school_id = participant['SchoolId'] # This is the Salesforce ID for their school
+    #school_id = participant['SchoolId'] # This is the Salesforce ID for their school # TODO: implement me
     username = email # TODO: if they are nlu, their username isn't their email. it's "#{user_student_id}@nlu.edu"
 
     # TODO: if the CohortName isn't set, get their LL day/time and map to the placeholder cohorts that we setup before
@@ -170,6 +168,25 @@ class SyncToLMS
       @canvas_api.get_sections(course_id).each { |section| @all_existing_course_sections_by_name[course_id][section['name']] = section }
     end
     @all_existing_course_sections_by_name[course_id][section_name]
+  end
+
+  def get_program(course_id)
+    p = Program.new
+    program_info = @salesforce_api.get_program_info(course_id)
+    raise SalesforceDataError.new("Missing 'Default_Timezone__c' data") unless program_info['Default_Timezone__c']
+    p.attributes = {
+      :name                                 => program_info['Name'],
+      :salesforce_id                        => program_info['Id'],
+      :salesforce_school_id                 => program_info['SchoolId'],
+      :fellow_course_id                     => program_info['Target_Course_ID_in_LMS__c'].to_i,
+      :leadership_coach_course_id           => program_info['LMS_Coach_Course_Id__c'].to_i,
+      :leadership_coach_course_section_name => program_info['Section_Name_in_LMS_Coach_Course__c'],
+      :timezone                             => program_info['Default_Timezone__c'].to_sym,
+      :docusign_template_id                 => program_info['Docusign_Template_ID__c'],
+      :pre_accelerator_qualtrics_survey_id  => program_info['Preaccelerator_Qualtrics_Survey_ID__c'],
+      :post_accelerator_qualtrics_survey_id => program_info['Postaccelerator_Qualtrics_Survey_ID__c']
+    }
+    p
   end
 
 end

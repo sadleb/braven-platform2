@@ -4,9 +4,9 @@ require 'sync_to_lms'
 RSpec.describe SyncToLMS do
 
   describe '#execute' do
-    let(:program_info) { build(:salesforce_program_info) }
-    let(:fellow_course_id) { program_info['fellow_course_id'] }
-    let(:lc_course_id) { program_info['leadership_coach_course_id'] }
+    let(:program_info) { build(:salesforce_program_record) }
+    let(:fellow_course_id) { program_info['Target_Course_ID_in_LMS__c'].to_i }
+    let(:lc_course_id) { program_info['LMS_Coach_Course_Id__c'].to_i }
     let(:section) { build(:canvas_section) }
     let(:user) { build(:canvas_user) }
     let(:users) { build_list(:canvas_user, 2) }
@@ -77,12 +77,12 @@ RSpec.describe SyncToLMS do
       end
 
       it 'handles missing timezone' do
-        program_info['timezone'] = nil
+        program_info['Default_Timezone__c'] = nil
         expect { sync.execute(fellow_course_id) }.to raise_error(SalesforceDataError)
       end
 
       it 'handles missing DocuSign template' do
-        program_info['docusign_template_id'] = nil
+        program_info['Docusign_Template_ID__c'] = nil
         expect(canvas_api).to receive(:create_user).with(anything, anything, anything, anything, anything, anything, anything, nil ).twice
         sync.execute(fellow_course_id)
       end

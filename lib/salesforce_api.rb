@@ -5,7 +5,7 @@ class SalesforceAPI
   # Pass these into any POST or PUT request where the body is json.
   JSON_HEADERS = {content_type: :json, accept: :json}
 
-  def initialize()
+  def initialize
     # For authentication against the Salesforce API we use what is called a Session ID token as detailed here:
     # https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/quickstart_oauth.htm 
     auth_params = {
@@ -49,26 +49,13 @@ class SalesforceAPI
 
   def get_program_info(course_id)
     soql_query = 
-      "SELECT Id, Name, Target_Course_ID_in_LMS__c, LMS_Coach_Course_Id__c, School__c, " +
-        "Section_Name_in_LMS_Coach_Course__c, Default_Timezone__c, Docusign_Template_ID__c, " + 
-        "Preaccelerator_Qualtrics_Survey_ID__c, Postaccelerator_Qualtrics_Survey_ID__c " + 
+      "SELECT Id, Name, Target_Course_ID_in_LMS__c, LMS_Coach_Course_Id__c, School__c, " \
+        "Section_Name_in_LMS_Coach_Course__c, Default_Timezone__c, Docusign_Template_ID__c, " \
+        "Preaccelerator_Qualtrics_Survey_ID__c, Postaccelerator_Qualtrics_Survey_ID__c " \
       "FROM Program__c WHERE Target_Course_ID_in_LMS__c = '#{course_id}'"
 
     response = get("/services/data/v48.0/query?q=#{CGI.escape(soql_query)}")
-    program_info = JSON.parse(response.body)['records'][0]
-    # Note: these match the attributes on the Program model. Keep them in sync.
-    ret = {
-      :name                                 => program_info['Name'],
-      :salesforce_id                        => program_info['Id'],
-      :salesforce_school_id                 => program_info['SchoolId'],
-      :fellow_course_id                     => program_info['Target_Course_ID_in_LMS__c'].to_i,
-      :leadership_coach_course_id           => program_info['LMS_Coach_Course_Id__c'].to_i,
-      :leadership_coach_course_section_name => program_info['Section_Name_in_LMS_Coach_Course__c'],
-      :timezone                             => program_info['Default_Timezone__c'].to_sym,
-      :docusign_template_id                 => program_info['Docusign_Template_ID__c'],
-      :pre_accelerator_qualtrics_survey_id  => program_info['Preaccelerator_Qualtrics_Survey_ID__c'],
-      :post_accelerator_qualtrics_survey_id => program_info['Postaccelerator_Qualtrics_Survey_ID__c']
-    }
+    JSON.parse(response.body)['records'][0]
   end
 
   # Gets a list of all Participants in the Program. These are folks who are

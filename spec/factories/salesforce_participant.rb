@@ -6,7 +6,7 @@ FactoryBot.define do
     skip_create # This isn't stored in the DB.
 
     CandidateStatus { 'Fully Confirmed' }
-    sequence(:CohortName) { |i| "TEST Cohort#{1}" }
+    sequence(:CohortName) { |i| "TEST Cohort#{i}" }
     sequence(:ContactId) { |i| "a2Y1700000#{i}WLxqEAG" }
     sequence(:Email) { |i| "test#{i}@example.com" }
     sequence(:FirstName) { |i| "TestFirstName#{i}" }
