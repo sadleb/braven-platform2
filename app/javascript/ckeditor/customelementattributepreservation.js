@@ -18,6 +18,15 @@ export const ALLOWED_ATTRIBUTES = [
     'data-bz-range-flr',
     'data-bz-reference',
     'data-bz-share-release',
+    'data-content',
+    'data-placement',
+    'data-original-title',
+    'data-target',
+    'data-toggle',
+    'title',
+    'tabindex',
+    'style',
+    'align',
 ]
 
 export default class CustomElementAttributePreservation extends Plugin {
@@ -36,8 +45,9 @@ export default class CustomElementAttributePreservation extends Plugin {
         
         editor.conversion.for( 'upcast' ).add( upcastCustomClasses( 'figure' ), { priority: 'low' } );
 
-        // Enable <a class="..." />
+        // Enable link extensions.
         allowLinkClass( editor );
+        allowLinkRetainedData( editor );
     }
 }
 
@@ -177,7 +187,6 @@ function setupAllowedAttributePreservation( editor ) {
     // We can do all these with normal priority because the ones we define in ContentEditor.js
     // in the CKE heading options are set to `low` priority.
     const elements = {
-        'p': 'paragraph',
         'h2': 'heading1',
         'h3': 'heading2',
         'h4': 'heading3',
@@ -195,7 +204,16 @@ function setupAllowedAttributePreservation( editor ) {
         } );
     } );
 
-    // TD converter must be high priority so it overrides the CKE builtin tableCell converters.
+    // Paragraph and converter must be high priority so it overrides the CKE builtin converters.
+    editor.conversion.for( 'upcast' ).elementToElement( {
+        view: 'p',
+        model: ( viewElement, modelWriter ) => {
+            return modelWriter.createElement( 'paragraph', filterAllowedAttributes( viewElement.getAttributes() ) );
+        },
+        // Use high priority because the 'low' we defined for the cke paragraph converter in ContentEditor.js doesn't
+        // work for some reason.
+        converterPriority: 'high'
+    } );
     editor.conversion.for( 'upcast' ).elementToElement( {
         view: 'td',
         model: ( viewElement, modelWriter ) => {
@@ -291,6 +309,33 @@ function allowLinkClass( editor ) {
             key: 'class'
         },
         model: 'linkClass',
+        converterPriority: 'low'
+    } );
+}
+
+function allowLinkRetainedData( editor ) {
+    // Allow the "linkRetainedData" attribute in the editor model.
+    editor.model.schema.extend( '$text', { allowAttributes: 'linkRetainedData' } );
+
+    // Tell the editor that the model "linkRetainedData" attribute converts into <a data-bz-retained="..."></a>
+    editor.conversion.for( 'downcast' ).attributeToElement( {
+        model: 'linkRetainedData',
+        view: ( attributeValue, writer ) => {
+            const linkElement = writer.createAttributeElement( 'a', { 'data-bz-retained': attributeValue }, { priority: 5 } );
+            writer.setCustomProperty( 'link', true, linkElement );
+
+            return linkElement;
+        },
+        converterPriority: 'low'
+    } );
+
+    // Tell the editor that <a data-bz-retained="..."></a> converts into the "linkRetainedData" attribute in the model.
+    editor.conversion.for( 'upcast' ).attributeToAttribute( {
+        view: {
+            name: 'a',
+            key: 'data-bz-retained'
+        },
+        model: 'linkRetainedData',
         converterPriority: 'low'
     } );
 }
