@@ -39,16 +39,19 @@ export default class VideoContentEditing extends Plugin {
 
         schema.register( 'videoCaption', {
             allowIn: 'videoFigCaption',
+            isLimit: true,
             allowContentOf: [ '$block' ],
         } );
 
         schema.register( 'videoDuration', {
             allowIn: 'videoFigCaption',
+            isLimit: true,
             allowContentOf: [ '$block' ],
         } );
 
         schema.register( 'videoTranscript', {
             allowIn: 'videoFigCaption',
+            isLimit: true,
             allowContentOf: [ '$root' ],
         } );
     }
