@@ -1,15 +1,55 @@
+import Clipboard from '@ckeditor/ckeditor5-clipboard/src/clipboard';
+
 import Plugin from '@ckeditor/ckeditor5-core/src/plugin';
-import { toWidget } from '@ckeditor/ckeditor5-widget/src/utils';
+
 import Widget from '@ckeditor/ckeditor5-widget/src/widget';
+import { toWidget } from '@ckeditor/ckeditor5-widget/src/utils';
+
 
 export default class ModuleBlockEditing extends Plugin {
     static get requires() {
-        return [ Widget ];
+        return [ Widget, Clipboard ];
     }
 
     init() {
         this._defineSchema();
         this._defineConverters();
+
+        // Override default paste behavior
+        this.listenTo(this.editor.editing.view.document, 'clipboardInput', ( evt, data ) => {
+            const dataTransfer = data.dataTransfer;
+
+            // All of our data is in HTML, as opposed to plain text
+            const htmlData = dataTransfer.getData('text/html');
+            if (!htmlData) {
+                return;
+            }
+
+            // Convert the HTML to a view
+            const content = this.editor.plugins.get('Clipboard')._htmlDataProcessor.toView(
+                htmlData,
+            );
+
+            // Fire off an event that we'll intercept below
+            this.fire( 'inputTransformation', { content, dataTransfer } );
+
+            // You have to stop the event so other handlers don't run and overwrite content.
+            evt.stop();
+        });
+
+        this.listenTo(this, 'inputTransformation', ( evt, data ) => {
+            const modelFragment = this.editor.data.toModel(
+                data.content,
+                'section', // set this so the correct converters are called
+            );
+
+            if (modelFragment.childCount == 0) {
+                return; // we couldn't create a model for this view
+            }
+
+            // Add the fragment into the model
+            this.editor.model.insertContent(modelFragment);
+        });
     }
 
     _defineSchema() {
