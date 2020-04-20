@@ -90,7 +90,7 @@ export default class ContentCommonEditing extends Plugin {
 
         schema.register( 'doneButton', {
             isObject: true,
-            allowIn: [ 'section', 'questionForm', 'question' ],
+            allowIn: [ 'section', 'questionForm', 'question', 'content' ],
             allowAttributes: [ 'data-bz-retained', 'type', 'value', 'data-time-updated' ],
         } );
 

@@ -179,13 +179,16 @@ export default class VideoContentEditing extends Plugin {
             }
         } );
 
+        // The next 3 upcast converters must be high priority because of the
+        // ambiguously-defined 'question' upcast. :/
         // <videoCaption> converters
         conversion.for( 'upcast' ).elementToElement( {
             view: {
                 name: 'div',
                 classes: ['video-caption']
             },
-            model: 'videoCaption'
+            model: 'videoCaption',
+            converterPriority: 'high',
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'videoCaption',
@@ -218,7 +221,8 @@ export default class VideoContentEditing extends Plugin {
                 name: 'div',
                 classes: ['media-duration']
             },
-            model: 'videoDuration'
+            model: 'videoDuration',
+            converterPriority: 'high',
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'videoDuration',
@@ -251,7 +255,8 @@ export default class VideoContentEditing extends Plugin {
                 name: 'div',
                 classes: ['transcript']
             },
-            model: 'videoTranscript'
+            model: 'videoTranscript',
+            converterPriority: 'high',
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'videoTranscript',
