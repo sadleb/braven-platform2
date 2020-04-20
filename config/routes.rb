@@ -56,6 +56,10 @@ Rails.application.routes.draw do
 
   root to: "home#welcome"
 
+  # Salesforce Routes
+  get 'salesforce/sync_to_lms'
+  post 'salesforce/sync_to_lms'
+
 
   # RubyCAS Routes
   resources :cas, except: [:show]
