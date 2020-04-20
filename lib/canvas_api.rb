@@ -54,7 +54,7 @@ class CanvasAPI
 
   def create_user(first_name, last_name, username, email, salesforce_id, student_id, timezone, docusign_template_id=nil)
     body = {
-#        'user[name]' => nil, # TODO: this seemed to be null for everyone. figure out if its needed and what it should be set to.
+        'user[name]' => "#{first_name} #{last_name}",
         'user[short_name]' => first_name,
         'user[sortable_name]' => "#{last_name}, #{first_name}",
         'user[skip_registration]' => true,
