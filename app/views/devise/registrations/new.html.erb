@@ -1,0 +1,40 @@
+<h2>Sign up</h2>
+
+<%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
+  <%= render "devise/shared/error_messages", resource: resource %>
+
+  <% if params[:email] %>  <!-- We can send links with the email as a param to prefill it. -->
+    <div>
+      Please enter a password to create an account. You will be emailed a confirmation link to complete your registration at <strong><%= params[:email] %></strong>
+      <%= f.hidden_field :email, :value => params[:email] %> <br/><br/>
+    </div>
+  <% else %>
+    <div>
+      Important note: this email must match what you signed up for Braven with.
+      <%= f.label :email %><br />
+      <%= f.email_field :email, autofocus: true, autocomplete: "email" %>
+    </div>
+  <% end %>
+
+
+  <div>
+    <%= f.label :password %>
+    <% if @minimum_password_length %>
+    <em>(<%= @minimum_password_length %> characters minimum)</em>
+    <% end %><br />
+    <%= f.password_field :password, autocomplete: "new-password" %>
+  </div>
+
+  <div>
+    <%= f.label :password_confirmation %><br />
+    <%= f.password_field :password_confirmation, autocomplete: "new-password" %>
+  </div>
+
+  <div class="actions">
+    <%= f.submit "Sign up" %>
+  </div>
+<% end %>
+
+<em>Note: this is the email address you used to sign-up for Braven. If you wish to use a different email to login to the Portal with, you can change it after your account has been setup.</em>
+
+<%= render "devise/shared/links" %>

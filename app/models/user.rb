@@ -1,9 +1,18 @@
 require 'grade_calculator'
 
 class User < ApplicationRecord
+  include Devise::Models::DatabaseAuthenticatable
+
   ADMIN_DOMAIN_WHITELIST = ['bebraven.org', 'beyondz.org']
 
-  devise :cas_authenticatable, :rememberable
+  # We're making the user model cas_authenticable, meaning that you need to go through the SSO CAS
+  # server configured in config/initializers/devise.rb. However, "that" SSO server is "this" server
+  # and the users that it authenticates are created in this database using :database_authenticable
+  # functionality. This article was gold to help get this working: 
+  # https://jeremysmith.co/posts/2014-01-24-devise-cas-using-devisecasauthenticatable-and-casino/
+  devise :cas_authenticatable, :rememberable, :registerable, :confirmable
+  # TODO: implement recoverable for forgot password support and trackable for more info on sign-in activity.
+  #devise :cas_authenticatable, :rememberable, :registerable, :confirmable, :recoverable, :trackable
   
   has_many :project_submissions
   has_many :projects, :through => :project_submissions
@@ -31,7 +40,9 @@ class User < ApplicationRecord
   before_create :attempt_admin_set, unless: :admin?
   
   validates :email, uniqueness: true
-  validates :email, :first_name, :last_name, presence: true
+# TODO: when registering, look up their Salesforce record and set their first name / last name
+#  validates :email, :first_name, :last_name, presence: true
+  validates :email, presence: true
   
   def full_name
     [first_name, last_name].join(' ')

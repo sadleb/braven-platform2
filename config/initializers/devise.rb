@@ -28,10 +28,15 @@ Devise.setup do |config|
   
   # ==> CAS configuration
   config.cas_base_url = Rails.application.secrets.sso_url
-  config.cas_create_user = true
+  config.cas_create_user = false
+  config.cas_logout_url_param = "destination"
+  config.cas_destination_logout_param_name = "service"
   config.cas_enable_single_sign_out = true
-
   config.cas_username_column = 'email'
+ 
+  config.warden do |manager|
+    manager.failure_app = DeviseCasAuthenticatable::SingleSignOut::WardenFailureApp
+  end
 
   # ==> ORM configuration
   # Load and configure the ORM. Supports :active_record (default) and
@@ -149,7 +154,8 @@ Devise.setup do |config|
   # initial account confirmation) to be applied. Requires additional unconfirmed_email
   # db field (see migrations). Until confirmed, new email is stored in
   # unconfirmed_email column, and copied to email column on successful confirmation.
-  config.reconfirmable = true
+  #config.reconfirmable = true
+  config.reconfirmable = false
 
   # Defines which key will be used when confirming an account
   # config.confirmation_keys = [:email]
@@ -170,7 +176,7 @@ Devise.setup do |config|
 
   # ==> Configuration for :validatable
   # Range for password length.
-  config.password_length = 4..128
+  config.password_length = 8..128
 
   # Email regex used to validate email formats. It simply asserts that
   # one (and only one) @ exists in the given string. This is mainly
