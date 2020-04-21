@@ -30,19 +30,34 @@ export default class ChecklistQuestionEditing extends Plugin {
             evt.stop();
         } );
 
-        // Override the default 'enter' key behavior for checkbox labels.
-        this.listenTo( this.editor.editing.view.document, 'enter', ( evt, data ) => {
-            const positionParent = this.editor.model.document.selection.getLastPosition().parent;
-            if ( positionParent.name == 'checkboxLabel' ) {
-                // Only insert a new checkbox if the current label is empty, but stop the event from
-                // propogating regardless.
-                if (!positionParent.isEmpty) {
-                    this.editor.execute( 'insertCheckbox' )
+        // For some reason 'enter' events don't fire when the current selection is a checkboxDiv,
+        // so fix that explicitly.
+        this.listenTo( this.editor.editing.view.document, 'keydown', ( evt, data ) => {
+            const selection = this.editor.model.document.selection;
+            const selectedElement = selection.getSelectedElement();
+
+            if ( selectedElement && selectedElement.name == 'checkboxDiv' ) {
+                if ( data.domEvent.key === 'Enter' ) {
+                    // This will end up calling our enter listener below.
+                    this.editor.editing.view.document.fire( 'enter', { evt, data } );
+                    data.preventDefault();
+                    evt.stop();
                 }
+            }
+        }, { priority: 'highest' } );
+
+        // Override the default 'enter' key behavior to allow inserting new checklist options.
+        this.listenTo( this.editor.editing.view.document, 'enter', ( evt, data ) => {
+            const selection = this.editor.model.document.selection;
+            const positionParent = selection.getLastPosition().parent;
+            const selectedElement = selection.getSelectedElement();
+
+            if ( positionParent.name == 'checkboxLabel' || ( selectedElement && selectedElement.name == 'checkboxDiv' ) ) {
+                this.editor.execute( 'insertCheckbox' )
                 data.preventDefault();
                 evt.stop();
             }
-        });
+        } );
     }
 
     _defineSchema() {
