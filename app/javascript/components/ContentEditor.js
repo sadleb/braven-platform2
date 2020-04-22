@@ -625,6 +625,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'insertSection' );
                                         this.editor.editing.view.focus();
                                     }}
+                                    onClickDisabled={() => this.editor.editing.view.focus()}
                                     {...{name: 'Section'}}
                                 />
                             </ul>
@@ -636,6 +637,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'insertChecklistQuestion' );
                                         this.editor.editing.view.focus();
                                     }}
+                                    onClickDisabled={() => this.editor.editing.view.focus()}
                                     {...{name: 'Checklist Question'}}
                                 />
                                 <ContentPartPreview
@@ -645,6 +647,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'insertRadioQuestion' );
                                         this.editor.editing.view.focus();
                                     }}
+                                    onClickDisabled={() => this.editor.editing.view.focus()}
                                     {...{name: 'Radio Question'}}
                                 />
                                 <ContentPartPreview
@@ -654,6 +657,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'insertMatchingQuestion' );
                                         this.editor.editing.view.focus();
                                     }}
+                                    onClickDisabled={() => this.editor.editing.view.focus()}
                                     {...{name: 'Matching Question'}}
                                 />
                                 <ContentPartPreview
@@ -665,6 +669,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'insertMatrixQuestion', {rows: rows, columns: columns} );
                                         this.editor.editing.view.focus();
                                     }}
+                                    onClickDisabled={() => this.editor.editing.view.focus()}
                                     {...{name: 'Matrix Question'}}
                                 />
                                 <ContentPartPreview
@@ -674,6 +679,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'insertTextAreaQuestion' );
                                         this.editor.editing.view.focus();
                                     }}
+                                    onClickDisabled={() => this.editor.editing.view.focus()}
                                     {...{name: 'Text Area Question'}}
                                 />
                                 <ContentPartPreview
@@ -683,6 +689,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'insertSliderQuestion' );
                                         this.editor.editing.view.focus();
                                     }}
+                                    onClickDisabled={() => this.editor.editing.view.focus()}
                                     {...{name: 'Slider Question'}}
                                 />
                                 <ContentPartPreview
@@ -692,6 +699,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'insertFileUploadQuestion' );
                                         this.editor.editing.view.focus();
                                     }}
+                                    onClickDisabled={() => this.editor.editing.view.focus()}
                                     {...{name: 'File Upload Question'}}
                                 />
                             </ul>
@@ -703,6 +711,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'insertContentBlock' );
                                         this.editor.editing.view.focus();
                                     }}
+                                    onClickDisabled={() => this.editor.editing.view.focus()}
                                     {...{name: 'Text'}}
                                 />
                                 <ContentPartPreview
@@ -714,6 +723,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'insertTableContent', {rows: rows, columns: columns} );
                                         this.editor.editing.view.focus();
                                     }}
+                                    onClickDisabled={() => this.editor.editing.view.focus()}
                                     {...{name: 'Table'}}
                                 />
                                 <ContentPartPreview
@@ -723,6 +733,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'insertBlockquoteContent' );
                                         this.editor.editing.view.focus();
                                     }}
+                                    onClickDisabled={() => this.editor.editing.view.focus()}
                                     {...{name: 'Quote'}}
                                 />
                                 <ContentPartPreview
@@ -733,6 +744,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'insertVideoContent', url );
                                         this.editor.editing.view.focus();
                                     }}
+                                    onClickDisabled={() => this.editor.editing.view.focus()}
                                     {...{name: 'Video'}}
                                 />
                             </ul>
@@ -745,6 +757,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'insertIFrameContent', url );
                                         this.editor.editing.view.focus();
                                     }}
+                                    onClickDisabled={() => this.editor.editing.view.focus()}
                                     {...{name: 'IFrame'}}
                                 />
                                 <ContentPartPreview
@@ -754,6 +767,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'insertTextArea' );
                                         this.editor.editing.view.focus();
                                     }}
+                                    onClickDisabled={() => this.editor.editing.view.focus()}
                                     {...{name: 'Text Area'}}
                                 />
                                 <ContentPartPreview
@@ -763,6 +777,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'insertSlider' );
                                         this.editor.editing.view.focus();
                                     }}
+                                    onClickDisabled={() => this.editor.editing.view.focus()}
                                     {...{name: 'Slider'}}
                                 />
                                 <input
@@ -773,11 +788,13 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'imageUpload', {file: e.target.files[0]} );
                                         this.editor.editing.view.focus();
                                     }}
+                                    onClickDisabled={() => this.editor.editing.view.focus()}
                                 />
                                 <ContentPartPreview
                                     key="imageUpload"
                                     enabled={false}
                                     onClick={this.showFileUpload}
+                                    onClickDisabled={() => this.editor.editing.view.focus()}
                                     {...{name: 'Image (Upload)'}}
                                 />
                                 <ContentPartPreview
@@ -788,6 +805,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'imageInsert', {source: url} );
                                         this.editor.editing.view.focus();
                                     }}
+                                    onClickDisabled={() => this.editor.editing.view.focus()}
                                     {...{name: 'Image (URL)'}}
                                 />
                             </ul>
@@ -799,6 +817,7 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'insertRateThisModuleQuestion' );
                                         this.editor.editing.view.focus();
                                     }}
+                                    onClickDisabled={() => this.editor.editing.view.focus()}
                                     {...{name: 'Rate This Module'}}
                                 />
                             </ul>
