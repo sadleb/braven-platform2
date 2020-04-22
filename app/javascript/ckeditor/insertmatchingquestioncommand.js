@@ -16,6 +16,7 @@ export default class InsertMatchingQuestionCommand extends Command {
             const matchingQuestion = writer.createElement( 'matchingQuestion' );
             const question = writer.createElement( 'question', {'data-grade-as': 'matching'} );
             const questionTitle = writer.createElement( 'questionTitle' );
+            const questionBody = writer.createElement( 'questionBody' );
             const matchingTable = writer.createElement( 'matchingTable' );
             const doneButton = writer.createElement( 'doneButton' );
             const matchingTableBody = writer.createElement( 'matchingTableBody' );
@@ -27,10 +28,13 @@ export default class InsertMatchingQuestionCommand extends Command {
             const matchingTableCell21 = writer.createElement( 'matchingTableCell' );
             const matchingTableCell22 = writer.createElement( 'matchingTableCell' );
             const matchingTableCell23 = writer.createElement( 'matchingTableCell' );
-            
+
+            const questionParagraph = writer.createElement( 'paragraph' );
             
             writer.append( question, matchingQuestion );
             writer.append( questionTitle, question );
+            writer.append( questionBody, question );
+            writer.append( questionBody, question );
             writer.append( matchingTable, question );
             writer.append( doneButton, question );
             writer.append( matchingTableBody, matchingTable );
@@ -42,6 +46,10 @@ export default class InsertMatchingQuestionCommand extends Command {
             writer.append( matchingTableCell21, matchingTableRow2 );
             writer.append( matchingTableCell22, matchingTableRow2 );
             writer.append( matchingTableCell23, matchingTableRow2 );
+
+            // There must be at least one paragraph for the description to be editable.
+            // See https://github.com/ckeditor/ckeditor5/issues/1464.
+            writer.append( questionParagraph, questionBody );
             
             // Add text to empty editables, to get around the lack of placeholder support.
             writer.insertText( 'Title', matchingTableCell11 );

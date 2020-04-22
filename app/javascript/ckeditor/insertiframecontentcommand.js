@@ -21,7 +21,7 @@ function createIFrameContent( writer, url ) {
     const content = writer.createElement( 'content' );
     const contentTitle = writer.createElement( 'contentTitle' );
     const contentBody = writer.createElement( 'contentBody' );
-    const iframe = writer.createElement( 'iframe', {src: url} );
+    const iframe = writer.createElement( 'iframe', {src: url, width: 500} );
 
     const contentParagraph = writer.createElement( 'paragraph' );
 

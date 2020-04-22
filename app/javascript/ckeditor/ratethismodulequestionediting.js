@@ -30,17 +30,20 @@ export default class RateThisModuleQuestionEditing extends Plugin {
         } );
 
         schema.register( 'rateThisModuleSliderContainer', {
+            isObject: true,
             allowIn: [ 'questionFieldset', '$root' ],
         } );
 
         schema.register( 'rateThisModuleSliderLabelLeft', {
             isInline: true,
+            isLimit: true,
             allowIn: 'rateThisModuleSliderContainer',
             allowContentOf: '$block',
         } );
 
         schema.register( 'rateThisModuleSliderLabelRight', {
             isInline: true,
+            isLimit: true,
             allowIn: 'rateThisModuleSliderContainer',
             allowContentOf: '$block',
         } );

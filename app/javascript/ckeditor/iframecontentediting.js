@@ -1,5 +1,5 @@
 import Plugin from '@ckeditor/ckeditor5-core/src/plugin';
-import { toWidget, toWidgetEditable } from '@ckeditor/ckeditor5-widget/src/utils';
+import { toWidget } from '@ckeditor/ckeditor5-widget/src/utils';
 import Widget from '@ckeditor/ckeditor5-widget/src/widget';
 import InsertIFrameContentCommand from './insertiframecontentcommand';
 
@@ -19,6 +19,7 @@ export default class IFrameContentEditing extends Plugin {
         const schema = this.editor.model.schema;
 
         schema.register( 'iframe', {
+            isObject: true,
             allowIn: [ 'content', 'contentBody', '$root' ],
             allowAttributes: [ 'src', 'width' ]
         } );
@@ -45,7 +46,7 @@ export default class IFrameContentEditing extends Plugin {
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'iframe',
             view: ( modelElement, viewWriter ) => {
-                return viewWriter.createEditableElement( 'iframe', {
+                return viewWriter.createEmptyElement( 'iframe', {
                     'src': modelElement.getAttribute( 'src' ),
                     'width': modelElement.getAttribute( 'width' ),
                     'class': 'iframe-content'
@@ -55,11 +56,13 @@ export default class IFrameContentEditing extends Plugin {
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'iframe',
             view: ( modelElement, viewWriter ) => {
-                return viewWriter.createEditableElement( 'iframe', {
+                const iframe = viewWriter.createEmptyElement( 'iframe', {
                     'src': modelElement.getAttribute( 'src' ),
                     'width': modelElement.getAttribute( 'width' ),
                     'class': 'iframe-content'
                 } );
+
+                return toWidget( iframe, viewWriter, { label: 'iframe widget' } )
             }
         } );
     }

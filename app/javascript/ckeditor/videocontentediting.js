@@ -25,15 +25,18 @@ export default class VideoContentEditing extends Plugin {
         } );
 
         schema.register( 'videoFigure', {
+            isObject: true,
             allowIn: [ 'content', 'question', '$root' ],
         } );
 
         schema.register( 'videoIFrame', {
+            isObject: true,
             allowIn: 'videoFigure',
             allowAttributes: [ 'src', 'allow', 'allowfullscreen', 'frameborder', 'height', 'width' ]
         } );
 
         schema.register( 'videoFigCaption', {
+            isLimit: true,
             allowIn: [ 'videoFigure' ],
         } );
 
@@ -146,7 +149,7 @@ export default class VideoContentEditing extends Plugin {
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'videoIFrame',
             view: ( modelElement, viewWriter ) => {
-                return viewWriter.createEmptyElement( 'iframe', {
+                const iframe = viewWriter.createEmptyElement( 'iframe', {
                     'src': modelElement.getAttribute( 'src' ),
                     'allow': 'encrypted-media',
                     'allowfullscreen': 'allowfullscreen',
@@ -154,6 +157,8 @@ export default class VideoContentEditing extends Plugin {
                     'height': '315',
                     'width': '560'
                 } );
+
+                return toWidget( iframe, viewWriter, { label: 'video iframe widget' } )
             }
         } );
 
@@ -165,21 +170,12 @@ export default class VideoContentEditing extends Plugin {
             },
             model: 'videoFigCaption'
         } );
-        conversion.for( 'dataDowncast' ).elementToElement( {
+        conversion.for( 'downcast' ).elementToElement( {
             model: 'videoFigCaption',
-            view: ( modelElement, viewWriter ) => {
-                return viewWriter.createContainerElement( 'figcaption', {
-                    'class': 'video-caption-container'
-                } );
-            }
-        } );
-        conversion.for( 'editingDowncast' ).elementToElement( {
-            model: 'videoFigCaption',
-            view: ( modelElement, viewWriter ) => {
-                return viewWriter.createContainerElement( 'figcaption', {
-                    'class': 'video-caption-container'
-                } );
-            }
+            view: {
+                name: 'figcaption',
+                classes: ['video-caption-container']
+            },
         } );
 
         // The next 3 upcast converters must be high priority because of the
