@@ -7,6 +7,7 @@ import RetainedData from './retaineddata';
 import InsertTextInputCommand from './inserttextinputcommand';
 import InsertDoneButtonCommand from './insertdonebuttoncommand';
 import InsertContentBlockCommand from './insertcontentblockcommand';
+import InsertFileUploadQuestionCommand from './insertfileuploadquestioncommand';
 import { ALLOWED_ATTRIBUTES, filterAllowedAttributes } from './customelementattributepreservation';
 
 export default class ContentCommonEditing extends Plugin {
@@ -21,6 +22,7 @@ export default class ContentCommonEditing extends Plugin {
         this.editor.commands.add( 'insertTextInput', new InsertTextInputCommand( this.editor ) );
         this.editor.commands.add( 'insertDoneButton', new InsertDoneButtonCommand( this.editor ) );
         this.editor.commands.add( 'insertContentBlock', new InsertContentBlockCommand( this.editor ) );
+        this.editor.commands.add( 'insertFileUploadQuestion', new InsertFileUploadQuestionCommand( this.editor ) );
 
         // Add a shortcut to the retained data ID function.
         this._nextRetainedDataId = this.editor.plugins.get('RetainedData').getNextId;
@@ -134,7 +136,7 @@ export default class ContentCommonEditing extends Plugin {
 
         schema.register( 'fileUpload', {
             isObject: true,
-            allowAttributes: [ 'class', 'type' ].concat(ALLOWED_ATTRIBUTES),
+            allowAttributes: [ 'type' ].concat(ALLOWED_ATTRIBUTES),
             allowIn: [ '$root', 'questionFieldset' ],
         } );
 
@@ -704,6 +706,7 @@ export default class ContentCommonEditing extends Plugin {
                 const input = viewWriter.createEmptyElement( 'input', new Map( [
                     ...filterAllowedAttributes(modelElement.getAttributes()),
                     [ 'type', 'file' ],
+                    [ 'disabled', '' ],
                     [ 'data-bz-retained', modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
                 ] ) );
                 return toWidget( input, viewWriter );

@@ -669,6 +669,15 @@ class ContentEditor extends Component {
                                     }}
                                     {...{name: 'Slider Question'}}
                                 />
+                                <ContentPartPreview
+                                    key="insertFileUploadQuestion"
+                                    enabled={this.state.enabledCommands.includes('insertFileUploadQuestion')}
+                                    onClick={( id ) => {
+                                        this.editor.execute( 'insertFileUploadQuestion' );
+                                        this.editor.editing.view.focus();
+                                    }}
+                                    {...{name: 'File Upload Question'}}
+                                />
                             </ul>
                             <ul key="content-part-list-content" className="widget-list">
                                 <ContentPartPreview
