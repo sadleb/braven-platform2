@@ -830,5 +830,15 @@ export default class ContentCommonEditing extends Plugin {
                 return toWidget( option, viewWriter );
             }
         } );
+
+        // Shared attribute converters.
+        // We must explicitly define an attributeToAttribute converter in order to live-update
+        // model changes in the editingView when changing it from the setAttributes command.
+        // This is because elementToElement is only called once when the element is inserted,
+        // NOT when attributes are changed/added/removed.
+        // See https://github.com/ckeditor/ckeditor5/issues/6308#issuecomment-590243325
+        // and https://ckeditor.com/docs/ckeditor5/latest/api/module_engine_conversion_conversion-Conversion.html#function-attributeToAttribute
+        conversion.attributeToAttribute( { model: 'data-correctness', view: 'data-correctness' } );
+        conversion.attributeToAttribute( { model: 'placeholder', view: 'placeholder' } );
     }
 }
