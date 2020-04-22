@@ -594,6 +594,22 @@ class ContentEditor extends Component {
                                             <label htmlFor='input-mastery'>Mastery Question</label>
                                         </>
                                     );
+                                } else if ( [ 'videoIFrame', 'iframe' ].includes( modelElement ) ) {
+                                    // Videos and iframes have URL settings.
+                                    return (
+                                        <>
+                                            <h4>Video / IFrame</h4>
+                                            <input
+                                                type='text'
+                                                id='input-url'
+                                                defaultValue={this.state['selectedElement'].getAttribute('src')}
+                                                onChange={( evt ) => {
+                                                    this.editor.execute( 'setAttributes', { 'src': evt.target.value } );
+                                                }}
+                                            />
+                                            <label htmlFor='input-url'>URL</label>
+                                        </>
+                                    );
                                 }
                             } )
                         }
