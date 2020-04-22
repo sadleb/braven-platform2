@@ -30,8 +30,10 @@ export default class ChecklistQuestionEditing extends Plugin {
             evt.stop();
         } );
 
-        // For some reason 'enter' events don't fire when the current selection is a checkboxDiv,
-        // so fix that explicitly.
+        // Because 'enter' events are consumed by Widget._onKeydown when the current selection is a non-inline
+        // block widget, we have to re-fire them explicitly for checkboxDivs.
+        // https://github.com/ckeditor/ckeditor5-widget/blob/bdeec63534d11a4fa682bb34990c698435bc13e3/src/widget.js#L174
+        // https://github.com/ckeditor/ckeditor5-widget/blob/bdeec63534d11a4fa682bb34990c698435bc13e3/src/widget.js#L408
         this.listenTo( this.editor.editing.view.document, 'keydown', ( evt, data ) => {
             const selection = this.editor.model.document.selection;
             const selectedElement = selection.getSelectedElement();
@@ -44,6 +46,8 @@ export default class ChecklistQuestionEditing extends Plugin {
                     evt.stop();
                 }
             }
+        // Use 'highest' priority, because Widget._onKeydown listens at 'high'.
+        // https://github.com/ckeditor/ckeditor5-widget/blob/bdeec63534d11a4fa682bb34990c698435bc13e3/src/widget.js#L92
         }, { priority: 'highest' } );
 
         // Override the default 'enter' key behavior to allow inserting new checklist options.

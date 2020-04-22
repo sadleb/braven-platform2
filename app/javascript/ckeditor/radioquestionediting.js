@@ -22,8 +22,10 @@ export default class RadioQuestionEditing extends Plugin {
         // Add a shortcut to the retained data ID function.
         this._nextRetainedDataId = this.editor.plugins.get('RetainedData').getNextId;
 
-        // For some reason 'enter' events don't fire when the current selection is a radioDiv,
-        // so fix that explicitly.
+        // Because 'enter' events are consumed by Widget._onKeydown when the current selection is a non-inline
+        // block widget, we have to re-fire them explicitly for radioDivs.
+        // https://github.com/ckeditor/ckeditor5-widget/blob/bdeec63534d11a4fa682bb34990c698435bc13e3/src/widget.js#L174
+        // https://github.com/ckeditor/ckeditor5-widget/blob/bdeec63534d11a4fa682bb34990c698435bc13e3/src/widget.js#L408
         this.listenTo( this.editor.editing.view.document, 'keydown', ( evt, data ) => {
             const selection = this.editor.model.document.selection;
             const selectedElement = selection.getSelectedElement();
@@ -36,6 +38,8 @@ export default class RadioQuestionEditing extends Plugin {
                     evt.stop();
                 }
             }
+        // Use 'highest' priority, because Widget._onKeydown listens at 'high'.
+        // https://github.com/ckeditor/ckeditor5-widget/blob/bdeec63534d11a4fa682bb34990c698435bc13e3/src/widget.js#L92
         }, { priority: 'highest' } );
 
         // Override the default 'enter' key behavior to allow inserting new checklist options.
