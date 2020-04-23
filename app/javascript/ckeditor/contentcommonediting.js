@@ -840,5 +840,6 @@ export default class ContentCommonEditing extends Plugin {
         // and https://ckeditor.com/docs/ckeditor5/latest/api/module_engine_conversion_conversion-Conversion.html#function-attributeToAttribute
         conversion.attributeToAttribute( { model: 'data-correctness', view: 'data-correctness' } );
         conversion.attributeToAttribute( { model: 'placeholder', view: 'placeholder' } );
+        conversion.attributeToAttribute( { model: 'src', view: 'src' } );
     }
 }

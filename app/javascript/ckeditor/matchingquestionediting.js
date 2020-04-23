@@ -38,6 +38,7 @@ export default class MatchingQuestionEditing extends Plugin {
         } );
 
         schema.register( 'matchingTable', {
+            isObject: true,
             allowIn: 'question',
         } );
 
@@ -56,15 +57,17 @@ export default class MatchingQuestionEditing extends Plugin {
         } );
 
         schema.register( 'matchingTableHeaderCell', {
+            isObject: true,
             isInline: true,
             allowIn: 'matchingTableRow',
             allowContentOf: '$block',
         } );
 
         schema.register( 'matchingTableCell', {
+            isObject: true,
             isInline: true,
             allowIn: 'matchingTableRow',
-            allowContentOf: '$root',
+            allowContentOf: [ '$root', '$block' ]
         } );
     }
 
@@ -126,7 +129,7 @@ export default class MatchingQuestionEditing extends Plugin {
                 const table = viewWriter.createEditableElement( 'table', {
                     'class': 'sort-to-match no-zebra'
                 } );
-                return toWidgetEditable( table, viewWriter );
+                return toWidgetEditable( table, viewWriter, { label: 'matching game table', hasSelectionHandle: true } );
             }
         } );
 
