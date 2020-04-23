@@ -3,6 +3,16 @@
 // You can use Sass (SCSS) here: http://sass-lang.com/
 /* assets/styles.css */
 
+/* --- Show module --- */
+.show-module-notice {
+	font-size: 20px;
+	margin: 2em;
+
+	strong {
+		color: red;
+	}
+}
+
 /* --- Editor / Content styles --- */
 .bz-module,
 .bz-view-box {
