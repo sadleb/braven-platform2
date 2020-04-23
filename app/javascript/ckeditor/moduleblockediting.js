@@ -5,7 +5,6 @@ import Plugin from '@ckeditor/ckeditor5-core/src/plugin';
 import Widget from '@ckeditor/ckeditor5-widget/src/widget';
 import { toWidget } from '@ckeditor/ckeditor5-widget/src/utils';
 
-
 export default class ModuleBlockEditing extends Plugin {
     static get requires() {
         return [ Widget, Clipboard ];
@@ -58,7 +57,7 @@ export default class ModuleBlockEditing extends Plugin {
         schema.register( 'moduleBlock', {
             isObject: true,
             allowIn: 'section',
-            allowAttribute: [ 'blockClasses' ],
+            allowAttributes: [ 'blockClasses' ],
         } );
 
         // Allow question, answer, and content divs inside module-block divs.
