@@ -10,14 +10,14 @@ export default class InsertVideoContentCommand extends Command {
     refresh() {
         const model = this.editor.model;
         const selection = model.document.selection;
-        const allowedIn = model.schema.findAllowedParent( selection.getFirstPosition(), 'videoContent' );
+        const allowedIn = model.schema.findAllowedParent( selection.getFirstPosition(), 'moduleBlock' );
 
         this.isEnabled = allowedIn !== null;
     }
 }
 
 function createVideoContent( writer, url ) {
-    const videoContent = writer.createElement( 'videoContent' );
+    const videoContent = writer.createElement( 'moduleBlock', {blockClasses: 'module-block module-block-video'} );
     const content = writer.createElement( 'content' );
     const contentTitle = writer.createElement( 'contentTitle' );
     const contentBody = writer.createElement( 'contentBody' );

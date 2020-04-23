@@ -19,12 +19,6 @@ export default class BlockquoteContentEditing extends Plugin {
     _defineSchema() {
         const schema = this.editor.model.schema;
 
-        schema.register( 'blockquoteContent', {
-            isObject: true,
-            allowIn: 'section',
-            allowAttributes: [ 'class' ]
-        } );
-
         schema.register( 'blockquoteQuote', {
             allowIn: 'content',
             allowContentOf: '$root'
