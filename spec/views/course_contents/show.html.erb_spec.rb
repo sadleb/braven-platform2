@@ -2,17 +2,30 @@ require 'rails_helper'
 
 RSpec.describe "course_contents/show", type: :view do
   before(:each) do
-    @course_content = assign(:course_content, CourseContent.create!(
+    assign(:course_content, CourseContent.create!(
       :title => "Title",
-      :body => "MyText",
-      :content_type => "MyText"
+      :body => "<p>MyText</p>",
+      :content_type => "wiki_page"
     ))
   end
 
-  it "renders attributes in <p>" do
+  it "renders HTML" do
     render
-    expect(rendered).to match(/Title/)
-    expect(rendered).to match(/MyText/)
-    expect(rendered).to match(/MyText/)
+    expect(rendered).to match(/<p>MyText<\/p>/)
+  end
+
+  it "adds appropriate div class for content_type" do
+    # module first
+    render
+    expect(rendered).to match(/<div class="bz-module">/)
+
+    # then assignment
+    assign(:course_content, CourseContent.create!(
+      :title => "Title",
+      :body => "<p>MyText</p>",
+      :content_type => "assignment"
+    ))
+    render
+    expect(rendered).to match(/<div class="bz-assignment">/)
   end
 end
