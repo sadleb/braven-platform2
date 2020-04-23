@@ -741,7 +741,7 @@ class ContentEditor extends Component {
                                     key="insertIFrameContent"
                                     enabled={this.state.enabledCommands.includes('insertIFrameContent')}
                                     onClick={( id ) => {
-                                        const url = window.prompt('URL', 'http://example.com' );
+                                        const url = window.prompt('URL', 'https://www.youtube.com/embed/yyRrKMb8oIg?rel=0' );
                                         this.editor.execute( 'insertIFrameContent', url );
                                         this.editor.editing.view.focus();
                                     }}
