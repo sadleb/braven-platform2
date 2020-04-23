@@ -59,19 +59,6 @@ export default class ModuleBlockEditing extends Plugin {
             allowIn: 'section',
             allowAttributes: [ 'blockClasses' ],
         } );
-
-        // Allow question, answer, and content divs inside module-block divs.
-        schema.extend( 'question', {
-            allowIn: [ 'moduleBlock' ],
-        } );
-
-        schema.extend( 'answer', {
-            allowIn: [ 'moduleBlock' ],
-        } );
-
-        schema.extend( 'content', {
-            allowIn: [ 'moduleBlock' ],
-        } );
     }
 
     _defineConverters() {
@@ -108,6 +95,23 @@ export default class ModuleBlockEditing extends Plugin {
 
                 return toWidget( moduleBlock, viewWriter, { label: 'module-block widget', hasSelectionHandle: true } );
             }
+        } ).add( dispatcher => {
+            dispatcher.on( 'attribute', ( evt, data, conversionApi ) => {
+                // Allow all elements in the model to have any of a preset list of attributes.
+                if ( data.attributeKey !== 'blockClasses' ) {
+                    return;
+                }
+
+                const viewWriter = conversionApi.writer;
+                const viewElement = conversionApi.mapper.toViewElement( data.item );
+
+                // In the model-to-view conversion we convert changes.
+                // An attribute can be added or removed or changed.
+                // The below code only handles adding/removing, because we don't want to delete the class.
+                if ( data.attributeNewValue ) {
+                    viewWriter.setAttribute( 'class', data.attributeNewValue, viewElement );
+                }
+            } );
         } );
     }
 }
