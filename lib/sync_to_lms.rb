@@ -1,4 +1,5 @@
 require 'salesforce_api'
+require 'canvas_api'
 
 # A helper library to perform the logic that takes folks who are confirmed as participants in the
 # program in Salesforce and creates their Canvas accounts.
@@ -9,9 +10,9 @@ class SyncToLMS
   # hacky "translate this param to that param" between the APIs without involving local models to make it clean and build upon in this
   # iteration.
 
-  def initialize(salesforce_api = SalesforceAPI.client, canvas_api = CanvasProdClient)
-    @salesforce_api = salesforce_api
-    @canvas_api = canvas_api
+  def initialize()
+    @salesforce_api = SalesforceAPI.client
+    @canvas_api = CanvasAPI.client
   end
 
   # Syncs all folks from Salesforce to Canvas for the specified course.
