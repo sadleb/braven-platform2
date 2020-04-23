@@ -25,7 +25,7 @@ RSpec.describe SyncToLMS do
         :get_sections => [], :create_section => section)
     }
 
-    subject(:sync) { SyncToLMS.new(sf_api, canvas_api) }
+    subject(:sync) { SyncToLMS.new(sf_api, canvas_api) } 
 
     it 'fetches Program info' do
       expect(sf_api).to receive(:get_program_info).with(fellow_course_id).and_return(program_info)
@@ -78,7 +78,7 @@ RSpec.describe SyncToLMS do
 
       it 'handles missing timezone' do
         program_info['Default_Timezone__c'] = nil
-        expect { sync.execute(fellow_course_id) }.to raise_error(SalesforceDataError)
+        expect { sync.execute(fellow_course_id) }.to raise_error(SalesforceAPI::SalesforceDataError)
       end
 
       it 'handles missing DocuSign template' do

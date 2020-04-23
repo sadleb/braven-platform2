@@ -1,4 +1,5 @@
 require 'grade_calculator'
+require 'salesforce_api'
 
 class User < ApplicationRecord
   include Devise::Models::DatabaseAuthenticatable
@@ -37,11 +38,11 @@ class User < ApplicationRecord
     end
   end
 
+  before_validation :sync_salesforce_info, on: :create
   before_create :attempt_admin_set, unless: :admin?
   
   validates :email, uniqueness: true
-# TODO: when registering, look up their Salesforce record and set their first name / last name
-#  validates :email, :first_name, :last_name, presence: true
+  validates :email, :first_name, :last_name, presence: true
   validates :email, presence: true
   
   def full_name
@@ -87,5 +88,18 @@ class User < ApplicationRecord
     
     domain = email.split('@').last
     self.admin = ADMIN_DOMAIN_WHITELIST.include?(domain)
+  end
+
+  # Sets the attributes of this User to the values in Salesforce which is the source of truth
+  def sync_salesforce_info
+    return unless salesforce_id
+    sf_info = SalesforceAPI.client.get_contact_info(salesforce_id)
+    self.first_name = sf_info['FirstName']
+    self.last_name = sf_info['LastName']
+    self.email = sf_info['Email']
+    raise SalesforceAPI::SalesforceDataError.new("Contact info sent from Salesforce missing data: #{sf_info}") unless self.first_name && self.last_name && self.email
+  rescue => e
+    Rails.logger.error(e)
+    throw :abort # Makes active record do the expected thing for save/create
   end
 end

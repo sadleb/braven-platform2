@@ -9,7 +9,7 @@ class SyncToLMS
   # hacky "translate this param to that param" between the APIs without involving local models to make it clean and build upon in this
   # iteration.
 
-  def initialize(salesforce_api = SalesforceAPI.new, canvas_api = CanvasProdClient)
+  def initialize(salesforce_api = SalesforceAPI.client, canvas_api = CanvasProdClient)
     @salesforce_api = salesforce_api
     @canvas_api = canvas_api
   end
@@ -173,7 +173,7 @@ class SyncToLMS
   def get_program(course_id)
     p = Program.new
     program_info = @salesforce_api.get_program_info(course_id)
-    raise SalesforceDataError.new("Missing 'Default_Timezone__c' data") unless program_info['Default_Timezone__c']
+    raise SalesforceAPI::SalesforceDataError.new("Missing 'Default_Timezone__c' data") unless program_info['Default_Timezone__c']
     p.attributes = {
       :name                                 => program_info['Name'],
       :salesforce_id                        => program_info['Id'],
@@ -190,5 +190,3 @@ class SyncToLMS
   end
 
 end
-
-class SalesforceDataError < StandardError; end

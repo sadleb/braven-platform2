@@ -28,15 +28,49 @@ RSpec.describe User, type: :model do
   # Callbacks
   ###########
 
-  describe 'auto-admin' do
-    it "sets admin when user has a bebraven.org email" do
-      user = create :user, email: 'test@bebraven.org'
-      expect(user.reload.admin).to be(true)
+  describe '.create' do
+    context 'when bebraven.org email' do
+      it "sets admin true" do
+        user = create :user, email: 'test@bebraven.org'
+        expect(user.reload.admin).to be(true)
+      end
     end
-    
-    it "sets admin to false when user has a non-braven e-mail" do
-      user = create :user, email: 'bob@example.com'
-      expect(user.reload.admin).to be(false)
+
+    context "when non-braven email" do
+      it "sets admin to false" do
+        user = create :user, email: 'bob@example.com'
+        expect(user.reload.admin).to be(false)
+      end
+    end
+
+    context "when salesforce_id is set" do
+      let(:sf_contact) { build(:salesforce_contact) }
+      let(:sf_api) { class_double(SalesforceAPI).as_stubbed_const(:transfer_nested_constants => true) }
+      let(:sf_api_client) { instance_double(SalesforceAPI, :get_contact_info => sf_contact) }
+  
+      it 'email and name are fetched from the salesforce_api and set' do
+        allow(sf_api_client).to receive(:get_contact_info).and_return(sf_contact)
+        allow(sf_api).to receive(:client).and_return(sf_api_client)
+
+        user = create :user, salesforce_id: sf_contact['Id']
+
+        user = user.reload
+        expect(user.first_name).to eq(sf_contact['FirstName'])
+        expect(user.last_name).to eq(sf_contact['LastName'])
+        expect(user.email).to eq(sf_contact['Email'])
+      end
+    end
+
+    context "when salesforce_id is not set" do
+      let(:sf_api) { class_double(SalesforceAPI).as_stubbed_const(:transfer_nested_constants => true) }
+      it 'the name and email are left alone' do
+        user = create :user, first_name: 'fname', last_name: 'lname', email: 'test@email.com'
+        user = user.reload
+        expect(user.first_name).to eq('fname')
+        expect(user.last_name).to eq('lname')
+        expect(user.email).to eq('test@email.com')
+        expect(sf_api).not_to receive(:client)
+      end   
     end
   end
 

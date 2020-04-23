@@ -14,14 +14,7 @@ class ApplicationController < ActionController::Base
     super unless authorized_by_token? || cas_ticket?
   end
 
-  # This is defined by :database_authenticable on the User model, but we're using :cas_authenticatable
-  # However, we still want to support account creation, registration, and confirmation which is 
-  # database_authenticable functionality so we need to define this for those built-in views to work.
-  def new_session_path(scope)
-    new_user_session_path
-  end
-  helper_method :new_session_path
-  
+ 
   # TODO: need to change this to only be for access to admin stuff. E.g. for non-admins, we may
   # want to see if they have a Portal account and redirect there.
   def ensure_admin!
@@ -45,4 +38,13 @@ class ApplicationController < ActionController::Base
 
     ServiceTicket.exists?(ticket: ticket)
   end
+
+  # This is defined by :database_authenticable on the User model, but we're using :cas_authenticatable
+  # However, we still want to support account creation, registration, and confirmation which is 
+  # database_authenticable functionality so we need to define this for those built-in views to work.
+  def new_session_path(scope)
+    new_user_session_path
+  end
+  helper_method :new_session_path
+
 end
