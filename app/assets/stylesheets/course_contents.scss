@@ -135,6 +135,14 @@ div.partial-html-document:after {
    clear: both;
 }
 
+.ck iframe.ck-widget,
+.ck iframe.ck-widget.ck-widget_selected,
+.ck iframe.ck-widget.ck-widget_selected:hover {
+        outline-width: 10px;
+        outline-offset: -10px;
+        padding: 10px;
+}
+
 /* --- Right sidebar styles --- */
 ul.widget-list li.disabled,
 ul.widget-list li.disabled:hover {
