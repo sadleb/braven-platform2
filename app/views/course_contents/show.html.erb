@@ -1,24 +1,7 @@
-<p id="notice"><%= notice %></p>
+<p class="show-module-notice"><strong>Note</strong>: This is not how this page will look on Canvas.
+To view this page on canvas, you must publish it from the
+<%= link_to 'editor', edit_course_content_path(@course_content) %>.
 
-<p>
-  <strong>Title:</strong>
-  <%= @course_content.title %>
-</p>
-
-<p>
-  <strong>Body:</strong>
-  <%= @course_content.body %>
-</p>
-
-<p>
-  <strong>Published at:</strong>
-  <%= @course_content.published_at %>
-</p>
-
-<p>
-  <strong>Type:</strong>
-  <%= @course_content.content_type %>
-</p>
-
-<%= link_to 'Edit', edit_course_content_path(@course_content) %> |
-<%= link_to 'Back', course_contents_path %>
+<div class="<%= @course_content.content_type == 'wiki_page' ? 'bz-module' : 'bz-assignment' %>">
+  <%== @course_content.body %>
+</div>
