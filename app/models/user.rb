@@ -1,5 +1,6 @@
 require 'grade_calculator'
 require 'salesforce_api'
+require 'canvas_api'
 
 class User < ApplicationRecord
   include Devise::Models::DatabaseAuthenticatable
@@ -38,13 +39,13 @@ class User < ApplicationRecord
     end
   end
 
-  before_validation :sync_salesforce_info, on: :create
+  before_validation :do_account_registration, on: :create
   before_create :attempt_admin_set, unless: :admin?
   
   validates :email, uniqueness: true
   validates :email, :first_name, :last_name, presence: true
   validates :email, presence: true
-  
+
   def full_name
     [first_name, last_name].join(' ')
   end
@@ -90,16 +91,39 @@ class User < ApplicationRecord
     self.admin = ADMIN_DOMAIN_WHITELIST.include?(domain)
   end
 
-  # Sets the attributes of this User to the values in Salesforce which is the source of truth
+  # Handles anything that should happen when a new account is being registered
+  # using the new_user_registration route
+  def do_account_registration
+    if sync_salesforce_info # They can't register for Canvas access if they aren't Enrolled in Salesforce
+      setup_canvas_access
+    end
+  end
+
+  # Grabs the values from Salesforce and sets them on this User since SF is the source of truth
   def sync_salesforce_info
-    return unless salesforce_id
+    return false unless salesforce_id
     sf_info = SalesforceAPI.client.get_contact_info(salesforce_id)
     self.first_name = sf_info['FirstName']
     self.last_name = sf_info['LastName']
     self.email = sf_info['Email']
     raise SalesforceAPI::SalesforceDataError.new("Contact info sent from Salesforce missing data: #{sf_info}") unless self.first_name && self.last_name && self.email
+    true
   rescue => e
     Rails.logger.error(e)
     throw :abort # Makes active record do the expected thing for save/create
   end
+
+  # Looks up their Canvas account and sets the Id so that on login we can redirect them there.
+  def setup_canvas_access
+    return if canvas_id
+    existing_user = CanvasAPI.client.find_user_in_canvas(email)
+    if existing_user
+      self.canvas_id = existing_user['id']
+    else
+      Rails.logger.error("User is trying to create an account but is not in Canvas: #{self.inspect}")
+      throw :abort # TODO: create them on the fly by running a Sync To LMS for just this user. Maybe it just wasn't run yet.
+    end
+  end
+
+
 end
