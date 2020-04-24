@@ -66,6 +66,10 @@ Rails.application.configure do
   # specified name.
   config.hosts << "platformweb"
 
+  # Use the lowest log level to ensure availability of diagnostic information
+  # when problems arise.
+  config.log_level = ENV.fetch('LOG_LEVEL') { :debug }
+
   # Add Rack::LiveReload to the bottom of the middleware stack with the default options:
   config.middleware.insert_after ActionDispatch::Static, Rack::LiveReload
 

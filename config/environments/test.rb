@@ -34,7 +34,13 @@ Rails.application.configure do
   config.active_storage.service = :test
 
   # Tests should be mostly silent. Only log errors.
-  config.log_level = :error
+  config.log_level = ENV.fetch('LOG_LEVEL') { :error }
+
+  if ENV["RAILS_LOG_TO_STDOUT"].present?
+    logger           = ActiveSupport::Logger.new(STDOUT)
+    logger.formatter = config.log_formatter
+    config.logger    = ActiveSupport::TaggedLogging.new(logger)
+  end
 
   config.action_mailer.perform_caching = false
 

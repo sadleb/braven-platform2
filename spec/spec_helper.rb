@@ -48,6 +48,11 @@ RSpec.configure do |config|
   # triggering implicit auto-inclusion in groups with matching metadata.
   config.shared_context_metadata_behavior = :apply_to_host_groups
 
+  # If you turn logging up, this adds a log when each test starts to run
+  config.before :example do |x|
+    Rails.logger.warn("### running spec example: #{x.metadata[:full_description].inspect}")
+  end
+
 # The settings below are suggested to provide a good initial experience
 # with RSpec, but feel free to customize to your heart's content.
 =begin
