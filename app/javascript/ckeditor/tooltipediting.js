@@ -33,20 +33,23 @@ export default class TooltipEditing extends Plugin {
                 return createTooltipElement( title, writer );
             } } );
 
+        // We have to use a lower-level dispatcher because otherwise this conflicts with the span upcast in
+        // customelementattributepreservation.js and we end up with double spans.
         conversion.for( 'upcast' )
-            .elementToAttribute( {
-                view: {
-                    name: 'span',
-                    classes: [ 'has-tooltip' ],
-                    attributes: {
-                        title: true,
+            .add( dispatcher => { dispatcher.on( 'element:span', ( evt, data, conversionApi ) => {
+                if ( conversionApi.consumable.consume( data.viewItem, { name: true, attributes: [ 'title' ] } ) ) {
+                    // <span> element is inline and is represented by an attribute in the model.
+                    // This is why we need to convert only children.
+                    const { modelRange } = conversionApi.convertChildren( data.viewItem, data.modelCursor );
+
+                    for ( let item of modelRange.getItems() ) {
+                        if ( conversionApi.schema.checkAttribute( item, 'tooltipText' ) ) {
+                            conversionApi.writer.setAttribute( 'tooltipText', data.viewItem.getAttribute( 'title' ), item );
+                        }
                     }
-                },
-                model: {
-                    key: 'tooltipText',
-                    value: viewElement => viewElement.getAttribute( 'title' )
                 }
             } );
+        } );
 
         editor.commands.add( 'addTooltip', new AddTooltipCommand( editor ) );
         editor.commands.add( 'removeTooltip', new RemoveTooltipCommand( editor ) );
