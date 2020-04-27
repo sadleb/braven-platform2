@@ -14,12 +14,10 @@ class ApplicationController < ActionController::Base
     super unless authorized_by_token? || cas_ticket?
   end
 
- 
-  # TODO: need to change this to only be for access to admin stuff. E.g. for non-admins, we may
-  # want to see if they have a Portal account and redirect there.
   def ensure_admin!
     if current_user
-      redirect_to('/unauthorized') unless current_user.admin?
+      return redirect_to(CanvasAPI.client.canvas_url) if current_user.canvas_id && !current_user.admin?
+      return redirect_to('/unauthorized') unless current_user.admin?
     end
   end
   
