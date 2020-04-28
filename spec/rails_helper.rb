@@ -71,6 +71,13 @@ RSpec.configure do |config|
 
   config.include Devise::Test::ControllerHelpers, type: :controller
   config.include Devise::Test::ControllerHelpers, type: :view
+
+  # For controllers, we need tell Devise how to find our custom devise controllers
+  config.before :type => 'controller' do
+    # Mimic the router behavior of setting the Devise scope through the env.
+    @request.env['devise.mapping'] = Devise.mappings[:user]
+  end
+ 
 end
 
 Shoulda::Matchers.configure do |config|
