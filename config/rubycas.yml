@@ -16,10 +16,22 @@ production: &default
     host: <%= ENV['DATABASE_HOST'] %>
     username: <%= ENV['DATABASE_USERNAME'] %>
     password: <%= ENV['DATABASE_PASSWORD'] %>
+<% if ENV['BZ_AUTH_SERVER'] %>
+  authenticator: &default_bz_auth
+    class: BeyondZ::CustomAuthenticator
+    source: beyondz.rb
+    server: <%= ENV['BZ_AUTH_SERVER'] %>
+    # We can override ssl, port, and self signed options for dev
+    # The default is to use SSL.
+    # ssl: false
+    # port: 3001
+    # allow_self_signed: true
+<% else %>
   authenticator: &default_cas_auth
     class: BravenCAS::CustomAuthenticator
     source: cas_authenticator.rb
-    
+<% end %>
+
 development:
   <<: *default
   log:
@@ -33,8 +45,17 @@ development:
   database:
     <<: *default_db
     database: platform_development
+<% if ENV['BZ_AUTH_SERVER'] %>
+  authenticator:
+    <<: *default_bz_auth
+    server: joinweb
+    ssl: false
+    port: 3001
+    allow_self_signed: true
+<% else %>
   authenticator:
     <<: *default_cas_auth
+<% end %>
 
 test:
   <<: *default
@@ -50,8 +71,17 @@ test:
   database:
     <<: *default_db
     database: platform_test
+<% if ENV['BZ_AUTH_SERVER'] %>
+  authenticator:
+    <<: *default_bz_auth
+    server: joinweb
+    ssl: false
+    port: 3001
+    allow_self_signed: true
+<% else %>
   authenticator:
     <<: *default_cas_auth
+<% end %>
   uri_path: /test
   disable_auto_migrations: true
   quiet: true

@@ -4,13 +4,12 @@ require "capybara_helper"
 include ERB::Util
 include Rack::Utils
 
-unless ENV['BZ_AUTH_SERVER'] # Only run these specs if on a server with local database authentication enabled
+if ENV['BZ_AUTH_SERVER'] # Only run these specs if on a server with Join authentication enabled
 
 RSpec.describe CourseContentsController, type: :routing do
-  let!(:valid_user) { create(:admin_user) }
-  let(:valid_user_creds) {{ email: valid_user.email, password: valid_user.password }}
-  let(:invalid_user_creds) {{ email: 'bad_user', password: 'bad_pass' }}
-  let(:host_servers) {{ canvas_server: "#{ENV['VCR_CANVAS_SERVER']}" }}
+  let(:valid_user) {{ email: 'platform_user', password: 'rspec_test' }}
+  let(:invalid_user) {{ email: 'bad_user', password: 'bad_pass' }}
+  let(:host_servers) {{ join_server: "#{ENV['VCR_JOIN_SERVER']}", canvas_server: "#{ENV['VCR_CANVAS_SERVER']}" }}
 
   describe "Content Editor Smoke Tests" do
     describe "/course_contents/new loads ckeditor", :js do
@@ -20,12 +19,15 @@ RSpec.describe CourseContentsController, type: :routing do
         VCR.configure do |c|
           c.ignore_localhost = true
         end
-        fill_and_submit_login(username, password)
+        VCR.use_cassette(join_cassette, :erb => host_servers) do
+          fill_and_submit_login(username, password)
+        end
       end
 
       context "when username and password are valid" do
-        let(:username) { valid_user_creds[:email] }
-        let(:password) { valid_user_creds[:password] }
+        let(:join_cassette) { "join_auth_valid" }
+        let(:username) { valid_user[:email] }
+        let(:password) { valid_user[:password] }
         
         it "loads the editor view and renders react components" do
           expect(current_url).to include(return_service)
@@ -48,4 +50,14 @@ RSpec.describe CourseContentsController, type: :routing do
   end
 end
 
-end # unless ENV['BZ_AUTH_SERVER']
+def fill_and_submit_login(username, password)
+  # Input login credentials
+  fill_in "username", :with => username
+  fill_in "password", :with => password
+  
+  # Make sure there is a login button that can be clicked
+  # Capybara with Selenium can have problems with javascript
+  find("#login-submit").click
+end
+
+end # if ENV['BZ_AUTH_SERVER']

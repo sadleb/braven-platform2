@@ -4,22 +4,25 @@ require "capybara_helper"
 include ERB::Util
 include Rack::Utils
 
-unless ENV['BZ_AUTH_SERVER'] # Only run these specs if on a server with local database authentication enabled
+if ENV['BZ_AUTH_SERVER'] # Only run these specs if on a server with Join authentication enabled
 
 RSpec.describe CasController, type: :routing do
-  let!(:valid_user) { create(:registered_user) }
-  let(:valid_user_creds) {{ email: valid_user.email, password: valid_user.password }}
-  let(:invalid_user_creds) {{ email: 'bad_user', password: 'bad_pass' }}
+  let(:valid_user) {{ email: 'platform_user', password: 'rspec_test' }}
+  let(:invalid_user) {{ email: 'bad_user', password: 'bad_pass' }}
+  let(:host_servers) {{ join_server: "#{ENV['VCR_JOIN_SERVER']}", canvas_server: "#{ENV['VCR_CANVAS_SERVER']}" }}
 
   describe "RubyCAS Controller" do
     describe "/cas/login without service url" do
       before(:each) do 
         visit "/cas/login"
-        fill_and_submit_login(username, password)
+        VCR.use_cassette(join_cassette, :erb => host_servers) do
+          fill_and_submit_login(username, password)
+        end
       end
       context "when username and password are valid" do
-        let(:username) { valid_user_creds[:email] }
-        let(:password) { valid_user_creds[:password] }
+        let(:join_cassette) { "join_auth_valid" }
+        let(:username) { valid_user[:email] }
+        let(:password) { valid_user[:password] }
         
         it "logs in successfully" do
           # Ensure that the login was successful
@@ -27,8 +30,9 @@ RSpec.describe CasController, type: :routing do
         end
       end
       context "when username and password are invalid" do
-        let(:username) { invalid_user_creds[:email] }
-        let(:password) { invalid_user_creds[:password] }
+        let(:join_cassette) { "join_auth_invalid" }
+        let(:username) { invalid_user[:email] }
+        let(:password) { invalid_user[:password] }
 
         it "fails to log in" do
           # Ensure that the login was failed
@@ -37,16 +41,19 @@ RSpec.describe CasController, type: :routing do
       end
     end
 
-    describe "/cas/login with service url" do
+    describe "/cas/login without service url" do
       let(:return_service) { 'http://braven/' }
       before(:each) do 
         visit "/cas/login?service=#{url_encode(return_service)}"
-        fill_and_submit_login(username, password)
+        VCR.use_cassette(join_cassette, :erb => host_servers) do
+          fill_and_submit_login(username, password)
+        end
       end
 
       context "when username and password are valid" do
-        let(:username) { valid_user_creds[:email] }
-        let(:password) { valid_user_creds[:password] }
+        let(:join_cassette) { "join_auth_valid" }
+        let(:username) { valid_user[:email] }
+        let(:password) { valid_user[:password] }
         
         it "logs in successfully" do
           # Ensure that the login was successful
@@ -72,12 +79,15 @@ RSpec.describe CasController, type: :routing do
     describe "/cas/login using onlyLoginForm parameter" do
       before(:each) do 
         visit "/cas/login?onlyLoginForm=true"
-        fill_and_submit_login(username, password)
+        VCR.use_cassette(join_cassette, :erb => host_servers) do
+          fill_and_submit_login(username, password)
+        end
       end
 
       context "when username and password are valid" do
-        let(:username) { valid_user_creds[:email] }
-        let(:password) { valid_user_creds[:password] }
+        let(:join_cassette) { "join_auth_valid" }
+        let(:username) { valid_user[:email] }
+        let(:password) { valid_user[:password] }
 
         it "logs in successfully" do
           # Ensure that the login was successful
@@ -88,4 +98,14 @@ RSpec.describe CasController, type: :routing do
   end
 end
 
-end # if  ENV['BZ_AUTH_SERVER']
+end # end if ENV['BZ_AUTH_SERVER']
+
+def fill_and_submit_login(username, password)
+  # Input login credentials
+  fill_in "username", :with => username
+  fill_in "password", :with => password
+  
+  # Make sure there is a login button that can be clicked
+  # Capybara with Selenium can have problems with javascript
+  find("#login-submit").click
+end

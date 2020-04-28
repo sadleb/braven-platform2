@@ -28,16 +28,25 @@ Devise.setup do |config|
   config.parent_mailer = 'ActionMailer::Base'
   
   # ==> CAS configuration
+  # We can operate the server in two modes. 1) the old mode where we connect
+  # to the Join server to check their credentials because that is where the account 
+  # was created 2) we check the local database credentials because they created the account here.
+  # We're in a transition, so remove this toggle and switch to only supporting the local database
+  # once we don't have to run the old mode to allow folks to continue to be able to login to the running
+  # course.
+  if ENV['BZ_AUTH_SERVER']
+    config.cas_create_user = true
+  else
+    config.cas_create_user = false
+    config.cas_logout_url_param = "destination"
+    config.cas_destination_logout_param_name = "service"
+    config.warden do |manager|
+      manager.failure_app = DeviseCasAuthenticatable::SingleSignOut::WardenFailureApp
+    end
+  end
   config.cas_base_url = Rails.application.secrets.sso_url
-  config.cas_create_user = false
-  config.cas_logout_url_param = "destination"
-  config.cas_destination_logout_param_name = "service"
   config.cas_enable_single_sign_out = true
   config.cas_username_column = 'email'
- 
-  config.warden do |manager|
-    manager.failure_app = DeviseCasAuthenticatable::SingleSignOut::WardenFailureApp
-  end
 
   # ==> ORM configuration
   # Load and configure the ORM. Supports :active_record (default) and
