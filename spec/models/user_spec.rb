@@ -19,7 +19,7 @@ RSpec.describe User, type: :model do
   it { should validate_presence_of :last_name }
 
   describe 'validating uniqueness' do
-    before { create :user }
+    before { create :registered_user }
     
     it { should validate_uniqueness_of(:email).case_insensitive }
   end
@@ -38,14 +38,14 @@ RSpec.describe User, type: :model do
 
      context 'when bebraven.org email' do
       it "sets admin true" do
-        user = create :user, email: 'test@bebraven.org'
+        user = create :user, email: 'test@bebraven.org', password: 'pw123456'
         expect(user.reload.admin).to be(true)
       end
     end
 
     context "when non-braven email" do
       it "sets admin to false" do
-        user = create :user, email: 'bob@example.com'
+        user = create :user, email: 'bob@example.com', password: 'pw123456'
         expect(user.reload.admin).to be(false)
       end
     end
@@ -55,7 +55,7 @@ RSpec.describe User, type: :model do
       it 'email and name are fetched from the salesforce_api and set' do
         allow(canvas_api_client).to receive(:find_user_in_canvas).and_return(canvas_user)
         expect(sf_api_client).to receive(:get_contact_info).with(sf_contact['Id']).and_return(sf_contact).once
-        user = create :user, salesforce_id: sf_contact['Id']
+        user = create :user, password: 'somepassword', salesforce_id: sf_contact['Id']
         user = user.reload
         expect(user.first_name).to eq(sf_contact['FirstName'])
         expect(user.last_name).to eq(sf_contact['LastName'])
@@ -65,7 +65,7 @@ RSpec.describe User, type: :model do
 
     context "when salesforce_id is not set" do
       it 'the name and email are left alone' do
-        user = create :user, first_name: 'fname', last_name: 'lname', email: 'test@email.com'
+        user = create :user, first_name: 'fname', last_name: 'lname', email: 'test@email.com', password: 'somepassword'
         user = user.reload
         expect(user.first_name).to eq('fname')
         expect(user.last_name).to eq('lname')
@@ -79,7 +79,7 @@ RSpec.describe User, type: :model do
       it 'sets the canvas_id' do
         allow(sf_api_client).to receive(:get_contact_info).and_return(sf_contact)
         expect(canvas_api_client).to receive(:find_user_in_canvas).with(sf_contact['Email']).and_return(canvas_user).once
-        user = create :user, salesforce_id: sf_contact['Id']
+        user = create :user, salesforce_id: sf_contact['Id'], password: 'somepassword'
         user = user.reload
         expect(user.canvas_id).to eq(canvas_user['id'])
       end
@@ -89,7 +89,7 @@ RSpec.describe User, type: :model do
       it 'raises an exception' do
         allow(sf_api_client).to receive(:get_contact_info).and_return(sf_contact)
         expect(canvas_api_client).to receive(:find_user_in_canvas).with(sf_contact['Email']).and_return(nil).once
-        expect { create :user, salesforce_id: sf_contact['Id'] }.to raise_error(ActiveRecord::RecordInvalid)
+        expect { create :user, salesforce_id: sf_contact['Id'], password: 'somepassword' }.to raise_error(ActiveRecord::RecordInvalid)
       end
     end
 
@@ -100,14 +100,14 @@ RSpec.describe User, type: :model do
   ##################
 
   describe 'full_name' do
-    let(:user) { build :user, first_name: 'Bob', last_name: 'Smith' }
+    let(:user) { build :registered_user }
     
     subject { user.full_name }
-    it { should eq('Bob Smith') }
+    it { should eq("#{user.first_name} #{user.last_name}") }
   end
  
   describe '#start_membership(program_id, role_id)' do
-    let!(:user) { create :user }
+    let!(:user) { create :registered_user }
     let!(:program) { create :program }
     let!(:role) { create :role }
     
@@ -136,7 +136,7 @@ RSpec.describe User, type: :model do
   end
   
   describe '#end_membership(program_id, role_id)' do
-    let!(:user) { create :user }
+    let!(:user) { create :registered_user }
     let!(:program) { create :program }
     let!(:role) { create :role }
     let(:start_date) { Date.today - 100 }
@@ -156,7 +156,7 @@ RSpec.describe User, type: :model do
   end
   
   describe '#update_membership(program_id, old_role_id, new_role_id)' do
-    let!(:user) { create :user }
+    let!(:user) { create :registered_user }
     let!(:program) { create :program }
     let!(:old_role) { create :role, name: 'Old' }
     let!(:new_role) { create :role, name: 'New' }
@@ -209,7 +209,7 @@ RSpec.describe User, type: :model do
   end
   
   describe '#current_membership(program_id)' do
-    let!(:user) { create :user }
+    let!(:user) { create :registered_user }
     let!(:program) { create :program }
     let!(:old_role) { create :role, name: 'Old' }
     let!(:new_role) { create :role, name: 'New' }
