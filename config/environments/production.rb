@@ -61,6 +61,16 @@ Rails.application.configure do
   # config.active_job.queue_name_prefix = "platform_production"
 
   config.action_mailer.perform_caching = false
+  config.action_mailer.default_url_options = { host: Rails.application.secrets.application_host, protocol: 'https' }
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.smtp_settings = {
+    :address              => Rails.application.secrets.smtp_server,
+    :port                 => Rails.application.secrets.smtp_port,
+    :domain               => Rails.application.secrets.smtp_domain,
+    :user_name            => Rails.application.secrets.smtp_username,
+    :password             => Rails.application.secrets.smtp_password,
+    :authentication       => :login
+  }
 
   # Ignore bad email addresses and do not raise email delivery errors.
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
