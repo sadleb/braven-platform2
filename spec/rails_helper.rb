@@ -5,6 +5,8 @@ Codacy::Reporter.start
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 require 'spec_helper'
 
+require 'platform_helper'
+
 Dir["./spec/support/**/*.rb"].sort.each{|f| require f}
 
 ENV['RAILS_ENV'] ||= 'test'
