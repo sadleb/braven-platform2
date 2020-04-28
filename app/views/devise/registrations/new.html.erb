@@ -1,6 +1,6 @@
 <h2>Sign up</h2>
 
-<% if params[:u] %>
+<% if params[:u] || params[:user][:salesforce_id] %>
 <%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
   <%= render "devise/shared/error_messages", resource: resource %>
 
@@ -25,16 +25,16 @@
 
 
   <div class="actions">
-    <%= f.hidden_field :salesforce_id, :value => params[:u] %>
+    <%= f.hidden_field :salesforce_id, :value => params[:u] ||= params[:user][:salesforce_id] %>
     <%= f.submit "Create Account" %>
   </div>
 <% end %>
 
 <em>Note: If you wish to use a different email from the one that you used to sign-up for Braven in order to login to the Portal, you can change it after your account has been setup. If you don't have access to the email you signed up, please. <a href="mailto:support@bebraven.org">contact us here</a>   </em>
 
-<%= render "devise/shared/links" %>
-
 <% else %>
+
+<%= render "devise/shared/error_messages", resource: resource %>
 <h1>Uh oh. Something went wrong!</h1>
 <br/><br/>
 <div>
@@ -44,4 +44,5 @@ You should have a received a link from Braven after signing up for the program a
 <div>
 The link should look something like <strong><%= root_url %>users/sign_up?u=003170000125IpSAAU</strong>
 </div>
+
 <% end %>

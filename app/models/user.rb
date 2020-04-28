@@ -12,7 +12,7 @@ class User < ApplicationRecord
   # and the users that it authenticates are created in this database using :database_authenticable
   # functionality. This article was gold to help get this working: 
   # https://jeremysmith.co/posts/2014-01-24-devise-cas-using-devisecasauthenticatable-and-casino/
-  devise :cas_authenticatable, :rememberable, :registerable, :confirmable
+  devise :cas_authenticatable, :rememberable, :registerable, :confirmable, :validatable
   # TODO: implement recoverable for forgot password support and trackable for more info on sign-in activity.
   #devise :cas_authenticatable, :rememberable, :registerable, :confirmable, :recoverable, :trackable
   
