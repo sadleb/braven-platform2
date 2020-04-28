@@ -57,7 +57,11 @@ export default class ModuleBlockEditing extends Plugin {
         schema.register( 'moduleBlock', {
             isObject: true,
             allowIn: 'section',
-            allowAttributes: [ 'blockClasses' ],
+            allowAttributes: [
+                // FIXME: Camelcase is broken with CKE built-in conversions, esp. on upcast
+                'blockClasses',
+                'icon',
+            ],
         } );
     }
 
@@ -95,28 +99,8 @@ export default class ModuleBlockEditing extends Plugin {
 
                 return toWidget( moduleBlock, viewWriter, { label: 'module-block widget', hasSelectionHandle: true } );
             }
-        } ).add( dispatcher => {
-            // We need an additional attribute converter on the editingDowncast to update the module-block
-            // class live in the editing view when it's changed by setAttributes. For some reason,
-            // attributeToAttribute doesn't work with classes, so we use the lower-level event dispatcher.
-            // See https://github.com/bebraven/platform/pull/172 if we have a chance to look into this more
-            // later.
-            dispatcher.on( 'attribute', ( evt, data, conversionApi ) => {
-                // Ignore everything but the 'blockClasses' model attribute.
-                if ( data.attributeKey !== 'blockClasses' ) {
-                    return;
-                }
-
-                const viewWriter = conversionApi.writer;
-                const viewElement = conversionApi.mapper.toViewElement( data.item );
-
-                // In the model-to-view conversion we convert changes.
-                // An attribute can be added or removed or changed.
-                // The below code only handles adding/removing, because we don't want to delete the class.
-                if ( data.attributeNewValue ) {
-                    viewWriter.setAttribute( 'class', data.attributeNewValue, viewElement );
-                }
-            } );
         } );
+
+        conversion.attributeToAttribute( { model: 'icon', view: 'icon' } );
     }
 }

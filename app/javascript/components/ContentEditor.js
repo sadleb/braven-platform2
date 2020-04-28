@@ -475,32 +475,30 @@ class ContentEditor extends Component {
                                         // selection.
                                         return;
                                     }
-
                                     return (
                                         <>
                                             <h4>Module Block</h4>
 
-                                            <div className={"module-icon-wrapper " + moduleBlock.getAttribute('blockClasses')}>
-                                                <div
-                                                    className="module-icon-preview question"
-                                                />
+                                            <div className={"module-icon-wrapper module-block " + 
+                                                (moduleBlock.getAttribute('icon') || "module-block-question")}>
+                                                <div className="module-icon-preview question" />
                                             </div>
                                             <select
                                                 id='input-module-block-type'
-                                                defaultValue={moduleBlock.getAttribute('blockClasses')}
                                                 onChange={( evt ) => {
-                                                    this.editor.execute( 'setAttributes', { 'blockClasses': evt.target.value }, moduleBlock );
+                                                    this.editor.execute( 'setAttributes', { 'icon': evt.target.value }, moduleBlock );
                                                 }}
+                                                value={moduleBlock.getAttribute('icon') || "module-block-question"}
                                             >
-                                                <option value="module-block">Default</option>
-                                                <option value="module-block module-block-action">Action</option>
-                                                <option value="module-block module-block-alert">Alert</option>
-                                                <option value="module-block module-block-key">Key</option>
-                                                <option value="module-block module-block-pulse">Pulse</option>
-                                                <option value="module-block module-block-read">Read</option>
-                                                <option value="module-block module-block-reflection">Reflection</option>
-                                                <option value="module-block module-block-values">Values</option>
-                                                <option value="module-block module-block-video">Video</option>
+                                                <option value="module-block-question">Question</option>
+                                                <option value="module-block-action">Action</option>
+                                                <option value="module-block-alert">Alert</option>
+                                                <option value="module-block-key">Key</option>
+                                                <option value="module-block-pulse">Pulse</option>
+                                                <option value="module-block-read">Read</option>
+                                                <option value="module-block-reflection">Reflection</option>
+                                                <option value="module-block-values">Values</option>
+                                                <option value="module-block-video">Video</option>
                                             </select>
                                             <label htmlFor='input-module-block-type'>Block Icon</label>
                                         </>
