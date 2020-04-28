@@ -35,9 +35,12 @@ export default class TooltipEditing extends Plugin {
 
         // We have to use a lower-level dispatcher because otherwise this conflicts with the span upcast in
         // customelementattributepreservation.js and we end up with double spans.
+        // MUST use 'lowest' priority, to avoid converting before parent nodes exist.
+        // See https://github.com/ckeditor/ckeditor5/issues/4529.
+        // Not sure why 'low' specified in the docs doesn't work.
         conversion.for( 'upcast' )
             .add( dispatcher => { dispatcher.on( 'element:span', ( evt, data, conversionApi ) => {
-                if ( conversionApi.consumable.consume( data.viewItem, { name: true, attributes: [ 'title' ] } ) ) {
+                if ( conversionApi.consumable.consume( data.viewItem, { name: true, classes: [ 'has-tooltip' ], attributes: [ 'title' ] } ) ) {
                     // <span> element is inline and is represented by an attribute in the model.
                     // This is why we need to convert only children.
                     const { modelRange } = conversionApi.convertChildren( data.viewItem, data.modelCursor );
@@ -48,7 +51,7 @@ export default class TooltipEditing extends Plugin {
                         }
                     }
                 }
-            } );
+            }, { priority: 'lowest' } );
         } );
 
         editor.commands.add( 'addTooltip', new AddTooltipCommand( editor ) );
