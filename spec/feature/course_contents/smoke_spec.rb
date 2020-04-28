@@ -5,7 +5,7 @@ include ERB::Util
 include Rack::Utils
 
 RSpec.describe CourseContentsController, type: :routing do
-  let!(:valid_user) { create(:registered_user) }
+  let!(:valid_user) { create(:admin_user) }
   let(:valid_user_creds) {{ email: valid_user.email, password: valid_user.password }}
   let(:invalid_user_creds) {{ email: 'bad_user', password: 'bad_pass' }}
   let(:host_servers) {{ canvas_server: "#{ENV['VCR_CANVAS_SERVER']}" }}
