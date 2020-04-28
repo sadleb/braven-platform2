@@ -106,7 +106,7 @@ class User < ApplicationRecord
     self.first_name = sf_info['FirstName']
     self.last_name = sf_info['LastName']
     self.email = sf_info['Email']
-    raise SalesforceAPI::SalesforceDataError.new("Contact info sent from Salesforce missing data: #{sf_info}") unless self.first_name && self.last_name && self.email
+    raise SalesforceAPI::SalesforceDataError.new("Contact info sent from Salesforce missing data: #{sf_info}") unless first_name && last_name && email
     true
   rescue => e
     Rails.logger.error(e)
@@ -120,7 +120,7 @@ class User < ApplicationRecord
     if existing_user
       self.canvas_id = existing_user['id']
     else
-      Rails.logger.error("User is trying to create an account but is not in Canvas: #{self.inspect}")
+      Rails.logger.error("User is trying to create an account but is not in Canvas: #{inspect}")
       throw :abort # TODO: create them on the fly by running a Sync To LMS for just this user. Maybe it just wasn't run yet.
     end
   end

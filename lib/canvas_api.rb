@@ -20,7 +20,7 @@ class CanvasAPI
 
   # Use this to get an instance of the API client with authentication info setup.
   def self.client
-    @@CANVAS_API_CLIENT ||= self.new(ENV['CANVAS_URL'], ENV['CANVAS_TOKEN'])
+    @client_instance ||= new(ENV['CANVAS_URL'], ENV['CANVAS_TOKEN'])
   end
 
   def initialize(canvas_url, canvas_token)

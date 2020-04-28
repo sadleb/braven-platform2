@@ -24,12 +24,12 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
   # end
 
   # The path used after confirmation.
-   def after_confirmation_path_for(resource_name, resource)
-     # After confirming their account, have them login through CAS instead of being immediately signed in.
-     # Note: if you wanted to sign them in, call this:
-     # sign_in(resource)
-     cas_login_url
-   end
+  def after_confirmation_path_for(resource_name, resource)
+    # After confirming their account, have them login through CAS instead of being immediately signed in.
+    # Note: if you wanted to sign them in, call this:
+    # sign_in(resource)
+    cas_login_url
+  end
 
   private
 

@@ -12,7 +12,7 @@ class SalesforceAPI
 
   # Use this to get an authenticated instance of the API client
   def self.client
-    s = self.new
+    s = new
     s.authenticate
   end
 

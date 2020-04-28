@@ -10,7 +10,7 @@ class SyncToLMS
   # hacky "translate this param to that param" between the APIs without involving local models to make it clean and build upon in this
   # iteration.
 
-  def initialize()
+  def initialize
     @salesforce_api = SalesforceAPI.client
     @canvas_api = CanvasAPI.client
   end

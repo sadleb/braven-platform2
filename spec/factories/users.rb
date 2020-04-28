@@ -19,7 +19,7 @@ FactoryBot.define do
     admin { false }
     
     factory :registered_user do
-      sequence(:password) { |i| "password{i}" }
+      sequence(:password) { |i| "password#{i}" }
       confirmed_at { DateTime.now }
 
       factory :admin_user do

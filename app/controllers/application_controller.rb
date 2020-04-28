@@ -40,7 +40,7 @@ class ApplicationController < ActionController::Base
   # This is defined by :database_authenticable on the User model, but we're using :cas_authenticatable
   # However, we still want to support account creation, registration, and confirmation which is 
   # database_authenticable functionality so we need to define this for those built-in views to work.
-  def new_session_path(scope)
+  def new_session_path(_)
     new_user_session_path
   end
   helper_method :new_session_path
