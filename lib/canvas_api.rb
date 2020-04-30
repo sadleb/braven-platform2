@@ -18,6 +18,9 @@ class CanvasAPI
     </div>
   )
 
+  # Canvas course ID for the Braven Content Library.
+  ContentLibraryCourseID = 1
+
   # Use this to get an instance of the API client with authentication info setup.
   def self.client
     @client_instance ||= new(ENV['CANVAS_URL'], ENV['CANVAS_TOKEN'])
@@ -160,7 +163,7 @@ class CanvasAPI
   # See: https://canvascoach.instructure.com/doc/api/file.file_uploads.html#method.file_uploads.post
   # If successful, URL will be available as the hash value of the 'url' key.
   # If unsuccessful, returns a Response object.
-  def upload_file_to_course(file, original_filename, content_type, course_id=1)
+  def upload_file_to_course(file, original_filename, content_type, course_id=ContentLibraryCourseID)
     # Step 1: Telling Canvas about the file upload and getting a token.
     body = {
       name: original_filename,
