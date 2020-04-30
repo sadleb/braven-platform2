@@ -3,6 +3,7 @@ Rails.application.routes.draw do
     post :publish
     resources :course_content_histories, path: 'versions', only: [:index, :show]
   end
+  resources :file_upload, only: [:create]
 
   devise_for :users, controllers: { registrations: 'users/registrations', confirmations: 'users/confirmations' }
 

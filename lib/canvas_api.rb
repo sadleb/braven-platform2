@@ -157,4 +157,28 @@ class CanvasAPI
     info
   end
 
+  # See: https://canvascoach.instructure.com/doc/api/file.file_uploads.html#method.file_uploads.post
+  # If successful, URL will be available as the hash value of the 'url' key.
+  # If unsuccessful, returns a Response object.
+  def upload_file_to_course(file, original_filename, content_type, course_id=1)
+    # Step 1: Telling Canvas about the file upload and getting a token.
+    body = {
+      name: original_filename,
+      size: file.size,
+      content_type: content_type,
+    }
+
+    response = post("/courses/#{course_id}/files", body)
+    return response if response.code != 200
+
+    info = JSON.parse(response.body)
+
+    # Step 2: Upload the file data to the URL given in the previous response.
+    response = RestClient.post(info['upload_url'], info['upload_params'].merge(file:file))
+    return response if ![200, 301].include? response.code
+
+    # Return preview URL.
+    info = JSON.parse(response.body)
+    {url: "#{canvas_url}/courses/#{course_id}/files/#{info['id']}/preview"}
+  end
 end

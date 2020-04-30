@@ -184,7 +184,7 @@ BalloonEditor.defaultConfig = {
     },
     simpleUpload: {
         // The URL that the images are uploaded to.
-        uploadUrl: '/image_upload_api',
+        uploadUrl: '/file_upload.json',
 
         // Headers sent along with the XMLHttpRequest to the upload server.
         headers: {
@@ -788,11 +788,10 @@ class ContentEditor extends Component {
                                         this.editor.execute( 'imageUpload', {file: e.target.files[0]} );
                                         this.editor.editing.view.focus();
                                     }}
-                                    onClickDisabled={() => this.editor.editing.view.focus()}
                                 />
                                 <ContentPartPreview
                                     key="imageUpload"
-                                    enabled={false}
+                                    enabled={this.state.enabledCommands.includes('imageUpload')}
                                     onClick={this.showFileUpload}
                                     onClickDisabled={() => this.editor.editing.view.focus()}
                                     {...{name: 'Image (Upload)'}}
