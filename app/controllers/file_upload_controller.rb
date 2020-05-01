@@ -8,7 +8,7 @@ class FileUploadController < ApplicationController
           file_upload_params.content_type
       )
 
-      if upload[:url]
+      if upload.is_a? Hash and upload[:url]
         format.json { render json: upload, status: :ok }
       else
         info = JSON.parse(upload.body)
