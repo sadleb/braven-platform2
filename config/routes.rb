@@ -4,7 +4,7 @@ Rails.application.routes.draw do
     resources :course_content_histories, path: 'versions', only: [:index, :show]
   end
 
-  devise_for :users, controllers: { registrations: 'users/registrations', confirmations: 'users/confirmations' }
+  devise_for :users, controllers: { registrations: 'users/registrations', confirmations: 'users/confirmations', passwords: 'users/passwords' }
 
   get 'home/welcome'
 

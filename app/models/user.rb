@@ -16,10 +16,10 @@ class User < ApplicationRecord
     # See: config/initializers/devise.rb for what this is all about.
     devise :cas_authenticatable, :rememberable
   else
-    devise :cas_authenticatable, :rememberable, :registerable, :confirmable, :validatable
+    # TODO: trackable for more info on sign-in activity.
+    #devise :cas_authenticatable, :rememberable, :registerable, :confirmable, :validatable, :recoverable, :trackable
+    devise :cas_authenticatable, :rememberable, :registerable, :confirmable, :validatable, :recoverable
   end
-  # TODO: implement recoverable for forgot password support and trackable for more info on sign-in activity.
-  #devise :cas_authenticatable, :rememberable, :registerable, :confirmable, :recoverable, :trackable
   
   has_many :project_submissions
   has_many :projects, :through => :project_submissions
