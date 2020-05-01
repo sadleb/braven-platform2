@@ -103,7 +103,7 @@ Devise.setup do |config|
   # It will change confirmation, password recovery and other workflows
   # to behave the same regardless if the e-mail provided was right or wrong.
   # Does not affect registerable.
-  # config.paranoid = true
+  config.paranoid = true
 
   # By default Devise will store the user in session. You can skip storage for
   # particular strategies by setting this option.
@@ -142,7 +142,7 @@ Devise.setup do |config|
   # config.send_email_changed_notification = false
 
   # Send a notification email when the user's password is changed.
-  # config.send_password_change_notification = false
+  config.send_password_change_notification = false
 
   # ==> Configuration for :confirmable
   # A period that the user is allowed to access the website even without
@@ -232,7 +232,7 @@ Devise.setup do |config|
   # Time interval you can reset your password with a reset password key.
   # Don't put a too small interval or your users won't have the time to
   # change their passwords.
-  config.reset_password_within = 6.hours
+  config.reset_password_within = 24.hours
 
   # When set to false, does not sign a user in automatically after their password is
   # reset. Defaults to true, so a user is signed in automatically after a reset.
