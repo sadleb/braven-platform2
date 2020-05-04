@@ -1,5 +1,5 @@
 class FileUploadController < ApplicationController
-  # POST /course_contents.json
+  # POST /file_upload.json
   def create
     respond_to do |format|
       upload = CanvasAPI.client.upload_file_to_course(
