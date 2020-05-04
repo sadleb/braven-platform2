@@ -42,6 +42,25 @@
 	}
 }
 
+/* --- Warnings for invalid content --- */
+.content-section > :not(.module-block):not([data-placeholder="[Empty section]"]):before,
+.content-section > .module-block:nth-of-type(2):before {
+        content: "INVALID CONTENT IN SECTION \A";
+        white-space: pre;
+        color: black;
+        background-color: red;
+        border: 1px black solid;
+        padding: 0.2em;
+        font-weight: bold;
+        font-size: 12pt;
+        font-family: sans-serif;
+}
+
+.content-section > :not(.module-block):not([data-placeholder="[Empty section]"]),
+.content-section > .module-block:nth-of-type(2) {
+        background-color: khaki;
+}
+
 /* --- Editor / Content styles --- */
 .bz-module,
 .bz-view-box {
