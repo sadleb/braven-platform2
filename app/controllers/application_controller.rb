@@ -1,5 +1,6 @@
 require 'rubycas-server-core/tickets'
 require 'dry_crud'
+require 'canvas_api'
 
 class ApplicationController < ActionController::Base
   include RubyCAS::Server::Core::Tickets
@@ -44,5 +45,10 @@ class ApplicationController < ActionController::Base
     new_user_session_path
   end
   helper_method :new_session_path
+
+  def canvas_url
+    CanvasAPI.client.canvas_url
+  end
+  helper_method :canvas_url
 
 end
