@@ -797,6 +797,16 @@ class ContentEditor extends Component {
                                     onClickDisabled={() => this.editor.editing.view.focus()}
                                     {...{name: 'Slider'}}
                                 />
+                                <ContentPartPreview
+                                    key="insertDoneButton"
+                                    enabled={this.state.enabledCommands.includes('insertDoneButton')}
+                                    onClick={( id ) => {
+                                        this.editor.execute( 'insertDoneButton' );
+                                        this.editor.editing.view.focus();
+                                    }}
+                                    onClickDisabled={() => this.editor.editing.view.focus()}
+                                    {...{name: 'Done Button'}}
+                                />
                                 <input
                                     type="file"
                                     style={{ display: "none" }}
