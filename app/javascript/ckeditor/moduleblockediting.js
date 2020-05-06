@@ -60,7 +60,7 @@ export default class ModuleBlockEditing extends Plugin {
             allowAttributes: [
                 // FIXME: Camelcase is broken with CKE built-in conversions, esp. on upcast
                 'blockClasses',
-                'icon',
+                'data-icon',
             ],
         } );
     }
@@ -101,6 +101,6 @@ export default class ModuleBlockEditing extends Plugin {
             }
         } );
 
-        conversion.attributeToAttribute( { model: 'icon', view: 'icon' } );
+        conversion.attributeToAttribute( { model: 'data-icon', view: 'data-icon' } );
     }
 }

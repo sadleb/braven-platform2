@@ -480,15 +480,15 @@ class ContentEditor extends Component {
                                             <h4>Module Block</h4>
 
                                             <div className={"module-icon-wrapper module-block " + 
-                                                (moduleBlock.getAttribute('icon') || "module-block-question")}>
+                                                (moduleBlock.getAttribute('data-icon') || "module-block-question")}>
                                                 <div className="module-icon-preview question" />
                                             </div>
                                             <select
                                                 id='input-module-block-type'
                                                 onChange={( evt ) => {
-                                                    this.editor.execute( 'setAttributes', { 'icon': evt.target.value }, moduleBlock );
+                                                    this.editor.execute( 'setAttributes', { 'data-icon': evt.target.value }, moduleBlock );
                                                 }}
-                                                value={moduleBlock.getAttribute('icon') || "module-block-question"}
+                                                value={moduleBlock.getAttribute('data-icon') || "module-block-question"}
                                             >
                                                 <option value="module-block-question">Question</option>
                                                 <option value="module-block-action">Action</option>
