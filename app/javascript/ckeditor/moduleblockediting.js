@@ -77,9 +77,26 @@ export default class ModuleBlockEditing extends Plugin {
                 classes: ['module-block']
             },
             model: ( viewElement, modelWriter ) => {
+                // Get existing classes on the element
+                const srcClasses = viewElement.getAttribute('class') || 'module-block';
+
+                // We need special handling for icon because it was originally set in 
+                // <div class=...> and we're now keeping track of it in <div data-icon=...>
+                const icon = (
+                    // The data-icon attribute was already set on the element
+                    viewElement.getAttribute('data-icon')
+                    // The icon was in the element's class list
+                    || srcClasses.split(" ").find( c => c.startsWith('module-block-') )
+                    // Nothing was specified, use a default
+                    || 'module-block-question'
+                );
+
+                // Remove icon from class
+                const blockClasses = srcClasses.replace(icon, "").trim();
+
                 return modelWriter.createElement( 'moduleBlock', {
-                    'blockClasses': viewElement.getAttribute('class') || 'module-block',
-                    'data-icon': viewElement.getAttribute('data-icon') || 'module-block-question',
+                    'blockClasses': blockClasses,
+                    'data-icon': icon,
                 });
             }
         } );
