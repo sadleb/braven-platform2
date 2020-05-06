@@ -1,6 +1,7 @@
 require 'grade_calculator'
 require 'salesforce_api'
 require 'canvas_api'
+require 'sync_to_lms'
 
 class User < ApplicationRecord
   include Devise::Models::DatabaseAuthenticatable
@@ -125,8 +126,8 @@ class User < ApplicationRecord
     if existing_user
       self.canvas_id = existing_user['id']
     else
-      Rails.logger.error("User is trying to create an account but is not in Canvas: #{inspect}")
-      throw :abort # TODO: create them on the fly by running a Sync To LMS for just this user. Maybe it just wasn't run yet.
+      Rails.logger.info("Creating Canvas account and enrollments for new user: #{inspect}")
+      self.canvas_id = SyncToLMS.new.for_contact(salesforce_id)
     end
   end
 
