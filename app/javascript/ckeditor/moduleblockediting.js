@@ -79,6 +79,7 @@ export default class ModuleBlockEditing extends Plugin {
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'moduleBlock', {
                     'blockClasses': viewElement.getAttribute('class') || 'module-block',
+                    'data-icon': viewElement.getAttribute('data-icon') || 'module-block-question',
                 });
             }
         } );
