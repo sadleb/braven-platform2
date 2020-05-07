@@ -45,7 +45,7 @@ export default class BlockquoteContentEditing extends Plugin {
         conversion.for( 'upcast' ).elementToElement( {
             view: {
                 name: 'div',
-                classes: ['module-block', 'module-block-quote']
+                classes: ['module-block', 'block-quote-bg']
             },
             model: ( viewElement, modelWriter ) => {
                 // Read the "data-id" attribute from the view and set it as the "id" in the model.
@@ -56,7 +56,7 @@ export default class BlockquoteContentEditing extends Plugin {
             model: 'blockquoteContent',
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createEditableElement( 'div', {
-                    'class': 'module-block module-block-quote',
+                    'class': 'module-block block-quote-bg',
                 } );
 
             }
@@ -66,7 +66,7 @@ export default class BlockquoteContentEditing extends Plugin {
             view: ( modelElement, viewWriter ) => {
 
                 const blockquoteContent = viewWriter.createContainerElement( 'div', {
-                    'class': 'module-block module-block-quote',
+                    'class': 'module-block block-quote-bg',
                 } );
 
                 return toWidget( blockquoteContent, viewWriter, { label: 'blockquote widget' } );
