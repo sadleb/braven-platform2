@@ -21,10 +21,7 @@ export default class InsertBlockquoteContentCommand extends Command {
 function createBlockquoteContent( writer ) {
     const blockquoteContent = writer.createElement(
         'moduleBlock',
-        {
-            'blockClasses': 'module-block module-block-quote',
-            'data-icon': 'module-block-quote',
-        },
+        { 'blockClasses': 'module-block block-quote-bg' },
     );
     const content = writer.createElement( 'content' );
     const quote = writer.createElement( 'blockquoteQuote' );

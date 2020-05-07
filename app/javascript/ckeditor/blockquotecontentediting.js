@@ -35,38 +35,6 @@ export default class BlockquoteContentEditing extends Plugin {
         const conversion = editor.conversion;
         const { editing, data, model } = editor;
 
-        // <blockquoteContent> converters
-        conversion.for( 'upcast' ).elementToElement( {
-            view: {
-                name: 'div',
-                classes: ['module-block', 'block-quote-bg']
-            },
-            model: ( viewElement, modelWriter ) => {
-                // Read the "data-id" attribute from the view and set it as the "id" in the model.
-                return modelWriter.createElement( 'blockquoteContent' );
-            }
-        } );
-        conversion.for( 'dataDowncast' ).elementToElement( {
-            model: 'blockquoteContent',
-            view: ( modelElement, viewWriter ) => {
-                return viewWriter.createEditableElement( 'div', {
-                    'class': 'module-block block-quote-bg',
-                } );
-
-            }
-        } );
-        conversion.for( 'editingDowncast' ).elementToElement( {
-            model: 'blockquoteContent',
-            view: ( modelElement, viewWriter ) => {
-
-                const blockquoteContent = viewWriter.createContainerElement( 'div', {
-                    'class': 'module-block block-quote-bg',
-                } );
-
-                return toWidget( blockquoteContent, viewWriter, { label: 'blockquote widget' } );
-            }
-        } );
-
         // <blockquoteQuote> converters
         conversion.for( 'upcast' ).elementToElement( {
             model: 'blockquoteQuote',
