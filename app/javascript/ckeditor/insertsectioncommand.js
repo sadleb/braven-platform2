@@ -1,9 +1,22 @@
 import Command from '@ckeditor/ckeditor5-core/src/command';
+import { getNamedAncestor } from './utils';
 
 export default class InsertSectionCommand extends Command {
     execute() {
         this.editor.model.change( writer => {
-            this.editor.model.insertContent( createSection( writer ) );
+            const selection = this.editor.model.document.selection;
+            const position = selection.getFirstPosition();
+
+            const section = getNamedAncestor( 'section', position );
+            if ( section ) {
+                // IFF we're not in the root, before inserting, modify the current
+                // selection to after the section.
+                writer.setSelection( section, 'after' );
+            }
+
+            const newSection = createSection( writer );
+            this.editor.model.insertContent( newSection );
+            writer.setSelection( newSection, 'in' );
         } );
     }
 
