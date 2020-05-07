@@ -25,7 +25,6 @@ export default class SectionEditing extends Plugin {
             // Handle two cases: moduleBlock is selected, or cursor is in a paragraph inside the section.
             if ( ( selectedElement && selectedElement.name === 'moduleBlock' ) ||
                     ( positionParent.parent && positionParent.parent.name === 'section' ) ) {
-                console.log(data.domEvent);
                 if ( data.domEvent.key === 'Enter' ) {
                     // On Enter, add a new section.
                     this.editor.execute( 'insertSection' )
