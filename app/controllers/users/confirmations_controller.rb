@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Users::ConfirmationsController < Devise::ConfirmationsController
-   before_action :configure_permitted_parameters
+  before_action :configure_permitted_parameters
 
   # GET /resource/confirmation/new
   # def new
@@ -12,7 +12,7 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
   def create
     super do
       self.resource = User.find_by(salesforce_id: params[:user][:salesforce_id])
-      self.resource.send_confirmation_instructions
+      resource.send_confirmation_instructions
     end
   end
 
