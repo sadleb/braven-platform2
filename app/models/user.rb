@@ -114,9 +114,6 @@ class User < ApplicationRecord
     self.email = sf_info['Email']
     raise SalesforceAPI::SalesforceDataError.new("Contact info sent from Salesforce missing data: #{sf_info}") unless first_name && last_name && email
     true
-  rescue => e
-    Rails.logger.error(e)
-    throw :abort # Makes active record do the expected thing for save/create
   end
 
   # Looks up their Canvas account and sets the Id so that on login we can redirect them there.
@@ -130,6 +127,5 @@ class User < ApplicationRecord
       self.canvas_id = SyncToLMS.new.for_contact(salesforce_id)
     end
   end
-
 
 end
