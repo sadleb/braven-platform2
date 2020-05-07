@@ -9,6 +9,7 @@ Rails.application.routes.draw do
 
   devise_scope :user do
     get 'users/password/check_email', to: "users/passwords#check_email"
+    get 'users/registration', to: "users/registrations#show"
   end
 
   get 'home/welcome'

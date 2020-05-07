@@ -25,7 +25,7 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
 
   # The path used after resending confirmation instructions.
   def after_resending_confirmation_instructions_path_for(_)
-    new_user_confirmation_path(:u => resource.salesforce_id)
+    new_user_confirmation_path 
   end
 
   # The path used after confirmation.
