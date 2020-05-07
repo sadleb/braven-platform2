@@ -36,6 +36,9 @@ else
 fi
 
 
+# Migrate the db, if needed.
+bundle exec rake db:migrate
+
 # Fix "inotify event queue has overflowed."
 # https://github.com/guard/listen/wiki/Increasing-the-amount-of-inotify-watchers
 sysctl fs.inotify.max_user_watches=524288
