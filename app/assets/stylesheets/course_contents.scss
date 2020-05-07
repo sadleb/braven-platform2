@@ -146,7 +146,7 @@ button.ck.ck-button.ck-heading_h5 .ck-button__label {
 }
 
 /* more overrides */
-.module-block-quote > div.content,
+.block-quote-bg > div.content,
 div.content > blockquote {
         width: 100%;
 }
@@ -156,7 +156,7 @@ div.content > blockquote:focus > small {
         color: black;
         background: none;
 }
-div.module-block:not(.module-block-quote) blockquote {
+div.module-block:not(.block-quote-bg) blockquote {
         padding: 0 1.5em;
         margin: 0;
         border-left: none;
