@@ -271,7 +271,7 @@ CKEditor updates tend to have major breaking changes often, so be sure to test a
 
 Once the dependencies are updated, you will need to rebuild your container:
 
-    docker-compose build && docker-compose run platformweb yarn
+    docker-compose build && docker-compose run platformweb yarn install --check-files
 
 ### Accessibility testing
 
