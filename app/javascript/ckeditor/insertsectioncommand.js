@@ -16,6 +16,14 @@ export default class InsertSectionCommand extends Command {
 
             const newSection = createSection( writer );
             this.editor.model.insertContent( newSection );
+
+            // HACK: If there's nothing after this section, append a paragraph, to
+            // allow typing outside of the section. If we don't do this check first,
+            // we might end up with a bunch of paragraphs instead of just one.
+            if ( !newSection.nextSibling ) {
+                writer.insertElement( 'paragraph', newSection, 'after' );
+            }
+
             writer.setSelection( newSection, 'in' );
         } );
     }
