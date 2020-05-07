@@ -27,7 +27,8 @@ function cp_built_lock_file() {
 }
 
 if [ -f "${current_lock_file}" ]; then
-    diff="$(diff "${built_lock_file}" "${current_lock_file}")"
+    diffcmd="diff $built_lock_file $current_lock_file"
+    diff=$diffcmd
     if [ "${diff}" != "" 2>/dev/null ]; then
         cp_built_lock_file
     fi
