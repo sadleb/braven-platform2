@@ -10,6 +10,7 @@ RUN apk add --update --no-cache \
     tzdata \
     libnotify \
     git \
+    python2 \
     vim
 
 COPY Gemfile* /usr/src/app/
