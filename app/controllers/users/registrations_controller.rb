@@ -62,7 +62,7 @@ class Users::RegistrationsController < Devise::RegistrationsController
 
   # The path used after sign up for inactive accounts.
   # This shows a thank you page and let's them know to go confirm their account.
-  def after_inactive_sign_up_path_for(_)
-    new_user_confirmation_path 
+  def after_inactive_sign_up_path_for(resource)
+    new_user_confirmation_path(:u => resource.salesforce_id)
   end
 end
