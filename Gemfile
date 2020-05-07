@@ -63,7 +63,8 @@ group :test do
   gem 'webmock', require: false
 
   # Report test coverage
-  gem 'codacy-coverage'
+  gem 'simplecov', require: false
+  gem 'simplecov-cobertura', require: false
 
   # Clean database after tests
   gem 'database_cleaner', require: false
