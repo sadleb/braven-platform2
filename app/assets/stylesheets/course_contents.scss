@@ -45,7 +45,7 @@
 /* --- Warnings for invalid content --- */
 .content-section > :not(.module-block):not([data-placeholder="[Empty section]"]):before,
 .content-section > .module-block:nth-of-type(2):before {
-        content: "INVALID CONTENT IN SECTION \A";
+        content: "INVALID CONTENT IN SECTION - Please remove or ask tech team for help\A";
         white-space: pre;
         color: black;
         background-color: red;
