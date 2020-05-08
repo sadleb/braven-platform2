@@ -522,8 +522,12 @@ class ContentEditor extends Component {
                                 } else if ( 'slider' === modelElement ) {
                                     // Sliders have several different settings to change.
                                     const selectedElement = this.state['selectedElement'];
-                                    const answer = this.state['selectedElement'].getAttribute('data-bz-answer');
-                                    const rangeAnswer = this.state['selectedElement'].getAttribute('data-bz-range-answer');
+                                    if (selectedElement === undefined) {
+                                        return;
+                                    }
+
+                                    const answer = selectedElement.getAttribute('data-bz-answer');
+                                    const rangeAnswer = selectedElement.getAttribute('data-bz-range-answer');
 
                                     return (
                                         <>
