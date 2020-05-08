@@ -42,12 +42,11 @@ group :development do
   gem 'guard-rspec', require: false
   gem 'guard-livereload', require: false
   gem 'libnotify', require: false
-  gem 'rack-livereload'
-  gem 'guard-webpacker'
+  gem 'rack-livereload', require: false
+  gem 'guard-webpacker', require: false
   gem 'webpacker-react', "~> 1.0.0.beta.1"
   gem 'guard-bundler', require: false
   gem 'guard-yarn', require: false
-  gem 'guard-migrate', require: false
   gem 'pry-rescue', require: false
   gem 'pry-stack_explorer', require: false
   gem 'rubocop', require: false
