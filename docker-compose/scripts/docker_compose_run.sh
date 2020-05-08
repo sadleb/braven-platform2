@@ -36,6 +36,8 @@ else
     cp_built_lock_file
 fi
 
+# Run yarn. Must be BEFORE any rake/rails calls.
+yarn install --check-files
 
 # Migrate the db, if needed.
 bundle exec rake db:migrate
