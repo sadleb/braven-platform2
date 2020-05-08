@@ -1,0 +1,13 @@
+<% content_for :title, 'Braven Portal'  %>
+
+<% content_for :head do %>
+  <%= stylesheet_link_tag 'accounts' %>
+<% end %>
+
+<% content_for :content do %>
+  <%= render :partial => 'shared/header' %>
+  <%= yield %>
+  <%= render :partial => 'shared/footer' %>
+<% end %>
+
+<%= render template: "layouts/application" %>
