@@ -14,8 +14,6 @@ RUN apk add --update --no-cache \
     vim
 
 COPY Gemfile* /usr/src/app/
-COPY package.json /usr/src/app/
-COPY yarn.lock /usr/src/app/
 WORKDIR /usr/src/app
 
 ENV BUNDLE_PATH /gems
