@@ -44,6 +44,7 @@
     "babel-loader": "^8.1.0",
     "babel-plugin-transform-react-remove-prop-types": "^0.4.24",
     "css-loader": "^3.5.3",
+    "dotenv": "^8.2.0",
     "file-loader": "^6.0.0",
     "postcss-loader": "3",
     "prop-types": "^15.7.2",
