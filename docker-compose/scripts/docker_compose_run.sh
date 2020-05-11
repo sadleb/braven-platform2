@@ -63,6 +63,9 @@ else
   echo "Precompiling assets in production mode"
   bundle exec rake assets:precompile
 
+  # Puma expect this folder to already exist and don't create 
+  mkdir -p /app/tmp/pids/
+
   echo "Starting the rails app using puma"
   bundle exec puma -C config/puma.rb
 fi
