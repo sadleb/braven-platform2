@@ -1,12 +1,6 @@
 #!/bin/sh
 set -e
 
-# Sometimes when you stop the container, it doesn't clean itself up properly so it fails to start next time. Cleanup!
-if [ -e /app/tmp/pids/server.pid ]; then
-  echo "Cleaning up previous server state"
-  rm /app/tmp/pids/server.pid
-fi
-
 echo "Checking if the SALESFORCE ENV vars are setup"
 if [ -z "$SALESFORCE_HOST" ] || \
    [ -z "$SALESFORCE_PLATFORM_CONSUMER_KEY" ] || \
