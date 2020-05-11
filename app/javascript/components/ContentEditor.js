@@ -511,7 +511,7 @@ class ContentEditor extends Component {
                                             <input
                                                 type='text'
                                                 id='input-placeholder'
-                                                defaultValue={this.state['selectedElement'].getAttribute('placeholder')}
+                                                value={this.state['selectedElement'].getAttribute('placeholder')}
                                                 onChange={( evt ) => {
                                                     this.editor.execute( 'setAttributes', { 'placeholder': evt.target.value } );
                                                 }}
