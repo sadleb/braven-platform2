@@ -1,5 +1,5 @@
 // Place all the styles related to the contents controller here.
-// They will automatically be included in.application.css.
+// They will automatically be included in content_editor.css.
 // You can use Sass (SCSS) here: http://sass-lang.com/
 /* assets/styles.css */
 
@@ -40,6 +40,25 @@
 	strong {
 		color: red;
 	}
+}
+
+/* --- Warnings for invalid content --- */
+.content-section > :not(.module-block):not([data-placeholder="[Empty section]"]):before,
+.content-section > .module-block:nth-of-type(2):before {
+        content: "INVALID CONTENT IN SECTION - Please remove or ask tech team for help\A";
+        white-space: pre;
+        color: black;
+        background-color: red;
+        border: 1px black solid;
+        padding: 0.2em;
+        font-weight: bold;
+        font-size: 12pt;
+        font-family: sans-serif;
+}
+
+.content-section > :not(.module-block):not([data-placeholder="[Empty section]"]),
+.content-section > .module-block:nth-of-type(2) {
+        background-color: khaki;
 }
 
 /* --- Editor / Content styles --- */

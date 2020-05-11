@@ -511,7 +511,7 @@ class ContentEditor extends Component {
                                             <input
                                                 type='text'
                                                 id='input-placeholder'
-                                                defaultValue={this.state['selectedElement'].getAttribute('placeholder')}
+                                                value={this.state['selectedElement'].getAttribute('placeholder')}
                                                 onChange={( evt ) => {
                                                     this.editor.execute( 'setAttributes', { 'placeholder': evt.target.value } );
                                                 }}
@@ -657,7 +657,7 @@ class ContentEditor extends Component {
                                             <input
                                                 type='text'
                                                 id='input-url'
-                                                defaultValue={this.state['selectedElement'].getAttribute('src')}
+                                                value={this.state['selectedElement'].getAttribute('src')}
                                                 onChange={( evt ) => {
                                                     this.editor.execute( 'setAttributes', { 'src': evt.target.value } );
                                                 }}

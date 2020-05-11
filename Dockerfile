@@ -10,18 +10,21 @@ RUN apk add --update --no-cache \
     tzdata \
     libnotify \
     git \
+    python2 \
     vim
 
-COPY Gemfile* /usr/src/app/
-COPY package.json /usr/src/app/
-COPY yarn.lock /usr/src/app/
-WORKDIR /usr/src/app
+# Allow local builds to change it. Defaults to development.
+ARG RAILS_ENV=development
+ENV RAILS_ENV ${RAILS_ENV}
+ENV NODE_ENV=${RAILS_ENV}
+
+WORKDIR /app
 
 ENV BUNDLE_PATH /gems
 
+COPY Gemfile Gemfile.lock /app/
 RUN bundle install && cp Gemfile.lock /tmp
-RUN yarn install --check-files
 
-COPY . /usr/src/app/
+COPY . /app/
 
 CMD ["/bin/sh"]
