@@ -20,8 +20,6 @@ ENV NODE_ENV=${RAILS_ENV}
 
 WORKDIR /app
 
-RUN mkdir -p /app/tmp/pids/
-
 ENV BUNDLE_PATH /gems
 
 COPY Gemfile Gemfile.lock /app/
