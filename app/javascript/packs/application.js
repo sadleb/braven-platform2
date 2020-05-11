@@ -32,13 +32,3 @@ require("turbolinks").start() // Note: this has to be run before any WebpackerRe
 //var componentRequireContext = require.context("app_components", true);
 //var ReactRailsUJS = require("react_ujs");
 //ReactRailsUJS.useContext(componentRequireContext);
-
-// Use axe a11y testing in development.
-import React from 'react'
-import ReactDOM from 'react-dom'
-if (process.env.NODE_ENV !== 'production') {
-  let axe = require('react-axe');
-  document.addEventListener('DOMContentLoaded', () => {
-    axe(React, ReactDOM, 1000);
-  });
-}

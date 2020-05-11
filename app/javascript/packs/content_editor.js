@@ -16,3 +16,13 @@ import WebpackerReact from 'webpacker-react'
 import ContentEditor from 'components/ContentEditor'
 WebpackerReact.setup({ContentEditor})
 
+// Use axe a11y testing in development.
+import React from 'react'
+import ReactDOM from 'react-dom'
+if (process.env.NODE_ENV !== 'production') {
+  let axe = require('react-axe');
+  document.addEventListener('DOMContentLoaded', () => {
+    axe(React, ReactDOM, 1000);
+  });
+}
+
