@@ -21,7 +21,11 @@ export default class InsertChecklistQuestionCommand extends Command {
 function createChecklistQuestion( writer ) {
     const checklistQuestion = writer.createElement( 'moduleBlock' );
     const question = writer.createElement( 'question', {'data-grade-as': 'checklist'});
+
+    // TODO: Do I need to set the ID here? 
     const questionTitle = writer.createElement( 'questionTitle' );
+
+    
     const questionBody = writer.createElement( 'questionBody' );
     const questionForm = writer.createElement( 'questionForm' );
     const questionFieldset = writer.createElement( 'questionFieldset' );
@@ -60,6 +64,11 @@ function createChecklistQuestion( writer ) {
 
     // Return the created element and desired selection position.
     const selection = writer.createPositionAt( questionTitle, 0 );
+
+    //debugger;
+    //writer.setAttribute( 'id', 123, questionTitle );
+    writer.setAttribute( 'tocLinkHref', '#', questionTitle );
+
 
     return { checklistQuestion, selection };
 }

@@ -38,9 +38,14 @@ export default class RetainedData extends Plugin {
 
         this._consumeAttributeEvent = this._consumeAttributeEvent.bind(this);
         this.getNextId = this.getNextId.bind(this);
+        this.getNextCount = this.getNextCount.bind(this);
 
         // Consume every attribute change event.
         editingDoc.listenTo( editingDoc.roots.first, 'change:attributes', this._consumeAttributeEvent );
+    }
+
+    getNextCount() {
+        return this._idCounter++;
     }
 
     getNextId() {

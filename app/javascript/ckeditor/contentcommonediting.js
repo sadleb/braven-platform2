@@ -27,6 +27,7 @@ export default class ContentCommonEditing extends Plugin {
 
         // Add a shortcut to the retained data ID function.
         this._nextRetainedDataId = this.editor.plugins.get('RetainedData').getNextId;
+        this._nextId = this.editor.plugins.get('RetainedData').getNextCount;
     }
 
     _defineSchema() {
@@ -65,7 +66,7 @@ export default class ContentCommonEditing extends Plugin {
         schema.register( 'questionTitle', {
             isLimit: true,
             allowIn: 'question',
-            allowAttributes: [ 'id' ],
+            allowAttributes: [ 'id', 'tocLinkHref' ],
             allowContentOf: '$block'
         } );
 
@@ -303,36 +304,87 @@ export default class ContentCommonEditing extends Plugin {
             }
         } );
 
+        // <tocLinkHref> converters
+        editor.conversion.for( 'upcast' ).elementToAttribute( {
+            view: {
+                name: 'a', 
+                attributes: {
+                    toc: true, // I think this is a canary value?
+                },
+            },
+            model: {
+                key: 'questionTitle',
+                value: ( viewElement, modelWriter ) => {
+                    debugger;
+                    return viewElement.getAttribute( 'tocLinkHref' );
+                },
+            },
+        });
+
+        editor.conversion.for( 'dataDowncast' ).attributeToElement( {
+            model: 'tocLinkHref',
+            view: ( href, viewWriter ) => {
+                //debugger;
+
+                if (!href) {
+                    return;
+                }
+                const linkElement = viewWriter.createAttributeElement( 'a', { href } );
+                viewWriter.setCustomProperty( 'toc', true, linkElement );
+                return linkElement;
+            },
+        });
+        conversion.for ('editingDowncast' ).attributeToElement( {
+            model: 'tocLinkHref',
+            view: (href, viewWriter) => {
+                //debugger;
+                if (!href) { // I have no idea why this is sometimes null :(
+                    return;
+                }
+                const linkElement = viewWriter.createAttributeElement( 'a', { href });
+                viewWriter.setCustomProperty( 'toc', true, linkElement );
+                return linkElement;
+            },
+        });
+
         // <questionTitle> converters
         conversion.for( 'upcast' ).elementToElement( {
             view: {
                 name: 'h5'
             },
             model: ( viewElement, modelWriter ) => {
-                return modelWriter.createElement( 'questionTitle', {
-                    'id': viewElement.getAttribute('id'),
+                //debugger;
+                const id = viewElement.getAttribute('id') || this._nextId();
+                let element = modelWriter.createElement( 'questionTitle', {
+                    'id': id,
                 } );
+                modelWriter.setAttribute('tocLinkHref', '#' + id, element);
+                return element;
             },
             // Use high priority to overwrite heading converters defined in
             // customelementattributepreservation.js.
-            converterPriority: 'high'
+            converterPriority: 'high',
         } );
+
+
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'questionTitle',
             view: ( modelElement, viewWriter ) => {
+                //debugger;
                 return viewWriter.createEditableElement( 'h5', {
-                    'id': modelElement.getAttribute( 'id' ),
+                    'id': modelElement.getAttribute( 'id' ) || this._nextId(),
                 } );
             },
             // Use high priority to overwrite heading converters defined in
             // customelementattributepreservation.js.
             converterPriority: 'high'
         } );
+
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'questionTitle',
             view: ( modelElement, viewWriter ) => {
                 const h5 = viewWriter.createEditableElement( 'h5', {
-                    'id': modelElement.getAttribute( 'id' ),
+                    'id': modelElement.getAttribute( 'id' ) || this._nextId(),
                 } );
 
                 enablePlaceholder( {
@@ -836,6 +888,8 @@ export default class ContentCommonEditing extends Plugin {
         // NOT when attributes are changed/added/removed.
         // See https://github.com/ckeditor/ckeditor5/issues/6308#issuecomment-590243325
         // and https://ckeditor.com/docs/ckeditor5/latest/api/module_engine_conversion_conversion-Conversion.html#function-attributeToAttribute
+        conversion.attributeToAttribute( {model: 'id', view: 'id'} );
+        conversion.attributeToAttribute( {model: 'tocLinkHref', view: 'tocLinkHref'} );
         conversion.attributeToAttribute( { model: 'data-correctness', view: 'data-correctness' } );
         conversion.attributeToAttribute( { model: 'placeholder', view: 'placeholder' } );
         conversion.attributeToAttribute( { model: 'src', view: 'src' } );
