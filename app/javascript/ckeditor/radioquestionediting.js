@@ -120,7 +120,7 @@ export default class RadioQuestionEditing extends Plugin {
             model: 'radioQuestion',
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createEditableElement( 'div', {
-                    class: 'module-block module-block-radio',
+                    'class': 'module-block module-block-radio',
                     'data-radio-group': modelElement.getAttribute( 'data-radio-group' )
                 } );
             }
@@ -129,7 +129,7 @@ export default class RadioQuestionEditing extends Plugin {
             model: 'radioQuestion',
             view: ( modelElement, viewWriter ) => {
                 const radioQuestion = viewWriter.createContainerElement( 'div', {
-                    class: 'module-block module-block-radio',
+                    'class': 'module-block module-block-radio',
                     'data-radio-group': modelElement.getAttribute( 'data-radio-group' )
                 } );
 
