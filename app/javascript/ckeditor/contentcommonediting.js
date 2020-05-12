@@ -305,35 +305,24 @@ export default class ContentCommonEditing extends Plugin {
         } );
 
         // <tocLinkHref> converters
-        editor.conversion.for( 'upcast' ).elementToAttribute( {
-            view: {
-                name: 'a', 
-                attributes: {
-                    toc: true, // I think this is a canary value?
-                },
-            },
-            model: {
-                key: 'questionTitle',
-                value: ( viewElement, modelWriter ) => {
-                    debugger;
-                    return viewElement.getAttribute( 'tocLinkHref' );
-                },
-            },
-        });
-
+        // Using the low-level dispatcher because what we want is elementToNothing, which isn't a CKE funciton.
+        editor.conversion.for( 'upcast' ).add( dispatcher => { dispatcher.on( 'element:a', ( evt, data, conversionApi ) => {
+            if ( conversionApi.consumable.consume( data.viewItem, { name: true, attributes: [ 'href', 'toc' ] } ) ) {
+                // <a> element is inline and is NOT represented in the model.
+                // This is why we need to convert only children.
+                conversionApi.convertChildren( data.viewItem, data.modelCursor );
+            }
+        }, { priority: 'high' } ) } );
         editor.conversion.for( 'dataDowncast' ).attributeToElement( {
             model: 'tocLinkHref',
             view: ( href, viewWriter ) => {
-                //debugger;
-
-                if (!href) {
-                    return;
-                }
-                const linkElement = viewWriter.createAttributeElement( 'a', { href } );
+                const linkElement = viewWriter.createAttributeElement( 'a', { href }, { priority: 5 });
                 viewWriter.setCustomProperty( 'toc', true, linkElement );
+                console.log(linkElement);
                 return linkElement;
             },
-        });
+            converterPriority: 'highest',
+        } );
         conversion.for ('editingDowncast' ).attributeToElement( {
             model: 'tocLinkHref',
             view: (href, viewWriter) => {
