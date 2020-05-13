@@ -195,10 +195,10 @@ export default class RadioQuestionEditing extends Plugin {
 
                 return modelWriter.createElement( 'radioInput', new Map( [
                     ...filterAllowedAttributes(viewElement.getAttributes()),
-                    [ 'id', id ],
+                    [ 'id', [ radioGroupName, id ].join( '_' ) ],
                     [ 'name', radioGroupName ],
-                    [ 'value', viewElement.getAttribute('value') ],
-                    [ 'data-bz-retained', id ],
+                    [ 'value', viewElement.getAttribute('value') || id ],
+                    [ 'data-bz-retained', radioGroupName ],
                     [ 'data-correctness', viewElement.getAttribute('data-correctness') || '' ]
                 ] ) );
             }
@@ -230,10 +230,10 @@ export default class RadioQuestionEditing extends Plugin {
                 return viewWriter.createEmptyElement( 'input', new Map( [
                     ...filterAllowedAttributes(modelElement.getAttributes()),
                     [ 'type', 'radio' ],
-                    [ 'id', id ],
+                    [ 'id', [ radioGroupName, id ].join( '_' ) ],
                     [ 'name', radioGroupName ],
-                    [ 'value', modelElement.getAttribute('value') ],
-                    [ 'data-bz-retained', id ],
+                    [ 'value', modelElement.getAttribute('value') || id ],
+                    [ 'data-bz-retained', radioGroupName ],
                     [ 'data-correctness', modelElement.getAttribute('data-correctness') || '' ]
                 ] ) );
             }
@@ -264,10 +264,10 @@ export default class RadioQuestionEditing extends Plugin {
                 return viewWriter.createEmptyElement( 'input', new Map( [
                     ...filterAllowedAttributes(modelElement.getAttributes()),
                     [ 'type', 'radio' ],
-                    [ 'id', id ],
+                    [ 'id', [ radioGroupName, id ].join( '_' ) ],
                     [ 'name', radioGroupName ],
-                    [ 'value', modelElement.getAttribute('value') ],
-                    [ 'data-bz-retained', id ],
+                    [ 'value', modelElement.getAttribute('value') || id ],
+                    [ 'data-bz-retained', radioGroupName ],
                     [ 'data-correctness', modelElement.getAttribute('data-correctness') || '' ]
                 ] ) );
                 return toWidget( input, viewWriter );
