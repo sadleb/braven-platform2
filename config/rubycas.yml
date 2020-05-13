@@ -73,5 +73,5 @@ test:
   quiet: true
   default_locale: en
 
-production: &default
+production:
   <<: *default
