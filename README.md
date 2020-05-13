@@ -252,8 +252,8 @@ debugging and troubleshooting things if you're new to RoR development.
 
 Of specific note, if you need to debug the code inside a gem, our gems are installed
 at `vendor/bundle` inside the container. If you attach to the container you can dig down in there and add a 
-some logging inside the gem code. You have to restart the container for the change to be 
-picked up and if you make a mess of things and want to blow it away you need to remove the vendor-bundle volume using:
+some logging inside the gem code. You have to restart the container for the change to be picked up and if you 
+make a mess of things and want to blow it away you need to remove the vendor-bundle volume using:
 
     docker-compose down -v vendor-bundle
 
