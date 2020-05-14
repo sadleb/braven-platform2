@@ -19,6 +19,8 @@ export default class InsertRadioQuestionCommand extends Command {
 
 function createRadioQuestion( writer ) {
     const radioGroup = uid();
+    // Value must be unique within each group, but otherwise doesn't matter.
+    // No reason to tie in retained data or anything, we can just use "1".
     const radioFirstValue = '1';
     const radioFirstID = [radioGroup, radioFirstValue].join('_');
 
