@@ -256,7 +256,9 @@ class CasController < ApplicationController
 
     @lt = LT.create! @request_client
 
-    if @gateway && @service
+    if current_user
+      sign_out_and_redirect(current_user) and return
+    elsif @gateway && @service
       return render :login
     elsif @continue_url
       return render :logout
