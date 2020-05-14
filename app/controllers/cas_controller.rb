@@ -33,6 +33,8 @@ class CasController < ApplicationController
 
     # optional params
     @gateway = params['gateway'] == 'true' || params['gateway'] == '1'
+    @message = { :type => 'notice', :message => params[:notice] } if params[:notice]
+ 
 
     if tgc = request.cookies['tgt']
       tgt, tgt_error = TGT.validate(tgc)
