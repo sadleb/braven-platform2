@@ -59,12 +59,6 @@ export default class RadioQuestionEditing extends Plugin {
     _defineSchema() {
         const schema = this.editor.model.schema;
 
-        schema.register( 'radioQuestion', {
-            isObject: true,
-            allowIn: 'section',
-            allowAttributes: [ 'data-radio-group' ]
-        } );
-
         schema.register( 'radioDiv', {
             isObject: true,
             allowIn: [ 'questionFieldset' ]
@@ -90,52 +84,12 @@ export default class RadioQuestionEditing extends Plugin {
             allowIn: 'radioDiv',
             allowContentOf: '$block'
         } );
-
-        schema.addChildCheck( ( context, childDefinition ) => {
-            // Disallow adding questions inside answerText boxes.
-            if ( context.endsWith( 'answerText' ) && childDefinition.name == 'radioQuestion' ) {
-                return false;
-            }
-        } );
     }
 
     _defineConverters() {
         const editor = this.editor;
         const conversion = editor.conversion;
         const { editing, data, model } = editor;
-
-        // <radioQuestion> converters
-        conversion.for( 'upcast' ).elementToElement( {
-            view: {
-                name: 'div',
-                classes: ['module-block', 'module-block-radio']
-            },
-            model: ( viewElement, modelWriter ) => {
-                return modelWriter.createElement( 'radioQuestion', {
-                    'data-radio-group': viewElement.getAttribute( 'data-radio-group' )
-                } );
-            }
-        } );
-        conversion.for( 'dataDowncast' ).elementToElement( {
-            model: 'radioQuestion',
-            view: ( modelElement, viewWriter ) => {
-                return viewWriter.createEditableElement( 'div', {
-                    'class': 'module-block module-block-radio',
-                    'data-radio-group': modelElement.getAttribute( 'data-radio-group' )
-                } );
-            }
-        } );
-        conversion.for( 'editingDowncast' ).elementToElement( {
-            model: 'radioQuestion',
-            view: ( modelElement, viewWriter ) => {
-                const radioQuestion = viewWriter.createContainerElement( 'div', {
-                    'class': 'module-block module-block-radio',
-                    'data-radio-group': modelElement.getAttribute( 'data-radio-group' )
-                } );
-
-                return toWidget( radioQuestion, viewWriter, { label: 'radio-question widget' } );
-            }
-        } );
 
         // <radioDiv> converters
         conversion.for( 'upcast' ).elementToElement( {
