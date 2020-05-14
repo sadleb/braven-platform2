@@ -41,11 +41,6 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
 #    cas_login_url
 #  end
 
-  def cas_login_url
-    ::Devise.cas_client.add_service_to_login_url(::Devise.cas_service_url(request.url, devise_mapping))
-  end
-  helper_method :cas_login_url
-
   # Does a CAS SSO login for the app they are redirected to on login. E.g. if they have Canvas access,
   # auto-log them in there, otherwise do it here in the platform.
   def sign_in_and_get_redirect_path
