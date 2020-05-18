@@ -306,14 +306,14 @@ export default class ContentCommonEditing extends Plugin {
 
         // <toc-link-href> converters
         // Using the low-level dispatcher because what we want is elementToNothing, which isn't a CKE funciton.
-        editor.conversion.for( 'upcast' ).add( dispatcher => { dispatcher.on( 'element:a', ( evt, data, conversionApi ) => {
-            if ( conversionApi.consumable.consume( data.viewItem, { name: true, attributes: [ 'href', 'toc' ] } ) ) {
-                // <a> element is inline and is NOT represented in the model.
-                // This is why we need to convert only children.
-                const a = conversionApi.convertChildren( data.viewItem, data.modelCursor );
-                console.log(data.viewItem, a);
-            }
-        }, { priority: 'high' } ) } );
+        // editor.conversion.for( 'upcast' ).add( dispatcher => { dispatcher.on( 'element:a', ( evt, data, conversionApi ) => {
+        //     if ( conversionApi.consumable.consume( data.viewItem, { name: true, attributes: [ 'href', 'toc' ] } ) ) {
+        //         // <a> element is inline and is NOT represented in the model.
+        //         // This is why we need to convert only children.
+        //         const a = conversionApi.convertChildren( data.viewItem, data.modelCursor );
+        //         console.log(data.viewItem, a);
+        //     }
+        // }, { priority: 'high' } ) } );
         /* this one just never adds the element to the view and we dont know why
         conversion.for( 'dataDowncast' ).attributeToElement( {
             model: {
@@ -330,27 +330,27 @@ export default class ContentCommonEditing extends Plugin {
         } );
         */
         // This one adds the a inside the h5, but puts the text before the a instead of inside it
-        conversion.for( 'dataDowncast' ).add( dispatcher => {
-            dispatcher.on( 'attribute:toc-link-href', ( evt, data, conversionApi ) => {
-              const href = data.attributeNewValue;
-              // The heading will be already converted - so it will be present in the view.
-              const viewHeading = conversionApi.mapper.toViewElement( data.item );
+        // conversion.for( 'dataDowncast' ).add( dispatcher => {
+        //     dispatcher.on( 'attribute:toc-link-href', ( evt, data, conversionApi ) => {
+        //       const href = data.attributeNewValue;
+        //       // The heading will be already converted - so it will be present in the view.
+        //       const viewHeading = conversionApi.mapper.toViewElement( data.item );
 
-              // Below will wrap newly created link element by already converted heading.
+        //       // Below will wrap newly created link element by already converted heading.
 
-              // 1. Create empty link element.
-              const linkElement = conversionApi.writer.createContainerElement( 'a', { href, toc: true } );
+        //       // 1. Create empty link element.
+        //       const linkElement = conversionApi.writer.createContainerElement( 'a', { href, toc: true } );
 
-              // 2. Insert link after associated heading.
-              const positionAfterHeading = conversionApi.writer.createPositionAfter( viewHeading );
-              conversionApi.writer.insert( positionAfterHeading, linkElement );
+        //       // 2. Insert link after associated heading.
+        //       const positionAfterHeading = conversionApi.writer.createPositionAfter( viewHeading );
+        //       conversionApi.writer.insert( positionAfterHeading, linkElement );
 
-              // 3. Move whole link to a converted heading.
-              const rangeOnLink = conversionApi.writer.createRangeOn( linkElement );
-              const positionAtHeading = conversionApi.writer.createPositionAt( viewHeading, 0 );
-              conversionApi.writer.move( rangeOnLink, positionAtHeading );
-            }, { priority: 'normal' } );
-        } );
+        //       // 3. Move whole link to a converted heading.
+        //       const rangeOnLink = conversionApi.writer.createRangeOn( linkElement );
+        //       const positionAtHeading = conversionApi.writer.createPositionAt( viewHeading, 0 );
+        //       conversionApi.writer.move( rangeOnLink, positionAtHeading );
+        //     }, { priority: 'normal' } );
+        // } );
         /* don't care about this for now
         conversion.for ('editingDowncast' ).attributeToElement( {
             model: 'toc-link-href',
@@ -365,6 +365,23 @@ export default class ContentCommonEditing extends Plugin {
             },
         });
         */
+
+        conversion.for( 'upcast' ).add( dispatcher => {
+            dispatcher.on( 'element:h5', ( evt, data, conversionApi ) => {
+                const { schema, writer } = conversionApi;
+
+                for ( const item of data.modelRange.getItems( { shallow: true } ) ) {
+                    const href = item.getAttribute( 'toc-link-href' );
+
+                    for ( const child of item.getChildren() ) {
+                        if ( child.is( 'text' ) ) {
+                            debugger;
+                            writer.setAttribute( 'linkHref', href, child );
+                        }
+                    }
+                }
+            } );
+        }, { priority: 'low' } );
 
         // <questionTitle> converters
         conversion.for( 'upcast' ).elementToElement( {
