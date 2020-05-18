@@ -43,7 +43,7 @@ export default class ContentCommonEditing extends Plugin {
         schema.register( 'contentTitle', {
             isLimit: true,
             allowIn: 'content',
-            allowAttributes: [ 'id' ],
+            allowAttributes: [ 'id', 'toc-link-href' ],
             allowContentOf: '$block'
         } );
 
@@ -166,6 +166,28 @@ export default class ContentCommonEditing extends Plugin {
         const editor = this.editor;
         const conversion = editor.conversion;
         const { editing, data, model } = editor;
+        
+        // Table of contents converters for <contentTitle> and <questionTitle>
+        conversion.for( 'upcast' ).add( dispatcher => {
+            dispatcher.on( 'element:h5', ( evt, data, conversionApi ) => {
+                const { schema, writer } = conversionApi;
+
+                if (!data.modelRange) {
+                    return;
+                }
+
+                for ( const item of data.modelRange.getItems( { shallow: true } ) ) {
+                    const href = item.getAttribute( 'toc-link-href' );
+
+                    for ( const child of item.getChildren() ) {
+                        if ( child.is( 'text' ) ) {
+                            writer.setAttribute( 'linkHref', href, child );
+                            return;
+                        }
+                    }
+                }
+            } );
+        }, { priority: 'low' } );
 
         // <content> converters
         conversion.for( 'upcast' ).elementToElement( {
@@ -195,8 +217,10 @@ export default class ContentCommonEditing extends Plugin {
                 name: 'h5'
             },
             model: ( viewElement, modelWriter ) => {
+                const id = viewElement.getAttribute( 'id' ) || this._nextId();
                 return modelWriter.createElement( 'contentTitle', {
-                    'id': viewElement.getAttribute('id'),
+                    'id': id,
+                    'toc-link-href': '#' + id,
                 } );
             },
             // Use high priority to overwrite heading converters defined in
@@ -207,7 +231,7 @@ export default class ContentCommonEditing extends Plugin {
             model: 'contentTitle',
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createEditableElement( 'h5', {
-                    'id': modelElement.getAttribute( 'id' ),
+                    'id': modelElement.getAttribute( 'id' ) || this._nextId(),
                 } );
             },
             // Use high priority to overwrite heading converters defined in
@@ -218,7 +242,7 @@ export default class ContentCommonEditing extends Plugin {
             model: 'contentTitle',
             view: ( modelElement, viewWriter ) => {
                 const h5 = viewWriter.createEditableElement( 'h5', {
-                    'id': modelElement.getAttribute( 'id' ),
+                    'id': modelElement.getAttribute( 'id' ) || this._nextId(),
                 } );
 
                 enablePlaceholder( {
@@ -304,109 +328,26 @@ export default class ContentCommonEditing extends Plugin {
             }
         } );
 
-        // <toc-link-href> converters
-        // Using the low-level dispatcher because what we want is elementToNothing, which isn't a CKE funciton.
-        // editor.conversion.for( 'upcast' ).add( dispatcher => { dispatcher.on( 'element:a', ( evt, data, conversionApi ) => {
-        //     if ( conversionApi.consumable.consume( data.viewItem, { name: true, attributes: [ 'href', 'toc' ] } ) ) {
-        //         // <a> element is inline and is NOT represented in the model.
-        //         // This is why we need to convert only children.
-        //         const a = conversionApi.convertChildren( data.viewItem, data.modelCursor );
-        //         console.log(data.viewItem, a);
-        //     }
-        // }, { priority: 'high' } ) } );
-        /* this one just never adds the element to the view and we dont know why
-        conversion.for( 'dataDowncast' ).attributeToElement( {
-            model: {
-                key: 'toc-link-href',
-                name: 'questionTitle'
-            },
-            view: ( attributeValue, viewWriter ) => {
-                if ( !attributeValue ) {
-                    return;
-                }
-                const a = viewWriter.createAttributeElement( 'a', { href: attributeValue, toc: true },{ priority: 5} );
-                return a;
-            }, converterPriority: 'highest'
-        } );
-        */
-        // This one adds the a inside the h5, but puts the text before the a instead of inside it
-        // conversion.for( 'dataDowncast' ).add( dispatcher => {
-        //     dispatcher.on( 'attribute:toc-link-href', ( evt, data, conversionApi ) => {
-        //       const href = data.attributeNewValue;
-        //       // The heading will be already converted - so it will be present in the view.
-        //       const viewHeading = conversionApi.mapper.toViewElement( data.item );
-
-        //       // Below will wrap newly created link element by already converted heading.
-
-        //       // 1. Create empty link element.
-        //       const linkElement = conversionApi.writer.createContainerElement( 'a', { href, toc: true } );
-
-        //       // 2. Insert link after associated heading.
-        //       const positionAfterHeading = conversionApi.writer.createPositionAfter( viewHeading );
-        //       conversionApi.writer.insert( positionAfterHeading, linkElement );
-
-        //       // 3. Move whole link to a converted heading.
-        //       const rangeOnLink = conversionApi.writer.createRangeOn( linkElement );
-        //       const positionAtHeading = conversionApi.writer.createPositionAt( viewHeading, 0 );
-        //       conversionApi.writer.move( rangeOnLink, positionAtHeading );
-        //     }, { priority: 'normal' } );
-        // } );
-        /* don't care about this for now
-        conversion.for ('editingDowncast' ).attributeToElement( {
-            model: 'toc-link-href',
-            view: (href, viewWriter) => {
-                //debugger;
-                if (!href) { // I have no idea why this is sometimes null :(
-                    return;
-                }
-                const linkElement = viewWriter.createAttributeElement( 'a', { href });
-                viewWriter.setCustomProperty( 'toc', true, linkElement );
-                return linkElement;
-            },
-        });
-        */
-
-        conversion.for( 'upcast' ).add( dispatcher => {
-            dispatcher.on( 'element:h5', ( evt, data, conversionApi ) => {
-                const { schema, writer } = conversionApi;
-
-                for ( const item of data.modelRange.getItems( { shallow: true } ) ) {
-                    const href = item.getAttribute( 'toc-link-href' );
-
-                    for ( const child of item.getChildren() ) {
-                        if ( child.is( 'text' ) ) {
-                            debugger;
-                            writer.setAttribute( 'linkHref', href, child );
-                        }
-                    }
-                }
-            } );
-        }, { priority: 'low' } );
-
         // <questionTitle> converters
         conversion.for( 'upcast' ).elementToElement( {
             view: {
                 name: 'h5'
             },
             model: ( viewElement, modelWriter ) => {
-                //debugger;
                 const id = viewElement.getAttribute('id') || this._nextId();
-                let element = modelWriter.createElement( 'questionTitle', {
+                return modelWriter.createElement( 'questionTitle', {
                     'id': id,
+                    'toc-link-href': '#' + id,
                 } );
-                modelWriter.setAttribute('toc-link-href', '#' + id, element);
-                return element;
             },
             // Use high priority to overwrite heading converters defined in
             // customelementattributepreservation.js.
-            converterPriority: 'high',
+            converterPriority: 'high'
         } );
-
 
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'questionTitle',
             view: ( modelElement, viewWriter ) => {
-                //debugger;
                 return viewWriter.createEditableElement( 'h5', {
                     'id': modelElement.getAttribute( 'id' ) || this._nextId(),
                 } );
@@ -924,8 +865,6 @@ export default class ContentCommonEditing extends Plugin {
         // NOT when attributes are changed/added/removed.
         // See https://github.com/ckeditor/ckeditor5/issues/6308#issuecomment-590243325
         // and https://ckeditor.com/docs/ckeditor5/latest/api/module_engine_conversion_conversion-Conversion.html#function-attributeToAttribute
-        conversion.attributeToAttribute( {model: 'id', view: 'id'} );
-        //conversion.attributeToAttribute( {model: 'toc-link-href', view: 'toc-link-href'} );
         conversion.attributeToAttribute( { model: 'data-correctness', view: 'data-correctness' } );
         conversion.attributeToAttribute( { model: 'placeholder', view: 'placeholder' } );
         conversion.attributeToAttribute( { model: 'src', view: 'src' } );
