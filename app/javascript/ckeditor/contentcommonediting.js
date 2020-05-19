@@ -113,7 +113,7 @@ export default class ContentCommonEditing extends Plugin {
         schema.register( 'answerTitle', {
             isLimit: true,
             allowIn: 'answer',
-            allowAttributes: [ 'id' ],
+            allowAttributes: [ 'id', 'toc-link-href' ],
             allowContentOf: '$block'
         } );
 
@@ -556,8 +556,10 @@ export default class ContentCommonEditing extends Plugin {
                 name: 'h5'
             },
             model: ( viewElement, modelWriter ) => {
+                const id = viewElement.getAttribute( 'id' ) || this._nextId();
                 return modelWriter.createElement( 'answerTitle', {
-                    'id': viewElement.getAttribute('id'),
+                    'id': id,
+                    'toc-link-href': '#' + id,
                 } );
             },
             // Use high priority to overwrite heading converters defined in
@@ -568,7 +570,7 @@ export default class ContentCommonEditing extends Plugin {
             model: 'answerTitle',
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createEditableElement( 'h5', {
-                    'id': modelElement.getAttribute( 'id' ),
+                    'id': modelElement.getAttribute( 'id' ) || this._nextId(),
                 } );
             },
             // Use high priority to overwrite heading converters defined in
@@ -579,7 +581,7 @@ export default class ContentCommonEditing extends Plugin {
             model: 'answerTitle',
             view: ( modelElement, viewWriter ) => {
                 const h5 = viewWriter.createEditableElement( 'h5', {
-                    'id': modelElement.getAttribute( 'id' ),
+                    'id': modelElement.getAttribute( 'id' ) || this._nextId(),
                 } );
 
                 enablePlaceholder( {
