@@ -28,7 +28,6 @@ export const ALLOWED_ATTRIBUTES = [
     'tabindex',
     'style',
     'align',
-    'toc-link-href',
 ];
 
 export default class CustomElementAttributePreservation extends Plugin {
@@ -92,14 +91,25 @@ export default class CustomElementAttributePreservation extends Plugin {
             editor.conversion.for( 'upcast' ).elementToElement( {
                 view: key,
                 model: ( viewElement, modelWriter ) => {
-                    const id = viewElement.getAttribute( 'id' ) || this._nextId();
-                    return modelWriter.createElement( elements[key], {
-                        'id': id,
-                        'toc-link-href': '#' + id,
-                        ...filterAllowedAttributes( viewElement.getAttributes() ),
-                    } );
+                    let attributes = filterAllowedAttributes( viewElement.getAttributes() );
+                    if ( !attributes.get( 'id' ) ) {
+                        attributes.set( 'id', this._nextId() );
+                    }
+                    attributes.set( 'toc-link-href', '#' + attributes.get( 'id' ) );
+                    return modelWriter.createElement( elements[key], attributes );
                 },
             } );
+
+            editor.conversion.for( 'downcast' ).elementToElement( {
+                model: elements[key], 
+                view: ( modelElement, viewWriter ) => {
+                    let attributes = filterAllowedAttributes( modelElement.getAttributes() );
+                    if ( !attributes.get( 'id' ) ) {
+                        attributes.set( 'id', this._nextId() );
+                    }
+                    return viewWriter.createContainerElement( key, attributes );
+                },
+            });
 
             // Table of contents converter for headings
             editor.conversion.for( 'upcast' ).add( dispatcher => {
