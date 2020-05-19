@@ -14,7 +14,7 @@ const RETAINED_DATA_ATTRIBUTE = 'data-bz-retained';
  * - It listens to the view document for `change:attributes` events to look for new or changed
  *   retained data IDs. At initial page load, that means *all* IDs will be processed.
  * - It maintains an internal ID counter, which at page load is set to the highest previously used
- *   ID in the document, and is incremented every time `getNextId()` is called.
+ *   ID in the document, and is incremented every time `getNextId()` or `getNextCount()` is called.
  *
  * Points to note:
  *
