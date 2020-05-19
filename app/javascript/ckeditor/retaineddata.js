@@ -14,7 +14,7 @@ const RETAINED_DATA_ATTRIBUTE = 'data-bz-retained';
  * - It listens to the view document for `change:attributes` events to look for new or changed
  *   retained data IDs. At initial page load, that means *all* IDs will be processed.
  * - It maintains an internal ID counter, which at page load is set to the highest previously used
- *   ID in the document, and is incremented every time `getNextId()` is called.
+ *   ID in the document, and is incremented every time `getNextId()` or `getNextCount()` is called.
  *
  * Points to note:
  *
@@ -38,9 +38,14 @@ export default class RetainedData extends Plugin {
 
         this._consumeAttributeEvent = this._consumeAttributeEvent.bind(this);
         this.getNextId = this.getNextId.bind(this);
+        this.getNextCount = this.getNextCount.bind(this);
 
         // Consume every attribute change event.
         editingDoc.listenTo( editingDoc.roots.first, 'change:attributes', this._consumeAttributeEvent );
+    }
+
+    getNextCount() {
+        return this._idCounter++;
     }
 
     getNextId() {

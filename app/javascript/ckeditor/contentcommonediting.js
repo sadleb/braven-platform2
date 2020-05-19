@@ -27,6 +27,7 @@ export default class ContentCommonEditing extends Plugin {
 
         // Add a shortcut to the retained data ID function.
         this._nextRetainedDataId = this.editor.plugins.get('RetainedData').getNextId;
+        this._nextId = this.editor.plugins.get('RetainedData').getNextCount;
     }
 
     _defineSchema() {
@@ -42,7 +43,7 @@ export default class ContentCommonEditing extends Plugin {
         schema.register( 'contentTitle', {
             isLimit: true,
             allowIn: 'content',
-            allowAttributes: [ 'id' ],
+            allowAttributes: [ 'id', 'toc-link-href' ],
             allowContentOf: '$block'
         } );
 
@@ -65,7 +66,7 @@ export default class ContentCommonEditing extends Plugin {
         schema.register( 'questionTitle', {
             isLimit: true,
             allowIn: 'question',
-            allowAttributes: [ 'id' ],
+            allowAttributes: [ 'id', 'toc-link-href' ],
             allowContentOf: '$block'
         } );
 
@@ -112,7 +113,7 @@ export default class ContentCommonEditing extends Plugin {
         schema.register( 'answerTitle', {
             isLimit: true,
             allowIn: 'answer',
-            allowAttributes: [ 'id' ],
+            allowAttributes: [ 'id', 'toc-link-href' ],
             allowContentOf: '$block'
         } );
 
@@ -165,6 +166,28 @@ export default class ContentCommonEditing extends Plugin {
         const editor = this.editor;
         const conversion = editor.conversion;
         const { editing, data, model } = editor;
+        
+        // Table of contents converters for <contentTitle> and <questionTitle>
+        conversion.for( 'upcast' ).add( dispatcher => {
+            dispatcher.on( 'element:h5', ( evt, data, conversionApi ) => {
+                const { schema, writer } = conversionApi;
+
+                if (!data.modelRange) {
+                    return;
+                }
+
+                for ( const item of data.modelRange.getItems( { shallow: true } ) ) {
+                    const href = item.getAttribute( 'toc-link-href' );
+
+                    for ( const child of item.getChildren() ) {
+                        if ( child.is( 'text' ) ) {
+                            writer.setAttribute( 'linkHref', href, child );
+                            return;
+                        }
+                    }
+                }
+            } );
+        }, { priority: 'low' } );
 
         // <content> converters
         conversion.for( 'upcast' ).elementToElement( {
@@ -194,8 +217,10 @@ export default class ContentCommonEditing extends Plugin {
                 name: 'h5'
             },
             model: ( viewElement, modelWriter ) => {
+                const id = viewElement.getAttribute( 'id' ) || this._nextId();
                 return modelWriter.createElement( 'contentTitle', {
-                    'id': viewElement.getAttribute('id'),
+                    'id': id,
+                    'toc-link-href': '#' + id,
                 } );
             },
             // Use high priority to overwrite heading converters defined in
@@ -206,7 +231,7 @@ export default class ContentCommonEditing extends Plugin {
             model: 'contentTitle',
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createEditableElement( 'h5', {
-                    'id': modelElement.getAttribute( 'id' ),
+                    'id': modelElement.getAttribute( 'id' ) || this._nextId(),
                 } );
             },
             // Use high priority to overwrite heading converters defined in
@@ -217,7 +242,7 @@ export default class ContentCommonEditing extends Plugin {
             model: 'contentTitle',
             view: ( modelElement, viewWriter ) => {
                 const h5 = viewWriter.createEditableElement( 'h5', {
-                    'id': modelElement.getAttribute( 'id' ),
+                    'id': modelElement.getAttribute( 'id' ) || this._nextId(),
                 } );
 
                 enablePlaceholder( {
@@ -309,30 +334,34 @@ export default class ContentCommonEditing extends Plugin {
                 name: 'h5'
             },
             model: ( viewElement, modelWriter ) => {
+                const id = viewElement.getAttribute('id') || this._nextId();
                 return modelWriter.createElement( 'questionTitle', {
-                    'id': viewElement.getAttribute('id'),
+                    'id': id,
+                    'toc-link-href': '#' + id,
                 } );
             },
             // Use high priority to overwrite heading converters defined in
             // customelementattributepreservation.js.
             converterPriority: 'high'
         } );
+
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'questionTitle',
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createEditableElement( 'h5', {
-                    'id': modelElement.getAttribute( 'id' ),
+                    'id': modelElement.getAttribute( 'id' ) || this._nextId(),
                 } );
             },
             // Use high priority to overwrite heading converters defined in
             // customelementattributepreservation.js.
             converterPriority: 'high'
         } );
+
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'questionTitle',
             view: ( modelElement, viewWriter ) => {
                 const h5 = viewWriter.createEditableElement( 'h5', {
-                    'id': modelElement.getAttribute( 'id' ),
+                    'id': modelElement.getAttribute( 'id' ) || this._nextId(),
                 } );
 
                 enablePlaceholder( {
@@ -527,8 +556,10 @@ export default class ContentCommonEditing extends Plugin {
                 name: 'h5'
             },
             model: ( viewElement, modelWriter ) => {
+                const id = viewElement.getAttribute( 'id' ) || this._nextId();
                 return modelWriter.createElement( 'answerTitle', {
-                    'id': viewElement.getAttribute('id'),
+                    'id': id,
+                    'toc-link-href': '#' + id,
                 } );
             },
             // Use high priority to overwrite heading converters defined in
@@ -539,7 +570,7 @@ export default class ContentCommonEditing extends Plugin {
             model: 'answerTitle',
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createEditableElement( 'h5', {
-                    'id': modelElement.getAttribute( 'id' ),
+                    'id': modelElement.getAttribute( 'id' ) || this._nextId(),
                 } );
             },
             // Use high priority to overwrite heading converters defined in
@@ -550,7 +581,7 @@ export default class ContentCommonEditing extends Plugin {
             model: 'answerTitle',
             view: ( modelElement, viewWriter ) => {
                 const h5 = viewWriter.createEditableElement( 'h5', {
-                    'id': modelElement.getAttribute( 'id' ),
+                    'id': modelElement.getAttribute( 'id' ) || this._nextId(),
                 } );
 
                 enablePlaceholder( {
