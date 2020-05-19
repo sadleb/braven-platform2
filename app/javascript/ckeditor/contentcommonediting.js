@@ -167,7 +167,7 @@ export default class ContentCommonEditing extends Plugin {
         const conversion = editor.conversion;
         const { editing, data, model } = editor;
         
-        // Table of contents converters for <contentTitle> and <questionTitle>
+        // Table of contents converters for titles
         conversion.for( 'upcast' ).add( dispatcher => {
             dispatcher.on( 'element:h5', ( evt, data, conversionApi ) => {
                 const { schema, writer } = conversionApi;

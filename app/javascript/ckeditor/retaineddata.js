@@ -55,7 +55,17 @@ export default class RetainedData extends Plugin {
     _consumeAttributeEvent( evt, elem ) {
         for ( let attribute of elem.getAttributeKeys() ) {
 
-            // Ignore all but retained data IDs.
+            // ID
+            if ( attribute === 'id' ) {
+                const value = elem.getAttribute( 'id' );
+                // Assume if it's an integer value, we could have assigned it
+                if ( !isNaN( value ) ) {
+                    this._idCounter = Math.max( parseInt(value) + 1, this._idCounter );
+                }
+                break;
+            }
+
+            // Retained data ID
             if ( attribute === RETAINED_DATA_ATTRIBUTE ) {
                 const value = elem.getAttribute( attribute );
 
