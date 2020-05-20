@@ -47,10 +47,6 @@ export default class SliderQuestionEditing extends Plugin {
             allowAttributes: [ 'data-bz-range-flr', 'data-bz-range-clg' ],
             allowContentOf: [ '$block' ],
         } );
-
-        schema.extend( 'slider', {
-            allowIn: 'questionFieldset'
-        } );
     }
 
     _defineConverters() {
