@@ -53,24 +53,19 @@ export default class RetainedData extends Plugin {
     }
 
     _consumeAttributeEvent( evt, elem ) {
-        for ( let attribute of elem.getAttributeKeys() ) {
+        // Check for retained data ID and only handle ones that match our prefix
+        const retainedDataId = elem.getAttribute( RETAINED_DATA_ATTRIBUTE );
+        if ( retainedDataId && retainedDataId.startsWith( this._retainedDataPrefix ) ) {
+            const id = parseInt( retainedDataId.split( this._retainedDataPrefix ).pop() );
+            // If retained data ID is larger than current count, set count to data ID + 1
+            // Otherwise, keep the current count
+            this._idCounter = Math.max( id + 1, this._idCounter );
+        }
 
-            // Ignore all but retained data IDs.
-            if ( attribute === RETAINED_DATA_ATTRIBUTE ) {
-                const value = elem.getAttribute( attribute );
-
-                // Ignore all but retained data IDs that match our per-page prefix.
-                if ( value.startsWith( this._retainedDataPrefix ) ) {
-                    const idIntegerPart = parseInt( value.split( this._retainedDataPrefix ).pop() );
-
-                    // If this ID is greater than our current counter, set the counter to this ID + 1.
-                    // Otherwise, ignore it.
-                    this._idCounter = Math.max( idIntegerPart + 1, this._idCounter );
-                }
-
-                // Once we hit the retained data attribute, exit early.
-                break;
-            }
+        // Check for ID and handle numeric ones so we don't collide with existing ones
+        const id = elem.getAttribute( 'id' );
+        if ( id && !isNaN( id ) ) {
+            this._idCounter = Math.max( parseInt(id) + 1, this._idCounter );
         }
     }
 }
