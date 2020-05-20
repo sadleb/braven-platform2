@@ -17,6 +17,31 @@ export default class RateThisModuleQuestionEditing extends Plugin {
         this.editor.commands.add( 'insertSlider', new InsertSliderCommand( this.editor ) );
     }
 
+    /**
+     * Example valid structures:
+     *
+     * <section>
+     *   <rateThisModuleQuestion>
+     *     <question>
+     *       <questionTitle>$text</questionTitle>
+     *       <questionForm>
+     *         <questionFieldset>
+     *           <legend>$text</legend>
+     *           <rateThisModuleSliderContainer>
+     *             <rateThisModuleSliderLabelLeft>
+     *             </rateThisModuleSliderLabelLeft>
+     *             <sliderInput/>
+     *             <rateThisModuleSliderLabelRight>
+     *             </rateThisModuleSliderLabelRight>
+     *           </rateThisModuleSliderContainer>
+     *           <legend>$text</legend>
+     *           <textArea/>
+     *         </questionFieldset>
+     *       </questionForm>
+     *     </question>
+     *   </rateThisModuleQuestion>
+     * </section>
+     */
     _defineSchema() {
         const schema = this.editor.model.schema;
 

@@ -30,6 +30,34 @@ export default class ContentCommonEditing extends Plugin {
         this._nextId = this.editor.plugins.get('RetainedData').getNextCount;
     }
 
+    /**
+     * Example valid structures:
+     *
+     * <moduleBlock>
+     *   <content>
+     *     <contentTitle>$text</contentTitle>
+     *     <contentBody>$block</contentBody>
+     *     <doneButton/>
+     *   </content>
+     * </moduleBlock>
+     *
+     * <moduleBlock>
+     *   <question>
+     *     <questionTitle>$text</questionTitle>
+     *     <questionBody>$block</questionBody>
+     *     <questionForm>
+     *       <questionFieldset>
+     *         ...inputs...
+     *       </questionFieldset>
+     *       <doneButton/>
+     *     </questionForm>
+     *   </question>
+     *   <answer>
+     *     <answerTitle>$text</answerTitle>
+     *     <answerBody>$block</answerBody>
+     *   </answer>
+     * </moduleBlock>
+     */
     _defineSchema() {
         const schema = this.editor.model.schema;
 

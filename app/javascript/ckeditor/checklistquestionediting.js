@@ -66,6 +66,17 @@ export default class ChecklistQuestionEditing extends Plugin {
         } );
     }
 
+    /**
+     * Example valid structure:
+     *
+     * <questionFieldset>
+     *   <checkboxDiv>
+     *     <checkboxInput/>
+     *     <checkboxLabel>$text</checkboxLabel>
+     *     <checkboxInlineFeedback>$text</checkboxInlineFeedback>
+     *   </checkboxDiv>
+     * </questionFieldset>
+     */
     _defineSchema() {
         const schema = this.editor.model.schema;
 

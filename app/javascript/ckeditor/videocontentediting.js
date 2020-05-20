@@ -16,6 +16,22 @@ export default class VideoContentEditing extends Plugin {
         this.editor.commands.add( 'insertVideoContent', new InsertVideoContentCommand( this.editor ) );
     }
 
+    /**
+     * Example valid structure:
+     *
+     * <content>
+     *   <contentTitle>$text</contentTitle>
+     *   <contentBody>$block</contentBody>
+     *   <videoFigure>
+     *     <videoIframe/>
+     *     <videoFigCaption>
+     *       <videoCaption>$text</videoCaption>
+     *       <videoDuration>$text</videoDuration>
+     *       <videoTranscript>$block</videoTranscript>
+     *     </videoFigCaption>
+     *   </videoFigure>
+     * </content>
+     */
     _defineSchema() {
         const schema = this.editor.model.schema;
 
