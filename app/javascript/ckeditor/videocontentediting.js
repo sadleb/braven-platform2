@@ -75,33 +75,6 @@ export default class VideoContentEditing extends Plugin {
         const conversion = editor.conversion;
         const { editing, data, model } = editor;
 
-        // <videoContent> converters
-        conversion.for( 'upcast' ).elementToElement( {
-            view: {
-                name: 'div',
-                classes: ['module-block', 'module-block-video']
-            },
-            model: 'videoContent'
-        } );
-        conversion.for( 'dataDowncast' ).elementToElement( {
-            model: 'videoContent',
-            view: ( modelElement, viewWriter ) => {
-                return viewWriter.createEditableElement( 'div', {
-                    'class': 'module-block module-block-video'
-                } );
-            }
-        } );
-        conversion.for( 'editingDowncast' ).elementToElement( {
-            model: 'videoContent',
-            view: ( modelElement, viewWriter ) => {
-                const videoContent = viewWriter.createContainerElement( 'div', {
-                    'class': 'module-block module-block-video',
-                } );
-
-                return toWidget( videoContent, viewWriter, { label: 'video widget' } );
-            }
-        } );
-
         // <videoFigure> converters
         conversion.for( 'upcast' ).elementToElement( {
             view: {
