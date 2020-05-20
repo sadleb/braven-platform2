@@ -91,12 +91,10 @@ export default class CustomElementAttributePreservation extends Plugin {
             editor.conversion.for( 'upcast' ).elementToElement( {
                 view: key,
                 model: ( viewElement, modelWriter ) => {
-                    let attributes = filterAllowedAttributes( viewElement.getAttributes() );
-                    if ( !attributes.get( 'id' ) ) {
-                        attributes.set( 'id', this._nextId() );
-                    }
-                    attributes.set( 'toc-link-href', '#' + attributes.get( 'id' ) );
-                    return modelWriter.createElement( elements[key], attributes );
+                    return modelWriter.createElement(
+                        elements[key],
+                        filterAllowedAttributes( viewElement.getAttributes() ),
+                    );
                 },
             } );
 
@@ -107,6 +105,7 @@ export default class CustomElementAttributePreservation extends Plugin {
                     if ( !attributes.get( 'id' ) ) {
                         attributes.set( 'id', this._nextId() );
                     }
+                    attributes.set( 'toc-link-href', '#' + attributes.get( 'id' ) );
                     return viewWriter.createContainerElement( key, attributes );
                 },
             });
