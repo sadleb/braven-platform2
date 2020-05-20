@@ -6,7 +6,6 @@ import RetainedData from './retaineddata';
 import InsertChecklistQuestionCommand from './insertchecklistquestioncommand';
 import InsertCheckboxCommand from './insertcheckboxcommand';
 import InsertChecklistOtherCommand from './insertchecklistothercommand';
-import SetAttributesCommand from './setattributescommand';
 import { ALLOWED_ATTRIBUTES, filterAllowedAttributes } from './customelementattributepreservation';
 
 export default class ChecklistQuestionEditing extends Plugin {
@@ -21,7 +20,6 @@ export default class ChecklistQuestionEditing extends Plugin {
         this.editor.commands.add( 'insertChecklistQuestion', new InsertChecklistQuestionCommand( this.editor ) );
         this.editor.commands.add( 'insertCheckbox', new InsertCheckboxCommand( this.editor ) );
         this.editor.commands.add( 'insertChecklistOther', new InsertChecklistOtherCommand( this.editor ) );
-        this.editor.commands.add( 'setAttributes', new SetAttributesCommand( this.editor ) );
 
         // Add a shortcut to the retained data ID function.
         this._nextRetainedDataId = this.editor.plugins.get('RetainedData').getNextId;
@@ -66,6 +64,17 @@ export default class ChecklistQuestionEditing extends Plugin {
         } );
     }
 
+    /**
+     * Example valid structure:
+     *
+     * <questionFieldset>
+     *   <checkboxDiv>
+     *     <checkboxInput/>
+     *     <checkboxLabel>$text</checkboxLabel>
+     *     <checkboxInlineFeedback>$text</checkboxInlineFeedback>
+     *   </checkboxDiv>
+     * </questionFieldset>
+     */
     _defineSchema() {
         const schema = this.editor.model.schema;
 
@@ -93,13 +102,6 @@ export default class ChecklistQuestionEditing extends Plugin {
             isObject: true,
             allowIn: 'checkboxDiv',
             allowContentOf: '$block'
-        } );
-
-        schema.addChildCheck( ( context, childDefinition ) => {
-            // Disallow adding questions inside answerText boxes.
-            if ( context.endsWith( 'answerText' ) && childDefinition.name == 'checklistQuestion' ) {
-                return false;
-            }
         } );
     }
 
