@@ -166,28 +166,6 @@ export default class ContentCommonEditing extends Plugin {
         const editor = this.editor;
         const conversion = editor.conversion;
         const { editing, data, model } = editor;
-        
-        // Table of contents converters for titles
-        conversion.for( 'upcast' ).add( dispatcher => {
-            dispatcher.on( 'element:h5', ( evt, data, conversionApi ) => {
-                const { schema, writer } = conversionApi;
-
-                if (!data.modelRange) {
-                    return;
-                }
-
-                for ( const item of data.modelRange.getItems( { shallow: true } ) ) {
-                    const href = item.getAttribute( 'toc-link-href' );
-
-                    for ( const child of item.getChildren() ) {
-                        if ( child.is( 'text' ) ) {
-                            writer.setAttribute( 'linkHref', href, child );
-                            return;
-                        }
-                    }
-                }
-            } );
-        }, { priority: 'low' } );
 
         // <content> converters
         conversion.for( 'upcast' ).elementToElement( {
