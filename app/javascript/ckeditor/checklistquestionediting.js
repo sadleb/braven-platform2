@@ -35,29 +35,30 @@ export default class ChecklistQuestionEditing extends Plugin {
         // https://github.com/ckeditor/ckeditor5-widget/blob/bdeec63534d11a4fa682bb34990c698435bc13e3/src/widget.js#L174
         // https://github.com/ckeditor/ckeditor5-widget/blob/bdeec63534d11a4fa682bb34990c698435bc13e3/src/widget.js#L408
         this.listenTo( this.editor.editing.view.document, 'keydown', ( evt, data ) => {
-            const selection = this.editor.model.document.selection;
-            const selectedElement = selection.getSelectedElement();
+            if ( data.domEvent.key !== 'Enter' ) {
+                return;
+            }
 
-            if ( selectedElement && selectedElement.name == 'checkboxDiv' ) {
-                if ( data.domEvent.key === 'Enter' ) {
-                    // This will end up calling our enter listener below.
-                    this.editor.editing.view.document.fire( 'enter', { evt, data } );
-                    data.preventDefault();
-                    evt.stop();
-                }
+            const selectedElement = this.editor.model.document.selection.getSelectedElement();
+            if ( selectedElement && selectedElement.name === 'checkboxDiv' ) {
+                this.editor.execute( 'insertCheckbox' );
+                data.preventDefault();
+                evt.stop();
             }
         // Use 'highest' priority, because Widget._onKeydown listens at 'high'.
         // https://github.com/ckeditor/ckeditor5-widget/blob/bdeec63534d11a4fa682bb34990c698435bc13e3/src/widget.js#L92
         }, { priority: 'highest' } );
 
-        // Override the default 'enter' key behavior to allow inserting new checklist options.
+        // Pressing "Enter" with a checkbox option selected or with the cursor in teh checkbox label
+        // will insert a new checkbox option below it
         this.listenTo( this.editor.editing.view.document, 'enter', ( evt, data ) => {
             const selection = this.editor.model.document.selection;
             const positionParent = selection.getLastPosition().parent;
             const selectedElement = selection.getSelectedElement();
 
-            if ( positionParent.name == 'checkboxLabel' || ( selectedElement && selectedElement.name == 'checkboxDiv' ) ) {
-                this.editor.execute( 'insertCheckbox' )
+            if ( ( selectedElement && selectedElement.name === 'checkboxDiv' )
+                || ( positionParent && positionParent.name == 'checkboxLabel' ) ) {
+                this.editor.execute( 'insertCheckbox' );
                 data.preventDefault();
                 evt.stop();
             }
