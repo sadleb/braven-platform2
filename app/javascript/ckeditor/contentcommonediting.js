@@ -241,7 +241,7 @@ export default class ContentCommonEditing extends Plugin {
                 name: 'h5'
             },
             model: ( viewElement, modelWriter ) => {
-                const id = viewElement.getAttribute( 'id' ) || this._nextId();
+                const id = viewElement.getAttribute( 'id' );
                 return modelWriter.createElement( 'contentTitle', {
                     'id': id,
                     'toc-link-href': '#' + id,
@@ -358,7 +358,7 @@ export default class ContentCommonEditing extends Plugin {
                 name: 'h5'
             },
             model: ( viewElement, modelWriter ) => {
-                const id = viewElement.getAttribute('id') || this._nextId();
+                const id = viewElement.getAttribute('id');
                 return modelWriter.createElement( 'questionTitle', {
                     'id': id,
                     'toc-link-href': '#' + id,
@@ -580,7 +580,7 @@ export default class ContentCommonEditing extends Plugin {
                 name: 'h5'
             },
             model: ( viewElement, modelWriter ) => {
-                const id = viewElement.getAttribute( 'id' ) || this._nextId();
+                const id = viewElement.getAttribute( 'id' );
                 return modelWriter.createElement( 'answerTitle', {
                     'id': id,
                     'toc-link-href': '#' + id,
