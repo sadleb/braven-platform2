@@ -30,17 +30,24 @@ export default class ChecklistQuestionEditing extends Plugin {
             evt.stop();
         } );
 
-        // Because 'enter' events are consumed by Widget._onKeydown when the current selection is a non-inline
-        // block widget, we have to re-fire them explicitly for checkboxDivs.
+        // Pressing 'Enter' with a checkbox  selected or with the cursor in the label will insert a new one below it.
+        // Because Widget._onKeydown consumes 'Enter' events for non-inline block widgets, we intercept the
+        // 'keydown' event and run the insertion code immediately in our handler.
         // https://github.com/ckeditor/ckeditor5-widget/blob/bdeec63534d11a4fa682bb34990c698435bc13e3/src/widget.js#L174
         // https://github.com/ckeditor/ckeditor5-widget/blob/bdeec63534d11a4fa682bb34990c698435bc13e3/src/widget.js#L408
         this.listenTo( this.editor.editing.view.document, 'keydown', ( evt, data ) => {
             if ( data.domEvent.key !== 'Enter' ) {
-                return;
+                return; // Ignore non-'Enter' keys
             }
 
-            const selectedElement = this.editor.model.document.selection.getSelectedElement();
-            if ( selectedElement && selectedElement.name === 'checkboxDiv' ) {
+            const selection = this.editor.model.document.selection;
+            const selectedElement = selection.getSelectedElement();
+            const positionParent = selection.getLastPosition().parent;
+
+            if ( ( selectedElement && selectedElement.name === 'checkboxDiv' )
+                || ( positionParent && positionParent.name === 'checkboxLabel' ) ) {
+                // We execute the insertion code directly rather than firing another 'Enter' event
+                // to prevent CKE handlers that also listen to the event from running
                 this.editor.execute( 'insertCheckbox' );
                 data.preventDefault();
                 evt.stop();
@@ -48,21 +55,6 @@ export default class ChecklistQuestionEditing extends Plugin {
         // Use 'highest' priority, because Widget._onKeydown listens at 'high'.
         // https://github.com/ckeditor/ckeditor5-widget/blob/bdeec63534d11a4fa682bb34990c698435bc13e3/src/widget.js#L92
         }, { priority: 'highest' } );
-
-        // Pressing "Enter" with a checkbox option selected or with the cursor in teh checkbox label
-        // will insert a new checkbox option below it
-        this.listenTo( this.editor.editing.view.document, 'enter', ( evt, data ) => {
-            const selection = this.editor.model.document.selection;
-            const positionParent = selection.getLastPosition().parent;
-            const selectedElement = selection.getSelectedElement();
-
-            if ( ( selectedElement && selectedElement.name === 'checkboxDiv' )
-                || ( positionParent && positionParent.name == 'checkboxLabel' ) ) {
-                this.editor.execute( 'insertCheckbox' );
-                data.preventDefault();
-                evt.stop();
-            }
-        } );
     }
 
     /**
