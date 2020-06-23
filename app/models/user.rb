@@ -128,7 +128,7 @@ class User < ApplicationRecord
   def setup_canvas_access
     return if canvas_id
     existing_user = CanvasAPI.client.find_user_in_canvas(email)
-    if existing_user && false
+    if existing_user
       self.canvas_id = existing_user['id']
     else
       Rails.logger.info("Creating Canvas account and enrollments for new user: #{inspect}")
