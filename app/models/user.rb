@@ -105,8 +105,10 @@ class User < ApplicationRecord
   # Handles anything that should happen when a new account is being registered
   # using the new_user_registration route
   def do_account_registration
+    Rails.logger.info('Starting account registration')
     if sync_salesforce_info # They can't register for Canvas access if they aren't Enrolled in Salesforce
       setup_canvas_access
+      Rails.logger.info('Done setting up canvas access')
       store_canvas_id_in_salesforce
     end
   end
@@ -126,7 +128,7 @@ class User < ApplicationRecord
   def setup_canvas_access
     return if canvas_id
     existing_user = CanvasAPI.client.find_user_in_canvas(email)
-    if existing_user
+    if existing_user && false
       self.canvas_id = existing_user['id']
     else
       Rails.logger.info("Creating Canvas account and enrollments for new user: #{inspect}")
