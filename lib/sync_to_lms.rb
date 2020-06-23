@@ -195,7 +195,7 @@ class SyncToLMS
     elsif @sync_mode == :contact_sync
       enrolments = @canvas_api.get_user_enrollments(canvas_user_id, course_id)
       # Filter by course_id
-      enrolments.filter { |enrolment| enrolment['course_id']&.to_i.eql?(course_id&.to_i) }
+      enrolments&.filter { |enrolment| enrolment['course_id']&.to_i.eql?(course_id&.to_i) }
     else
       raise "Unrecognized @sync_mode = #{@sync_mode}"
     end
