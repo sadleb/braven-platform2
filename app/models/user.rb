@@ -128,19 +128,8 @@ class User < ApplicationRecord
   def setup_canvas_access
     return if canvas_id
 
-    Rails.logger.info("Creating Canvas account and enrollments for new user: #{inspect}")
+    Rails.logger.info("Setting up Canvas account and enrollments for user: #{inspect}")
     self.canvas_id = SyncToLMS.new.for_contact(salesforce_id)
-
-    # Stopping this short circuit so returning user can go through the canvas
-    # process again
-    #
-    # existing_user = CanvasAPI.client.find_user_in_canvas(email)
-    # if existing_user
-    #   self.canvas_id = existing_user['id']
-    # else
-    #   Rails.logger.info("Creating Canvas account and enrollments for new user: #{inspect}")
-    #   self.canvas_id = SyncToLMS.new.for_contact(salesforce_id)
-    # end
   end
 
   def store_canvas_id_in_salesforce

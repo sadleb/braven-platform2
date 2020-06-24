@@ -76,12 +76,21 @@ RSpec.describe User, type: :model do
       end   
     end
 
-    # Skipping this because this is not valid anymore.
-    xcontext 'when canvas user exists' do
+    context 'when canvas user exists' do
+      let(:participants) { build_list(:salesforce_participant_fellow, 1, Email: sf_contact['Email']) }
+      let(:sf_program) { build(:salesforce_program_record) }
+      let(:section) { build(:canvas_section) }
+      let(:enrollment) { build(:canvas_enrollment_student) }
+
       it 'sets the canvas_id' do
         allow(sf_api_client).to receive(:get_contact_info).and_return(sf_contact)
+        allow(sf_api_client).to receive(:get_participants).and_return(participants)
+        allow(sf_api_client).to receive(:get_program_info).and_return(sf_program)
         allow(sf_api_client).to receive(:set_canvas_id).and_return(nil)
+        allow(canvas_api_client).to receive(:create_section).and_return(section)
+
         expect(canvas_api_client).to receive(:find_user_in_canvas).with(sf_contact['Email']).and_return(canvas_user).once
+        expect(canvas_api_client).to receive(:enroll_user_in_course).with(canvas_user['id'], any_args).and_return(enrollment).once
         user = create :user, salesforce_id: sf_contact['Id'], password: 'somepassword'
         user = user.reload
         expect(user.canvas_id).to eq(canvas_user['id'])
