@@ -11,7 +11,7 @@ class LtiIdToken
 
   # The URL of the Public JWK used to sign payloads sent from Canvas so that we can
   # verify it was actually Canvas sending the payload and not an attacker.
-  PUBLIC_JWKS_URL = "#{ENV['CANVAS_LTI_URL']}/api/lti/security/jwks".freeze
+  PUBLIC_JWKS_URL = "#{Rails.application.secrets.lti_oidc_base_uri}/api/lti/security/jwks".freeze
 
   def initialize(payload, header)
     @header = header

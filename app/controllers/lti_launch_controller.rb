@@ -16,11 +16,14 @@ class LtiLaunchController < ApplicationController
   # Non-standard controller without normal CRUD methods. Disable the convenience module.
   def dry_crud_enabled?() false end
 
+  LTI_ISS=Rails.application.secrets.lti_oidc_base_uri
+  LTI_AUTH_RESPONSE_URL="#{Rails.application.secrets.lti_oidc_base_uri}/api/lti/authorize_redirect".freeze
+
   # POST /lti/login
   #
   # This is the OIDC url Canvas is calling in Step 1 above.
   def login
-    raise ActionController::BadRequest.new(), "Unexpected iss parameter: #{params[:iss]}" if params[:iss] != ENV['CANVAS_LTI_URL']
+    raise ActionController::BadRequest.new(), "Unexpected iss parameter: #{params[:iss]}" if params[:iss] != LTI_ISS
 
     # Force load the session by writing something to it. Reading from it isn't enough to initialize it and get a session_id
     session[:init] = true
@@ -29,7 +32,7 @@ class LtiLaunchController < ApplicationController
                                          .merge(:state => session[:session_id], :nonce => SecureRandom.hex(10)))
 
     # Step 2 in the flow, do the handshake
-    redirect_to "#{ENV['CANVAS_LTI_URL']}/api/lti/authorize_redirect?#{@lti_launch.auth_params.to_query}"
+    redirect_to "#{LTI_AUTH_RESPONSE_URL}?#{@lti_launch.auth_params.to_query}"
   end
 
 

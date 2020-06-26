@@ -3,7 +3,9 @@
 # https://canvas.instructure.com/doc/api/file.lti_dev_key_config.html#launch-overview
 class LtiLaunch < ApplicationRecord
 
-  LTI_LAUNCH_REDIRECT_URI=ENV['CANVAS_LTI_REDIRECT_URL'].freeze
+  # This is the Redirect URI that must be configured in the Developer Key for the LTI
+  # and must match EXACTLY.
+  LTI_LAUNCH_REDIRECT_URI="https://#{Rails.application.secrets.application_host}/lti/launch".freeze
 
   # Usage:
   #
@@ -23,7 +25,7 @@ class LtiLaunch < ApplicationRecord
       :response_mode => 'form_post',         # OIDC response is always a form post
       :prompt => 'none',                     # Don't prompt user on redirect
       :client_id => client_id,
-      :redirect_uri => LTI_LAUNCH_REDIRECT_URI,  # URL to return to after login. Must match EXACTLY what is configured in the Developer Key
+      :redirect_uri => LTI_LAUNCH_REDIRECT_URI,  # URL to return to after login
       :state => state,                       # State to identify browser session
       :nonce => nonce,                       # Prevent replay attacks 
       :login_hint =>  login_hint,            # Login hint to identify platform (aka Canvas) session
