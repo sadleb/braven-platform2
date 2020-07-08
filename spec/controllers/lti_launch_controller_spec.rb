@@ -31,8 +31,8 @@ RSpec.describe LtiLaunchController, type: :controller do
     let!(:lti_launch_params) { { :id_token => id_token, :state => session_id } }
 
     before(:each) do
-      public_jwks = JSON.parse({ keys: [ Keypair.current.public_jwk_export ] }.to_json, symbolize_names: true)
-      allow(LtiIdToken).to receive(:jwks).and_return(public_jwks)
+      public_jwks = { keys: [ Keypair.current.public_jwk_export ] }.to_json
+      stub_request(:get, LtiIdToken::PUBLIC_JWKS_URL).to_return(body: public_jwks)
       post :launch, params: lti_launch_params, session: valid_session
     end
 

@@ -21,7 +21,7 @@ class LtiIdToken
   # Takes a signed JWT id_token (base64encoded) and parses the contents out while
   # verifying the signature so that we know it was actually sent by the LTI platform
   def self.parse_and_verify(signed_jwt_id_token)
-    payload, header = JWT.decode(signed_jwt_id_token, nil, true, { algorithms: ['RS256'], jwks: jwks } )
+    payload, header = JWT.decode(signed_jwt_id_token, nil, true, { algorithms: ['RS256'], jwks: public_jwks } )
     LtiIdToken.new(payload, header)
   rescue => e
     Rails.logger.error("{\"Error\":\"#{e.message}\"}")
@@ -31,11 +31,7 @@ class LtiIdToken
 
   private
 
-  def self.jwks
-    @jwks ||= fetch_jwks # These are rotated monthly for Canvas and the server restarts once a day. Safe to cache.
-  end
-
-  def self.fetch_jwks
+  def self.public_jwks
     response = RestClient.get(PUBLIC_JWKS_URL)
     JSON.parse(response.body, symbolize_names: true)
   end
