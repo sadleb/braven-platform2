@@ -47,7 +47,7 @@ class LtiLaunchController < ApplicationController
     idt = LtiIdToken.parse_and_verify(params[:id_token])
 
     @lti_launch = LtiLaunch.current(params[:state])
-    @lti_launch.id_token_payload = idt.payload
+    @lti_launch.id_token_payload = idt.payload.to_json
     @lti_launch.save!
 
     # Step 4 in the flow, show the target resource now that we've saved the id_token payload that contains

@@ -13,8 +13,8 @@ FactoryBot.define do
     iss { 'https://some.lti.platform' }
     aud { '160040000000000055' }
     azp { '160040000000000055' }
-    exp { '1593205904' }
-    iat { '1593205904' }
+    exp { Time.now.to_i + 50000 }
+    iat { Time.now.to_i }
     nonce { 'f16e8f1b581ec93fadb1' }
     sub { 'lti_user_id' }
     locale { 'en' }
