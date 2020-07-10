@@ -18,13 +18,24 @@ class LtiLinkSelectionController < ApplicationController
 
   	# TODO: Do an actual upload using the form in index.html.erb
   	# For now, just use a local thing and upload
-  	obj = bucket.object('unlock-your-hustle')
-  	obj.upload_file('unlock-your-hustle.zip')
+  	# obj = bucket.object('unlock-your-hustle')
+  	# obj.upload_file('unlock-your-hustle.zip')
 
   	# Now, try unzipping it locally
+	Zip::File.open('unlock-your-hustle.zip') do |zip_file|
+  	  zip_file.each do |file|
+  	  	puts "Extracting #{file.name}"
+  	  	filepath = File.join('tmp/unlock-your-hustle/', file.name)
+  	  	FileUtils.mkdir_p(File.dirname(filepath))
+  	  	zip_file.extract(file, filepath)
+    	# obj = bucket.object('unlock-your-hustle-test/' + entry.name)
+    	# obj.upload_file(entry.name)
+  		end
+  	end
   	# Upload recursively
   	# Delete all the local stuff
   	# Print the link
+
   end
 
   def create
