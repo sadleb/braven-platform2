@@ -190,6 +190,17 @@ Or only tests in a particular directory, like our feature tests which use Seleni
 
 You can also run a single spec ofc.
 
+### Static Code Analysis (aka linter)
+We use Codacy to run static code analysis. Everytime you push a branch to the repo it runs. 
+
+**You can see [status here](https://app.codacy.com/manual/bebraven/platform/dashboard)**
+
+Make sure you get invited to the project so that you'll get emails about your code quality when you push.
+
+*Note: you can also run it locally using the `codacy-analysis-cli` but I HIGHLY recommend against it. It's really hard
+to get it working properly and the branch has to be completely clean and fully committed. Just push your branch and open a
+pull request. Go fix any issues as well as get a peer code review before merging the pull request.*
+
 ### Project structure
 
 This app is built with React and Rails. Generally speaking, developers will spend the most time in the Rails code
