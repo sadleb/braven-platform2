@@ -46,6 +46,9 @@ group :development do
   gem 'pry-rescue', require: false
   gem 'pry-stack_explorer', require: false
   gem 'rubocop', require: false
+  gem 'rubocop-performance', require: false
+  gem 'rubocop-rails', require: false
+  gem 'rubocop-rspec', require: false
   gem 'guard-livereload', require: false
   gem 'guard-rails', require: false
   gem 'guard-rspec', require: false
