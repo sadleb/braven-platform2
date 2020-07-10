@@ -20,7 +20,7 @@ class LtiLinkSelectionController < ApplicationController
   	s3 = Aws::S3::Resource.new(region: ENV["AWS_REGION"])
   	bucket = s3.bucket(ENV["AWS_S3_BUCKET"])
 
-  	# TODO: Do an actual upload using the form in index.html.erb
+  	# TODO: Do an actual upload using the form in new.html.erb
   	# For now, just use a local thing and upload
   	# obj = bucket.object('unlock-your-hustle')
   	# obj.upload_file('unlock-your-hustle.zip')
@@ -43,5 +43,6 @@ class LtiLinkSelectionController < ApplicationController
   end
 
   def create
+    @filename = params[:file]
   end
 end

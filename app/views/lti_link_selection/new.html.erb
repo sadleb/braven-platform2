@@ -1,13 +1,19 @@
-
 <div>
-	<h1>LTI Link Selection</h1>
-</div>
-
-<div>
-	<p>Upload a file here</p>
-</div>
-
-<p>Find me in app/views/lti_link_selection/new.html.erb</p>
-<div>
-	<p>user_id = <%= @canvas_user_id %></p>
+  <p>Upload a module</p>
+  <!-- 
+	Has to be file xor directory, unless I use JS:
+  	https://stackoverflow.com/questions/30049276/handle-directory-files-upload-with-one-input-javascript
+  	For directories: 
+  	<label for="filepicker">Choose a Rise 360 course (directory?)</label>
+    <input type="file" id="filepicker" name="filepicker" webkitdirectory multiple />
+  -->
+  <%= form_tag(lti_link_selection_path) do %>
+    <label for="file">Choose a Rise 360 course (zip):</label>
+	<input
+	  type="file"
+	  id="file" name="file"
+      accept="application/zip">
+    <input id="state" name='state' type='hidden' value="<%= params[:state] %>" />
+    <input type='submit' value='Upload' />
+  <% end %>
 </div>
