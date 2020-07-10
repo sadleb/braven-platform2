@@ -89,4 +89,10 @@ Rails.application.routes.draw do
 
   get '/lti/assignment_selection/new', to: 'lti_assignment_selection#new'     # https://canvas.instructure.com/doc/api/file.assignment_selection_placement.html
   post '/lti/assignment_selection', to: 'lti_assignment_selection#create'     # https://canvas.instructure.com/doc/api/file.assignment_selection_placement.html
+
+  # LTI link selection placement
+  # https://canvas.instructure.com/doc/api/file.link_selection_placement.html
+  get 'lti_link_selection/index'
+  get 'lti_link_selection/create'
+
 end
