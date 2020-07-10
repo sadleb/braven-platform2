@@ -9,6 +9,22 @@ class LtiLinkSelectionController < ApplicationController
   	response.headers["X-FRAME-OPTIONS"] = "ALLOW-FROM https://braven.instructure.com"
 
   	@canvas_user_id = "1234test!"
+
+  	# Connect to S3 using .env configuration
+  	credentials = Aws::Credentials.new(ENV["AWS_ACCESS_KEY_ID"], ENV["AWS_SECRET_ACCESS_KEY"])
+  	Aws.config.update({credentials: credentials})
+  	s3 = Aws::S3::Resource.new(region: ENV["AWS_REGION"])
+  	bucket = s3.bucket(ENV["AWS_S3_BUCKET"])
+
+  	# TODO: Do an actual upload using the form in index.html.erb
+  	# For now, just use a local thing and upload
+  	obj = bucket.object('unlock-your-hustle')
+  	obj.upload_file('unlock-your-hustle.zip')
+
+  	# Now, try unzipping it locally
+  	# Upload recursively
+  	# Delete all the local stuff
+  	# Print the link
   end
 
   def create
