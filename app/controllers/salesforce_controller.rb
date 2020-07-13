@@ -13,7 +13,7 @@ class SalesforceController < ApplicationController
     program_id = params[:program_id]
     email = params[:email]
     if program_id && email
-      SalesforceProgramToLmsSyncJob.perform_now(program_id, email)
+      SalesforceProgramToLmsSyncJob.perform_later(program_id, email)
       @user_notification = "Sync To LMS has been submitted for program #{program_id}, #{email} will be notified"
     else
       @user_notification = 'Please enter the Program ID to sync below and hit Enter'
