@@ -115,3 +115,4 @@ gem 'attr_encrypted'
 
 gem 'aws-sdk'
 gem 'rubyzip'
+gem "aws-sdk-s3", require: false

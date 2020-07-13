@@ -1382,6 +1382,7 @@ PLATFORMS
 DEPENDENCIES
   attr_encrypted
   aws-sdk
+  aws-sdk-s3
   bootsnap (>= 1.4.2)
   bulk_insert
   byebug
