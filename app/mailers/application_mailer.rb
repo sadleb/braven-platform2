@@ -2,6 +2,6 @@
 
 # Base mailer class
 class ApplicationMailer < ActionMailer::Base
-  default from: 'noreply@braven.org'
+  default from: 'noreply@bebraven.org'
   layout 'mailer'
 end
