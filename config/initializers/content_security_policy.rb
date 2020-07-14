@@ -10,7 +10,8 @@ Rails.application.config.content_security_policy do |policy|
   policy.img_src     :self, :https, :data
   policy.object_src  :none
   policy.script_src  :self, :https
-  policy.style_src   :self, :https
+  # Unsafe-inline styles are bad. Remove this once we've migrated modules to Rise 360.
+  policy.style_src   :self, :https, :unsafe_inline
   policy.frame_ancestors :self
 
   # Customizable through .env
