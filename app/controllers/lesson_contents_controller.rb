@@ -13,23 +13,17 @@ class LessonContentsController < ApplicationController
 		@lesson_content = LessonContent.new(lesson_content_params)
 		@lesson_content.save
 
-		# TODO
-		#lesson_url = "https://platform-dev-file-uploads.s3.amazonaws.com/lessons/edrf8ftesbg6fwbo3qa70b7tmc52/index.html"
-		@lesson_url = lesson_content_url(@lesson_content)
-    	@deep_link_return_url, @jwt_response = helpers.lti_deep_link_response_message(lti_launch, @lesson_url)
-
-		# Just render something
-		# @filename = params[:lesson_content_zipfile]
-		# @path = url_for(lesson_content.lesson_content_zipfile)
+		lesson_url = lesson_content_url(@lesson_content)
+    	@deep_link_return_url, @jwt_response = helpers.lti_deep_link_response_message(lti_launch, lesson_url)
 	end
 
 	def show
-		# TODO
-		redirect_to "https://platform-dev-file-uploads.s3.amazonaws.com/lessons/edrf8ftesbg6fwbo3qa70b7tmc52/index.html"
+		lesson_content = LessonContent.find(params[:id])
+		@index = lesson_content.get_index_url
 	end
 
 	def unzip_upload
-		lesson_content = LessonContent.find(params[:id])
+
 		@path = url_for(lesson_content.lesson_content_zipfile)
 
 		@bucket_prefix = 'lessons/' + lesson_content.lesson_content_zipfile.key + '/'
@@ -68,19 +62,6 @@ class LessonContentsController < ApplicationController
 							bucket: ENV["AWS_S3_BUCKET"],
 							key: object_key,
 						})
-						# Nope, don't do this, this upload the entire zipfile??? WTF.
-						#s3_obj.put(body: entry.get_raw_input_stream)
-
-						#entry.extract
-						#content = entry.get_input_stream.read
-						#puts content
-
-						# This works, but it's unbearably slow
-						# Extract and read input to temporary file
-						# tempfile = Tempfile.new(File.basename(entry.name))
-						# tempfile.binmode
-						# tempfile.write(entry.get_input_stream.read)
-						#s3_obj.upload_file(tempfile)
 					elsif entry.directory? 
 						@all_dirs += "#{entry.name}"
 					end
