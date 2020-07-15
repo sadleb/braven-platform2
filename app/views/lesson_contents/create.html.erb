@@ -1,3 +1,12 @@
-<p><%= @filename %></p>
-<p><%= @path %></p>
+<p>
+  <strong>LESSON URL:</strong>
+  <%= @lesson_url %>
+</p>
 
+<div id="lesson-create">
+  <form action="<%= @deep_link_return_url %>" method="post" id="deep-link-form">
+    <input id="JWT" name='JWT' type='hidden' value="<%= @jwt_response %>" />
+    <input type='submit' value='Confirm' />
+  </form>
+  <iframe src="<%= lesson_content_path(@lesson_content) %>"></iframe>
+</div>

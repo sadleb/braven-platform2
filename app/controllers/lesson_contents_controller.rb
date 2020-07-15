@@ -6,16 +6,29 @@ class LessonContentsController < ApplicationController
 	end
 
 	def create
-		@filename = params[:lesson_content_zipfile]
+		params.require([:state, :lesson_content_zipfile])
+
+		lti_launch = LtiLaunch.current(params[:state])
+
 		@lesson_content = LessonContent.new(lesson_content_params)
 		@lesson_content.save
 
 		# TODO
-		# Unzip and upload here (it's in "show" for now so I can easily test it)
+		#lesson_url = "https://platform-dev-file-uploads.s3.amazonaws.com/lessons/edrf8ftesbg6fwbo3qa70b7tmc52/index.html"
+		@lesson_url = lesson_content_url(@lesson_content)
+    	@deep_link_return_url, @jwt_response = helpers.lti_deep_link_response_message(lti_launch, @lesson_url)
+
+		# Just render something
+		# @filename = params[:lesson_content_zipfile]
+		# @path = url_for(lesson_content.lesson_content_zipfile)
 	end
 
-	# TODO: Show a preview of the lesson, no LRS or anything set up
 	def show
+		# TODO
+		redirect_to "https://platform-dev-file-uploads.s3.amazonaws.com/lessons/edrf8ftesbg6fwbo3qa70b7tmc52/index.html"
+	end
+
+	def unzip_upload
 		lesson_content = LessonContent.find(params[:id])
 		@path = url_for(lesson_content.lesson_content_zipfile)
 
@@ -37,12 +50,6 @@ class LessonContentsController < ApplicationController
 		@all_dirs = ''
 		lesson_content.lesson_content_zipfile.open do |file|
 			@filepath = file.path
-			puts file.path
-			# zipfile = Zip::File.new(file.path)
-			# zipfile.each_with_index do |entry, index|
-			# 	@all_files += "entry #{index} is #{entry.name}, size = #{entry.size}, compressed size = #{entry.compressed_size}"
-			# 	@all_files += "\n"
-			# end
 			Zip::File.open(file.path) do |zip_file|
 				zip_file.each do |entry|
 					if entry.file?
@@ -86,81 +93,6 @@ class LessonContentsController < ApplicationController
   				bucket: ENV["AWS_S3_BUCKET"],
 			})
 		end
-
-
-# 		Zip::File.open('foo.zip') do |zip_file|
-#   # Handle entries one by one
-#   			zip_file.each do |entry|
-#     puts "Extracting #{entry.name}"
-#     raise 'File too large when extracted' if entry.size > MAX_SIZE
-
-#     # Extract to file or directory based on name in the archive
-#     entry.extract
-
-#     # Read into memory
-#     content = entry.get_input_stream.read
-#   end
-
-#   # Find specific entry
-#   entry = zip_file.glob('*.csv').first
-#   raise 'File too large when extracted' if entry.size > MAX_SIZE
-#   puts entry.get_input_stream.read
-# end
-
-# 		lesson_content.lesson_content_zipfile.open do |file|
-# 			file_list = Zip::File.open(file.path)
-# 			file_list.each do |f|
-# 				filename = f.name
-# 				basename = File.basename(filename)
-
-# 				tempfile = Tempfile.new(basename)
-# 				tempfile.binmode
-# 				tempfile.write file_list.get_input_stream(f).read
-
-# 			  	s3_obj = bucket.objects[ @bucket_prefix + filename ]
-# 			  	s3_obj.write(tempfile)
-# 			end
-# 		end
-
-				# lesson_contents + ID? 
-				# obj = bucket.object(@bucket_prefix + "#{entry.name}")
-				# obj.upload_file(entry)
-# file_list = Zip::ZipFile.open(zipped_file)
-# file_list.each do |file|
-#   filename = file.name
-#   basename = File.basename(filename)
-
-#   tempfile = Tempfile.new(basename)
-#   tempfile.binmode
-#   tempfile.write file.get_input_stream.read            
-
-#   s3_obj = bucket.objects[ 'attachments/' + filename ]
-#   s3_obj.write(tempfile)
-# end
-
-
-	    # TODO: Access credentials from the shell environment instead
-
-
-	    # obj = bucket.object('unlock-your-hustle')
-	    # obj.upload_file('unlock-your-hustle.zip')
-
-
-		# Download the zipfile
-		# Zip file system: http://rubyzip.sourceforge.net/classes/Zip/ZipFileSystem.html
-
-		# zipfile = lesson_content.lesson_content_zipfile.download
-		# zf = Zip::File.new(zipfile)
-		# zf.each_with_index do |entry, index|
-  # 			puts "entry #{index} is #{entry.name}, size = #{entry.size}, compressed size = #{entry.compressed_size}"
-  # 			# use zf.get_input_stream(entry) to get a ZipInputStream for the entry
-  # 			# entry can be the ZipEntry object or any object which has a to_s method that
-  # 			# returns the name of the entry.
-		# end
-
-				# Recursively upload to AWS
-
-
 	end
 
 	private
@@ -168,18 +100,4 @@ class LessonContentsController < ApplicationController
     	params.permit(:lesson_content_zipfile)
     end
 
-    def unzip_file(filename, destination)
-    end
 end
-
-
-
-# def unzip_file (file, destination)
-#   Zip::ZipFile.open(file) { |zip_file|
-#    zip_file.each { |f|
-#      f_path=File.join(destination, f.name)
-#      FileUtils.mkdir_p(File.dirname(f_path))
-#      zip_file.extract(f, f_path) unless File.exist?(f_path)
-#    }
-#   }
-# end
