@@ -1,7 +1,7 @@
 require 'zip'
 
 class LessonContentsController < ApplicationController
-  # TODO: Get rid of this, something weird is going on right now
+  # FIXME: Get rid of this, something weird is going on right now
   skip_before_action :authenticate_user!
   skip_before_action :ensure_admin!
   skip_before_action :verify_authenticity_token
@@ -17,11 +17,13 @@ class LessonContentsController < ApplicationController
     @lesson_content = LessonContent.new(lesson_content_params)
     @lesson_content.save
 
-    # TODO: Decide whether it's better to use lesson_url that does the 
-    # redirect to S3, or the S3 url directly, for some reason it doesn't
-    # want to redirect through S3? 
+    # TODO: Extract this asynchronously
+    # https://app.asana.com/0/1174274412967132/1184800386160057
     @s3_index_url = @lesson_content.extract
     lesson_url = lesson_content_url(@lesson_content)
+
+    # TODO: Decide whether it's better to use lesson_url that does a redirect
+    # https://app.asana.com/0/1174274412967132/1184800386160059
     @deep_link_return_url, @jwt_response = helpers.lti_deep_link_response_message(lti_launch, lesson_url)
   end
 

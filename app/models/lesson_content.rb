@@ -20,13 +20,17 @@ class LessonContent < ApplicationRecord
   # Extract the lesson_content_zipfile and store it on S3
   # Return index to access content
   def extract
+    # TODO: Is there a more robust way to check?
+    # https://app.asana.com/0/1174274412967132/1184800386160068
     return get_index_url unless !bucket.object(s3_object_key(INDEX_FILE)).exists?
 
-    # Extract the zipfile
+    # TODO: Clean up after Brian pushes code
+    # https://app.asana.com/0/1174274412967132/1184800386160066
     credentials = Aws::Credentials.new(ENV["AWS_ACCESS_KEY_ID"], ENV["AWS_SECRET_ACCESS_KEY"])
     Aws.config.update({credentials: credentials})
     bucket = Aws::S3::Resource.new(region: ENV["AWS_REGION"]).bucket(ENV["AWS_S3_BUCKET"])
 
+    # Extract the zipfile
     self.lesson_content_zipfile.open do |file|
       Zip::File.open(file.path) do |zip_file|
         zip_file.each do |entry|
@@ -43,7 +47,8 @@ class LessonContent < ApplicationRecord
     get_index_url
   end
 
-  # Return S3 bucket
+  # TODO: Clean up after Brian pushes code
+  # https://app.asana.com/0/1174274412967132/1184800386160066
   private
   def bucket
     credentials = Aws::Credentials.new(ENV["AWS_ACCESS_KEY_ID"], ENV["AWS_SECRET_ACCESS_KEY"])
