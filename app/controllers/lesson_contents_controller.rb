@@ -21,14 +21,15 @@ class LessonContentsController < ApplicationController
 
     # TODO: Extract this asynchronously
     # https://app.asana.com/0/1174274412967132/1184800386160057
-    @lesson_content.extract
+    @lesson_content.publish
+
     lesson_url = lesson_content_url(@lesson_content)
 
     @deep_link_return_url, @jwt_response = helpers.lti_deep_link_response_message(lti_launch, lesson_url)
   end
 
   def show
-    redirect_to @lesson_content.get_index_url
+    redirect_to @lesson_content.launch_url
   end
 
   private
