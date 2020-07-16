@@ -1,9 +1,0 @@
-<!-- should this be PUT?  -->
-<%= form_tag lti_link_selection_path(@course_content), method: :post, multipart: true do %>
-  <%= label_tag :course_content_zipfile, 'Rise 360 zipfile' %>
-  <%= file_field_tag :course_content_zipfile, :accept => "application/zip" %>
-  <input id="state" name='state' type='hidden' value="<%= params[:state] %>" />
-  <%= submit_tag "Upload" %>
-<% end %>
-
-
