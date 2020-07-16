@@ -1,6 +1,11 @@
 Rails.application.routes.draw do
 
-  resources :lesson_contents
+  resources :lessons, only: [:index, :show] do
+    resources :lesson_submissions, only: [:index, :show], :path => 'submissions'
+    resources :lesson_contents, only: [:new, :show, :create], :path => 'contents'
+  end
+
+  resources :lesson_contents, only: [:new, :show, :create]
 
   resources :course_contents do
     post :publish
