@@ -11,10 +11,13 @@ class LessonContentsController < ApplicationController
   end
 
   def create
+    # TODO: Should we make state optional, e.g. allow creating lessons contents
+    # outside of Canvas's LTI link extension?
+    # https://app.asana.com/0/1174274412967132/1184800386160070
     params.require([:state, :lesson_content_zipfile])
-
     lti_launch = LtiLaunch.current(params[:state])
-    @lesson_content = LessonContent.new(lesson_content_params)
+
+    @lesson_content = LessonContent.new(lesson_content_create_params)
     @lesson_content.save
 
     # TODO: Extract this asynchronously
@@ -33,7 +36,7 @@ class LessonContentsController < ApplicationController
   end
 
   private
-  def lesson_content_params
+  def lesson_content_create_params
     params.permit(:lesson_content_zipfile)
   end
 end
