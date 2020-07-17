@@ -1,10 +1,7 @@
 require 'zip'
 
 class LessonContentsController < ApplicationController
-  # FIXME: Get rid of this, something weird is going on right now
-  skip_before_action :authenticate_user!
-  skip_before_action :ensure_admin!
-  skip_before_action :verify_authenticity_token
+  layout 'lti_placement'
 
   def new
   end
