@@ -9,11 +9,11 @@ class LessonContent < ApplicationRecord
     # TODO: in a future iteration we'll want to generate pre-signed URLs with expirations on
     # them so that our content doesn't get leaked for anyone to access. Right now the bucket is public
     # but we'll want to lock it down.
-    LessonContentPublisher.new(lesson_content_zipfile.key).launch_url
+    LessonContentPublisher.launch_url(lesson_content_zipfile.key)
   end
     
   def publish
-    LessonContentPublisher.new(lesson_content_zipfile.key).publish(lesson_content_zipfile)
+    LessonContentPublisher.publish(lesson_content_zipfile)
   end
 
 end
