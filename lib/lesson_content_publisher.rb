@@ -63,18 +63,15 @@ class LessonContentPublisher
   # Return an S3 object key for a file in the zip
   # for a relative filepath in the zipfile
   def s3_object_key(filename)
-    tmp = [ S3_OBJECT_PREFIX, @zipfilekey, filename ].join("/")
-
-# TODO: remove me
-#puts "### processing s3_object_key = #{tmp}"
-
-    tmp
+    [ S3_OBJECT_PREFIX, @zipfilekey, filename ].join("/")
   end
 
   def bucket
-    credentials = Aws::Credentials.new(Rails.application.secrets.aws_access_key, Rails.application.secrets.aws_secret_access_key)
-    Aws.config.update({credentials: credentials})
-    @bucket ||= Aws::S3::Resource.new(region: Rails.application.secrets.aws_region).bucket(Rails.application.secrets.aws_files_bucket)
+    @bucket ||= begin
+      credentials = Aws::Credentials.new(Rails.application.secrets.aws_access_key, Rails.application.secrets.aws_secret_access_key)
+      Aws.config.update({credentials: credentials})
+      Aws::S3::Resource.new(region: Rails.application.secrets.aws_region).bucket(Rails.application.secrets.aws_files_bucket)
+    end
   end
 
 end

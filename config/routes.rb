@@ -1,12 +1,5 @@
 Rails.application.routes.draw do
 
-  resources :lessons, only: [:index, :show] do
-    resources :lesson_submissions, only: [:index, :show], :path => 'submissions'
-    resources :lesson_contents, only: [:new, :show, :create], :path => 'contents'
-  end
-
-  resources :lesson_contents, only: [:new, :show, :create]
-
   resources :course_contents do
     post :publish
     resources :course_content_histories, path: 'versions', only: [:index, :show]
@@ -46,10 +39,13 @@ Rails.application.routes.draw do
   resources :projects, only: [:index, :show] do
     resources :project_submissions, only: [:index, :show], :path => 'submissions'
   end
+
   resources :lessons, only: [:index, :show] do
     resources :lesson_submissions, only: [:index, :show], :path => 'submissions'
+    resources :lesson_contents, only: [:new, :show, :create], :path => 'contents'
   end
 
+  resources :lesson_contents, only: [:new, :show, :create]
   resources :roles, except: [:show]
   resources :users, only: [:index, :show]
 

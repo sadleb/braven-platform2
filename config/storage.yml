@@ -6,13 +6,11 @@ local:
   service: Disk
   root: <%= Rails.root.join("storage") %>
 
-# TODO: Hard-code in your access and secret keys for now, figure out how to 
-# add to encrypted secrets
 amazon:
   service: S3
   access_key_id: <%= Rails.application.secrets.aws_access_key %>
   secret_access_key: <%= Rails.application.secrets.aws_secret_access_key %>
-  region: <%= ENV["AWS_REGION"] %>
+  region: <%= Rails.application.secrets.aws_region %>
   bucket: <%= Rails.application.secrets.aws_files_bucket %>
 
 # Use rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
