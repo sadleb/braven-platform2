@@ -10,10 +10,10 @@ local:
 # add to encrypted secrets
 amazon:
   service: S3
-  access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
-  secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
-  region: us-east-1
-  bucket: platform-dev-file-uploads
+  access_key_id: <%= Rails.application.secrets.aws_access_key %>
+  secret_access_key: <%= Rails.application.secrets.aws_secret_access_key %>
+  region: <%= ENV["AWS_REGION"] %>
+  bucket: <%= Rails.application.secrets.aws_files_bucket %>
 
 # Use rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
 # amazon:
