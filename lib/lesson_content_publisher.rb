@@ -48,7 +48,7 @@ class LessonContentPublisher
     tmp = [ S3_OBJECT_PREFIX, @zipfilekey, filename ].join("/")
 
 # TODO: remove me
-puts "### processing s3_object_key = #{tmp}"
+#puts "### processing s3_object_key = #{tmp}"
 
     tmp
   end
@@ -56,7 +56,7 @@ puts "### processing s3_object_key = #{tmp}"
   def bucket
     credentials = Aws::Credentials.new(Rails.application.secrets.aws_access_key, Rails.application.secrets.aws_secret_access_key)
     Aws.config.update({credentials: credentials})
-    Aws::S3::Resource.new(region: Rails.application.secrets.aws_region).bucket(Rails.application.secrets.aws_files_bucket)
+    @bucket ||= Aws::S3::Resource.new(region: Rails.application.secrets.aws_region).bucket(Rails.application.secrets.aws_files_bucket)
   end
 
 end
