@@ -28,18 +28,36 @@ class LessonContentPublisher
   private
 
   def unzip_to_s3(zipfile)
-   zipfile.open do |file|
+    # Save all the object keys and file input streams before we start threading
+    # If we don't do this sequentially before threading, the threads can start
+    # up and try to upload before the file streams are available
+    files = {}
+    zipfile.open do |file|
       Zip::File.open(file.path) do |zip_file|
         zip_file.each do |entry|
           next unless entry.file?
-          s3_object = bucket.object(s3_object_key(entry.name))
-          s3_object.put({
-              acl: "public-read",
-              body: entry.get_input_stream.read,
-          })
+          files[s3_object_key(entry.name)] = entry.get_input_stream
         end
       end
     end
+
+    # Thread per file to upload
+    # TODO: Would this be faster if we created fewer threads and treated the array as a work
+    # queue? But then there's mutex to synchronize over work
+    # https://gist.github.com/fleveque/816dba802527eada56ab
+    threads = []
+    files.each do |key, input|
+      threads << Thread.new {
+        s3_object = bucket.object(key)
+        s3_object.put({
+            acl: "public-read",
+            body: input.read,
+        })
+      }
+    end
+
+    # Wait for them to finish
+    threads.each { |t| t.join }
   end
 
   # Return an S3 object key for a file in the zip
