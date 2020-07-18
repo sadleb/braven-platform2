@@ -5,14 +5,6 @@ class LessonContentPublisher
   S3_OBJECT_PREFIX = "lessons".freeze
   INDEX_FILE = "index.html".freeze
 
-  # Publishes an ActiveStorage zipfile (with a "key" attribute)
-  # to S3 such that calling LessonContentPublisher.launch_url(key)
-  # will return the publicly accessible URL for it's index.html
-  def self.publish(zipfile)
-    Rails.logger.debug("Unzipping #{zipfile}")
-    unzip_to_s3(zipfile)
-  end
-
   # Publicly accessible URL for the lesson
   # The "filekey" is the "key" attribute of an ActiveStorage zipfile.
   # Aka the name of the zipfile on S3.
@@ -21,47 +13,32 @@ class LessonContentPublisher
     bucket.object(s3_object_key(filekey, INDEX_FILE)).public_url
   end
 
-  class << self
-    private
-
-    def unzip_to_s3(zipfile)
-      filekey=zipfile.key
+  # Publishes an ActiveStorage zipfile (with a "key" attribute)
+  # to S3 such that calling LessonContentPublisher.launch_url(key)
+  # will return the publicly accessible URL for it's index.html
+  def self.publish(zipfile)
       bucket = AwsS3Bucket.new
 
-      # Save all the object keys and file input streams before we start threading
-      # If we don't do this sequentially before threading, the threads can start
-      # up and try to upload before the file streams are available
-      files = {}
       zipfile.open do |file|
         Zip::File.open(file.path) do |zip_file|
           zip_file.each do |entry|
             next unless entry.file?
-            files[s3_object_key(filekey, entry.name)] = entry.get_input_stream
+            s3_object = bucket.object(s3_object_key(zipfile.key, entry.name))
+            s3_object.put({
+                acl: "public-read",
+                body: entry.get_input_stream.read,
+            })
           end
         end
       end
-  
-      # Thread per file to upload
-      # TODO: Would this be faster if we created fewer threads and treated the array as a work
-      # queue? But then there's mutex to synchronize over work
-      # https://gist.github.com/fleveque/816dba802527eada56ab
-      threads = []
-      files.each do |key, input|
-        threads << Thread.new {
-          s3_object = bucket.object(key)
-          s3_object.put({
-              acl: "public-read",
-              body: input.read,
-          })
-        }
-      end
-  
-      # Wait for them to finish
-      threads.each { |t| t.join }
 
-      launch_url(INDEX_FILE, bucket)
-    end
-  
+      launch_url(zipfile.key, bucket)
+  end
+
+
+
+  class << self
+    private
     # Return an S3 object key for a filename in the zip
     # relative to the filekey (aka the zipfile key)
     def s3_object_key(filekey, filename)
@@ -72,7 +49,6 @@ class LessonContentPublisher
 
   # Wrapper for an AWS S3 bucket. Takes care of authentication.
   class AwsS3Bucket
-
     # Calls "object" on the authenticated bucket.
     def object(*args)
       @bucket ||= begin
