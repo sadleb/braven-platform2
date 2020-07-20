@@ -21,7 +21,7 @@ FactoryBot.define do
 
     transient do
       target_link_uri { 'https://platformweb/some/target/uri/to/launch' }
-      message_type { 'LtiResourceLinkRequest' }
+      message_type { 'LtiFakeMessageType' }
     end
 
     factory :lti_resource_link_launch_request, class: Hash do
