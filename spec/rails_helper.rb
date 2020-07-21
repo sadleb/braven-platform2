@@ -29,6 +29,9 @@ require 'rspec/rails'
 # HTTP request mocking.
 require 'webmock/rspec'
 
+# Clean up database before running, in case we didn't exit cleanly
+require 'database_cleaner'
+
 # Requires supporting ruby files with custom matchers and macros, etc, in
 # spec/support/ and its subdirectories. Files matching `spec/**/*_spec.rb` are
 # run as spec files by default. This means that files in spec/support that end
@@ -86,6 +89,21 @@ RSpec.configure do |config|
   config.before :type => 'controller' do
     # Mimic the router behavior of setting the Devise scope through the env.
     @request.env['devise.mapping'] = Devise.mappings[:user]
+  end
+
+  # From: https://stackoverflow.com/questions/9927671/rspec-database-cleaner-not-cleaning-correctly
+  config.before :suite do
+    DatabaseCleaner.clean_with :truncation  # clean DB of any leftover data
+    DatabaseCleaner.strategy = :transaction # rollback transactions between each test
+    Rails.application.load_seed # (optional) seed DB
+  end
+
+  config.before :each do
+    DatabaseCleaner.start
+  end
+
+  config.after :each do
+    DatabaseCleaner.clean
   end
 end
 
