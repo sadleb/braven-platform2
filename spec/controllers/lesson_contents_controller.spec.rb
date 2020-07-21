@@ -25,9 +25,9 @@ RSpec.describe LessonContentsController, type: :controller do
   #     expect(response).to be_successful
   #   end
 
-  #   it "includes the existing assignment as an option" do
+  #   it "includes includes a file uploader" do
   #     get :new, params: {state: state}, session: valid_session
-  #     expect(response.body).to match /<option value="#{lesson_content.id}"/
+  #     expect(response.body).to match /<input type="file" name="lesson_content_zipfile" id="lesson_content_zipfile"/
   #   end
   # end
 
