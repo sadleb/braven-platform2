@@ -82,6 +82,22 @@ GEM
     ast (2.4.1)
     attr_encrypted (3.1.0)
       encryptor (~> 3.0.0)
+    aws-eventstream (1.1.0)
+    aws-partitions (1.335.0)
+    aws-sdk-core (3.102.1)
+      aws-eventstream (~> 1, >= 1.0.2)
+      aws-partitions (~> 1, >= 1.239.0)
+      aws-sigv4 (~> 1.1)
+      jmespath (~> 1.0)
+    aws-sdk-kms (1.35.0)
+      aws-sdk-core (~> 3, >= 3.99.0)
+      aws-sigv4 (~> 1.1)
+    aws-sdk-s3 (1.71.1)
+      aws-sdk-core (~> 3, >= 3.102.1)
+      aws-sdk-kms (~> 1)
+      aws-sigv4 (~> 1.1)
+    aws-sigv4 (1.2.1)
+      aws-eventstream (~> 1, >= 1.0.2)
     babel-source (5.8.35)
     babel-transpiler (0.7.0)
       babel-source (>= 4.0, < 6)
@@ -212,6 +228,7 @@ GEM
     interception (0.5)
     jbuilder (2.10.0)
       activesupport (>= 5.0.0)
+    jmespath (1.4.0)
     json (2.3.1)
     jwt (2.2.1)
     libhoney (1.14.4)
@@ -273,7 +290,7 @@ GEM
       pry (~> 0.13)
     public_suffix (4.0.5)
     puma (3.12.6)
-    rack (2.2.3)
+    rack (2.2.2)
     rack-livereload (0.3.17)
       rack
     rack-proxy (0.6.5)
@@ -466,6 +483,7 @@ PLATFORMS
 
 DEPENDENCIES
   attr_encrypted
+  aws-sdk-s3
   bootsnap (>= 1.4.2)
   bulk_insert
   byebug
@@ -500,6 +518,7 @@ DEPENDENCIES
   rubocop
   rubycas-server-activerecord
   rubycas-server-core!
+  rubyzip
   sass-rails (~> 5)
   selenium-webdriver
   sentry-raven
