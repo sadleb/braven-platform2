@@ -4,7 +4,7 @@ require 'lesson_content_publisher'
 RSpec.describe LessonContentPublisher do
 
   let(:aws_object) { instance_double(Aws::S3::Object) }
-  let(:lesson_content) { create(:lesson_content) }
+  let(:lesson_content) { create(:lesson_content_with_zipfile) }
 
   before(:each) do
     allow_any_instance_of(LessonContentPublisher::AwsS3Bucket).to receive(:object).and_return(aws_object)

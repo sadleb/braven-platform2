@@ -20,6 +20,7 @@ class LessonContentsController < ApplicationController
 
   private
   def create_params
+    params.require([:state, :lesson_content_zipfile])
     params.permit(:lesson_content_zipfile, :state, :commit, :authenticity_token)
   end
 end
