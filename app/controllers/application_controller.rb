@@ -6,10 +6,14 @@ class ApplicationController < ActionController::Base
   include RubyCAS::Server::Core::Tickets
   include DryCrud::Controllers
 
-  before_action :authenticate_user!
-  before_action :ensure_admin!
-  after_action :remove_x_frame_options
+  # before_action :authenticate_user!
+  # before_action :ensure_admin!
+  # after_action :remove_x_frame_options
 
+  # skip_before_action :authenticate_user!
+  # skip_before_action :ensure_admin!
+  # skip_after_action :remove_x_frame_options
+  
   private
   
   def authenticate_user!
