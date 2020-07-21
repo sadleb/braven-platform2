@@ -39,7 +39,6 @@ RSpec.describe LessonContentsController, type: :controller do
         launch_url = 'https://S3-bucket-path/lessons/somekey/index.html'
         allow(LessonContentPublisher).to receive(:launch_url).and_return(launch_url)
         allow(LessonContentPublisher).to receive(:publish).and_return(launch_url)
-        # FIXME: You can't us pass "id" as parameter. :( But that's what rails routes expects.
         get :show, params: {:id => lesson_content_with_zipfile.id}, session: valid_session
         expect(response).to redirect_to(launch_url)
       end
