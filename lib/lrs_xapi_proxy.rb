@@ -15,8 +15,6 @@ class LrsXapiProxy
   end
 
   def self.request(request, path, user)
-    # Hack because we were having sign-in issues
-    user = User.first
     Honeycomb.start_span(name: 'LrsXapiProxy.request') do |span|
       span.add_field('path', path)
       span.add_field('user.id', user.id)

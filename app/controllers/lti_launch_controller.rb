@@ -8,9 +8,9 @@
 # Step 3: LTI Launch - The launch is initated with meta-data about the context and the final target resource to launch
 # Step 4: Resource Display - We display the target resource
 class LtiLaunchController < ApplicationController
-  # skip_before_action :authenticate_user!
-  # skip_before_action :ensure_admin!
-  # skip_before_action :verify_authenticity_token
+  skip_before_action :authenticate_user!
+  skip_before_action :ensure_admin!
+  skip_before_action :verify_authenticity_token
 
   # Non-standard controller without normal CRUD methods. Disable the convenience module.
   def dry_crud_enabled?() false end
