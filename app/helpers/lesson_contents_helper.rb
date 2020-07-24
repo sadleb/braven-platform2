@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'lrs_xapi_proxy'
 
 # Helps configure xApi enabled content to be able to send xApi statements to
@@ -12,6 +14,9 @@ require 'lrs_xapi_proxy'
 # - https://learningpool.com/how-to-launch-elearning-content-using-xapi/
 module LessonContentsHelper
   
+  USERNAME_PLACEHOLDER = "LESSON_CONTENTS_USERNAME_REPLACE"
+  PASSWORD_PLACEHOLDER = "LESSON_CONTENTS_PASSWORD_REPLACE"
+
   def launch_query
     lrs_proxy_url = URI(root_url)
     lrs_proxy_url.path = LrsXapiProxy.lrs_path
@@ -19,7 +24,7 @@ module LessonContentsHelper
       :endpoint => lrs_proxy_url.to_s,
       # Our LRS proxy will supply the correct values for these
       # Send empty values to get the Rise 360 Tincan code won't error out on missing keys
-      :actor => '{"name":"", "mbox":["mailto:''"]}',
+      :actor => '{"name":"'"#{USERNAME_PLACEHOLDER}"'", "mbox":["mailto:'"#{PASSWORD_PLACEHOLDER}"'"]}',
     }
   end
 end

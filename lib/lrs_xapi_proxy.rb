@@ -8,8 +8,10 @@ class LrsXapiProxy
 
   XAPI_VERSION = '1.0.2'
 
+  @lrs_path = nil
+
   def self.lrs_path
-    @@lrs_path ||= URI(Rails.application.secrets.lrs_url).path
+    @lrs_path ||= URI(Rails.application.secrets.lrs_url).path
   end
 
   def self.request(request, path, user)
@@ -68,7 +70,7 @@ class LrsXapiProxy
           url: "#{Rails.application.secrets.lrs_url}/#{path}",
           payload: request.method == 'PUT' ? data.to_json : {},
           headers: {
-            authorization: LrsXapiProxy.authentication_header,
+            authorization: authentication_header,
             x_experience_api_version: XAPI_VERSION,
             params: params,
             content_type: ('application/json' if request.method == 'PUT' ),
@@ -86,8 +88,7 @@ class LrsXapiProxy
     end
   end
 
-private
-  def self.authentication_header
+  private_class_method def self.authentication_header
     @@auth_header ||= "Basic #{Rails.application.secrets.lrs_auth_token}"
   end
 end
