@@ -37,7 +37,7 @@ class LtiAdvantageAPI
   # Use LtiScore.generate(...) to call this
   # See: https://canvas.instructure.com/doc/api/score.html
   def create_score(lti_score)
-    response = post(@line_item_url + '/score', lti_score)
+    response = post(@line_item_url + '/scores', lti_score)
     JSON.parse(response.body)
   end
 
