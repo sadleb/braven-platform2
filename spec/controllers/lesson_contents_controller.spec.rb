@@ -30,12 +30,15 @@ RSpec.describe LessonContentsController, type: :controller do
   describe "GET #show" do
     let(:lesson_content_with_zipfile) { create(:lesson_content_with_zipfile) }
     context 'existing lesson content' do
-      it 'redirects to public url' do
+      it 'redirects to public url with LRS query parameters' do
         launch_url = 'https://S3-bucket-path/lessons/somekey/index.html'
         allow(LessonContentPublisher).to receive(:launch_url).and_return(launch_url)
         allow(LessonContentPublisher).to receive(:publish).and_return(launch_url)
         get :show, params: {:id => lesson_content_with_zipfile.id}, session: valid_session
-        expect(response).to redirect_to(launch_url)
+        redirect_url = Addressable::URI.parse(response.location)
+        expect(Addressable::URI.join(redirect_url.site, redirect_url.path).to_s).to eq(launch_url)
+        # Specific LRS query parameters are tested in LessonContentsHelper
+        expect(redirect_url.query_values).not_to be_empty
       end
     end
   end
