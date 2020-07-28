@@ -17,7 +17,7 @@ require 'lti_resource_link_request_message'
 # - https://www.imsglobal.org/spec/security/v1p0/#using-oauth-2-0-client-credentials-grant
 class LtiAdvantageAPI
 
-  OAUTH_ACCESS_TOKEN_URL = "#{Rails.application.secrets.canvas_cloud_url}#{}/login/oauth2/token"
+  OAUTH_ACCESS_TOKEN_URL = "#{Rails.application.secrets.canvas_cloud_url}/login/oauth2/token"
   JSON_HEADERS = {content_type: :json, accept: :json}
 
   # The assignment_lti_launch should be an LtiLaunch of an already Deep Linked assignment
