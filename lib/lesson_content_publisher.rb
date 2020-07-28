@@ -8,9 +8,13 @@ class LessonContentPublisher
   # Publicly accessible URL for the lesson
   # The "filekey" is the "key" attribute of an ActiveStorage zipfile.
   # Aka the name of the zipfile on S3.
-  def self.launch_url(filekey, bucket = nil)
+  def self.launch_path(filekey, bucket = nil)
+    # TODO: in a future iteration we'll want to generate pre-signed URLs with expirations on
+    # them so that our content doesn't get leaked for anyone to access. Right now the bucket is public
+    # but we'll want to lock it down.
     bucket = AwsS3Bucket.new unless bucket
-    bucket.object(s3_object_key(filekey, INDEX_FILE)).public_url
+    aws_url = bucket.object(s3_object_key(filekey, INDEX_FILE)).public_url
+    URI(aws_url).request_uri
   end
 
   # Publishes an ActiveStorage zipfile (with a "key" attribute)
@@ -32,7 +36,7 @@ class LessonContentPublisher
         end
       end
 
-      launch_url(zipfile.key, bucket)
+      launch_path(zipfile.key, bucket)
   end
 
 
