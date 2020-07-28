@@ -37,7 +37,7 @@ class LtiScore
   #                   Failed, and Pending will cause the scoreGiven to be ignored. FullyGraded
   #                   values will require no action. Possible values are NotReady, Failed, Pending,
   #                   PendingManual, FullyGraded
-  def self.generate(userId, scoreGiven, scoreMaximum, activityProgress = INITIALIZED, gradingProgress = FULLY_GRADED, comment = nil)
+  def self.generate(userId, scoreGiven, scoreMaximum, activityProgress = COMPLETED, gradingProgress = FULLY_GRADED, comment = nil)
     {
       :userId => userId,
       :scoreGiven => scoreGiven,
