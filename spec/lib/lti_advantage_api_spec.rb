@@ -39,7 +39,7 @@ RSpec.describe LtiAdvantageAPI do
   describe '#create_score' do
 
     it 'posts the request' do
-      score_service_url = assignment_lti_launch.request_message.line_item_url + '/scores'
+      score_service_url = "#{assignment_lti_launch.request_message.line_item_url}/scores"
       stub_request(:post, score_service_url).to_return(body: '{"resultUrl":"https://platformdomain/api/lti/courses/55/line_items/15/results/1"}')
       # Note that Canvas's parsing is pretty good for the scores. Integers, floats, and strings all work.
       lti_score = LtiScore.generate('55',10.0,10.0, LtiScore::STARTED, LtiScore::FULLY_GRADED, 'some comments')

@@ -40,7 +40,7 @@ class LtiAdvantageAPI
   # Usage:
   # LtiAdvantageAPI.new(<the_launch>).create_score( LtiScore.generate(...) ) 
   def create_score(lti_score)
-    response = post(@line_item_url + '/scores', lti_score)
+    response = post("#{@line_item_url}/scores", lti_score)
     JSON.parse(response.body)
   end
 
