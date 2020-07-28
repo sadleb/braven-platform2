@@ -28,19 +28,24 @@ class LtiAdvantageAPI
     @iss = assignment_lti_launch.braven_iss
     @client_id = assignment_lti_launch.client_id 
     @scope = parse_scope(assignment_lti_launch) 
-    @line_items_url = parse_line_items(assignment_lti_launch)
-    @line_item_url = parse_line_item(assignment_lti_launch)
+    @line_items_url = assignment_lti_launch.request_message.line_items_url
+    @line_item_url = assignment_lti_launch.request_message.line_item_url
     @global_headers = JSON_HEADERS # get_access_token below needs this initialized
     @global_headers = @global_headers.merge(:Authorization => "Bearer #{get_access_token}") # Note: these expire about about an hour.
   end
 
-  # Use LtiScore.generate(...) to call this
-  # See: https://canvas.instructure.com/doc/api/score.html
+  # Sends a score / grade for this LTI resource (aka a Project or a Lesson) back
+  # to Canvas so it shows up in the gradebook. See: https://canvas.instructure.com/doc/api/score.html
+  #
+  # Usage:
+  # LtiAdvantageAPI.new(<the_launch>).create_score( LtiScore.generate(...) ) 
   def create_score(lti_score)
     response = post(@line_item_url + '/scores', lti_score)
     JSON.parse(response.body)
   end
 
+  # Gets a list of line items, aka columns, in the gradebook for this LTI launch context (aka the course)
+  # that scores can be sent to.
   # See: https://canvas.instructure.com/doc/api/line_items.html
   def get_line_items
     response = get(@line_items_url)
@@ -81,22 +86,14 @@ private
 
   def validate_param(assignment_lti_launch)
     req_msg = assignment_lti_launch.request_message
-    unless req_msg.is_a?(LtiResourceLinkRequestMessage) && req_msg.scope.present?
-      raise ArgumentError.new, 'LtiAdvantageAPI can only be used with the launch of an assignment created with the Assignment Selection Placement'
-    end
+    raise ArgumentError.new, 'Wrong LTI launch message type. Must be a launch of a resource.' unless req_msg.is_a?(LtiResourceLinkRequestMessage) 
+    raise ArgumentError.new, 'Missing scope. Needed to get an access token for LTI Advantage access' unless req_msg.scope.present?
+    raise ArgumentError.new, 'Missing lineitem. Needed to send a score back for this resource.' unless req_msg.line_item_url.present?
   end
 
   # Parses the scope array out of the launch message into the space delimited list expected in the access token grant message.
-  def parse_scope(lti_resource_link_launch)
-    lti_resource_link_launch.request_message.scope.join(' ')
-  end
-
-  def parse_line_items(lti_resource_link_launch)
-    lti_resource_link_launch.request_message.line_items_url
-  end
-
-  def parse_line_item(lti_resource_link_launch)
-    lti_resource_link_launch.request_message.line_item_url
+  def parse_scope(assignment_lti_launch)
+    assignment_lti_launch.request_message.scope.join(' ')
   end
 
   def get(target_url, headers={})

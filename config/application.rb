@@ -16,6 +16,14 @@ module Platform
     # be backwards compatible with v5.2 and below who may have removed it from ApplicationController
     config.action_controller.default_protect_from_forgery = true
 
+    # Allows Rise 360 lesson running in AWS S3 to call into our LRS xAPI proxy
+    config.middleware.insert_before 0, Rack::Cors do
+      allow do
+        origins "https://#{Rails.application.secrets.aws_files_bucket}.s3.amazonaws.com"
+        resource '*', :headers => :any, :methods => [:get, :put,]
+      end
+    end
+
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration can go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded after loading
