@@ -117,3 +117,5 @@ gem 'aws-sdk-s3'
 gem 'rubyzip'
 
 gem 'rack-cors'
+
+gem 'rails_same_site_cookie'
