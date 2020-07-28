@@ -37,15 +37,15 @@ class LtiScore
   #                   Failed, and Pending will cause the scoreGiven to be ignored. FullyGraded
   #                   values will require no action. Possible values are NotReady, Failed, Pending,
   #                   PendingManual, FullyGraded
-  def self.generate(userId, scoreGiven, scoreMaximum, activityProgress = COMPLETED, gradingProgress = FULLY_GRADED, comment = nil)
+  def self.generate(user_id, score_given, score_maximum, activity_progress = COMPLETED, grading_progress = FULLY_GRADED, comment = nil)
     {
-      :userId => userId,
-      :scoreGiven => scoreGiven,
-      :scoreMaximum => scoreMaximum,
+      :userId => user_id,
+      :scoreGiven => score_given,
+      :scoreMaximum => score_maximum,
       :comment => comment,
       :timestamp => DateTime.now,
-      :activityProgress => activityProgress,
-      :gradingProgress => gradingProgress
+      :activityProgress => activity_progress,
+      :gradingProgress => grading_progress 
       # TODO: add the option to send a submmission type and the data for the submission.
       # See the following key in the docs
       # 'https://canvas.instructure.com/lti/submission' => {TODO}
