@@ -1,0 +1,1155 @@
+---
+http_interactions:
+- request:
+    method: put
+    uri: https://platform-dev-file-uploads.s3.amazonaws.com/lessons/efwbaxlmzu7nxemswkhcayc5hd3v/example_rise360_package/index.html
+    body:
+      encoding: UTF-8
+      string: "<!DOCTYPE html>\n<html lang=\"en\" class=\"\">\n  <head>\n    <meta
+        http-equiv=\"X-UA-Compatible\" content=\"IE=edge,chrome=1\">\n    <meta name=\"viewport\"
+        content=\"width=device-width, initial-scale=1, maximum-scale=1\">\n    <meta
+        charset=\"utf-8\">\n\n    <title>Unlock Your Hustle</title>\n\n    <link type=\"text/css\"
+        rel=\"stylesheet\" href=\"lib/icomoon.css\">\n    <link type=\"text/css\"
+        rel=\"stylesheet\" href=\"lib/main.bundle.css\">\n    <script type=\"text/javascript\"
+        src=\"lib/player-0.0.11.min.js\"></script>\n    <script type=\"text/javascript\"
+        src=\"lib/lzwcompress.js\"></script>\n\n    <!-- Resize Hack -->\n    <script
+        type=\"text/javascript\">\n      window.resizeTo(screen.width, screen.height);\n
+        \   </script>\n\n  \n\n    <script type=\"text/javascript\" src=\"tc-config.js\"></script>\n
+        \   <script type=\"text/javascript\" src=\"lib/tincan.js\"></script>\n    <script
+        type=\"text/javascript\" src=\"lib/lms.js\"></script>\n  \n\n    <!--[if lt
+        IE 9]>\n    <script src=\"//html5shiv.googlecode.com/svn/trunk/html5.js\"></script>\n
+        \   <![endif]-->\n  </head>\n  <body>\n    <style>\n      .brand--head, .brand--head
+        *   { font-family: 'Lato' !important; }\n      .brand--body, .brand--body
+        *   { font-family: 'Merriweather' !important; }\n      .brand--lhead, .brand--lhead
+        * { font-family: 'Lato' !important; }\n      .brand--lbody, .brand--lbody
+        * { font-family: 'Merriweather' !important; }\n      .brand--ui, .brand--ui
+        *       { font-family: 'Lato' !important; }\n\n      .brand--beforeHead:before
+        { font-family: 'Lato' !important; }\n      .brand--afterHead:after { font-family:
+        'Lato' !important; }\n\n      .brand--background        { background-color:
+        #EB3B46 !important; }\n      .brand--background-all *  { background-color:
+        #EB3B46 !important; }\n      .brand--border            { border-color: #EB3B46
+        !important; }\n      .brand--color             { color: #EB3B46 !important;
+        }\n      .brand--color-all *       { color: #EB3B46 !important; }\n      .brand--shadow
+        \           { box-shadow: 0 0 0 0.2rem #EB3B46 !important; }\n      .brand--shadow-all
+        *      { box-shadow: 0 0 0 0.2rem #EB3B46 !important; }\n      .brand--fill
+        \             { fill: #EB3B46 !important; }\n      .brand--stroke            {
+        stroke: #EB3B46 !important; }\n\n      .brand--beforeBackground:before { background-color:
+        #EB3B46 !important; }\n      .brand--beforeBorder:before     { border-color:
+        #EB3B46 !important; }\n      .brand--beforeColor:before      { color: #EB3B46
+        !important; }\n\n      .brand--afterBackground:after { background-color: #EB3B46
+        !important; }\n      .brand--afterBorder:after     { border-color: #EB3B46
+        !important; }\n      .brand--afterColor:after      { color: #EB3B46 !important;
+        }\n\n      /* should be applied to containers where links\n         need to
+        appear in brand color */\n      .brand--linkColor a { color: #EB3B46 !important;
+        }\n\n      /* should be applied to containers where links\n         need to
+        change to brand color on hover */\n      .brand--linkColorHover a:hover {
+        color: #EB3B46 !important; }\n\n      /* should be applied to any single element
+        that\n         needs to change color on hover */\n      .brand--hoverColor:hover
+        { color: #EB3B46 !important; }\n\n      /* TODO: probably need a way to create
+        a 5-10% darker/lighter color */\n      .brand--linkColor a:hover,\n      .button.brand--background:hover
+        { opacity: .65 !important; }\n\n      @media (min-width: 47.9375em) { /* 768px
+        */\n        .brand--min768--background { background-color: #EB3B46 !important;
+        }\n        .brand--min768--border     { border-color: #EB3B46 !important;
+        }\n        .brand--min768--color      { color: #EB3B46 !important; }\n      }\n\n
+        \     @media (max-width: 47.9375em) { /* 768px */\n        .brand--max768--background
+        { background-color: #EB3B46 !important; }\n        .brand--max768--border
+        \    { border-color: #EB3B46 !important; }\n        .brand--max768--color
+        \     { color: #EB3B46 !important; }\n      }\n    </style>\n    <div id=\"app\"></div>\n
+        \   <script>\n  (function(root) {\n    window.labelSet = {\"id\":\"YYkZbkudnVusL5aiPtBIRy32\",\"author\":\"aid|d7b23ebb-9f15-44f6-bcf3-acb309b4bbe1\",\"name\":\"English\",\"defaultId\":1,\"defaultSet\":true,\"labels\":{\"result\":\"result\",\"search\":\"search\",\"results\":\"results\",\"quizNext\":\"DONE\",\"tabGroup\":\"Tab\",\"codeGroup\":\"Code\",\"noResults\":\"No
+        results for\",\"noteGroup\":\"Note\",\"quizScore\":\"Your score\",\"quizStart\":\"START
+        MASTERY QUIZ\",\"courseExit\":\"\",\"courseHome\":\"Home\",\"lessonName\":\"Lesson\",\"quizSubmit\":\"DONE\",\"quoteGroup\":\"Quote\",\"salutation\":\"\",\"buttonGroup\":\"Button\",\"courseStart\":\"START
+        MODULE\",\"embedViewOn\":\"VIEW ON\",\"exitMessage\":\"\",\"quizCorrect\":\"Good
+        job!\",\"quizPassing\":\"PASSING\",\"quizResults\":\"Quiz Results\",\"courseResume\":\"RESUME
+        MODULE\",\"processStart\":\"START\",\"processSwipe\":\"Swipe to continue\",\"quizContinue\":\"Done\",\"quizLandmark\":\"Quiz\",\"quizQuestion\":\"Question\",\"courseDetails\":\"ALL
+        LESSONS\",\"embedReadMore\":\"Read more\",\"feedbackGroup\":\"Feedback\",\"quizIncorrect\":\"Oops!\",\"quizTakeAgain\":\"TRY
+        AGAIN\",\"sortingReplay\":\"REPLAY\",\"accordionGroup\":\"Accordion\",\"embedLinkGroup\":\"Embedded
+        web content\",\"lessonComplete\":\"COMPLETE\",\"statementGroup\":\"Statement\",\"storylineGroup\":\"Storyline\",\"attachmentGroup\":\"File
+        Attachment\",\"embedPhotoGroup\":\"Embedded photo\",\"embedVideoGroup\":\"Embedded
+        video\",\"playButtonLabel\":\"Play\",\"processComplete\":\"Complete\",\"processLandmark\":\"Process\",\"processNextStep\":\"NEXT
+        STEP\",\"processStepName\":\"Step\",\"seekSliderLabel\":\"Seek\",\"sortingLandmark\":\"Sorting
+        Activity\",\"audioPlayerGroup\":\"Audio player. You can use the space bar
+        to toggle playback and arrow keys to scrub.\",\"buttonStackGroup\":\"Button
+        stack\",\"embedPlayerGroup\":\"Embedded media player\",\"lessonRestricted\":\"Lessons
+        must be completed in order\",\"pauseButtonLabel\":\"Pause\",\"scenarioComplete\":\"Scenario
+        Complete!\",\"scenarioContinue\":\"CONTINUE\",\"scenarioTryAgain\":\"TRY AGAIN\",\"textOnImageGroup\":\"Text
+        on image\",\"timelineLandmark\":\"Timeline\",\"urlEmbedLandmark\":\"URL/Embed\",\"videoPlayerGroup\":\"Video
+        player. You can use the space bar to toggle playback and arrow keys to scrub.\",\"blocksClickToFlip\":\"Click
+        to flip\",\"blocksPreposition\":\"of\",\"bulletedListGroup\":\"Bulleted list\",\"checkboxListGroup\":\"Checkbox
+        list\",\"imageAndTextGroup\":\"Image and text\",\"imageGalleryGroup\":\"Image
+        gallery\",\"lessonPreposition\":\"of\",\"numberedListGroup\":\"Numbered list\",\"processLessonName\":\"Lesson\",\"processStartAgain\":\"START
+        AGAIN\",\"scenarioStartOver\":\"START OVER\",\"courseSkipToLesson\":\"SKIP
+        TO LESSON\",\"flashcardBackLabel\":\"Flashcard back\",\"flashcardGridGroup\":\"Flashcard
+        grid\",\"nextFlashCardLabel\":\"Next flashcard\",\"flashcardFrontLabel\":\"Flashcard
+        front\",\"flashcardStackGroup\":\"Flashcard stack\",\"knowledgeCheckGroup\":\"Knowledge
+        check\",\"sortingCardsCorrect\":\"Cards Correct\",\"hamburgerButtonLabel\":\"Course
+        Overview Sidebar\",\"lessonHeaderLandmark\":\"Lesson Header\",\"numberedDividerGroup\":\"Numbered
+        divider\",\"lessonContentLandmark\":\"Lesson Content\",\"lessonSidebarLandmark\":\"Lesson
+        Sidebar\",\"quizAnswerPlaceholder\":\"Type your answer here\",\"labeledGraphicLandmark\":\"Labeled
+        Graphic\",\"previousFlashCardLabel\":\"Previous flashcard\",\"processStepPreposition\":\"of\",\"overviewPageTitleSuffix\":\"Overview\",\"quizAcceptableResponses\":\"Acceptable
+        responses\",\"quizRequirePassingScore\":\"Must pass quiz before continuing\",\"timelineCardGroupPrefix\":\"Timeline
+        Card\",\"labeledGraphicBubbleLabel\":\"Labeled graphic bubble\",\"labeledGraphicMarkerLabel\":\"Labeled
+        graphic marker\",\"labeledGraphicNextMarkerLabel\":\"Next marker\",\"labeledGraphicPreviousMarkerLabel\":\"Previous
+        marker\"},\"deleted\":false,\"createdAt\":\"2020-06-09T17:55:32.859Z\",\"updatedAt\":\"2020-06-19T22:51:51.758Z\",\"iso639Code\":\"en\",\"transferredAt\":null};\n
+        \   window.courseData = \"FAKECOURSEDASTA\";\n\n    var quizId = \"NPsvCjFvK2c9STqetVj2xW-ZJ440J-Ae\";\n
+        \   var storylineId = null;\n    var completionPercentage = 100;\n\n    var
+        LMSProxy = lms();\n\n    var assign = LMSProxy.utils.assign;\n    var debounce
+        = LMSProxy.utils.debounce;\n\n    var cache = null;\n\n    LMSProxy.InitCompletion(isComplete);\n\n
+        \   function compress(data) {\n      try {\n        return JSON.stringify({\n
+        \         v: 1,\n          d: lzwCompress.pack(JSON.stringify(data))\n        });\n
+        \     } catch(e) {\n        return '';\n      }\n    }\n\n    function decompress(stringData)
+        {\n      try {\n        const data = JSON.parse(stringData);\n\n        return
+        data.d\n          ? JSON.parse(lzwCompress.unpack(data.d))\n          : data;\n
+        \     } catch(e) {\n        return {};\n      }\n    }\n\n    function identity(value)
+        {\n      return value;\n    }\n\n    var sendChunkData = debounce(function()
+        {\n      LMSProxy.SetDataChunk(compress(cache));\n    }, 1000);\n\n    function
+        isPassed() {\n      return !!getLMSData().passed;\n    }\n\n    function isComplete()
+        {\n      var progress;\n\n      if(quizId === null) {\n        progress =
+        getLMSData().totalProgress;\n        return (progress !== undefined && progress
+        >= completionPercentage);\n      }\n\n      return getLMSData().passed !==
+        undefined;\n    }\n\n    function getLMSData() {\n      var data = null;\n\n
+        \     if(!cache) {\n        data = LMSProxy.GetDataChunk();\n\n        var
+        result = data\n          ? decompress(data)\n          : {};\n\n        cache
+        = result;\n      }\n\n      return cache;\n    }\n\n    function concatLMSData(data)
+        {\n      assign(cache, data);\n      sendChunkData();\n    }\n\n    function
+        completeOut(passed) {\n      if(passed) {\n        LMSProxy.SetPassed();\n
+        \     } else {\n        LMSProxy.SetFailed();\n      }\n    }\n\n    function
+        bookmark(id) {\n      var url = '#/lessons/' + id;\n\n      LMSProxy.SetBookmark(url,
+        '');\n    }\n\n    function reportScore(score) {\n      var highScore = Math.max(getLMSData().score
+        || 0, score);\n\n      if(highScore === score) {\n        concatLMSData({
+        score: highScore });\n        LMSProxy.SetScore(highScore, 100, 0);\n      }\n
+        \   }\n\n    function finish(totalProgress) {\n      if (\n        quizId
+        === null &&\n        storylineId === null &&\n        !isComplete() &&\n        completionPercentage
+        !== undefined\n      ) {\n        if(totalProgress >= completionPercentage)
+        {\n          concatLMSData({ totalProgress: totalProgress });\n          completeOut(true);\n
+        \       }\n      }\n    }\n\n    function finishQuiz(passed, score, id) {\n
+        \     if (id == quizId) {\n        var prevScore = getLMSData().score\n        reportScore(score);\n\n
+        \       if(prevScore == null || prevScore < score) {\n          concatLMSData({
+        passed: passed });\n          completeOut(passed);\n        }\n      }\n    }\n\n
+        \   function finishStoryline(id, passed, isQuiz, score) {\n      if (id ==
+        storylineId) {\n        if(isQuiz) {\n          reportScore(score);\n        }\n\n
+        \       completeOut(passed);\n      }\n    }\n\n    function getProgress(initialProgress)
+        {\n      var decodeCourseProgress =\n        root.Rise.decodeCourseProgress;\n\n
+        \     var progress = assign({}, {\n        progress: { lessons: {} }\n      },
+        getLMSData()).progress;\n\n      if(initialProgress) {\n        return decodeCourseProgress(initialProgress,
+        progress);\n      }\n\n      return progress;\n    }\n\n    function isExport()
+        {\n      return true;\n    }\n\n    function setLessonProgress(lessonProgress)
+        {\n      var encodeLessonProgress =\n        root.Rise.encodeLessonProgress;\n\n
+        \     var currentProgress = getProgress();\n\n      var lessons = assign(\n
+        \       {},\n        currentProgress.lessons,\n        encodeLessonProgress(lessonProgress)\n
+        \     );\n\n      var progress = assign({}, currentProgress, { lessons: lessons
+        });\n\n      concatLMSData({ progress: progress });\n    }\n\n    function
+        setCourseProgress(courseProgress, lessonPayload) {\n      var encodeCourseProgress
+        =\n        root.Rise.encodeCourseProgress;\n\n      var currentProgress =
+        getProgress();\n      var lessonId = lessonPayload.id;\n\n      var progress
+        = assign(\n        {},\n        currentProgress,\n        encodeCourseProgress(courseProgress)\n
+        \     );\n\n      concatLMSData({ progress: progress });\n\n      LMSProxy.FinishLesson(courseProgress.percentComplete,
+        lessonId);\n    }\n\n    function resolvePath(path) {\n      return ('assets/').concat(path);\n
+        \   }\n\n    function resolveFontPath(font) {\n      return ('lib/fonts/').concat(font.key.split('/').reverse()[0]);\n
+        \   }\n\n    function exit() {\n      LMSProxy.ConcedeControl();\n    }\n\n
+        \   function reportAnswer(data) {\n      return LMSProxy.ReportAnswer(data);\n
+        \   }\n\n    root.Rise = {\n      completeLessons: identity,\n      decodeCourseProgress:
+        identity,\n      encodeCourseProgress: identity,\n      encodeLessonProgress:
+        identity,\n    }\n\n    root.Runtime = {\n      bookmark: bookmark,\n      exit:
+        exit,\n      finish: finish,\n      finishQuiz: finishQuiz,\n      finishStoryline:
+        finishStoryline,\n      getProgress: getProgress,\n      isExport: isExport,\n
+        \     reportAnswer: reportAnswer,\n      resolvePath: resolvePath,\n      resolveFontPath:
+        resolveFontPath,\n      setLessonProgress: setLessonProgress,\n      setCourseProgress:
+        setCourseProgress\n    };\n  }(window));\n</script>\n\n\n    \n  </body>\n</html>\n"
+    headers:
+      Content-Type:
+      - ''
+      Accept-Encoding:
+      - ''
+      User-Agent:
+      - aws-sdk-ruby3/3.102.1 ruby/2.6.5 x86_64-linux-musl aws-sdk-s3/1.71.0
+      X-Amz-Acl:
+      - public-read
+      Expect:
+      - 100-continue
+      Content-Md5:
+      - 3VedXcyp1lUDhkYnBn1T4Q==
+      X-Amz-Date:
+      - 20200727T211247Z
+      X-Amz-Content-Sha256:
+      - cbe932aea1df6a627826c34d537e9753624bff6c6c353b5ad763b817d5c5fb09
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=AKIA5DDYDUD52IVN6VXA/20200727/us-east-1/s3/aws4_request,
+        SignedHeaders=content-md5;host;user-agent;x-amz-acl;x-amz-content-sha256;x-amz-date,
+        Signature=155d50f888fcbb06a7715e1bf6154705a401fd61a2ab93266be0e79a05d25d83
+      Content-Length:
+      - '12726'
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      X-Amz-Id-2:
+      - NQ7SYy9qv9W33RTXDyYCsJTuzKoSAG3mb6SoMRP5mZJYk6scrFY0BPkeV8n4e34ARYdVhAEPrHw=
+      X-Amz-Request-Id:
+      - D46130B69C9F1235
+      Date:
+      - Mon, 27 Jul 2020 21:12:49 GMT
+      Etag:
+      - '"dd579d5dcca9d65503864627067d53e1"'
+      Content-Length:
+      - '0'
+      Server:
+      - AmazonS3
+    body:
+      encoding: UTF-8
+      string: ''
+  recorded_at: Mon, 27 Jul 2020 21:12:48 GMT
+- request:
+    method: put
+    uri: https://platform-dev-file-uploads.s3.amazonaws.com/lessons/efwbaxlmzu7nxemswkhcayc5hd3v/example_rise360_package/goodbye.html
+    body:
+      encoding: UTF-8
+      string: |
+        <html>
+          <head>
+            <meta charset="utf-8" lang="en">
+            <style>
+              html {
+                font-size: 20px;
+                font-family: 'lato', sans-serif;
+                font-weight: lighter;
+                letter-spacing: 0.05rem;
+              }
+
+              .goodbye-container {
+                text-align: center;
+                margin-top: 15rem;
+              }
+
+              .bye-message {
+                font-size: 1.5rem;
+              }
+
+              .exit-text {
+                color: #707070;
+                margin-top: 1rem;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="goodbye-container">
+              <div class="bye-message"></div>
+              <div class="exit-text"></div>
+            </div>
+          </body>
+        </html>
+    headers:
+      Content-Type:
+      - ''
+      Accept-Encoding:
+      - ''
+      User-Agent:
+      - aws-sdk-ruby3/3.102.1 ruby/2.6.5 x86_64-linux-musl aws-sdk-s3/1.71.0
+      X-Amz-Acl:
+      - public-read
+      Expect:
+      - 100-continue
+      Content-Md5:
+      - Evqh0r+hNOqloOuSn5aHkA==
+      X-Amz-Date:
+      - 20200727T211248Z
+      X-Amz-Content-Sha256:
+      - 6f933abe0a4ba9db9476745dff051d246932886f339b94c2864fca3830bac0ff
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=AKIA5DDYDUD52IVN6VXA/20200727/us-east-1/s3/aws4_request,
+        SignedHeaders=content-md5;host;user-agent;x-amz-acl;x-amz-content-sha256;x-amz-date,
+        Signature=b714f472bad05e197b48588c53984a8b17096eb5f21fd9fd575cadf39a0088ea
+      Content-Length:
+      - '612'
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      X-Amz-Id-2:
+      - i6DDqgl1hOfNN2HIatH7Ze5w2VEK/8v858x6KxMPHjIv0awX/ApdaFA5kvltBbaFsc/gH0DU3Q0=
+      X-Amz-Request-Id:
+      - DA45D33AF481DCFE
+      Date:
+      - Mon, 27 Jul 2020 21:12:50 GMT
+      Etag:
+      - '"12faa1d2bfa134eaa5a0eb929f968790"'
+      Content-Length:
+      - '0'
+      Server:
+      - AmazonS3
+    body:
+      encoding: UTF-8
+      string: ''
+  recorded_at: Mon, 27 Jul 2020 21:12:49 GMT
+- request:
+    method: put
+    uri: https://platform-dev-file-uploads.s3.amazonaws.com/lessons/efwbaxlmzu7nxemswkhcayc5hd3v/example_rise360_package/tincan.xml
+    body:
+      encoding: UTF-8
+      string: |
+        <?xml version="1.0" encoding="utf-8" ?>
+        <tincan xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://projecttincan.com/tincan.xsd">
+          <activities>
+            <activity id="http://CVRBwM4pr955T7w5VaRCUOFE9zfZXe-x_rise" type="http://adlnet.gov/expapi/activities/course">
+              <name lang="en-US">Unlock Your Hustle</name>
+              <description lang="en-US">Discover your inner leader.</description>
+              <launch lang="en-US">index.html</launch>
+            </activity>
+              <activity id="http://CVRBwM4pr955T7w5VaRCUOFE9zfZXe-x_rise/aPW5Bff9bqASfuN01rYBGDlCgCjo3dFn" type="http://adlnet.gov/expapi/activities/module">
+              <name lang="en-US">THE REST HERE</name>
+              <description lang="en-US"></description>
+           </activity>
+         </activities>
+        </tincan>
+    headers:
+      Content-Type:
+      - ''
+      Accept-Encoding:
+      - ''
+      User-Agent:
+      - aws-sdk-ruby3/3.102.1 ruby/2.6.5 x86_64-linux-musl aws-sdk-s3/1.71.0
+      X-Amz-Acl:
+      - public-read
+      Expect:
+      - 100-continue
+      Content-Md5:
+      - 4U1nHacGJIvKo9spyiTK4A==
+      X-Amz-Date:
+      - 20200727T211249Z
+      X-Amz-Content-Sha256:
+      - 03d381bb8514199c1ef4bc70998f3ac3e43ffe51155bee52ff54d69772f05302
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=AKIA5DDYDUD52IVN6VXA/20200727/us-east-1/s3/aws4_request,
+        SignedHeaders=content-md5;host;user-agent;x-amz-acl;x-amz-content-sha256;x-amz-date,
+        Signature=632f344bd629b3e059afd5341482123ea17fdfde4d1bd880c18b19071ad345be
+      Content-Length:
+      - '793'
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      X-Amz-Id-2:
+      - y0ec3C+Ui5gA5x10SaTPdnoRUyKz3XUxlh0UIkNVnWE031ZFyOwP0AvertWRNt2XXQPB4RGOW9A=
+      X-Amz-Request-Id:
+      - 5A18E6DE57C0AE1B
+      Date:
+      - Mon, 27 Jul 2020 21:12:50 GMT
+      Etag:
+      - '"e14d671da706248bcaa3db29ca24cae0"'
+      Content-Length:
+      - '0'
+      Server:
+      - AmazonS3
+    body:
+      encoding: UTF-8
+      string: ''
+  recorded_at: Mon, 27 Jul 2020 21:12:49 GMT
+- request:
+    method: put
+    uri: https://platform-dev-file-uploads.s3.amazonaws.com/lessons/efwbaxlmzu7nxemswkhcayc5hd3v/example_rise360_package/tc-config.js
+    body:
+      encoding: UTF-8
+      string: |
+        /* Tin Can configuration */
+
+        //
+        // ActivityID that is sent for the statement's object
+        //
+        TC_COURSE_ID = "http://CVRBwM4pr955T7w5VaRCUOFE9zfZXe-x_rise"
+
+        //
+        // CourseName for the activity
+        //
+        TC_COURSE_NAME = {
+          "en-US": "Unlock Your Hustle"
+        };
+
+        //
+        // CourseDesc for the activity
+        //
+        TC_COURSE_DESC = {
+          "en-US": "&lt;p&gt;Discover your inner leader.&lt;/p&gt;"
+        };
+    headers:
+      Content-Type:
+      - ''
+      Accept-Encoding:
+      - ''
+      User-Agent:
+      - aws-sdk-ruby3/3.102.1 ruby/2.6.5 x86_64-linux-musl aws-sdk-s3/1.71.0
+      X-Amz-Acl:
+      - public-read
+      Expect:
+      - 100-continue
+      Content-Md5:
+      - Qfo3vQfyBqH7dDJ/OoMTvg==
+      X-Amz-Date:
+      - 20200727T211249Z
+      X-Amz-Content-Sha256:
+      - 58df2c74675968e711f7edb9946ee8fbc0596162c448bf6e9894d41827eb50d8
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=AKIA5DDYDUD52IVN6VXA/20200727/us-east-1/s3/aws4_request,
+        SignedHeaders=content-md5;host;user-agent;x-amz-acl;x-amz-content-sha256;x-amz-date,
+        Signature=575b58143e0650ef53cdaaf1e37d6a21abc01b06f80363b62a7d0841c05abb8a
+      Content-Length:
+      - '363'
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      X-Amz-Id-2:
+      - OlE2EOKckB3Uo+mSMQ469JKzpubSQbiGFxFer5Kkb9Wyq5qPJfQ+uYI5gTTE7Pj3EbaLJNRIDjo=
+      X-Amz-Request-Id:
+      - 10807C0A6687DC83
+      Date:
+      - Mon, 27 Jul 2020 21:12:51 GMT
+      Etag:
+      - '"41fa37bd07f206a1fb74327f3a8313be"'
+      Content-Length:
+      - '0'
+      Server:
+      - AmazonS3
+    body:
+      encoding: UTF-8
+      string: ''
+  recorded_at: Mon, 27 Jul 2020 21:12:50 GMT
+- request:
+    method: put
+    uri: https://platform-dev-file-uploads.s3.amazonaws.com/lessons/efwbaxlmzu7nxemswkhcayc5hd3v/example_rise360_package/lib/main.bundle.css
+    body:
+      encoding: UTF-8
+      string: "\n"
+    headers:
+      Content-Type:
+      - ''
+      Accept-Encoding:
+      - ''
+      User-Agent:
+      - aws-sdk-ruby3/3.102.1 ruby/2.6.5 x86_64-linux-musl aws-sdk-s3/1.71.0
+      X-Amz-Acl:
+      - public-read
+      Expect:
+      - 100-continue
+      Content-Md5:
+      - aLMp2piT40CZx9itXLnJQA==
+      X-Amz-Date:
+      - 20200727T211250Z
+      X-Amz-Content-Sha256:
+      - 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=AKIA5DDYDUD52IVN6VXA/20200727/us-east-1/s3/aws4_request,
+        SignedHeaders=content-md5;host;user-agent;x-amz-acl;x-amz-content-sha256;x-amz-date,
+        Signature=42fc20a1cf13dd6b44fb92f3885d7af2bf802aed7bae2fe4d4ed0f23c9c4e35d
+      Content-Length:
+      - '1'
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      X-Amz-Id-2:
+      - CBZgz5oFPXoZePAommp7VqiJ3yz5eL3HAhUl5lhB17BrdS8X1gter4V+cPnlH+1uggp7z2qmdL4=
+      X-Amz-Request-Id:
+      - A3BD94CBC793557C
+      Date:
+      - Mon, 27 Jul 2020 21:12:51 GMT
+      Etag:
+      - '"68b329da9893e34099c7d8ad5cb9c940"'
+      Content-Length:
+      - '0'
+      Server:
+      - AmazonS3
+    body:
+      encoding: UTF-8
+      string: ''
+  recorded_at: Mon, 27 Jul 2020 21:12:50 GMT
+- request:
+    method: put
+    uri: https://platform-dev-file-uploads.s3.amazonaws.com/lessons/efwbaxlmzu7nxemswkhcayc5hd3v/example_rise360_package/lib/tincan.js
+    body:
+      encoding: UTF-8
+      string: "\n"
+    headers:
+      Content-Type:
+      - ''
+      Accept-Encoding:
+      - ''
+      User-Agent:
+      - aws-sdk-ruby3/3.102.1 ruby/2.6.5 x86_64-linux-musl aws-sdk-s3/1.71.0
+      X-Amz-Acl:
+      - public-read
+      Expect:
+      - 100-continue
+      Content-Md5:
+      - aLMp2piT40CZx9itXLnJQA==
+      X-Amz-Date:
+      - 20200727T211250Z
+      X-Amz-Content-Sha256:
+      - 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=AKIA5DDYDUD52IVN6VXA/20200727/us-east-1/s3/aws4_request,
+        SignedHeaders=content-md5;host;user-agent;x-amz-acl;x-amz-content-sha256;x-amz-date,
+        Signature=0fee6709b5c2273453ff06bd956896c9fa058dadf4c4e14802424da730043cc8
+      Content-Length:
+      - '1'
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      X-Amz-Id-2:
+      - 4aaFbD1LVsVmnfNnZXOqoemkV8MOvPeiZAgbNvwWtbqqZ791kHSDRmLRyhiVqj1IdzdC1CzentE=
+      X-Amz-Request-Id:
+      - BA0C5EDD60C944CE
+      Date:
+      - Mon, 27 Jul 2020 21:12:52 GMT
+      Etag:
+      - '"68b329da9893e34099c7d8ad5cb9c940"'
+      Content-Length:
+      - '0'
+      Server:
+      - AmazonS3
+    body:
+      encoding: UTF-8
+      string: ''
+  recorded_at: Mon, 27 Jul 2020 21:12:51 GMT
+- request:
+    method: put
+    uri: https://platform-dev-file-uploads.s3.amazonaws.com/lessons/efwbaxlmzu7nxemswkhcayc5hd3v/example_rise360_package/lib/player-0.0.11.min.js
+    body:
+      encoding: UTF-8
+      string: "\n"
+    headers:
+      Content-Type:
+      - ''
+      Accept-Encoding:
+      - ''
+      User-Agent:
+      - aws-sdk-ruby3/3.102.1 ruby/2.6.5 x86_64-linux-musl aws-sdk-s3/1.71.0
+      X-Amz-Acl:
+      - public-read
+      Expect:
+      - 100-continue
+      Content-Md5:
+      - aLMp2piT40CZx9itXLnJQA==
+      X-Amz-Date:
+      - 20200727T211251Z
+      X-Amz-Content-Sha256:
+      - 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=AKIA5DDYDUD52IVN6VXA/20200727/us-east-1/s3/aws4_request,
+        SignedHeaders=content-md5;host;user-agent;x-amz-acl;x-amz-content-sha256;x-amz-date,
+        Signature=ff71d4bbbb11cdb0884047d5db0af48363382cc7a76f2fe0688dcfd17c58cafe
+      Content-Length:
+      - '1'
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      X-Amz-Id-2:
+      - OmPxKDSNbTpg3L/o2/8+iexXRN9y4guD21FekTNP872qaw2bE3+tGb+DbEvl2i8kmU3P4ZYDVRM=
+      X-Amz-Request-Id:
+      - 194355527A7D93C5
+      Date:
+      - Mon, 27 Jul 2020 21:12:52 GMT
+      Etag:
+      - '"68b329da9893e34099c7d8ad5cb9c940"'
+      Content-Length:
+      - '0'
+      Server:
+      - AmazonS3
+    body:
+      encoding: UTF-8
+      string: ''
+  recorded_at: Mon, 27 Jul 2020 21:12:51 GMT
+- request:
+    method: put
+    uri: https://platform-dev-file-uploads.s3.amazonaws.com/lessons/efwbaxlmzu7nxemswkhcayc5hd3v/example_rise360_package/lib/icomoon.css
+    body:
+      encoding: UTF-8
+      string: "\n"
+    headers:
+      Content-Type:
+      - ''
+      Accept-Encoding:
+      - ''
+      User-Agent:
+      - aws-sdk-ruby3/3.102.1 ruby/2.6.5 x86_64-linux-musl aws-sdk-s3/1.71.0
+      X-Amz-Acl:
+      - public-read
+      Expect:
+      - 100-continue
+      Content-Md5:
+      - aLMp2piT40CZx9itXLnJQA==
+      X-Amz-Date:
+      - 20200727T211251Z
+      X-Amz-Content-Sha256:
+      - 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=AKIA5DDYDUD52IVN6VXA/20200727/us-east-1/s3/aws4_request,
+        SignedHeaders=content-md5;host;user-agent;x-amz-acl;x-amz-content-sha256;x-amz-date,
+        Signature=710099ac4867db01c97c6486102381c89dc56468247d08dcc878656f0d37e441
+      Content-Length:
+      - '1'
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      X-Amz-Id-2:
+      - V9IbHZJ3UKTu1nHgsdNvXZbF0FnciTQFiVJclZSD9NTwqL8fq8aT3Rh9rnDkPKwQOeN2Qf9vLhw=
+      X-Amz-Request-Id:
+      - 5104B450D1775267
+      Date:
+      - Mon, 27 Jul 2020 21:12:53 GMT
+      Etag:
+      - '"68b329da9893e34099c7d8ad5cb9c940"'
+      Content-Length:
+      - '0'
+      Server:
+      - AmazonS3
+    body:
+      encoding: UTF-8
+      string: ''
+  recorded_at: Mon, 27 Jul 2020 21:12:52 GMT
+- request:
+    method: put
+    uri: https://platform-dev-file-uploads.s3.amazonaws.com/lessons/efwbaxlmzu7nxemswkhcayc5hd3v/example_rise360_package/lib/lms.js
+    body:
+      encoding: UTF-8
+      string: "\n"
+    headers:
+      Content-Type:
+      - ''
+      Accept-Encoding:
+      - ''
+      User-Agent:
+      - aws-sdk-ruby3/3.102.1 ruby/2.6.5 x86_64-linux-musl aws-sdk-s3/1.71.0
+      X-Amz-Acl:
+      - public-read
+      Expect:
+      - 100-continue
+      Content-Md5:
+      - aLMp2piT40CZx9itXLnJQA==
+      X-Amz-Date:
+      - 20200727T211252Z
+      X-Amz-Content-Sha256:
+      - 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=AKIA5DDYDUD52IVN6VXA/20200727/us-east-1/s3/aws4_request,
+        SignedHeaders=content-md5;host;user-agent;x-amz-acl;x-amz-content-sha256;x-amz-date,
+        Signature=5326b60ab3e80638f4553ccf80e9ecced9bd67553c98ef4a7f9e920daa9afc9c
+      Content-Length:
+      - '1'
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      X-Amz-Id-2:
+      - KGFQhAsJFYh7p8fncBFnmusx/8HXbAH2YkJUb12gfGICl0pOCSYLqO7XOkBbCE/IgQVXAqao3VE=
+      X-Amz-Request-Id:
+      - 826D165C0055786F
+      Date:
+      - Mon, 27 Jul 2020 21:12:53 GMT
+      Etag:
+      - '"68b329da9893e34099c7d8ad5cb9c940"'
+      Content-Length:
+      - '0'
+      Server:
+      - AmazonS3
+    body:
+      encoding: UTF-8
+      string: ''
+  recorded_at: Mon, 27 Jul 2020 21:12:52 GMT
+- request:
+    method: put
+    uri: https://platform-dev-file-uploads.s3.amazonaws.com/lessons/efwbaxlmzu7nxemswkhcayc5hd3v/example_rise360_package/lib/main.bundle.js
+    body:
+      encoding: UTF-8
+      string: "\n"
+    headers:
+      Content-Type:
+      - ''
+      Accept-Encoding:
+      - ''
+      User-Agent:
+      - aws-sdk-ruby3/3.102.1 ruby/2.6.5 x86_64-linux-musl aws-sdk-s3/1.71.0
+      X-Amz-Acl:
+      - public-read
+      Expect:
+      - 100-continue
+      Content-Md5:
+      - aLMp2piT40CZx9itXLnJQA==
+      X-Amz-Date:
+      - 20200727T211252Z
+      X-Amz-Content-Sha256:
+      - 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=AKIA5DDYDUD52IVN6VXA/20200727/us-east-1/s3/aws4_request,
+        SignedHeaders=content-md5;host;user-agent;x-amz-acl;x-amz-content-sha256;x-amz-date,
+        Signature=c36e960296d16aa02515a2dc050f494d6cc8a23414119ddbc92789120f3ced7f
+      Content-Length:
+      - '1'
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      X-Amz-Id-2:
+      - lwXd9mdao5l09XLAMow+XG84eVV4gL4cWmKzW+xdSJ/Eh4Xdj8bI83Mx5Ayv0b7sFZKaZ954coU=
+      X-Amz-Request-Id:
+      - F0B2E5C3E3ADE61C
+      Date:
+      - Mon, 27 Jul 2020 21:12:54 GMT
+      Etag:
+      - '"68b329da9893e34099c7d8ad5cb9c940"'
+      Content-Length:
+      - '0'
+      Server:
+      - AmazonS3
+    body:
+      encoding: UTF-8
+      string: ''
+  recorded_at: Mon, 27 Jul 2020 21:12:53 GMT
+- request:
+    method: put
+    uri: https://platform-dev-file-uploads.s3.amazonaws.com/lessons/efwbaxlmzu7nxemswkhcayc5hd3v/example_rise360_package/lib/lzwcompress.js
+    body:
+      encoding: UTF-8
+      string: "\n"
+    headers:
+      Content-Type:
+      - ''
+      Accept-Encoding:
+      - ''
+      User-Agent:
+      - aws-sdk-ruby3/3.102.1 ruby/2.6.5 x86_64-linux-musl aws-sdk-s3/1.71.0
+      X-Amz-Acl:
+      - public-read
+      Expect:
+      - 100-continue
+      Content-Md5:
+      - aLMp2piT40CZx9itXLnJQA==
+      X-Amz-Date:
+      - 20200727T211253Z
+      X-Amz-Content-Sha256:
+      - 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=AKIA5DDYDUD52IVN6VXA/20200727/us-east-1/s3/aws4_request,
+        SignedHeaders=content-md5;host;user-agent;x-amz-acl;x-amz-content-sha256;x-amz-date,
+        Signature=6382fbae903181b3ab53a933b6decc431bdd21b3dc26c7bdb181b66b630d9025
+      Content-Length:
+      - '1'
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      X-Amz-Id-2:
+      - 4LQbVGobHXnRsWwMXdb4OEDrC4P0FTwLljlurt2/38ABsGjVPIpNTad0AvEntz0bKlZo94OsWbI=
+      X-Amz-Request-Id:
+      - DD3C8B0164B43619
+      Date:
+      - Mon, 27 Jul 2020 21:12:54 GMT
+      Etag:
+      - '"68b329da9893e34099c7d8ad5cb9c940"'
+      Content-Length:
+      - '0'
+      Server:
+      - AmazonS3
+    body:
+      encoding: UTF-8
+      string: ''
+  recorded_at: Mon, 27 Jul 2020 21:12:53 GMT
+- request:
+    method: put
+    uri: https://platform-dev-file-uploads.s3.amazonaws.com/lessons/efwbaxlmzu7nxemswkhcayc5hd3v/example_rise360_package/assets/G9n5DjsUVPCBGZYW_pya4a3bNrqBjdCIC.jpg
+    body:
+      encoding: UTF-8
+      string: "\n"
+    headers:
+      Content-Type:
+      - ''
+      Accept-Encoding:
+      - ''
+      User-Agent:
+      - aws-sdk-ruby3/3.102.1 ruby/2.6.5 x86_64-linux-musl aws-sdk-s3/1.71.0
+      X-Amz-Acl:
+      - public-read
+      Expect:
+      - 100-continue
+      Content-Md5:
+      - aLMp2piT40CZx9itXLnJQA==
+      X-Amz-Date:
+      - 20200727T211253Z
+      X-Amz-Content-Sha256:
+      - 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=AKIA5DDYDUD52IVN6VXA/20200727/us-east-1/s3/aws4_request,
+        SignedHeaders=content-md5;host;user-agent;x-amz-acl;x-amz-content-sha256;x-amz-date,
+        Signature=bb6d40399e83ef6c22518e420371d53ffd0aacfa1f4612fbc203dad80d63884d
+      Content-Length:
+      - '1'
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      X-Amz-Id-2:
+      - EbzdkZzQKDh4asyFeTacSTXT7QcGRGyY5MLwnJbyZuLUQBeO1cstxtjxAaATanoER5t0lE1cGbA=
+      X-Amz-Request-Id:
+      - EA4507AD5BA71A1B
+      Date:
+      - Mon, 27 Jul 2020 21:12:55 GMT
+      Etag:
+      - '"68b329da9893e34099c7d8ad5cb9c940"'
+      Content-Length:
+      - '0'
+      Server:
+      - AmazonS3
+    body:
+      encoding: UTF-8
+      string: ''
+  recorded_at: Mon, 27 Jul 2020 21:12:54 GMT
+- request:
+    method: put
+    uri: https://platform-dev-file-uploads.s3.amazonaws.com/lessons/efwbaxlmzu7nxemswkhcayc5hd3v/example_rise360_package/assets/oHL1LTFmhDuY_wAG_small.png
+    body:
+      encoding: UTF-8
+      string: "\n"
+    headers:
+      Content-Type:
+      - ''
+      Accept-Encoding:
+      - ''
+      User-Agent:
+      - aws-sdk-ruby3/3.102.1 ruby/2.6.5 x86_64-linux-musl aws-sdk-s3/1.71.0
+      X-Amz-Acl:
+      - public-read
+      Expect:
+      - 100-continue
+      Content-Md5:
+      - aLMp2piT40CZx9itXLnJQA==
+      X-Amz-Date:
+      - 20200727T211254Z
+      X-Amz-Content-Sha256:
+      - 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=AKIA5DDYDUD52IVN6VXA/20200727/us-east-1/s3/aws4_request,
+        SignedHeaders=content-md5;host;user-agent;x-amz-acl;x-amz-content-sha256;x-amz-date,
+        Signature=b67bbbad07516b82b93e8d2103116a44f664b32c1e03c6262b45a049dbb6830e
+      Content-Length:
+      - '1'
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      X-Amz-Id-2:
+      - fvziehbx0PtKec3Y3TI6n27ckR/MhwkgH19B77d7zJ9IPmnm0H9ku2LVcU/ZakhBD7xyLESn9fU=
+      X-Amz-Request-Id:
+      - 1DDB79DB00396429
+      Date:
+      - Mon, 27 Jul 2020 21:12:55 GMT
+      Etag:
+      - '"68b329da9893e34099c7d8ad5cb9c940"'
+      Content-Length:
+      - '0'
+      Server:
+      - AmazonS3
+    body:
+      encoding: UTF-8
+      string: ''
+  recorded_at: Mon, 27 Jul 2020 21:12:55 GMT
+- request:
+    method: put
+    uri: https://platform-dev-file-uploads.s3.amazonaws.com/lessons/efwbaxlmzu7nxemswkhcayc5hd3v/example_rise360_package/assets/-eS1FiPGdPzgvXKi_w5-mQ9WYkDP_jbdP.png
+    body:
+      encoding: UTF-8
+      string: "\n"
+    headers:
+      Content-Type:
+      - ''
+      Accept-Encoding:
+      - ''
+      User-Agent:
+      - aws-sdk-ruby3/3.102.1 ruby/2.6.5 x86_64-linux-musl aws-sdk-s3/1.71.0
+      X-Amz-Acl:
+      - public-read
+      Expect:
+      - 100-continue
+      Content-Md5:
+      - aLMp2piT40CZx9itXLnJQA==
+      X-Amz-Date:
+      - 20200727T211255Z
+      X-Amz-Content-Sha256:
+      - 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=AKIA5DDYDUD52IVN6VXA/20200727/us-east-1/s3/aws4_request,
+        SignedHeaders=content-md5;host;user-agent;x-amz-acl;x-amz-content-sha256;x-amz-date,
+        Signature=baadad7ec16a947795550529dd697fa8981267d69898d2c23031d193112c6a51
+      Content-Length:
+      - '1'
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      X-Amz-Id-2:
+      - xlgLevB53WITd1McunsmUrkoO/XhCm1UnnSwAmmRrSBAKtjwHhhQlpLdoDl5XHuOXeG4Tw2XqAc=
+      X-Amz-Request-Id:
+      - A35CF9C23C9EEF3F
+      Date:
+      - Mon, 27 Jul 2020 21:12:56 GMT
+      Etag:
+      - '"68b329da9893e34099c7d8ad5cb9c940"'
+      Content-Length:
+      - '0'
+      Server:
+      - AmazonS3
+    body:
+      encoding: UTF-8
+      string: ''
+  recorded_at: Mon, 27 Jul 2020 21:12:55 GMT
+- request:
+    method: put
+    uri: https://platform-dev-file-uploads.s3.amazonaws.com/lessons/efwbaxlmzu7nxemswkhcayc5hd3v/example_rise360_package/assets/FcHmqJHaNAyFDmyH_small.png
+    body:
+      encoding: UTF-8
+      string: "\n"
+    headers:
+      Content-Type:
+      - ''
+      Accept-Encoding:
+      - ''
+      User-Agent:
+      - aws-sdk-ruby3/3.102.1 ruby/2.6.5 x86_64-linux-musl aws-sdk-s3/1.71.0
+      X-Amz-Acl:
+      - public-read
+      Expect:
+      - 100-continue
+      Content-Md5:
+      - aLMp2piT40CZx9itXLnJQA==
+      X-Amz-Date:
+      - 20200727T211255Z
+      X-Amz-Content-Sha256:
+      - 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=AKIA5DDYDUD52IVN6VXA/20200727/us-east-1/s3/aws4_request,
+        SignedHeaders=content-md5;host;user-agent;x-amz-acl;x-amz-content-sha256;x-amz-date,
+        Signature=3fe9021a81b31de8e0af13bdbd65e11b492c11d5d99de25474bd3653a6b593c3
+      Content-Length:
+      - '1'
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      X-Amz-Id-2:
+      - Q/3/v+xPF9pzNR4rhyHDfz2SOxd1L4BNXv/375QhKvntzVKd4bdUnvqDxgn/6qQHl42BhfPeBtc=
+      X-Amz-Request-Id:
+      - '098AB2DC16929415'
+      Date:
+      - Mon, 27 Jul 2020 21:12:57 GMT
+      Etag:
+      - '"68b329da9893e34099c7d8ad5cb9c940"'
+      Content-Length:
+      - '0'
+      Server:
+      - AmazonS3
+    body:
+      encoding: UTF-8
+      string: ''
+  recorded_at: Mon, 27 Jul 2020 21:12:56 GMT
+- request:
+    method: put
+    uri: https://platform-dev-file-uploads.s3.amazonaws.com/lessons/efwbaxlmzu7nxemswkhcayc5hd3v/example_rise360_package/lib/fonts/icomoon.ttf
+    body:
+      encoding: UTF-8
+      string: "\n"
+    headers:
+      Content-Type:
+      - ''
+      Accept-Encoding:
+      - ''
+      User-Agent:
+      - aws-sdk-ruby3/3.102.1 ruby/2.6.5 x86_64-linux-musl aws-sdk-s3/1.71.0
+      X-Amz-Acl:
+      - public-read
+      Expect:
+      - 100-continue
+      Content-Md5:
+      - aLMp2piT40CZx9itXLnJQA==
+      X-Amz-Date:
+      - 20200727T211256Z
+      X-Amz-Content-Sha256:
+      - 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=AKIA5DDYDUD52IVN6VXA/20200727/us-east-1/s3/aws4_request,
+        SignedHeaders=content-md5;host;user-agent;x-amz-acl;x-amz-content-sha256;x-amz-date,
+        Signature=b2097a5203053ffe4ae1ac11ee33c3ce6f32c3ba2912dd0ee2ac18e601c9e922
+      Content-Length:
+      - '1'
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      X-Amz-Id-2:
+      - l3uptAXK2iAFZ4LeLlW4BP4ZSLCreN5Krj5gonKvL8QG4EqOWFsKXaNq5lAGlHKivVSWa2gzcFI=
+      X-Amz-Request-Id:
+      - 581358C9539CE654
+      Date:
+      - Mon, 27 Jul 2020 21:12:57 GMT
+      Etag:
+      - '"68b329da9893e34099c7d8ad5cb9c940"'
+      Content-Length:
+      - '0'
+      Server:
+      - AmazonS3
+    body:
+      encoding: UTF-8
+      string: ''
+  recorded_at: Mon, 27 Jul 2020 21:12:57 GMT
+- request:
+    method: put
+    uri: https://platform-dev-file-uploads.s3.amazonaws.com/lessons/efwbaxlmzu7nxemswkhcayc5hd3v/example_rise360_package/lib/fonts/icomoon.woff
+    body:
+      encoding: UTF-8
+      string: "\n"
+    headers:
+      Content-Type:
+      - ''
+      Accept-Encoding:
+      - ''
+      User-Agent:
+      - aws-sdk-ruby3/3.102.1 ruby/2.6.5 x86_64-linux-musl aws-sdk-s3/1.71.0
+      X-Amz-Acl:
+      - public-read
+      Expect:
+      - 100-continue
+      Content-Md5:
+      - aLMp2piT40CZx9itXLnJQA==
+      X-Amz-Date:
+      - 20200727T211257Z
+      X-Amz-Content-Sha256:
+      - 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=AKIA5DDYDUD52IVN6VXA/20200727/us-east-1/s3/aws4_request,
+        SignedHeaders=content-md5;host;user-agent;x-amz-acl;x-amz-content-sha256;x-amz-date,
+        Signature=3b92d5480ff2a48aff5ec825b3be99247131c43df0c3adccf2dd4151b72886f9
+      Content-Length:
+      - '1'
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      X-Amz-Id-2:
+      - AzCPLOyrfLuP9Pgd4bow8gr9hwyrhMdXUzJ80VafscQ0OJWE3loF+CHVmyktDePxTdBoy51H8W8=
+      X-Amz-Request-Id:
+      - AD80B355B0BDC23F
+      Date:
+      - Mon, 27 Jul 2020 21:12:58 GMT
+      Etag:
+      - '"68b329da9893e34099c7d8ad5cb9c940"'
+      Content-Length:
+      - '0'
+      Server:
+      - AmazonS3
+    body:
+      encoding: UTF-8
+      string: ''
+  recorded_at: Mon, 27 Jul 2020 21:12:57 GMT
+- request:
+    method: put
+    uri: https://platform-dev-file-uploads.s3.amazonaws.com/lessons/efwbaxlmzu7nxemswkhcayc5hd3v/example_rise360_package/lib/fonts/Merriweather-Regular.woff
+    body:
+      encoding: UTF-8
+      string: "\n"
+    headers:
+      Content-Type:
+      - ''
+      Accept-Encoding:
+      - ''
+      User-Agent:
+      - aws-sdk-ruby3/3.102.1 ruby/2.6.5 x86_64-linux-musl aws-sdk-s3/1.71.0
+      X-Amz-Acl:
+      - public-read
+      Expect:
+      - 100-continue
+      Content-Md5:
+      - aLMp2piT40CZx9itXLnJQA==
+      X-Amz-Date:
+      - 20200727T211257Z
+      X-Amz-Content-Sha256:
+      - 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=AKIA5DDYDUD52IVN6VXA/20200727/us-east-1/s3/aws4_request,
+        SignedHeaders=content-md5;host;user-agent;x-amz-acl;x-amz-content-sha256;x-amz-date,
+        Signature=75e5da454d77bc1c7a8a8fe02d67816578a90f9aebef7a4fef5f27fdf7eab1c7
+      Content-Length:
+      - '1'
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      X-Amz-Id-2:
+      - OJ+vIjKWaU3+4vEFHDSvro0WKrsroQehqR8boggpmR26t9sv5EM/k43BEH/G100whFH0o+iDp6M=
+      X-Amz-Request-Id:
+      - A79CDDBBEF14198E
+      Date:
+      - Mon, 27 Jul 2020 21:12:58 GMT
+      Etag:
+      - '"68b329da9893e34099c7d8ad5cb9c940"'
+      Content-Length:
+      - '0'
+      Server:
+      - AmazonS3
+    body:
+      encoding: UTF-8
+      string: ''
+  recorded_at: Mon, 27 Jul 2020 21:12:58 GMT
+recorded_with: VCR 6.0.0
