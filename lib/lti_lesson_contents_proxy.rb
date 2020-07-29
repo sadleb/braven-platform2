@@ -22,7 +22,7 @@ class LtiLessonContentsProxy < Rack::Proxy
   def self.proxy_url
     # This is hard-coded to HTTPS b/c none of this stuff works over HTTP and in dev thats the default
     # if we use a helper URL like: Rails.application.routes.url_helpers.root_url
-    @proxl_url ||= "https://#{Rails.application.secrets.application_host}#{PROXIED_PATH}"
+    @proxy_url ||= "https://#{Rails.application.secrets.application_host}#{PROXIED_PATH}"
   end
 
   def perform_request(env)
