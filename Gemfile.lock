@@ -291,6 +291,8 @@ GEM
     public_suffix (4.0.5)
     puma (3.12.6)
     rack (2.2.3)
+    rack-cors (1.1.1)
+      rack (>= 2.0.0)
     rack-livereload (0.3.17)
       rack
     rack-proxy (0.6.5)
@@ -513,6 +515,7 @@ DEPENDENCIES
   pry-rescue
   pry-stack_explorer
   puma (~> 3.12)
+  rack-cors
   rack-livereload
   rails (~> 6.0.0)
   rails_same_site_cookie
