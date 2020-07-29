@@ -138,7 +138,8 @@ FactoryBot.define do
             'https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly',
             'https://purl.imsglobal.org/spec/lti-ags/scope/score'
           ],
-          'lineitems' => 'https://platformdomain/api/lti/courses/55/line_items'
+          'lineitems' => 'https://platformdomain/api/lti/courses/55/line_items',
+          'lineitem' => 'https://platformdomain/api/lti/courses/55/line_items/15'
         },
         'https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice' => {
           'context_memberships_url' => 'https://braven.instructure.com/api/lti/courses/40/names_and_roles',
