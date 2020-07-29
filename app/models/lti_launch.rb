@@ -9,6 +9,7 @@ class LtiLaunch < ApplicationRecord
   # This is the Redirect URI that must be configured in the Developer Key for the LTI
   # and must match EXACTLY.
   LTI_LAUNCH_REDIRECT_URI="https://#{Rails.application.secrets.application_host}/lti/launch".freeze
+  BRAVEN_ISS="https://#{Rails.application.secrets.application_host}".freeze
 
   scope :authenticated, -> { where.not id_token_payload: nil }
   scope :unauthenticated, -> { where id_token_payload: nil }
@@ -34,6 +35,16 @@ class LtiLaunch < ApplicationRecord
 
     launch.save!
     launch
+  end
+
+  # Returns the parse request message payload of the launch
+  def request_message
+    @request_message ||= LtiIdToken.parse(id_token_payload)
+  end
+
+  # Returns a unique identifier for us when issuing and JWT
+  def braven_iss
+    BRAVEN_ISS
   end
 
   # Returns the parameters needed in Step 2 of the LTI Launch flow in order
