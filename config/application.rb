@@ -2,6 +2,8 @@ require_relative 'boot'
 
 require 'rails/all'
 
+require_relative '../lib/lti_lesson_contents_proxy'
+
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
@@ -16,13 +18,8 @@ module Platform
     # be backwards compatible with v5.2 and below who may have removed it from ApplicationController
     config.action_controller.default_protect_from_forgery = true
 
-    # Allows Rise 360 lesson running in AWS S3 to call into our LRS xAPI proxy
-    config.middleware.insert_before 0, Rack::Cors do
-      allow do
-        origins "https://#{Rails.application.secrets.aws_files_bucket}.s3.amazonaws.com"
-        resource '*', :headers => :any, :methods => [:get, :put,]
-      end
-    end
+    # Allows us to serve Rise360 static files hosted on AWS S3 through our server avoiding browser cross-origin issues.
+    config.middleware.use LtiLessonContentsProxy, backend: "https://#{Rails.application.secrets.aws_files_bucket}.s3.amazonaws.com"
 
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration can go into files in config/initializers
