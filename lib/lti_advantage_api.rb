@@ -97,21 +97,34 @@ private
   end
 
   def get(target_url, headers={})
-    RestClient.get(target_url, @global_headers.merge(headers))
-  rescue => e
-    handle_rest_client_error(e)
+    with_error_handling('get', target_url) do
+      RestClient.get(target_url, @global_headers.merge(headers))
+    end
   end
 
   def post(target_url, body, headers={})
-    RestClient.post(target_url, body, @global_headers.merge(headers))
-  rescue => e
-    handle_rest_client_error(e)
+    with_error_handling('post', target_url) do
+      RestClient.post(target_url, body, @global_headers.merge(headers))
+    end
   end
 
-  def handle_rest_client_error(e)
-    Rails.logger.error("{\"Error\":\"#{e.message}\"}")
-    Rails.logger.error(e.response.body)
-    raise
+  def with_error_handling(method, target_url)
+    ret_val = nil
+    Honeycomb.start_span(name: "LtiAdvantageAPI.#{method}") do |span|
+      span.add_field('request.method', method)
+      span.add_field('url', target_url)
+      begin
+        ret_val = yield
+      rescue RestClient::Exception => e
+        Rails.logger.error("{\"Error\":\"#{e.message}\"}")
+        Rails.logger.error(e.http_body)
+        span.add_field('error', e.message)
+        span.add_field('http_code', e.http_code)
+        span.add_field('http_body', e.http_body)
+        raise
+      end
+    end
+    ret_val
   end
 
 end
