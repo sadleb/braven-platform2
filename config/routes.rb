@@ -1,3 +1,6 @@
+# Needed to use the url_helpers outside of views and controller
+Rails.application.routes.default_url_options[:host] = Rails.application.secrets.application_host 
+
 Rails.application.routes.draw do
 
   resources :course_contents do
@@ -98,4 +101,7 @@ Rails.application.routes.draw do
 
   # Proxy xAPI messages to the LRS.
   match '/data/xAPI/*endpoint', to: 'lrs_xapi_proxy#xAPI', via: [:get, :put]
+
+  # There is a route similar to the commented out one below that doesn't show up here. See 'lib/lti_lesson_contents_proxy.rb' and 'config/application.rb'
+  # match '/lesson_contents_proxy/*endpoint', to: AWS_S3
 end
