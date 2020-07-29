@@ -5,7 +5,9 @@ class LessonContentPublisher
   S3_OBJECT_PREFIX = "lessons".freeze
   INDEX_FILE = "index.html".freeze
 
-  # Publicly accessible URL for the lesson
+  # The full request_uri, aka path (including query params) to be able to launch
+  # the lesson. 
+  #
   # The "filekey" is the "key" attribute of an ActiveStorage zipfile.
   # Aka the name of the zipfile on S3.
   def self.launch_path(filekey, bucket = nil)
