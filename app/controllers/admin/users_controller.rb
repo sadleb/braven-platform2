@@ -4,6 +4,8 @@
 class Admin::UsersController < ApplicationController
   layout 'admin'
 
+  before_action :find_user, only: %i[show edit update confirm destroy]
+
   def index
     current_page = params[:page]
     @users = if params[:search]
@@ -20,9 +22,7 @@ class Admin::UsersController < ApplicationController
     end
   end
 
-  def show
-    @user = User.find(params[:id])
-  end
+  def show; end
 
   def new
     @user = User.new
@@ -40,12 +40,9 @@ class Admin::UsersController < ApplicationController
     end
   end
 
-  def edit
-    @user = User.find(params[:id])
-  end
+  def edit; end
 
   def update
-    @user = User.find(params[:id])
     filtered_user_params = user_params.reject { |_, v| v.blank? }
     if @user.update_attributes(filtered_user_params)
       redirect_to admin_user_path(@user), notice: 'User was changed successfully'
@@ -55,7 +52,6 @@ class Admin::UsersController < ApplicationController
   end
 
   def confirm
-    @user = User.find(params[:id])
     if @user.confirmed?
       redirect_to admin_user_path(@user), notice: 'User already confirmed'
     else
@@ -65,12 +61,15 @@ class Admin::UsersController < ApplicationController
   end
 
   def destroy
-    @user = User.find(params[:id])
     @user.delete
     redirect_to admin_users_path, notice: 'User has been deleted'
   end
 
   private
+
+  def find_user
+    @user = User.find(params[:id])
+  end
 
   def user_params
     params.require(:user).permit(:first_name, :last_name, :email, :password, :admin, :canvas_id, :salesforce_id)
