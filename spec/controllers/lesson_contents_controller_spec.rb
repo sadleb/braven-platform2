@@ -31,12 +31,16 @@ RSpec.describe LessonContentsController, type: :controller do
     let(:lesson_content_with_zipfile) { create(:lesson_content_with_zipfile) }
     context 'existing lesson content' do
       it 'redirects to public url with LRS query parameters' do
-        launch_url = 'https://S3-bucket-path/lessons/somekey/index.html'
-        allow(LessonContentPublisher).to receive(:launch_url).and_return(launch_url)
-        allow(LessonContentPublisher).to receive(:publish).and_return(launch_url)
+        launch_path = '/lessons/somekey/index.html'
+        allow(LessonContentPublisher).to receive(:launch_path).and_return(launch_path)
+        allow(LessonContentPublisher).to receive(:publish).and_return(launch_path)
+
         get :show, params: {:id => lesson_content_with_zipfile.id}, session: valid_session
+
         redirect_url = Addressable::URI.parse(response.location)
-        expect(Addressable::URI.join(redirect_url.site, redirect_url.path).to_s).to eq(launch_url)
+        expected_url =  Addressable::URI.parse(lesson_content_with_zipfile.launch_url)
+        expect(redirect_url.path).to eq(expected_url.path)
+
         # Specific LRS query parameters are tested in LessonContentsHelper
         expect(redirect_url.query_values).not_to be_empty
       end
@@ -63,11 +67,13 @@ RSpec.describe LessonContentsController, type: :controller do
 
     context "with valid params" do
       it "shows the confirmation form and preview iframe" do
+        launch_path = '/lessons/somekey/index.html'
+        allow(LessonContentPublisher).to receive(:launch_path).and_return(launch_path)
+        allow(LessonContentPublisher).to receive(:publish).and_return(launch_path)
+
+        post :create, params: {state: state, lesson_content_zipfile: file_upload}, session: valid_session
+
         expected_url = LtiDeepLinkingRequestMessage.new(lti_launch.id_token_payload).deep_link_return_url
-        # The zipfile key changes and is par tof the request, only match on host
-        VCR.use_cassette('lesson_content_zipfile_upload', :match_requests_on => [:host]) do
-          post :create, params: {state: state, lesson_content_zipfile: file_upload}, session: valid_session
-        end
         expect(response.body).to match /<form action="#{expected_url}"/
 
         lesson_content_url = lesson_content_url(LessonContent.last)
@@ -75,13 +81,14 @@ RSpec.describe LessonContentsController, type: :controller do
       end
 
       it 'attaches uploaded zipfile' do
-        # The zipfile key changes and is par tof the request, only match on host
-        VCR.use_cassette('lesson_content_zipfile_upload', :match_requests_on => [:host]) do
-          expect {
-            post :create, params: {state: state, lesson_content_zipfile: file_upload} , session: valid_session
-          }.to change(ActiveStorage::Attachment, :count).by(1)
-          expect(LessonContent.last.lesson_content_zipfile).to be_attached
-        end
+        launch_path = '/lessons/somekey/index.html'
+        allow(LessonContentPublisher).to receive(:launch_path).and_return(launch_path)
+        allow(LessonContentPublisher).to receive(:publish).and_return(launch_path)
+
+        expect {
+          post :create, params: {state: state, lesson_content_zipfile: file_upload} , session: valid_session
+        }.to change(ActiveStorage::Attachment, :count).by(1)
+        expect(LessonContent.last.lesson_content_zipfile).to be_attached
       end
     end
   end
