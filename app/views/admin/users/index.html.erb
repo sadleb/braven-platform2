@@ -22,7 +22,7 @@
           <tr>
             <td>
               <%= link_to admin_user_path user do %>
-                <%= user.name %>
+                <%= user.full_name %>
               <% end %>
               <% if user.admin? %>
                 <span class="badge badge-primary">Admin</span>

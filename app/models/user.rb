@@ -112,11 +112,6 @@ class User < ApplicationRecord
     end
   end
 
-  def name
-    "#{first_name} #{last_name}"
-  end
-
-
   private
   
   def attempt_admin_set
