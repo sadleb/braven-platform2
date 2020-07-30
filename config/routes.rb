@@ -77,6 +77,15 @@ Rails.application.routes.draw do
   get 'salesforce/sync_to_lms'
   post 'salesforce/sync_to_lms'
 
+  # Admin stuff
+  namespace :admin do
+    resources :users do
+      member do
+        post 'confirm' => 'users#confirm'
+      end
+    end
+  end
+
   # RubyCAS Routes
   resources :cas, except: [:show]
   get '/cas/login', to: 'cas#login'

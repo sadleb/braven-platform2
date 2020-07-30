@@ -43,6 +43,8 @@
     "@rails/webpacker": "^5.1.1",
     "babel-loader": "^8.1.0",
     "babel-plugin-transform-react-remove-prop-types": "^0.4.24",
+    "bootstrap": "4.5",
+    "bootswatch": "4.5",
     "css-loader": "^3.5.3",
     "file-loader": "^6.0.0",
     "postcss-loader": "3",
@@ -67,7 +69,9 @@
     "enzyme-adapter-react-16": "^1.15.1",
     "jest": "^26.0.1",
     "jest-enzyme": "^7.1.2",
+    "node-sass": "^4.14.1",
     "react-axe": "^3.3.0",
+    "sass-loader": "^9.0.2",
     "webpack-dev-server": "^3.11.0"
   },
   "scripts": {
