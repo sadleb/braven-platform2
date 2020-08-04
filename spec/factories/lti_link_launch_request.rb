@@ -41,7 +41,7 @@ FactoryBot.define do
 
     factory :lti_deep_link_launch_request, class: Hash do
       transient do
-        message_type { 'LtiDeepLinkRequest' }
+        message_type { 'LtiDeepLinkingRequest' }
       end
       before(:json) do |request_msg, evaluator|
         request_msg.merge!({
@@ -93,6 +93,8 @@ FactoryBot.define do
           'return_url' => 'https://some/path/on/the/platform/to/go/back/to/when/done',
           'locale' => 'en',
         },
+# TODO: make the values transiet variabes and set them in the appropriate launch message.
+# e.g. a LinkSelection launch won't have an assignment_id. It would be set to "$Canvas.assignment.id"
         'https://purl.imsglobal.org/spec/lti/claim/custom' => {
           'role' => 'DesignerEnrollment,Account Admin',
           'title' =>'CourseTitle',
@@ -108,7 +110,7 @@ FactoryBot.define do
           'section_ids' => '55',
           'account_name' => 'Manually-Created Courses',
           'browser_info' => 'iframe',
-          'assignment_id' => '$Canvas.assignment.id',
+          'assignment_id' => '55',
           'attachment_id' => '$Canvas.file.media.id',
           'submission_id' => '$com.instructure.Submission.id',
           'user_fullname' => 'Brian Nairb',

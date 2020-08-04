@@ -10,10 +10,11 @@ unless ENV['BZ_AUTH_SERVER'] # Only run these specs if on a server with local da
 RSpec.describe CourseContentsController, type: :feature do
   let!(:valid_user) { create(:admin_user) }
   let!(:assignment) { create(:course_content_assignment) }
+  let!(:lti_launch) { create(:lti_launch_resource_link) }
 
   describe "xAPI assignment" do
     describe "/course_contents/:id loads show page", :js do
-      let(:return_service) { "/course_contents/#{assignment.id}" }
+      let(:return_service) { "/course_contents/#{assignment.id}?state=#{lti_launch.state}" }
       before(:each) do
         VCR.configure do |c|
           c.ignore_localhost = true

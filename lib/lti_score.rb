@@ -23,6 +23,17 @@ class LtiScore
   include ActivityProgress
   include GradingProgress
 
+  # Generates an LtiScore that represents a new Project submission where
+  # a Teaching Assitant or other staff must grade the project.
+  def self.new_project_submission(canvas_user_id, submission_url)
+    submission_data = {
+      :new_submission => true,
+      :submission_type => 'basic_lti_launch',
+      :submission_data => submission_url
+    }
+    generate(canvas_user_id, SUBMITTED, PENDING_MANUAL, submission_data)
+  end
+
   # Params:
   # userId: The lti_user_id or the Canvas user_id
   # scoreGiven: The Current score received in the tool for this line item and user, scaled to
@@ -37,20 +48,17 @@ class LtiScore
   #                   Failed, and Pending will cause the scoreGiven to be ignored. FullyGraded
   #                   values will require no action. Possible values are NotReady, Failed, Pending,
   #                   PendingManual, FullyGraded
-  def self.generate(user_id, score_given, score_maximum, activity_progress = COMPLETED, grading_progress = FULLY_GRADED, comment = nil)
-    {
-      :userId => user_id,
-      :scoreGiven => score_given,
-      :scoreMaximum => score_maximum,
-      :comment => comment,
+  def self.generate(user_id, activity_progress = COMPLETED, grading_progress = FULLY_GRADED, submission = nil, score_given = nil, score_maximum = nil, comment = nil)
+    msg = {
+      :userId => user_id.to_s,
       :timestamp => DateTime.now,
       :activityProgress => activity_progress,
-      :gradingProgress => grading_progress 
-      # TODO: add the option to send a submmission type and the data for the submission.
-      # See the following key in the docs
-      # 'https://canvas.instructure.com/lti/submission' => {TODO}
-    }.to_json
+      :gradingProgress => grading_progress,
+    }
+    msg['https://canvas.instructure.com/lti/submission'] = submission if submission 
+    msg[:scoreGiven] = score_given if score_given
+    msg[:scoreMaximum] = score_maximum if score_maximum
+    msg[:comment] = comment if comment
+    msg.to_json
   end
-
-
 end

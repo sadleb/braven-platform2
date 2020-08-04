@@ -42,6 +42,18 @@ class LtiLaunch < ApplicationRecord
     @request_message ||= LtiIdToken.parse(id_token_payload)
   end
 
+  # Each lesson or project has a single activity ID that ties together all the xAPI statements
+  # for it. This returns that ID.
+  def activity_id
+    raise ArgumentError.new, 'Wrong LTI launch message type. Must be a launch of a ResourceLink.' unless request_message.is_a?(LtiResourceLinkRequestMessage) 
+
+    # Note:  request_message.resource_link['id'] is an LTI ID tied to this resource, but activity_id 
+    # can't be a GUID, it has to be a URI per the xAPI specs. That's the point of this.
+    aid = Integer(request_message.custom['assignment_id']) # raises ArgumentError if not an int
+    cid = Integer(request_message.custom['course_id'])    # ditto
+    "#{Rails.application.secrets.canvas_cloud_url}/courses/#{cid}/assignments/#{aid}"
+  end
+
   # Returns a unique identifier for us when issuing and JWT
   def braven_iss
     BRAVEN_ISS
