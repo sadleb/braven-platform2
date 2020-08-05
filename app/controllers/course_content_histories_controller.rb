@@ -39,8 +39,6 @@ class CourseContentHistoriesController < ApplicationController
   def create
     params.require([:state, :course_content_id]) 
 
-    # TODO: https://app.asana.com/0/1174274412967132/1187339372487665
-    # Use published version instead of latest
     submission_url = Addressable::URI.parse(course_content_course_content_history_url(
       @course_content,
       @course_content.last_version,
