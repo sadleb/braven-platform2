@@ -69,6 +69,9 @@ class LrsXapiProxy
           payload: request.method == 'PUT' ? data.to_json : {},
           headers: {
             authorization: authentication_header,
+            # Note: this version of Tincan.js uses 1.0.2. However Rise360 sends 1.0.1. This means we're
+            # fibbing and telling the LRS it's 1.0.2 when it may be a different version. There doesn't seem
+            # to be much of a difference though so if we run into an issue with version mismatches, we'll deal then.
             x_experience_api_version: XAPI_VERSION,
             params: params,
             content_type: ('application/json' if request.method == 'PUT' ),
