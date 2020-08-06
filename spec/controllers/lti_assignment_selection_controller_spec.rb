@@ -39,7 +39,7 @@ RSpec.describe LtiAssignmentSelectionController, type: :controller do
         expected_url = LtiDeepLinkingRequestMessage.new(lti_launch.id_token_payload).deep_link_return_url
 
         post :create, params: {state: state, assignment_id: assignment.id}, session: valid_session
-        expect(response.body).to match /<form action="#{expected_url}"/
+        expect(response.body).to match /<form action="#{Regexp.escape(expected_url)}"/
         expect(response.body).to match /<iframe src=".*\/#{assignment.id}"/
       end
     end

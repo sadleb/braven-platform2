@@ -24,7 +24,7 @@ RSpec.describe LtiHelper, type: :helper do
 
       deep_link_url, unencoded_payload = helper.lti_deep_link_response_message(lti_launch, content_items_url)
       # This /deep_links url comes from the factory.
-      expect(deep_link_url).to eq "https://platformweb/deep_links"
+      expect(deep_link_url).to eq lti_launch.request_message.deep_link_return_url
       expect(unencoded_payload["https://purl.imsglobal.org/spec/lti/claim/message_type"]).to eq "LtiDeepLinkingResponse"
       expect(unencoded_payload["https://purl.imsglobal.org/spec/lti-dl/claim/content_items"][0]["url"]).to eq content_items_url
     end
