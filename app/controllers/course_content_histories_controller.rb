@@ -17,6 +17,10 @@ class CourseContentHistoriesController < ApplicationController
   # GET /course_contents/:id/versions/1
   # GET /course_contents/:id/versions/1.json
   def show
+    unless params[:state].present?
+      @body_with_user_inputs = @course_content_history.body
+      return
+    end
     # This shows a project submission for this version of the course_contents, the one
     # associated with a project when inserted into Canvas through the LTI extension. It does this
     # by loading the HTML with user input fields (aka data-bz-retained) highlighted, disabled (readonly),
@@ -39,8 +43,6 @@ class CourseContentHistoriesController < ApplicationController
   def create
     params.require([:state, :course_content_id]) 
 
-    # TODO: https://app.asana.com/0/1174274412967132/1187339372487665
-    # Use published version instead of latest
     submission_url = Addressable::URI.parse(course_content_course_content_history_url(
       @course_content,
       @course_content.last_version,
@@ -57,5 +59,4 @@ class CourseContentHistoriesController < ApplicationController
     def set_course_content
       @course_content = CourseContent.find(params[:course_content_id])
     end
-
 end
