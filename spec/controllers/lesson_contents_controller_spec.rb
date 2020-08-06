@@ -74,7 +74,7 @@ RSpec.describe LessonContentsController, type: :controller do
         post :create, params: {state: state, lesson_content_zipfile: file_upload}, session: valid_session
 
         expected_url = LtiDeepLinkingRequestMessage.new(lti_launch.id_token_payload).deep_link_return_url
-        expect(response.body).to match /<form action="#{expected_url}"/
+        expect(response.body).to match /<form action="#{Regexp.escape(expected_url)}"/
 
         lesson_content_url = lesson_content_url(LessonContent.last)
         expect(response.body).to match /<iframe id="lesson-content-preview" src="#{lesson_content_url}"/
