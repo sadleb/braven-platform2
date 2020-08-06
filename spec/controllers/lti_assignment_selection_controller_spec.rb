@@ -18,7 +18,7 @@ RSpec.describe LtiAssignmentSelectionController, type: :controller do
 
   let(:state) { SecureRandom.uuid }
   let(:target_link_uri) { 'https://target/link' }
-  let(:lti_launch) { create(:lti_launch_deep_link, target_link_uri: target_link_uri, state: state) }
+  let(:lti_launch) { create(:lti_launch_assignment_selection, target_link_uri: target_link_uri, state: state) }
   let!(:assignment) { create(:course_content_assignment) }
 
   describe "GET #new" do

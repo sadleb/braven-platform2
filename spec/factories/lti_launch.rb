@@ -20,11 +20,11 @@ FactoryBot.define do
       nonce { SecureRandom.hex(10) }
       state { SecureRandom.uuid }
   
-      factory :lti_launch_resource_link do
+      factory :lti_launch_assignment do
         id_token_payload { JSON.parse FactoryBot.json(:lti_launch_assignment_message, canvas_user_id: canvas_user_id) }
       end 
 
-      factory :lti_launch_deep_link do
+      factory :lti_launch_assignment_selection do
         id_token_payload { JSON.parse FactoryBot.json(:lti_launch_assignment_selection_message, canvas_user_id: canvas_user_id) }
       end 
     end

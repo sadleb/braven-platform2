@@ -10,7 +10,7 @@ unless ENV['BZ_AUTH_SERVER'] # Only run these specs if on a server with local da
 RSpec.describe CourseContentsController, type: :feature do
   let!(:valid_user) { create(:admin_user) }
   let!(:assignment) { create(:course_content_assignment) }
-  let!(:lti_launch) { create(:lti_launch_resource_link) }
+  let!(:lti_launch) { create(:lti_launch_assignment) }
 
   describe "xAPI assignment" do
     describe "/course_contents/:id loads show page", :js do

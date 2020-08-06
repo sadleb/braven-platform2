@@ -13,9 +13,9 @@ require 'rails_helper'
 RSpec.describe LtiHelper, type: :helper do
   let(:state) { SecureRandom.uuid }
   let(:target_link_uri) { 'https://target/link' }
-  let(:lti_launch) { create(:lti_launch_deep_link, target_link_uri: target_link_uri, state: state) }
+  let(:lti_launch) { create(:lti_launch_assignment_selection, target_link_uri: target_link_uri, state: state) }
   let(:content_items_url) { 'https://deep/link' }
-  let(:expected_payload) { create(:lti_launch_deep_link).id_token_payload }
+  let(:expected_payload) { create(:lti_launch_assignment_selection).id_token_payload }
 
   describe "lti_deep_link_response_message" do
     it "returns the deep link url and a payload with an iframe" do

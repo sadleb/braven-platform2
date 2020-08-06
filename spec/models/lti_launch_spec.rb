@@ -50,7 +50,7 @@ RSpec.describe LtiLaunch, type: :model do
 
     describe '.current' do
       context 'when authenticated' do
-        let(:authenticated_launch) { create(:lti_launch_resource_link) }
+        let(:authenticated_launch) { create(:lti_launch_assignment) }
         it 'returns record' do
           expect(LtiLaunch.current(authenticated_launch.state)).to eq(authenticated_launch)
         end
@@ -65,7 +65,7 @@ RSpec.describe LtiLaunch, type: :model do
     end
 
     describe '#auth_params' do
-      let(:lti_launch) { create(:lti_launch_resource_link) }
+      let(:lti_launch) { create(:lti_launch_assignment) }
       let(:auth_params) { lti_launch.auth_params }
 
       it 'sets the client_id' do

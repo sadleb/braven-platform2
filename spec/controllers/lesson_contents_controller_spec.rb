@@ -49,7 +49,7 @@ RSpec.describe LessonContentsController, type: :controller do
 
   describe "POST #create" do
     let(:file_upload) { fixture_file_upload(Rails.root.join('spec/fixtures', 'example_rise360_package.zip'), 'application/zip') }
-    let!(:lti_launch) { create(:lti_launch_deep_link, target_link_uri: 'https://target/link', state: state) }
+    let!(:lti_launch) { create(:lti_launch_assignment_selection, target_link_uri: 'https://target/link', state: state) }
 
     context "with invalid params" do
       it "raises an error when state param is missing" do
