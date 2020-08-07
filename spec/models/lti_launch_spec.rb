@@ -64,6 +64,19 @@ RSpec.describe LtiLaunch, type: :model do
       end
     end
 
+    describe '#activity_id' do
+      let(:assignment_launch) { create(:lti_launch_assignment, assignment_id: 12345, course_id: 123) }
+      let(:assignment_selection_launch) { create(:lti_launch_assignment_selection) }
+
+      it 'returns the correct Canvas assignment URL' do
+        expect(assignment_launch.activity_id).to eq("#{Rails.application.secrets.canvas_cloud_url}/courses/123/assignments/12345")
+      end
+
+      it 'throws exception on incorrect message type' do
+        expect{ assignment_selection_launch.activity_id }.to raise_error(ArgumentError)
+      end
+    end
+
     describe '#auth_params' do
       let(:lti_launch) { create(:lti_launch_assignment) }
       let(:auth_params) { lti_launch.auth_params }

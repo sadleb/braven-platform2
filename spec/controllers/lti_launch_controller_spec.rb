@@ -25,7 +25,7 @@ RSpec.describe LtiLaunchController, type: :controller do
   describe 'POST #launch' do
     let(:canvas_user_id) { 12345 }
     let!(:target_link_uri) { 'https://target/link' }
-    let!(:lti_launch) { create(:lti_launch_model, target_link_uri: target_link_uri, state: state, canvas_user_id: canvas_user_id) }
+    let!(:lti_launch) { create(:lti_launch_canvas, target_link_uri: target_link_uri, state: state, canvas_user_id: canvas_user_id) }
     let!(:id_token_payload) { FactoryBot.json(:lti_launch_assignment_message, target_link_uri: target_link_uri, canvas_user_id: canvas_user_id) }
     let!(:id_token) { Keypair.jwt_encode(JSON.parse(id_token_payload, symbolize_names: true)) }
     let!(:lti_launch_params) { { :id_token => id_token, :state => state } }
