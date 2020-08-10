@@ -9,12 +9,12 @@ unless ENV['BZ_AUTH_SERVER'] # Only run these specs if on a server with local da
 
 RSpec.describe CourseContentsController, type: :feature do
   let!(:valid_user) { create(:admin_user) }
-  let!(:assignment) { create(:course_content_assignment) }
+  let!(:project) { create(:course_content_assignment) }
   let!(:lti_launch) { create(:lti_launch_assignment) }
 
-  describe "xAPI assignment" do
+  describe "xAPI project" do
     describe "/course_contents/:id loads show page", :js do
-      let(:return_service) { "/course_contents/#{assignment.id}?state=#{lti_launch.state}" }
+      let(:return_service) { "/course_contents/#{project.id}?state=#{lti_launch.state}" }
       before(:each) do
         VCR.configure do |c|
           c.ignore_localhost = true
@@ -36,7 +36,7 @@ RSpec.describe CourseContentsController, type: :feature do
       end
 
       context "when username and password are valid" do
-        it "shows the assignment" do
+        it "shows the project" do
           # Do some basic tests first to give a little more granularity if this fails.
           expect(current_url).to include(return_service)
           expect(page).to have_title("Content Editor")

@@ -25,29 +25,29 @@ require 'rails_helper'
 
 RSpec.describe CourseContentHistoriesController, type: :controller do
   render_views
-  let(:user) { create :admin_user }
+  let(:user) { create :fellow_user, admin: true } # TODO: there is a bug where the user has to be an admin to not get redirected to the Portal. Remove admin when fixed.
 
   let(:course_content) { create(:course_content) }
   let(:course_content_history) { create(:course_content_history, attributes) }
   let(:attributes) { valid_attributes }
   let(:valid_attributes) { attributes_for(:course_content_history).merge(course_content_id: course_content.id) }
-
   let(:valid_session) { {} }
   let(:state) { SecureRandom.uuid }
+
   before do
     sign_in user
   end
 
-  describe "GET #index" do
-    it "returns a success response" do
+  describe 'GET #index' do
+    it 'returns a success response' do
       get :index, params: {course_content_id: course_content.id}, session: valid_session
       expect(response).to be_successful
     end
   end
 
-  describe "GET #show" do
-    let(:lti_launch) { create(:lti_launch_model) }
-    it "returns a success response" do
+  describe 'GET #show' do
+    let(:lti_launch) { create(:lti_launch_assignment) }
+    it 'returns a success response' do
       allow(LtiLaunch).to receive(:current).and_return(lti_launch)
       allow(lti_launch).to receive(:activity_id).and_return('some_activity_id')
       allow(Xapi).to receive(:get_statements_by_query).and_return({response: {}})
@@ -62,6 +62,23 @@ RSpec.describe CourseContentHistoriesController, type: :controller do
         session: valid_session,
       )
       expect(response).to be_successful
+    end
+  end
+
+  describe 'POST #create' do
+    let(:lti_launch) { create(:lti_launch_assignment) }
+    it 'creates a submission' do
+      allow_any_instance_of(LtiAdvantageAPI).to receive(:get_access_token).and_return('oasjfoasjofdj')
+      submission_url = "#{course_content_course_content_history_url(course_content, course_content_history)}?student_id=#{user.id}"
+      stub_request(:post, "#{lti_launch.request_message.line_item_url}/scores").to_return(body: '{"fake" : "response"}')
+
+      post :create, params: {course_content_id: course_content.id, state: lti_launch.state}, session: valid_session
+
+      expect(WebMock).to have_requested(:post, "#{lti_launch.request_message.line_item_url}/scores").with { |req|
+        body = JSON.parse(req.body)
+        body['userId'].to_i == user.canvas_id.to_i && \
+        body['https://canvas.instructure.com/lti/submission']['submission_data'] == submission_url
+      }.once
     end
   end
 end

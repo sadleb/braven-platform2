@@ -38,10 +38,16 @@ RSpec.describe LtiAssignmentSelectionController, type: :controller do
       it "shows the confirmation form and preview iframe" do
         expected_url = LtiDeepLinkingRequestMessage.new(lti_launch.id_token_payload).deep_link_return_url
 
-        post :create, params: {state: state, assignment_id: assignment.id}, session: valid_session
+        post :create, params: {state: lti_launch.state, assignment_id: assignment.id}, session: valid_session
         expect(response.body).to match /<form action="#{Regexp.escape(expected_url)}"/
         expect(response.body).to match /<iframe src=".*\/#{assignment.id}"/
       end
+
+      it 'saves a new version of the project' do
+        expect { post :create, params: {state: lti_launch.state, assignment_id: assignment.id}, session: valid_session }.to change {CourseContentHistory.count}.by(1)
+        expect(assignment.body).to eq(CourseContentHistory.last.body)
+      end
+
     end
 
     context "with invalid params" do
