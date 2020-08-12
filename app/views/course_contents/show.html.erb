@@ -8,5 +8,5 @@
   <% end %>
 </div>
 
-<%= content_tag :div, '', id: "javascript_variables", data: {project_lti_id: @project_lti_id} %>
+<%= content_tag :div, '', id: "javascript_variables", data: {project_lti_id: @project_lti_id, lti_auth_state: @lti_auth_state} %>
 <%= javascript_pack_tag 'xapi_assignment' %>

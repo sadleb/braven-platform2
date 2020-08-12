@@ -16,6 +16,7 @@ class CourseContentsController < ApplicationController
     # talk to the LRS in preview mode. See the iframe here for preview mode: app/views/lti_assignment_selection/create.html.erb 
     # Task: https://app.asana.com/0/1174274412967132/1187445581799823
     if params[:state]
+      @lti_auth_state = params[:state]
       @project_lti_id = LtiLaunch.current(params[:state]).activity_id
     end
   end

@@ -8,34 +8,39 @@ include Rack::Utils
 unless ENV['BZ_AUTH_SERVER'] # Only run these specs if on a server with local database authentication enabled
 
 RSpec.describe CourseContentsController, type: :feature do
-  let!(:valid_user) { create(:admin_user) }
   let!(:project) { create(:course_content_assignment) }
-  let!(:lti_launch) { create(:lti_launch_assignment) }
 
-  describe "xAPI project" do
-    describe "/course_contents/:id loads show page", :js do
-      let(:return_service) { "/course_contents/#{project.id}?state=#{lti_launch.state}" }
-      before(:each) do
-        VCR.configure do |c|
-          c.ignore_localhost = true
-          # Must ignore the Capybara host IFF we are running tests that have browser AJAX requests to that host.
-          c.ignore_hosts Capybara.server_host
+  before(:each) do
+    VCR.configure do |c|
+      c.ignore_localhost = true
+      # Must ignore the Capybara host IFF we are running tests that have browser AJAX requests to that host.
+      c.ignore_hosts Capybara.server_host
+    end
+  end
+
+  after(:each) do
+    # Print JS console errors, just in case we need them.
+    # From https://stackoverflow.com/a/36774327/12432170.
+    errors = page.driver.browser.manage.logs.get(:browser)
+    if errors.present?
+      message = errors.map(&:message).join("\n")
+      puts message
+    end
+  end
+
+  describe "xAPI project", :js do
+    describe "/course_contents/:id" do
+
+      context "when valid LtiLaunch" do
+        let!(:valid_user) { create(:fellow_user, admin: true) } # TODO: there is a bug where non-admin users redirect to Portal. Remove the admin: true when that's fixed.
+        let!(:lti_launch) { create(:lti_launch_assignment, canvas_user_id: valid_user.canvas_id) }
+        let(:return_service) { "/course_contents/#{project.id}?state=#{lti_launch.state}" }
+
+        before(:each) do
+          # Note that no login happens. The LtiAuthentication::WardenStrategy uses the lti_launch.state to authenticate.
+          visit return_service
         end
-        visit return_service
-        fill_and_submit_login(valid_user.email, valid_user.password)
-      end
 
-      after(:each) do
-        # Print JS console errors, just in case we need them.
-        # From https://stackoverflow.com/a/36774327/12432170.
-        errors = page.driver.browser.manage.logs.get(:browser)
-        if errors.present?
-          message = errors.map(&:message).join("\n")
-          puts message
-        end
-      end
-
-      context "when username and password are valid" do
         it "shows the project" do
           # Do some basic tests first to give a little more granularity if this fails.
           expect(current_url).to include(return_service)
@@ -76,6 +81,26 @@ RSpec.describe CourseContentsController, type: :feature do
           end
         end
       end
+
+      # Note: these return a 500 error, but we can't check the response code with the Selenium driver
+      # so we rely on the page title instead. 
+      context "when LtiLaunch isn't found" do
+        it "doesnt show the project" do
+          page.config.raise_server_errors = false # Let the errors get converted into the actual server response so we can test that.
+          visit "/course_contents/#{project.id}?state=invalidltilaunchstate"
+          expect(page).not_to have_title("Content Editor")
+        end
+      end
+
+      context "when user isn't found" do
+        it "doesnt show the project" do
+          page.config.raise_server_errors = false # Let the errors get converted into the actual server response so we can test that.
+          lti_launch = create(:lti_launch_assignment, canvas_user_id: '987654321')
+          visit "/course_contents/#{project.id}?state=#{lti_launch.state}"
+          expect(page).not_to have_title("Content Editor")
+        end
+      end
+
     end
   end
 end

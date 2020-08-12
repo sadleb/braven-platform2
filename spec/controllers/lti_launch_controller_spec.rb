@@ -1,13 +1,13 @@
 require 'rails_helper'
 
 RSpec.describe LtiLaunchController, type: :controller do
-  let(:state) { SecureRandom.uuid }
+  let(:state) { LtiLaunchController.generate_state }
 
   describe 'POST #login' do
     let(:lti_launch_params) { build(:lti_launch_login_params) }
 
     before(:each) do
-      allow(SecureRandom).to receive(:uuid).and_return(state)
+      allow(LtiLaunchController).to receive(:generate_state).and_return(state)
       post :login, params: lti_launch_params
     end
 

@@ -5,10 +5,10 @@ var lrs;
 
 try {
     lrs = new tincan.LRS({
-        // Note: We overwrite this auth server-side.
         endpoint: `${window.location.origin}/data/xAPI`,
-        username: "JS_USERNAME_REPLACE",
-        password: "JS_PASSWORD_REPLACE",
+        // Note: this is the authorization to hit the platform server. It doesn't use this when connecting
+        // to the LRS. The LRS authorization header is set by the LrsXapiProxy.
+        auth: 'LtiState '+ document.getElementById('javascript_variables').attributes['data-lti-auth-state'].value, 
         allowFail: false
     });
 } catch (e) {

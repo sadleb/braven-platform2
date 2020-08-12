@@ -32,7 +32,7 @@ RSpec.describe CourseContentHistoriesController, type: :controller do
   let(:attributes) { valid_attributes }
   let(:valid_attributes) { attributes_for(:course_content_history).merge(course_content_id: course_content.id) }
   let(:valid_session) { {} }
-  let(:state) { SecureRandom.uuid }
+  let(:state) { LtiLaunchController.generate_state }
 
   before do
     sign_in user

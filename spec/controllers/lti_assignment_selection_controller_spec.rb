@@ -16,7 +16,7 @@ RSpec.describe LtiAssignmentSelectionController, type: :controller do
   # LtiAssignmentSelectionController. Be sure to keep this updated too.
   let(:valid_session) { {} } # TODO: remove this once we don't require a valid session for the logged in user.
 
-  let(:state) { SecureRandom.uuid }
+  let(:state) { LtiLaunchController.generate_state }
   let(:target_link_uri) { 'https://target/link' }
   let(:lti_launch) { create(:lti_launch_assignment_selection, target_link_uri: target_link_uri, state: state) }
   let!(:assignment) { create(:course_content_assignment) }

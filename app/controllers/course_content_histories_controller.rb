@@ -7,6 +7,9 @@ class CourseContentHistoriesController < ApplicationController
   nested_resource_of CourseContent
   layout 'content_editor'
 
+  # TODO: Only for sessionless launches: https://app.asana.com/0/1174274412967132/1188539121871585
+  skip_before_action :verify_authenticity_token, only: [:create] 
+
   before_action :set_course_content, only: [:index, :show, :create]
 
   # GET /course_contents/:id/versions
@@ -35,6 +38,7 @@ class CourseContentHistoriesController < ApplicationController
     # Must be the student themselves or a TA or staff who has access. Need to use Canvas roles to check.
     # Task: https://app.asana.com/0/1174274412967132/1185569091008475    
     launch = LtiLaunch.current(params[:state])
+    @lti_auth_state =launch.state
     @project_lti_id = launch.activity_id
     @body_with_user_inputs = helpers.project_submission_html_for(@project_lti_id, @course_content_history.body, User.find(params[:student_id]))
   end

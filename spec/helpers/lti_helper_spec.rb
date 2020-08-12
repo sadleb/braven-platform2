@@ -11,7 +11,7 @@ require 'rails_helper'
 #   end
 # end
 RSpec.describe LtiHelper, type: :helper do
-  let(:state) { SecureRandom.uuid }
+  let(:state) { LtiLaunchController.generate_state }
   let(:target_link_uri) { 'https://target/link' }
   let(:lti_launch) { create(:lti_launch_assignment_selection, target_link_uri: target_link_uri, state: state) }
   let(:content_items_url) { 'https://deep/link' }

@@ -13,7 +13,7 @@ RSpec.describe LessonContentsController, type: :controller do
 
   # TODO: https://app.asana.com/0/1174274412967132/1184057808812010
   let(:valid_session) { {} } 
-  let(:state) { SecureRandom.uuid }
+  let(:state) { LtiLaunchController.generate_state }
 
   describe "GET #new" do
     it "returns a success response" do
