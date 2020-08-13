@@ -20,10 +20,6 @@ class CourseContentHistoriesController < ApplicationController
   # GET /course_contents/:id/versions/1
   # GET /course_contents/:id/versions/1.json
   def show
-    unless params[:state].present?
-      @body_with_user_inputs = @course_content_history.body
-      return
-    end
     # This shows a project submission for this version of the course_contents, the one
     # associated with a project when inserted into Canvas through the LTI extension. It does this
     # by loading the HTML with user input fields (aka data-bz-retained) highlighted, disabled (readonly),
@@ -32,15 +28,15 @@ class CourseContentHistoriesController < ApplicationController
     # TODO: Long term, a project will use the Project model and store the snapshot of the html there or maybe have a ProjectContent
     # model to hold it. But in order to get a demo going and not deal with the complexity of filling out the whole course/org/role/project/project_submission
     # data model, we're just doing the dumb thing for now. These histories aren't currently used by any end-user.
-    params.require([:student_id, :course_content_id, :state])
+    params.require([:user_id, :course_content_id, :state])
 
-    # TODO: make sure the currently logged in user has access to view the submission for this student_id.
+    # TODO: make sure the currently logged in user has access to view the submission for this user_id.
     # Must be the student themselves or a TA or staff who has access. Need to use Canvas roles to check.
     # Task: https://app.asana.com/0/1174274412967132/1185569091008475    
+    @user = User.find(params[:user_id])
     launch = LtiLaunch.current(params[:state])
     @lti_auth_state =launch.state
     @project_lti_id = launch.activity_id
-    @body_with_user_inputs = helpers.project_submission_html_for(@project_lti_id, @course_content_history.body, User.find(params[:student_id]))
   end
 
   # TODO: https://app.asana.com/0/1174274412967132/1186960110311121
@@ -51,7 +47,7 @@ class CourseContentHistoriesController < ApplicationController
       @course_content,
       @course_content.last_version,
     ))
-    submission_url.query = { student_id: current_user.id }.to_query
+    submission_url.query = { user_id: current_user.id }.to_query
 
     lti_launch = LtiLaunch.current(params[:state])
     lti_score = LtiScore.new_project_submission(current_user.canvas_id, submission_url.to_s)

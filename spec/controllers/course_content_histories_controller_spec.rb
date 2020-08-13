@@ -50,13 +50,12 @@ RSpec.describe CourseContentHistoriesController, type: :controller do
     it 'returns a success response' do
       allow(LtiLaunch).to receive(:current).and_return(lti_launch)
       allow(lti_launch).to receive(:activity_id).and_return('some_activity_id')
-      allow(Xapi).to receive(:get_statements_by_query).and_return({response: {}})
       get(
         :show, 
         params: {
           course_content_id: course_content.id, 
           id: course_content_history.id, 
-          student_id: user.id,
+          user_id: user.id,
           state: lti_launch.state,
         },
         session: valid_session,
@@ -69,7 +68,7 @@ RSpec.describe CourseContentHistoriesController, type: :controller do
     let(:lti_launch) { create(:lti_launch_assignment) }
     it 'creates a submission' do
       allow_any_instance_of(LtiAdvantageAPI).to receive(:get_access_token).and_return('oasjfoasjofdj')
-      submission_url = "#{course_content_course_content_history_url(course_content, course_content_history)}?student_id=#{user.id}"
+      submission_url = "#{course_content_course_content_history_url(course_content, course_content_history)}?user_id=#{user.id}"
       stub_request(:post, "#{lti_launch.request_message.line_item_url}/scores").to_return(body: '{"fake" : "response"}')
 
       post :create, params: {course_content_id: course_content.id, state: lti_launch.state}, session: valid_session

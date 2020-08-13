@@ -191,7 +191,6 @@ RSpec.describe LrsXapiProxy do
       end
     end
 
-
     context 'when the upstream returns a 404' do
       let(:query_parameters) {{ }}
       let(:request_parameters) {{ }}
@@ -220,6 +219,21 @@ RSpec.describe LrsXapiProxy do
         expect {
           response = LrsXapiProxy.request(request, path, user)
         }.to raise_error(RestClient::BadRequest)
+      end
+    end
+
+    context 'with a user_override param' do
+      let(:other_user) { create(:registered_user) }
+      let(:query_parameters) {{
+        'statementId': 'test',
+        'user_override': other_user.id,
+      }}
+      let(:request_parameters) {{ }}
+      let(:method) { 'GET' }
+
+      it 'excludes the user_override param' do
+        expect(WebMock).to have_requested(:get, url)
+          .with(query: {'statementId': 'test'}).once
       end
     end
   end

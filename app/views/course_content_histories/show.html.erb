@@ -1,3 +1,9 @@
 <div class="bz-assignment">
-  <%== @body_with_user_inputs %>
+  <%== @course_content_history.body %>
 </div>
+
+<%= content_tag :div, '', id: "javascript_variables", data: {
+  user_id: @user.id,
+  lti_auth_state: @lti_auth_state,
+  project_lti_id: @project_lti_id } %>
+<%= javascript_pack_tag 'xapi_assignment' %>

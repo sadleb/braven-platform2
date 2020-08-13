@@ -15,6 +15,8 @@ RSpec.describe CourseContentsController, type: :feature do
       c.ignore_localhost = true
       # Must ignore the Capybara host IFF we are running tests that have browser AJAX requests to that host.
       c.ignore_hosts Capybara.server_host
+      # Need this to pass :vcr option to describe blocks.
+      c.configure_rspec_metadata!
     end
   end
 
@@ -29,7 +31,8 @@ RSpec.describe CourseContentsController, type: :feature do
   end
 
   describe "xAPI project", :js do
-    describe "/course_contents/:id" do
+    vcr_options = { :cassette_name => "lrs_xapi_proxy_load", :match_requests_on => [:path, :method] }
+    describe "/course_contents/:id", :vcr => vcr_options do
 
       context "when valid LtiLaunch" do
         let!(:valid_user) { create(:fellow_user, admin: true) } # TODO: there is a bug where non-admin users redirect to Portal. Remove the admin: true when that's fixed.
@@ -48,6 +51,26 @@ RSpec.describe CourseContentsController, type: :feature do
           expect(page).to have_content("Based on these responses,")
         end
 
+       # TODO: this test is broken on the final line.
+       #it "fetches data from the lrs" do
+       #  question_id = "h2c2-0600-next-steps"
+       #  unique_string = SecureRandom.uuid
+       #  lrs_variables = {
+       #    response: unique_string,
+       #    lrs_url: Rails.application.secrets.lrs_url,
+       #    name: question_id,
+       #    id: 'test',
+       #  }
+
+       #  VCR.use_cassette('lrs_xapi_proxy_load_previous', :match_requests_on => [:path, :method], :erb => lrs_variables) do
+       #    visit return_service
+       #    expect(page).to have_selector("[data-bz-retained=\"#{question_id}\"]")
+       #    puts find_field('test-question-id').value
+       #    expect(page).to have_field('test-question-id')
+       #    expect(page).to have_field('test-question-id', with: unique_string)
+       #  end
+       #end
+
         it "sends data to the LRS" do
           # Answer a question.
           unique_string = SecureRandom.uuid
@@ -56,7 +79,7 @@ RSpec.describe CourseContentsController, type: :feature do
             lrs_url: Rails.application.secrets.lrs_url
           }
 
-          VCR.use_cassette('lrs_xapi_proxy_send', :match_requests_on => [:path, :method], :erb => lrs_variables) do
+          VCR.use_cassette('lrs_xapi_proxy_load_send', :match_requests_on => [:path, :method]) do
             find("textarea").fill_in with: unique_string
             # The xAPI code runs on blur, so click off the textarea.
             find("p").click
