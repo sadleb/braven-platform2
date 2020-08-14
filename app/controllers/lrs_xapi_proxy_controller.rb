@@ -15,7 +15,13 @@ class LrsXapiProxyController < ApplicationController
     # want to be querying the LRS as the Student.
     user = params[:user_override] ? User.find(params[:user_override]) : current_user
     response = LrsXapiProxy.request(request, request.params['endpoint'], user)
-
-    render json: response.body, status: response.code
+    response_body = response.body
+    if response_body
+      content_type = response.headers[:content_type]
+      # Note: have to be explicit with the content type here b/c it may "look" like json (and is) sometimes but
+      # the Rise360 package PUT/GET's it as plain data and fails if we say it's json. I'm at a loss as to why.
+      render plain: response_body, status: response.code, content_type: content_type and return if content_type == LrsXapiProxy::OCTET_STREAM_MIME_TYPE
+      render json: response_body, status: response.code and return if content_type == LrsXapiProxy::JSON_MIME_TYPE
+    end
   end
 end
