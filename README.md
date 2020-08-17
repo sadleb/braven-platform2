@@ -228,6 +228,11 @@ Or only tests in a particular directory, like our feature tests which use Seleni
 
 You can also run a single spec ofc.
 
+JavaScript unit tests (using Jest) may not work inside your container. You can run them outside the container by first
+installing the JS dependencies locally with `yarn`, then running Jest with:
+
+    yarn test
+
 ### Static Code Analysis (aka linter)
 We use Codacy to run static code analysis. Everytime you push a branch to the repo it runs. 
 
