@@ -73,13 +73,8 @@ class LrsXapiProxy
         # so we're just using the content_type associated with the particular path / route that we're dealing with
         response.headers[:content_type] = content_type
         response
-      rescue RestClient::NotFound => e
+      rescue RestClient::NotFound => e # We expect Not Found at times and just want to return that. E.g. first launch of Rise360 lesson with no stateId
         e.response
-      rescue RestClient::Exception => e
-        span.add_field('error', e.message)
-        span.add_field('http_code', e.http_code)
-        span.add_field('http_body', e.http_body)
-        raise
       end
     end
   end
