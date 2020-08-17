@@ -1,6 +1,7 @@
 import tincan from 'tincanjs';
 
 const INPUT_ID_ATTR = 'data-bz-retained';
+const USER_OVERRIDE_ID_ATTR = 'data-user-override-id';
 
 export var lrs;
 
@@ -27,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputs = document.querySelectorAll('textarea,input[type="text"]');
     const javascript_variables = document.getElementById('javascript_variables').attributes;
 
-    const modifyInputElementForViewer = javascript_variables['data-user-id']
+    const modifyInputElementForViewer = javascript_variables[USER_OVERRIDE_ID_ATTR]
         // TA view
         ? function(input) {
             input.disabled = true;
@@ -152,14 +153,14 @@ function populatePreviousAnswers() {
     const project_lti_id = javascript_variables['data-project-lti-id'].value;
     const activity_id = project_lti_id; // e.g. https://braven.instructure.com/courses/48/assignments/158
 
-    if (javascript_variables['data-user-id']) {
+    if (javascript_variables[USER_OVERRIDE_ID_ATTR]) {
         // This is the TA view.
         // lrs.extended is an undocumented member variable that lets us pass in extra parameters to the LRS.
         // See http://rusticisoftware.github.io/TinCanJS/doc/api/latest/files/src_LRS.js.html#l270
         // We remove this param in our proxy before passing the request upstream.
         // By default, if data-student-id isn't set, we fall back to querying the current_user's statements.
         lrs.extended = {
-            'user_override': javascript_variables['data-user-id'].value
+            'user_override_id': javascript_variables[USER_OVERRIDE_ID_ATTR].value
         };
     }
 

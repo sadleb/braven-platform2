@@ -13,6 +13,25 @@ FactoryBot.define do
       }
     end
 
+    factory :course_content_assignment_with_versions do
+      content_type { "assignment" }
+      body {
+        "<p>Latest, saved but not published version content</p>"
+      }
+
+      transient do
+        versions_count { 1 }
+      end
+
+      after(:create) do |course_content, evaluator|
+        create_list(
+          :project_version,
+          evaluator.versions_count,
+          course_content: course_content,
+        )
+      end
+    end
+
     factory :course_content_module do
       content_type { "wiki_page" }
     end

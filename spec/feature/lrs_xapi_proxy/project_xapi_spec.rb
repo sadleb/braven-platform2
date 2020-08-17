@@ -7,8 +7,8 @@ include Rack::Utils
 
 unless ENV['BZ_AUTH_SERVER'] # Only run these specs if on a server with local database authentication enabled
 
-RSpec.describe CourseContentsController, type: :feature do
-  let!(:project) { create(:course_content_assignment) }
+RSpec.describe CourseContentHistoriesController, type: :feature do
+  let!(:project) { create(:course_content_assignment_with_versions) }
 
   before(:each) do
     VCR.configure do |c|
@@ -37,7 +37,11 @@ RSpec.describe CourseContentsController, type: :feature do
       context "when valid LtiLaunch" do
         let!(:valid_user) { create(:fellow_user, admin: true) } # TODO: there is a bug where non-admin users redirect to Portal. Remove the admin: true when that's fixed.
         let!(:lti_launch) { create(:lti_launch_assignment, canvas_user_id: valid_user.canvas_id) }
-        let(:return_service) { "/course_contents/#{project.id}?state=#{lti_launch.state}" }
+        let(:return_service) {
+          "/course_contents/#{project.id}"\
+          "/versions/#{project.last_version.id}"\
+          "?state=#{lti_launch.state}"
+        }
 
         before(:each) do
           # Note that no login happens. The LtiAuthentication::WardenStrategy uses the lti_launch.state to authenticate.
@@ -108,9 +112,14 @@ RSpec.describe CourseContentsController, type: :feature do
       # Note: these return a 500 error, but we can't check the response code with the Selenium driver
       # so we rely on the page title instead. 
       context "when LtiLaunch isn't found" do
+        let(:return_service) {
+          "/course_contents/#{project.id}"\
+          "/versions/#{project.last_version.id}"\
+          "?state=invalidltilaunchstate"
+        }
         it "doesnt show the project" do
           page.config.raise_server_errors = false # Let the errors get converted into the actual server response so we can test that.
-          visit "/course_contents/#{project.id}?state=invalidltilaunchstate"
+          visit return_service
           expect(page).not_to have_title("Content Editor")
         end
       end
@@ -118,8 +127,14 @@ RSpec.describe CourseContentsController, type: :feature do
       context "when user isn't found" do
         it "doesnt show the project" do
           page.config.raise_server_errors = false # Let the errors get converted into the actual server response so we can test that.
-          lti_launch = create(:lti_launch_assignment, canvas_user_id: '987654321')
-          visit "/course_contents/#{project.id}?state=#{lti_launch.state}"
+          lti_launch = create(
+            :lti_launch_assignment,
+            canvas_user_id: '987654321',
+          )
+          url = "/course_contents/#{project.id}"\
+            "/versions/#{project.last_version.id}"\
+            "?state=#{lti_launch.state}"
+          visit url
           expect(page).not_to have_title("Content Editor")
         end
       end

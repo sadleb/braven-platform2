@@ -13,7 +13,7 @@ class LrsXapiProxyController < ApplicationController
     # A user_override is used when say a Teaching Assistant is viewing a project
     # submission for a Student/Fellow. The current_user would be the TA but we really
     # want to be querying the LRS as the Student.
-    user = params[:user_override] ? User.find(params[:user_override]) : current_user
+    user = params[:user_override_id] ? User.find(params[:user_override_id]) : current_user
     response = LrsXapiProxy.request(request, request.params['endpoint'], user)
     response_body = response.body
     if response_body

@@ -39,7 +39,7 @@ class LrsXapiProxy
       # Note: the user_override param is used by the controller to decide the
       # the effective user to query the LRS on behalf of. It's not meant to be passed through
       # in the xAPI request.
-      params = request.query_parameters.except(:user_override)
+      params = request.query_parameters.except(:user_override_id)
       params['agent'] = build_agent_hash(user).to_json if params['agent']
 
       # Rewrite body.

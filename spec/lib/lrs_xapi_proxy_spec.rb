@@ -97,7 +97,7 @@ RSpec.describe LrsXapiProxy do
         let(:other_user) { create(:registered_user) }
         let(:query_parameters) {{
           'some_param': 'test',
-          'user_override': other_user.id,
+          'user_override_id': other_user.id,
         }}
         let(:method) { 'GET' }
   
@@ -282,6 +282,7 @@ RSpec.describe LrsXapiProxy do
         it 'sets the request header' do
           expect(WebMock).to have_requested(:put, url).with(query: query_parameters, headers: {'Content-Type' => LrsXapiProxy::OCTET_STREAM_MIME_TYPE}).once
         end
+
 
         it 'passes the body' do
           expect(WebMock).to have_requested(:put, url).with(query: query_parameters, body: post_body).once

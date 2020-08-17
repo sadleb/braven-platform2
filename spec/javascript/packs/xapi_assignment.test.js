@@ -288,7 +288,7 @@ test('fetches more pages if needed', () => {
 test('inputs are set to read-only in TA view', () => {
     // Set up our document body for TA view.
     document.body.innerHTML =
-        '<div id="javascript_variables" data-project-lti-id="1" data-user-id="10" data-lti-auth-state="test"></div>' +
+        '<div id="javascript_variables" data-project-lti-id="1" data-user-override-id="10" data-lti-auth-state="test"></div>' +
         '<input type="text" data-bz-retained="test-id">' +
         '<textarea data-bz-retained="test-id-2"></textarea>'
     // Note: this has side-effects, both from top-level code and from code run during in the
@@ -305,7 +305,7 @@ test('inputs are set to read-only in TA view', () => {
 test('uses the overridden student ID if it is passed in', () => {
     // Set up our document body for TA view.
     document.body.innerHTML =
-        '<div id="javascript_variables" data-project-lti-id="1" data-user-id="10" data-lti-auth-state="test"></div>' +
+        '<div id="javascript_variables" data-project-lti-id="1" data-user-override-id="10" data-lti-auth-state="test"></div>' +
         '<input type="text" data-bz-retained="test-id">' +
         '<textarea data-bz-retained="test-id-2"></textarea>'
     // Note: this has side-effects, both from top-level code and from code run during in the
@@ -315,6 +315,6 @@ test('uses the overridden student ID if it is passed in', () => {
     document.dispatchEvent(new Event('DOMContentLoaded'));
 
     // Test.
-    expect(document.body.querySelector('#javascript_variables').attributes['data-user-id'].value).toBe("10");
-    expect(xapi_assignment.lrs.extended).toStrictEqual({user_override: "10"});
+    expect(document.body.querySelector('#javascript_variables').attributes['data-user-override-id'].value).toBe("10");
+    expect(xapi_assignment.lrs.extended).toStrictEqual({user_override_id: "10"});
 });
