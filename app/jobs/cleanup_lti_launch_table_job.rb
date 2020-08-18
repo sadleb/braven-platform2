@@ -29,7 +29,7 @@ class CleanupLtiLaunchTableJob < ApplicationJob
       records_to_delete = LtiLaunch.where("updated_at < ?", cutoff_time) # Use updated_at so that continuing to interact with the launch extends it's validity.
       total_count = LtiLaunch.count
       count = records_to_delete.count
-      records_to_delete.delete_all
+      records_to_delete.delete_all if count > 0
       finish_msg = "#{count} out #{total_count} LtiLaunch records deleted. Done cleaning up old LtiLaunches"
       span.add_field('lti_launch_cleanup.finish_message', finish_msg)
       Rails.logger.info(finish_msg)
