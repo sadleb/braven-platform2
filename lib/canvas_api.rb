@@ -60,6 +60,22 @@ class CanvasAPI
     put("/courses/#{course_id}/pages/#{wiki_page_id}", body)
   end
 
+  # Batch updates grades for lessons using the Canvas Submissions API:
+  # https://canvas.instructure.com/doc/api/submissions.html#method.submissions_api.update
+  # grades_by_user_id: hash containing canvas_user_id => grade
+  def update_lesson_grades(course_id, assignment_id, grades_by_user_id)
+    body = grades_by_user_id.map { |canvas_user_id, grade|
+      [ "grade_data[#{canvas_user_id}][posted_grade]", grade.to_s]
+    }.to_h
+
+    response = post(
+      "/courses/#{course_id}/assignments/#{assignment_id}/submissions/update_grades",
+      body,
+    )
+
+    JSON.parse(response.body)
+  end
+
   def create_user(first_name, last_name, username, email, salesforce_id, student_id, timezone, docusign_template_id=nil)
     body = {
         'user[name]' => "#{first_name} #{last_name}",
