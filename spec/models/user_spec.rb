@@ -50,7 +50,7 @@ RSpec.describe User, type: :model do
       end
     end
 
-    context "when salesforce_id is set" do
+    xcontext "when salesforce_id is set" do
       it 'email and name are fetched from the salesforce_api and set' do
         allow(canvas_api_client).to receive(:find_user_in_canvas).and_return(canvas_user)
         allow(sf_api_client).to receive(:set_canvas_id).and_return(nil)
@@ -76,7 +76,7 @@ RSpec.describe User, type: :model do
       end   
     end
 
-    context 'when canvas user exists' do
+    xcontext 'when canvas user exists' do
       let(:participants) { build_list(:salesforce_participant_fellow, 1, Email: sf_contact['Email']) }
       let(:sf_program) { build(:salesforce_program_record) }
       let(:section) { build(:canvas_section) }
@@ -97,7 +97,7 @@ RSpec.describe User, type: :model do
       end
     end
 
-    context 'when canvas user doesnt exist' do
+    xcontext 'when canvas user doesnt exist' do
       let(:participants) { build_list(:salesforce_participant_fellow, 1, Email: sf_contact['Email']) }
       let(:sf_program) { build(:salesforce_program_record) }
       let(:section) { build(:canvas_section) }
