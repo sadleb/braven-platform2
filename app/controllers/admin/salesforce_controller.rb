@@ -1,7 +1,11 @@
 # frozen_string_literal: true
 
 # Salesforce controller
-class SalesforceController < ApplicationController
+class Admin::SalesforceController < ApplicationController
+  layout 'admin'
+
+  def init_sync_to_lms; end
+
   def sync_to_lms
     # TODO: this is a complete hack just to get a prototype going. When we implement this for real,
     # it should be an API that Salesforce can call into (and we need some sort of auth / protection).
@@ -12,11 +16,7 @@ class SalesforceController < ApplicationController
     # Send an email?
     program_id = params[:program_id]
     email = params[:email]
-    if program_id && email
-      SalesforceProgramToLmsSyncJob.perform_later(program_id, email)
-      @user_notification = "Sync To LMS has been submitted for program #{program_id}, #{email} will be notified"
-    else
-      @user_notification = 'Please enter the Program ID to sync below and hit Enter'
-    end
+    SalesforceProgramToLmsSyncJob.perform_later(program_id, email)
+    redirect_to root_path, notice: 'The sync process was started. Watch out for an email'
   end
 end
