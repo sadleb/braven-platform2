@@ -5,7 +5,7 @@ class SalesforceProgramToLmsSyncJob < ApplicationJob
   queue_as :default
 
   def perform(program_id, email)
-    ProgramPortalEnrollments.new(program_id: program_id).run
+    ProgramPortalEnrollments.new(salesforce_program_id: program_id).run
     SalesforceToLmsSyncMailer.with(email: email).success_email.deliver_now
   end
 

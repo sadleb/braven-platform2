@@ -159,6 +159,19 @@ class SalesforceAPI
     SFContact.new(contact['Id'], contact['Email'], contact['FirstName'], contact['LastName'])
   end
 
+  def find_participants_by(program_id:)
+    participants = get_participants(program_id)
+
+    particpants.map do |participant|
+      SFParticipant.new(participant['FirstName'], participant['LastName'],
+                      participant['Email'], participant['Role'].to_sym,
+                      participant['ProgramId'], participant['ContactId'],
+                      participant['ParticipantStatus'], participant['StudentId'],
+                      participant['CohortName'], participant['CohortScheduleDayTime'])
+    end
+  end
+
+
   def find_participant(contact_id:)
     participants = get_participants(nil, contact_id)
     raise ParticipantNotOnSalesForceError, "Contact ID #{contact_id}" if participants.empty?
