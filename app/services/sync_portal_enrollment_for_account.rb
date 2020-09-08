@@ -41,6 +41,9 @@ class SyncPortalEnrollmentForAccount
   end
 
   def course_section_name
+    # We want either SJSU Brian (Tues) or Monday, 7:00
+    # This first is the cohort while the later is the cohort schedule
+    # PS We usually set cohort schedules before cohorts in SF
     sf_participant.cohort || sf_participant.cohort_schedule
   end
 
