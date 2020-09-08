@@ -30,7 +30,8 @@ class SalesforceAPI
   ParticipantNotOnSalesforceError = Class.new(StandardError)
   ProgramNotOnSalesforceError = Class.new(StandardError)
 
-  @client = nil
+  # TODO: Figure out how to make this work with a single instance
+  # @client = nil
 
   # Use this to get an authenticated instance of the API client
   def self.client
