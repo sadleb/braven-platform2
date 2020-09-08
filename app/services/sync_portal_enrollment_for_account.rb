@@ -59,7 +59,8 @@ class SyncPortalEnrollmentForAccount
   end
 
   def complete_enrollment!
-    # NOOP Maybe log info
+    # NOOP
+    # We haven't figured out this yet
   end
 
   def drop_course_enrollment(course_id)
