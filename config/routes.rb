@@ -73,10 +73,6 @@ Rails.application.routes.draw do
 
   root to: "home#welcome"
 
-  # Salesforce Routes
-  get 'salesforce/sync_to_lms'
-  post 'salesforce/sync_to_lms'
-
   # Admin stuff
   namespace :admin do
     resources :users do
@@ -84,6 +80,9 @@ Rails.application.routes.draw do
         post 'confirm' => 'users#confirm'
       end
     end
+    # Sync to LMS
+    post 'sync_to_lms', to: 'salesforce#sync_to_lms'
+    get 'sync_to_lms', to: 'salesforce#init_sync_to_lms'
   end
 
   # RubyCAS Routes
