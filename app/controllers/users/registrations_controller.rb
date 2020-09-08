@@ -8,27 +8,23 @@ class Users::RegistrationsController < Devise::RegistrationsController
   # GET /resource
   def show
     # Show the thank you for registering page.
-    self.resource = find_user_by_salesforce_params
+    self.resource = find_user_by_salesforce_id
   end
 
   # GET /resource/sign_up
   def new
     super do
-      return render :bad_link unless salesforce_params
+      return render :bad_link unless salesforce_id
 
-      if find_user_by_salesforce_params.present?
-        return render :already_exists
-      end
+      return render :already_exists if find_user_by_salesforce_id.present?
     end
   end
 
   # POST /resource
   def create
-    # Testing
-    user = AccountCreation.new(sign_up_params: sign_up_params).run
-    if user.persisted?
-      redirect_to action: :show
-    end
+    AccountCreator.new(sign_up_params: sign_up_params).run
+
+    redirect_to action: :show
   end
 
   # GET /resource/edit
@@ -57,12 +53,12 @@ class Users::RegistrationsController < Devise::RegistrationsController
   #
   private
 
-  def salesforce_params
+  def salesforce_id
     params[:u]
   end
 
-  def find_user_by_salesforce_params
-    User.find_by(salesforce_id: salesforce_params)
+  def find_user_by_salesforce_id
+    User.find_by(salesforce_id: salesforce_id)
   end
 
   protected

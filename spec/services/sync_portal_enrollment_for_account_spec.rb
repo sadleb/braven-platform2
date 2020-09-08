@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe PortalAccountEnrollment do
+RSpec.describe SyncPortalEnrollmentForAccount do
   describe '#run' do
     let(:portal_user) { CanvasAPI::LMSUser.new }
     let(:sf_participant) { SalesforceAPI::SFParticipant.new }
@@ -22,7 +22,7 @@ RSpec.describe PortalAccountEnrollment do
       it 'creates a section if it does not exists' do
         allow(lms_client).to receive(:find_section_by).and_return(nil)
 
-        PortalAccountEnrollment
+        SyncPortalEnrollmentForAccount
           .new(portal_user: portal_user,
                salesforce_participant: sf_participant,
                salesforce_program: sf_program)
@@ -33,20 +33,20 @@ RSpec.describe PortalAccountEnrollment do
       it 'creates a default section if no section on salesforce' do
         allow(lms_client).to receive(:find_section_by).and_return(nil)
 
-        PortalAccountEnrollment
+        SyncPortalEnrollmentForAccount
           .new(portal_user: portal_user,
                salesforce_participant: sf_participant,
                salesforce_program: sf_program)
           .run
         expect(lms_client)
           .to have_received(:create_lms_section)
-          .with(course_id: nil, name: PortalAccountEnrollment::DEFAULT_SECTION)
+          .with(course_id: nil, name: SyncPortalEnrollmentForAccount::DEFAULT_SECTION)
       end
 
       # Add tests for other sections when implemented
 
       it 'does not create a section if it exists' do
-        PortalAccountEnrollment
+        SyncPortalEnrollmentForAccount
           .new(portal_user: portal_user,
                salesforce_participant: sf_participant,
                salesforce_program: sf_program)
@@ -56,7 +56,7 @@ RSpec.describe PortalAccountEnrollment do
       end
 
       it 'enrolls the user to course if not enrolled' do
-        PortalAccountEnrollment
+        SyncPortalEnrollmentForAccount
           .new(portal_user: portal_user,
                salesforce_participant: sf_participant,
                salesforce_program: sf_program)
@@ -71,7 +71,7 @@ RSpec.describe PortalAccountEnrollment do
         allow(lms_client).to receive(:find_enrollment).and_return(enrollment)
         allow(lms_client).to receive(:find_section_by).and_return(section)
 
-        PortalAccountEnrollment
+        SyncPortalEnrollmentForAccount
           .new(portal_user: portal_user,
                salesforce_participant: sf_participant,
                salesforce_program: sf_program)
@@ -86,7 +86,7 @@ RSpec.describe PortalAccountEnrollment do
         allow(lms_client).to receive(:find_enrollment).and_return(enrollment)
         allow(lms_client).to receive(:find_section_by).and_return(section)
 
-        PortalAccountEnrollment
+        SyncPortalEnrollmentForAccount
           .new(portal_user: portal_user,
                salesforce_participant: sf_participant,
                salesforce_program: sf_program)
@@ -99,7 +99,7 @@ RSpec.describe PortalAccountEnrollment do
         enrollment = CanvasAPI::LMSEnrollment.new(nil, nil, CanvasAPI::TA_ENROLLMENT, nil)
         allow(lms_client).to receive(:find_enrollment).and_return(enrollment)
 
-        PortalAccountEnrollment
+        SyncPortalEnrollmentForAccount
           .new(portal_user: portal_user,
                salesforce_participant: sf_participant,
                salesforce_program: sf_program)
@@ -112,7 +112,7 @@ RSpec.describe PortalAccountEnrollment do
         enrollment = CanvasAPI::LMSEnrollment.new(nil, nil, CanvasAPI::TA_ENROLLMENT, nil)
         allow(lms_client).to receive(:find_enrollment).and_return(enrollment)
 
-        PortalAccountEnrollment
+        SyncPortalEnrollmentForAccount
           .new(portal_user: portal_user,
                salesforce_participant: sf_participant,
                salesforce_program: sf_program)
@@ -132,7 +132,7 @@ RSpec.describe PortalAccountEnrollment do
         enrollment = CanvasAPI::LMSEnrollment.new
         allow(lms_client).to receive(:find_enrollment).and_return(enrollment)
 
-        PortalAccountEnrollment
+        SyncPortalEnrollmentForAccount
           .new(portal_user: portal_user,
                salesforce_participant: sf_participant,
                salesforce_program: sf_program)

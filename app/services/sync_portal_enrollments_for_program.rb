@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class ProgramPortalEnrollments
+class SyncPortalEnrollmentsForProgram
   def initialize(salesforce_program_id:)
     @sf_program_id = salesforce_program_id
     @sf_program = nil
@@ -14,7 +14,7 @@ class ProgramPortalEnrollments
         next
       end
 
-      PortalAccountEnrollment
+      SyncPortalEnrollmentForAccount
         .new(portal_user: portal_user,
              salesforce_participant: participant,
              salesforce_program: sf_program)

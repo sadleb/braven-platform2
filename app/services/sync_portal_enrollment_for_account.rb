@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class PortalAccountEnrollment
+class SyncPortalEnrollmentForAccount
   DEFAULT_SECTION = 'Default Section'
 
   def initialize(portal_user:, salesforce_participant:, salesforce_program:)

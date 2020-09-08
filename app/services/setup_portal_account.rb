@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class PortalAccountSetup
+class SetupPortalAccount
   UserNotEnrolledOnSFError = Class.new(StandardError)
 
   def initialize(salesforce_contact_id:)
@@ -12,7 +12,7 @@ class PortalAccountSetup
 
   def run
     find_or_create_portal_user!
-    PortalAccountEnrollment
+    SyncPortalEnrollmentForAccount
       .new(portal_user: portal_user,
            salesforce_participant: sf_participant,
            salesforce_program: sf_program)

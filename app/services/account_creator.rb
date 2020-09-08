@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class AccountCreation
+class AccountCreator
   def initialize(sign_up_params:)
     @salesforce_contact_id = sign_up_params['salesforce_id']
     @password_params = {
@@ -20,13 +20,13 @@ class AccountCreation
   attr_reader :salesforce_contact_id
 
   def setup_portal_user!
-    PortalAccountSetupJob.perform_later(salesforce_contact.id)
+    SetupPortalAccountJob.perform_later(salesforce_contact.id)
   end
 
   def create_platform_user!
     user = User.new(platform_user_params)
     user.skip_confirmation_notification!
-    user.save
+    user.save!
     user
   end
 
