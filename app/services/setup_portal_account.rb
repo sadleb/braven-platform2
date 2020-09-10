@@ -12,11 +12,8 @@ class SetupPortalAccount
 
   def run
     find_or_create_portal_user!
-    SyncPortalEnrollmentForAccount
-      .new(portal_user: portal_user,
-           salesforce_participant: sf_participant,
-           salesforce_program: sf_program)
-      .run
+    reconcile_email! if email_inconsistent?
+    sync_portal_enrollment!
     user = update_portal_references!
     send_confirmation_notification(user)
   end
@@ -24,6 +21,24 @@ class SetupPortalAccount
   private
 
   attr_reader :sf_contact_id
+
+  def email_inconsistent?
+    !portal_user.email.eql?(sf_participant.email)
+  end
+
+  def reconcile_email!
+    ReconcileUserEmail.new(salesforce_participant: sf_participant,
+                           portal_user: portal_user)
+                      .run
+  end
+
+  def sync_portal_enrollment!
+    SyncPortalEnrollmentForAccount
+      .new(portal_user: portal_user,
+           salesforce_participant: sf_participant,
+           salesforce_program: sf_program)
+      .run
+  end
 
   def send_confirmation_notification(user)
     user.send_confirmation_instructions
@@ -75,7 +90,11 @@ class SetupPortalAccount
   end
 
   def portal_user
-    @portal_user ||= canvas_client.find_user_by(email: sf_participant.email)
+    @portal_user ||= canvas_client.find_user_by(
+      email: sf_participant.email,
+      salesforce_contact_id: sf_contact_id,
+      student_id: sf_participant.student_id
+    )
   end
 
   def sf_participant
