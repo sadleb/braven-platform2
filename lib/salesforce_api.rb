@@ -27,7 +27,7 @@ class SalesforceAPI
   FELLOW = :Fellow
 
   class SalesforceDataError < StandardError; end
-  ParticipantNotOnSalesforceError = Class.new(StandardError)
+  ParticipantNotOnSalesForceError = Class.new(StandardError)
   ProgramNotOnSalesforceError = Class.new(StandardError)
 
   # TODO: Figure out how to make this work with a single instance
