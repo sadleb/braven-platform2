@@ -8,11 +8,17 @@ class SyncPortalEnrollmentsForProgram
 
   def run
     program_participants.each do |participant|
-      portal_user = canvas_client.find_user_by(email: participant.email)
+      portal_user = canvas_client.find_user_by(
+        email: participant.email,
+        salesforce_contact_id: participant.contact_id,
+        student_id: participant.student_id
+      )
       if portal_user.nil?
         # log skip no account yet
         next
       end
+
+      reconcile_email! if email_inconsistent?
 
       SyncPortalEnrollmentForAccount
         .new(portal_user: portal_user,
@@ -25,6 +31,16 @@ class SyncPortalEnrollmentsForProgram
   private
 
   attr_reader :sf_program_id
+
+  def email_inconsistent?
+    !portal_user.email.eql?(sf_participant.email)
+  end
+
+  def reconcile_email!
+    ReconcileUserEmail.new(salesforce_participant: sf_participant,
+                           portal_user: portal_user)
+                      .run
+  end
 
   def program_participants
     sf_client.find_participants_by(program_id: sf_program.id)
