@@ -112,4 +112,7 @@ Rails.application.routes.draw do
 
   # There is a route similar to the commented out one below that doesn't show up here. See 'lib/lti_lesson_contents_proxy.rb' and 'config/application.rb'
   # match '/lesson_contents_proxy/*endpoint', to: AWS_S3
+
+  # Honeycomb Instrumentation Routes
+  post '/honeycomb_js/send_span', to: 'honeycomb_js#send_span'
 end
