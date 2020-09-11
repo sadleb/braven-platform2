@@ -163,7 +163,7 @@ class SalesforceAPI
   def find_participants_by(program_id:)
     participants = get_participants(program_id)
 
-    particpants.map do |participant|
+    participants.map do |participant|
       SFParticipant.new(participant['FirstName'], participant['LastName'],
                       participant['Email'], participant['Role'].to_sym,
                       participant['ProgramId'], participant['ContactId'],

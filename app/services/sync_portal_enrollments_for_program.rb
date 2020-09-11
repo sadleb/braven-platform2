@@ -18,7 +18,7 @@ class SyncPortalEnrollmentsForProgram
         next
       end
 
-      reconcile_email! if email_inconsistent?
+      reconcile_email!(portal_user, participant) if email_inconsistent?(portal_user, participant)
 
       SyncPortalEnrollmentForAccount
         .new(portal_user: portal_user,
@@ -32,12 +32,12 @@ class SyncPortalEnrollmentsForProgram
 
   attr_reader :sf_program_id
 
-  def email_inconsistent?
-    !portal_user.email.eql?(sf_participant.email)
+  def email_inconsistent?(portal_user, participant)
+    !portal_user.email.eql?(participant.email)
   end
 
-  def reconcile_email!
-    ReconcileUserEmail.new(salesforce_participant: sf_participant,
+  def reconcile_email!(portal_user, participant)
+    ReconcileUserEmail.new(salesforce_participant: participant,
                            portal_user: portal_user)
                       .run
   end
