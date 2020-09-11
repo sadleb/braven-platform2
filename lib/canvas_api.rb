@@ -135,8 +135,8 @@ class CanvasAPI
   end
 
 
-  def find_user_in_canvas(email)
-    response = get("/accounts/1/users?search_term=#{CGI.escape(email)}")
+  def find_user_in_canvas(search_term)
+    response = get("/accounts/1/users?search_term=#{CGI.escape(search_term)}")
     users = JSON.parse(response.body)
     users.length == 1 ? users[0] : nil
   end 

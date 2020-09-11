@@ -12,7 +12,6 @@ class SetupPortalAccount
 
   def run
     find_or_create_portal_user!
-    reconcile_email! if email_inconsistent?
     sync_portal_enrollment!
     user = update_portal_references!
     send_confirmation_notification(user)
@@ -21,16 +20,6 @@ class SetupPortalAccount
   private
 
   attr_reader :sf_contact_id
-
-  def email_inconsistent?
-    !portal_user.email.eql?(sf_participant.email)
-  end
-
-  def reconcile_email!
-    ReconcileUserEmail.new(salesforce_participant: sf_participant,
-                           portal_user: portal_user)
-                      .run
-  end
 
   def sync_portal_enrollment!
     SyncPortalEnrollmentForAccount

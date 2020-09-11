@@ -13,13 +13,10 @@ class SyncPortalEnrollmentForAccount
     logger.info("Started sync enrollment for #{sf_participant.email}")
     case sf_participant.status
     when SalesforceAPI::ENROLLED
-      logger.info('Started add enrollment')
       add_enrollment!
     when SalesforceAPI::DROPPED
-      logger.info('Started drop enrollment')
       drop_enrollment!
     when SalesforceAPI::COMPLETED
-      logger.info('Started complete enrollment')
       complete_enrollment!
     else
       logger.warn("Doing nothing! Got #{sf.participant.status} from SF")
@@ -33,14 +30,12 @@ class SyncPortalEnrollmentForAccount
   def add_enrollment!
     case sf_participant.role
     when SalesforceAPI::LEADERSHIP_COACH
-      logger.info('Started sync enrollment for LC')
       sync_enrollment(sf_program.fellow_course_id, CanvasAPI::TA_ENROLLMENT, 
                       course_section_name)
       sync_enrollment(sf_program.leadership_coach_course_id,
                       CanvasAPI::STUDENT_ENROLLMENT,
                       sf_program.leadership_coach_course_section_name)
     when SalesforceAPI::FELLOW
-      logger.info('Started sync enrollment for Fellow')
       sync_enrollment(sf_program.fellow_course_id, CanvasAPI::STUDENT_ENROLLMENT, 
                       course_section_name)
     else
@@ -58,11 +53,9 @@ class SyncPortalEnrollmentForAccount
   def drop_enrollment!
     case sf_participant.role
     when SalesforceAPI::LEADERSHIP_COACH
-      logger.info('Started drop enrollment for LC')
       drop_course_enrollment(sf_program.leadership_coach_course_id)
       drop_course_enrollment(sf_program.fellow_course_id)
     when SalesforceAPI::FELLOW
-      logger.info('Started drop enrollment for Fellow')
       drop_course_enrollment(sf_program.fellow_course_id)
     else
       logger.warn("Got unknown role #{sf_participant.role} from SF")
@@ -87,14 +80,12 @@ class SyncPortalEnrollmentForAccount
     section = find_or_create_section(course_id, section_name)
     enrollment = find_user_enrollment(course_id)
     if enrollment.nil?
-      logger.info('Doing a fresh enrollment')
       enroll_user(course_id, role, section)
     elsif !enrollment.section_id.eql?(section.id) || !enrollment.type.eql?(role)
-      logger.info('Re-enrolling user')
       canvas_client.delete_enrollment(enrollment: enrollment)
       enroll_user(course_id, role, section)
     else
-      logger.info('Skipping as user enrollment looks fine')
+      logger.warn('Skipping as user enrollment looks fine')
     end
   end
 
@@ -107,7 +98,6 @@ class SyncPortalEnrollmentForAccount
   def find_or_create_section(course_id, section_name)
     section = find_course_section(course_id, section_name)
     if section.nil?
-      logger.info('Creating new section')
       canvas_client.create_lms_section(course_id: course_id, name: section_name)
     else
       section
