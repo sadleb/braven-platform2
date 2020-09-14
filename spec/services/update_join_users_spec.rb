@@ -5,7 +5,7 @@ require 'rails_helper'
 RSpec.describe UpdateJoinUsers do
   describe '#run' do
     let(:dummy_user) { instance_double('User', email: nil, first_name: nil, last_name: nil, join_user_id: 1, update!: nil) }
-    let(:dummy_join_user) { double('JoinUser', email: nil, id: nil) }
+    let(:dummy_join_user) { JoinAPI::JoinUser.new }
 
     let(:join_api_client) { instance_double('JoinAPI', find_user_by: nil, create_user: nil) }
 
