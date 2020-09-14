@@ -12,8 +12,10 @@ class SetupPortalAccount
 
   def run
     find_or_create_portal_user!
+    join_user = find_or_create_join_user!
     sync_portal_enrollment!
-    user = update_portal_references!
+    user = update_user_references!(salesforce_id: sf_contact_id,
+                                   join_user_id: join_user.id)
     send_confirmation_notification(user)
   end
 
@@ -33,11 +35,20 @@ class SetupPortalAccount
     user.send_confirmation_instructions
   end
 
-  def update_portal_references!
-    user = User.find_by!(salesforce_id: sf_contact_id)
-    user.update!(canvas_id: portal_user.id)
-    sf_client.update_contact(sf_contact_id, canvas_id: portal_user.id)
+  def update_user_references!(salesforce_id:, join_user_id:)
+    user = User.find_by!(salesforce_id: salesforce_id)
+    user.update!(canvas_id: portal_user.id, join_user_id: join_user_id)
+    sf_client.update_contact(salesforce_id, canvas_id: portal_user.id)
     user
+  end
+
+  def find_or_create_join_user!
+    join_user = join_api_client.find_user_by(email: sf_participant.email)
+    return join_user unless join_user.nil?
+
+    join_api_client.create_user(email: sf_participant.email,
+                                first_name: sf_participant.first_name,
+                                last_name: sf_participant.last_name)
   end
 
   def find_or_create_portal_user!
@@ -100,5 +111,9 @@ class SetupPortalAccount
 
   def canvas_client
     CanvasAPI.client
+  end
+
+  def join_api_client
+    JoinAPI.client
   end
 end
