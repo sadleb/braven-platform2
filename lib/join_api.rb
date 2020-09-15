@@ -2,7 +2,7 @@
 
 require 'rest-client'
 
-# API to the Join server
+# API to the join server
 class JoinAPI
   JoinUser = Struct.new(:id, :email)
 
