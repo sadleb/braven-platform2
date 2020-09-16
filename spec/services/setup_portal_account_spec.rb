@@ -44,14 +44,14 @@ RSpec.describe SetupPortalAccount do
     end
 
     it 'finds a join user if the user already exist' do
-      Rails.application.secrets.create_join_user_on_sign_up = 'true'
+      Rails.application.secrets.create_join_user_on_sign_up = true
       described_class.new(salesforce_contact_id: nil).run
 
       expect(join_api_client).to have_received(:find_user_by)
     end
 
     it 'create a new join user if the user does not exist' do
-      Rails.application.secrets.create_join_user_on_sign_up = 'true'
+      Rails.application.secrets.create_join_user_on_sign_up = true
       allow(join_api_client).to receive(:find_user_by).and_return(nil)
 
       described_class.new(salesforce_contact_id: nil).run
@@ -66,6 +66,7 @@ RSpec.describe SetupPortalAccount do
     end
 
     it 'updates portal references on platform' do
+      Rails.application.secrets.create_join_user_on_sign_up = true
       described_class.new(salesforce_contact_id: nil).run
 
       expect(platform_user).to have_received(:update!).twice
