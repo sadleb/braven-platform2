@@ -24,7 +24,7 @@ class JoinAPI
   end
 
   def create_user(email:, first_name:, last_name:)
-    data = { email: email, first_name: first_name, last_name: last_name }
+    data = { user: { email: email, first_name: first_name, last_name: last_name } }
     response = request(method: :post, path: 'users', body: data)
 
     make_user_response(response)
