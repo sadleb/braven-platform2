@@ -6,7 +6,7 @@ RSpec.describe SetupPortalAccount do
   describe '#run' do
     let(:sf_client) { instance_double('SalesforceAPI', find_participant: SalesforceAPI::SFParticipant.new, find_program: SalesforceAPI::SFProgram.new, update_contact: nil) }
     let(:canvas_client) { instance_double('CanvasAPI', find_user_by: CanvasAPI::LMSUser.new, create_account: CanvasAPI::LMSUser.new) }
-    let(:platform_user) { instance_double('User', update!: nil, send_confirmation_instructions: nil) }
+    let(:platform_user) { instance_double('User', update!: nil, send_confirmation_instructions: nil, email: nil, first_name: nil, last_name: nil) }
     let(:enrollment_process) { instance_double('SyncPortalEnrollmentForAccount', run: nil) }
 
     let(:join_api_client) { instance_double('JoinAPI', find_user_by: JoinAPI::JoinUser.new, create_user: JoinAPI::JoinUser.new) }
@@ -44,12 +44,14 @@ RSpec.describe SetupPortalAccount do
     end
 
     it 'finds a join user if the user already exist' do
+      Rails.application.secrets.create_join_user_on_sign_up = 'true'
       described_class.new(salesforce_contact_id: nil).run
 
       expect(join_api_client).to have_received(:find_user_by)
     end
 
     it 'create a new join user if the user does not exist' do
+      Rails.application.secrets.create_join_user_on_sign_up = 'true'
       allow(join_api_client).to receive(:find_user_by).and_return(nil)
 
       described_class.new(salesforce_contact_id: nil).run
@@ -66,7 +68,7 @@ RSpec.describe SetupPortalAccount do
     it 'updates portal references on platform' do
       described_class.new(salesforce_contact_id: nil).run
 
-      expect(platform_user).to have_received(:update!)
+      expect(platform_user).to have_received(:update!).twice
     end
 
     it 'updates portal references on salesforce' do

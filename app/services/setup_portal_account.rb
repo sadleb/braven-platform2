@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require 'join_api'
+
+# Sets up portal account and join user
 class SetupPortalAccount
   UserNotEnrolledOnSFError = Class.new(StandardError)
 
@@ -12,10 +15,11 @@ class SetupPortalAccount
 
   def run
     find_or_create_portal_user!
-    join_user = find_or_create_join_user!
+    user = User.find_by!(salesforce_id: sf_contact_id)
+    join_user = find_or_create_join_user!(user)
     sync_portal_enrollment!
-    user = update_user_references!(salesforce_id: sf_contact_id,
-                                   join_user_id: join_user.id)
+    update_user_references!(user, salesforce_id: sf_contact_id,
+                            join_user_id: join_user.id)
     send_confirmation_notification(user)
   end
 
@@ -35,20 +39,18 @@ class SetupPortalAccount
     user.send_confirmation_instructions
   end
 
-  def update_user_references!(salesforce_id:, join_user_id:)
-    user = User.find_by!(salesforce_id: salesforce_id)
+  def update_user_references!(user, salesforce_id:, join_user_id:)
     user.update!(canvas_id: portal_user.id, join_user_id: join_user_id)
     sf_client.update_contact(salesforce_id, canvas_id: portal_user.id)
     user
   end
 
-  def find_or_create_join_user!
-    join_user = join_api_client.find_user_by(email: sf_participant.email)
-    return join_user unless join_user.nil?
-
-    join_api_client.create_user(email: sf_participant.email,
-                                first_name: sf_participant.first_name,
-                                last_name: sf_participant.last_name)
+  def find_or_create_join_user!(user)
+    if Rails.application.secrets.create_join_user_on_sign_up.eql?('true')
+      UpdateJoinUsers.new.run([user]).first
+    else
+      JoinAPI::JoinUser.new
+    end
   end
 
   def find_or_create_portal_user!
