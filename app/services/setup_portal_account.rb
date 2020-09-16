@@ -46,7 +46,7 @@ class SetupPortalAccount
   end
 
   def find_or_create_join_user!(user)
-    if Rails.application.secrets.create_join_user_on_sign_up.eql?('true')
+    if Rails.application.secrets.create_join_user_on_sign_up.eql?(true)
       UpdateJoinUsers.new.run([user]).first
     else
       JoinAPI::JoinUser.new
