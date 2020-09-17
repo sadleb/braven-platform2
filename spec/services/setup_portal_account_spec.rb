@@ -43,6 +43,14 @@ RSpec.describe SetupPortalAccount do
       expect(canvas_client).not_to have_received(:create_account)
     end
 
+    it 'does not do join api stuff if no config var set' do
+      ENV['CREATE_JOIN_USER_ON_SIGN_UP'] = nil
+      SetupPortalAccount.new(salesforce_contact_id: nil).run
+
+      expect(join_api_client).not_to have_received(:find_user_by)
+    end
+
+
     it 'finds a join user if the user already exist' do
       ENV['CREATE_JOIN_USER_ON_SIGN_UP'] = 'foobar'
       SetupPortalAccount.new(salesforce_contact_id: nil).run
