@@ -16,10 +16,10 @@ class SetupPortalAccount
   def run
     find_or_create_portal_user!
     user = User.find_by!(salesforce_id: sf_contact_id)
-    join_user = find_or_create_join_user!(user)
+    join_user_id = find_or_create_join_user!(user).id if should_create_join_user?
     sync_portal_enrollment!
     update_user_references!(user, salesforce_id: sf_contact_id,
-                            join_user_id: join_user.id)
+                                  join_user_id: join_user_id)
     send_confirmation_notification(user)
   end
 
@@ -46,11 +46,11 @@ class SetupPortalAccount
   end
 
   def find_or_create_join_user!(user)
-    if Rails.application.secrets.create_join_user_on_sign_up.eql?(true)
-      UpdateJoinUsers.new.run([user]).first
-    else
-      JoinAPI::JoinUser.new
-    end
+    UpdateJoinUsers.new.run([user]).first
+  end
+
+  def should_create_join_user?
+    ENV['CREATE_JOIN_USER_ON_SIGN_UP'].present?
   end
 
   def find_or_create_portal_user!

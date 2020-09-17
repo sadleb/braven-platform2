@@ -24,7 +24,7 @@ RSpec.describe SetupPortalAccount do
       allow(sf_client).to receive(:find_participant).and_return(enrolled_participant)
       allow(canvas_client).to receive(:find_user_by).and_return(nil)
 
-      described_class.new(salesforce_contact_id: nil).run
+      SetupPortalAccount.new(salesforce_contact_id: nil).run
 
       expect(canvas_client).to have_received(:create_account)
     end
@@ -34,52 +34,52 @@ RSpec.describe SetupPortalAccount do
       allow(sf_client).to receive(:find_participant).and_return(dropped_participant)
       allow(canvas_client).to receive(:find_user_by).and_return(nil)
 
-      expect { described_class.new(salesforce_contact_id: nil).run }.to raise_error(SetupPortalAccount::UserNotEnrolledOnSFError)
+      expect { SetupPortalAccount.new(salesforce_contact_id: nil).run }.to raise_error(SetupPortalAccount::UserNotEnrolledOnSFError)
     end
 
     it 'does not create a user if it exists' do
-      described_class.new(salesforce_contact_id: nil).run
+      SetupPortalAccount.new(salesforce_contact_id: nil).run
 
       expect(canvas_client).not_to have_received(:create_account)
     end
 
     it 'finds a join user if the user already exist' do
-      Rails.application.secrets.create_join_user_on_sign_up = true
-      described_class.new(salesforce_contact_id: nil).run
+      ENV['CREATE_JOIN_USER_ON_SIGN_UP'] = 'foobar'
+      SetupPortalAccount.new(salesforce_contact_id: nil).run
 
       expect(join_api_client).to have_received(:find_user_by)
     end
 
     it 'create a new join user if the user does not exist' do
-      Rails.application.secrets.create_join_user_on_sign_up = true
+      ENV['CREATE_JOIN_USER_ON_SIGN_UP'] = 'foobar'
       allow(join_api_client).to receive(:find_user_by).and_return(nil)
 
-      described_class.new(salesforce_contact_id: nil).run
+      SetupPortalAccount.new(salesforce_contact_id: nil).run
 
       expect(join_api_client).to have_received(:create_user)
     end
 
     it 'starts the portal enrollment process' do
-      described_class.new(salesforce_contact_id: nil).run
+      SetupPortalAccount.new(salesforce_contact_id: nil).run
 
       expect(enrollment_process).to have_received(:run)
     end
 
     it 'updates portal references on platform' do
-      Rails.application.secrets.create_join_user_on_sign_up = true
-      described_class.new(salesforce_contact_id: nil).run
+      ENV['CREATE_JOIN_USER_ON_SIGN_UP'] = 'foobar'
+      SetupPortalAccount.new(salesforce_contact_id: nil).run
 
       expect(platform_user).to have_received(:update!).twice
     end
 
     it 'updates portal references on salesforce' do
-      described_class.new(salesforce_contact_id: nil).run
+      SetupPortalAccount.new(salesforce_contact_id: nil).run
 
       expect(sf_client).to have_received(:update_contact)
     end
 
     it 'sends confirmation instructions to user' do
-      described_class.new(salesforce_contact_id: nil).run
+      SetupPortalAccount.new(salesforce_contact_id: nil).run
 
       expect(platform_user).to have_received(:send_confirmation_instructions)
     end

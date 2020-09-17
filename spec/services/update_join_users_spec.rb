@@ -15,25 +15,25 @@ RSpec.describe UpdateJoinUsers do
     end
 
     it 'only bother about users without join user id' do
-      described_class.new.run([])
+      UpdateJoinUsers.new.run([])
 
       expect(join_api_client).not_to have_received(:find_user_by)
     end
 
     it 'finds a user if the user already exist' do
-      described_class.new.run([dummy_user])
+      UpdateJoinUsers.new.run([dummy_user])
 
       expect(join_api_client).to have_received(:find_user_by)
     end
 
     it 'create a new user if the user does not exist' do
-      described_class.new.run([dummy_user])
+      UpdateJoinUsers.new.run([dummy_user])
 
       expect(join_api_client).to have_received(:create_user)
     end
 
     it 'updates join user id for the user' do
-      described_class.new.run([dummy_user])
+      UpdateJoinUsers.new.run([dummy_user])
 
       expect(dummy_user).to have_received(:update!)
     end
