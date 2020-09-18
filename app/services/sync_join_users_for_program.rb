@@ -13,10 +13,10 @@ class SyncJoinUsersForProgram
         salesforce_contact_id: participant.contact_id,
         student_id: participant.student_id
       )
-      if portal_user.nil?
+      user = User.find_by(email: participant.email)
+      if portal_user.nil? || user.nil?
         nil
       else
-        user = User.find_by(participant.email)
         { user: user, canvas_user_id: portal_user.id }
       end
     end.compact

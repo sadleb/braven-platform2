@@ -9,7 +9,7 @@ class Admin::JoinController < ApplicationController
   def sync_to_join
     program_id = params[:program_id]
     email = params[:email]
-    SyncSalesforceProgramToJoin.perform_later(program_id, email)
+    SyncSalesforceProgramToJoinJob.perform_later(program_id, email)
     redirect_to root_path, notice: 'The sync process was started. Watch out for an email'
   end
 end
