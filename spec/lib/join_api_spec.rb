@@ -55,7 +55,7 @@ RSpec.describe JoinAPI do
       test_email = 'test@example.com'
       stub_request(:any, join_user_create_path).to_return(body: { email: test_email, id: 1 }.to_json)
 
-      response = join_api_client.create_user(email: test_email, first_name: 'first_name', last_name: 'last_name', canvas_user_id: canvas_user_id)
+      response = join_api_client.create_user(email: test_email, first_name: 'first_name', last_name: 'last_name', canvas_user_id: 'canvas_user_id')
 
       expect(response.email).to eql(test_email)
     end
