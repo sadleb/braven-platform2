@@ -14,7 +14,7 @@ FactoryBot.define do
 
     factory :lti_launch_model do
       nonce { SecureRandom.hex(10) }
-      state { SecureRandom.uuid }
+      state { LtiLaunchController.generate_state }
   
       factory :lti_launch_canvas do
         transient do

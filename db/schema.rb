@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_13_233353) do
+ActiveRecord::Schema.define(version: 2020_09_14_084043) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -121,6 +121,24 @@ ActiveRecord::Schema.define(version: 2020_07_13_233353) do
   create_table "lesson_contents", force: :cascade do |t|
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.string "activity_id"
+    t.integer "quiz_questions"
+    t.index ["activity_id"], name: "index_lesson_contents_on_activity_id"
+  end
+
+  create_table "lesson_interactions", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "activity_id", null: false
+    t.boolean "success"
+    t.integer "progress"
+    t.string "verb", null: false
+    t.integer "canvas_course_id", null: false
+    t.integer "canvas_assignment_id", null: false
+    t.boolean "new", default: true, null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["new", "user_id", "activity_id", "verb"], name: "index_lesson_interactions_1"
+    t.index ["user_id"], name: "index_lesson_interactions_on_user_id"
   end
 
   create_table "lesson_submissions", force: :cascade do |t|
@@ -188,6 +206,7 @@ ActiveRecord::Schema.define(version: 2020_07_13_233353) do
     t.text "id_token_payload"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.boolean "sessionless", default: false
     t.index ["state"], name: "index_lti_launches_on_state", unique: true
   end
 
@@ -414,6 +433,7 @@ ActiveRecord::Schema.define(version: 2020_07_13_233353) do
     t.string "unconfirmed_email"
     t.string "salesforce_id"
     t.integer "canvas_id"
+    t.integer "join_user_id"
     t.index ["admin"], name: "index_users_on_admin"
     t.index ["canvas_id"], name: "index_users_on_canvas_id", unique: true
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
@@ -425,6 +445,7 @@ ActiveRecord::Schema.define(version: 2020_07_13_233353) do
   add_foreign_key "course_content_histories", "course_contents"
   add_foreign_key "course_content_histories", "users"
   add_foreign_key "grade_categories", "programs"
+  add_foreign_key "lesson_interactions", "users"
   add_foreign_key "lesson_submissions", "lessons"
   add_foreign_key "lesson_submissions", "users"
   add_foreign_key "lessons", "grade_categories"

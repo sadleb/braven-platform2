@@ -5,7 +5,7 @@ Rails.application.routes.draw do
 
   resources :course_contents do
     post :publish
-    resources :course_content_histories, path: 'versions', only: [:index, :show, :create]
+    resources :course_content_histories, path: 'versions', only: [:index, :show]
   end
   resources :file_upload, only: [:create]
 
@@ -40,7 +40,7 @@ Rails.application.routes.draw do
   end
 
   resources :projects, only: [:index, :show] do
-    resources :project_submissions, only: [:index, :show], :path => 'submissions'
+    resources :project_submissions, :path => 'submissions', only: [:create]
   end
 
   resources :lessons, only: [:index, :show] do
@@ -73,10 +73,6 @@ Rails.application.routes.draw do
 
   root to: "home#welcome"
 
-  # Salesforce Routes
-  get 'salesforce/sync_to_lms'
-  post 'salesforce/sync_to_lms'
-
   # Admin stuff
   namespace :admin do
     resources :users do
@@ -84,6 +80,12 @@ Rails.application.routes.draw do
         post 'confirm' => 'users#confirm'
       end
     end
+    # Sync to LMS
+    post 'sync_to_lms', to: 'salesforce#sync_to_lms'
+    get 'sync_to_lms', to: 'salesforce#init_sync_to_lms'
+    # Sync to Join
+    post 'sync_to_join', to: 'join#sync_to_join'
+    get 'sync_to_join', to: 'join#init_sync_to_join'
   end
 
   # RubyCAS Routes
@@ -113,4 +115,7 @@ Rails.application.routes.draw do
 
   # There is a route similar to the commented out one below that doesn't show up here. See 'lib/lti_lesson_contents_proxy.rb' and 'config/application.rb'
   # match '/lesson_contents_proxy/*endpoint', to: AWS_S3
+
+  # Honeycomb Instrumentation Routes
+  post '/honeycomb_js/send_span', to: 'honeycomb_js#send_span'
 end
