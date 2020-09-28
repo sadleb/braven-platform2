@@ -135,7 +135,8 @@ class CasController < ApplicationController
     # generate another login ticket to allow for re-submitting the form after a post
     @lt = LT.create!(@request_client).ticket
 
-    logger.debug("Logging in with username: #{@username}, lt: #{@lt}, service: #{@service}, auth: #{@settings.inspect}")
+    # Don't log out the entire @settings variable, it has sensitive info.
+    logger.debug("Logging in with username: #{@username}, lt: #{@lt}, service: #{@service}")
 
     credentials_are_valid = false
     extra_attributes = {}
