@@ -10,6 +10,8 @@ class LtiAssignmentSelectionController < ApplicationController
 
   def new
     params.require([:state])
+    authorize @lti_launch
+
     @assignments = CourseContent.where(content_type: 'assignment')
   end
 
@@ -19,6 +21,7 @@ class LtiAssignmentSelectionController < ApplicationController
   # https://app.asana.com/0/1174274412967132/1186960110311121
   def create
     params.require([:state, :assignment_id])
+    authorize @lti_launch
 
     cc = CourseContent.find(params[:assignment_id])
     cc.save_version!(current_user)

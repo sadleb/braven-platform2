@@ -26,7 +26,7 @@ require 'lti_score'
 
 RSpec.describe ProjectSubmissionsController, type: :controller do
   render_views
-  let(:user) { create :fellow_user, admin: true } # TODO: there is a bug where the user has to be an admin to not get redirected to the Portal. Remove admin when fixed.
+  let(:user) { create :fellow_user }
 
   let(:course_content) { create(:course_content) }
   let(:course_content_history) { create(:course_content_history, attributes) }

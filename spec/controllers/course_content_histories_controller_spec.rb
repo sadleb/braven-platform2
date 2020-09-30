@@ -27,8 +27,6 @@ require 'lti_advantage_api'
 
 RSpec.describe CourseContentHistoriesController, type: :controller do
   render_views
-  let(:user) { create :fellow_user, admin: true } # TODO: there is a bug where the user has to be an admin to not get redirected to the Portal. Remove admin when fixed.
-
   let(:course_content) { create(:course_content) }
   let(:course_content_history) { create(:course_content_history, attributes) }
   let(:attributes) { valid_attributes }
@@ -47,14 +45,30 @@ RSpec.describe CourseContentHistoriesController, type: :controller do
   end
 
   describe 'GET #index' do
-    it 'returns a success response' do
-      get :index, params: {course_content_id: course_content.id}, session: valid_session
-      expect(response).to be_successful
+    context "admin viewing all versions" do
+      let(:user) { create :admin_user }
+      
+      it 'returns a success response' do
+        get :index, params: {course_content_id: course_content.id}, session: valid_session
+        expect(response).to be_successful
+      end
+    end
+
+    context "non-admin attempting to view all versions" do
+      let(:user) { create :fellow_user }
+
+      it 'raises a not-authorized error' do
+        expect {
+          get :index, params: {course_content_id: course_content.id}, session: valid_session
+        }.to raise_error(Pundit::NotAuthorizedError)
+      end
     end
   end
 
   describe 'GET #show' do
     context "in platformweb" do
+      let(:user) { create :fellow_user }
+
       it 'returns a success response' do
         get(
           :show,
@@ -69,7 +83,9 @@ RSpec.describe CourseContentHistoriesController, type: :controller do
     end
 
     context "TA view in Canvas" do
+      let(:user) { create :ta_user }
       let(:lti_launch) { create(:lti_launch_assignment) }
+
       it 'returns a success response' do
         allow(LtiLaunch).to receive(:current).and_return(lti_launch)
         allow(lti_launch).to receive(:activity_id).and_return('some_activity_id')
@@ -88,7 +104,9 @@ RSpec.describe CourseContentHistoriesController, type: :controller do
     end
 
     context "Student view in Canvas" do
+      let(:user) { create :fellow_user }
       let(:lti_launch) { create(:lti_launch_assignment) }
+
       it 'returns a success response' do
         allow(LtiLaunch).to receive(:current).and_return(lti_launch)
         allow(lti_launch).to receive(:activity_id).and_return('some_activity_id')

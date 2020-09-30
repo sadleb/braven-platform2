@@ -45,7 +45,7 @@ RSpec.describe CourseContentHistoriesController, type: :feature do
     describe "/course_contents/:id", :vcr => vcr_options do
 
       context "when valid LtiLaunch" do
-        let!(:valid_user) { create(:fellow_user, admin: true) } # TODO: there is a bug where non-admin users redirect to Portal. Remove the admin: true when that's fixed.
+        let!(:valid_user) { create(:fellow_user) }
         let!(:lti_launch) { create(:lti_launch_assignment, canvas_user_id: valid_user.canvas_id) }
         let(:return_service) {
           "/course_contents/#{project.id}"\

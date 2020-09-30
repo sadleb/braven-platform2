@@ -6,7 +6,9 @@ require 'rubycas-server-core/tickets/generations'
 class CasController < ApplicationController
   layout 'accounts'
   skip_before_action :authenticate_user!
-  skip_before_action :ensure_admin!
+  # Skip the verify_authorized callback for this controller, since we won't be logged in
+  # and thus get no benefit from authorization.
+  skip_after_action :verify_authorized
   
   before_action :set_settings
   before_action :set_request_client

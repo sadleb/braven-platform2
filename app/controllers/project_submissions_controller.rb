@@ -23,6 +23,8 @@ class ProjectSubmissionsController < ApplicationController
   # The project responses entered by the student are recorded in the LRS and 
   # retrieved when we view the submission by xapi_assignment.js.
   def create
+    authorize ProjectSubmission
+    
     params.require([:state])
 
     # We're using CourseContentHistoriesController to view and work on projects

@@ -16,11 +16,13 @@ class CourseContentHistoriesController < ApplicationController
   # GET /course_contents/:id/versions
   # GET /course_contents/:id/versions.json
   def index
+    authorize CourseContentHistory
   end
 
   # GET /course_contents/:id/versions/1
   # GET /course_contents/:id/versions/1.json
   def show
+    authorize @course_content_history
     params.require([:course_content_id])
 
     # TODO: https://app.asana.com/0/1174274412967132/1187445581799823

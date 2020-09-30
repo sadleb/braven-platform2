@@ -5,7 +5,7 @@ require 'lti_advantage_api'
 require 'lti_score'
 
 RSpec.feature 'Submit a project', :type => :feature do
-  let!(:valid_user) { create(:fellow_user, admin: true) }
+  let!(:valid_user) { create(:fellow_user) }
   let!(:project) { create(:course_content_assignment_with_history) }
 
   let!(:lti_launch) { 

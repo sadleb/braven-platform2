@@ -1,26 +1,30 @@
 class CourseContentsController < ApplicationController
   layout 'content_editor'
-  before_action :set_course_content, only: [:show, :edit, :update, :destroy, :publish]
+  before_action :set_model_instance, only: [:show, :edit, :update, :destroy, :publish]
   before_action :set_course_contents, only: [:index, :edit, :new]
 
   # GET /course_contents
   # GET /course_contents.json
   def index
+    authorize CourseContent
   end
 
   # GET /course_contents/1
   # GET /course_contents/1.json
   def show
+    authorize @course_content
   end
 
   # GET /course_contents/new
   def new
-    @course_contents = CourseContent.all
     @course_content = CourseContent.new
+    authorize @course_content
+    @course_contents = CourseContent.all
   end
 
   # GET /course_contents/1/edit
   def edit
+    authorize @course_content
     @course_contents = CourseContent.all
   end
 
@@ -28,6 +32,7 @@ class CourseContentsController < ApplicationController
   # POST /course_contents.json
   def create
     @course_content = CourseContent.new(course_content_params)
+    authorize @course_content
 
     respond_to do |format|
       if @course_content.save
@@ -43,6 +48,7 @@ class CourseContentsController < ApplicationController
   # PATCH/PUT /course_contents/1
   # PATCH/PUT /course_contents/1.json
   def update
+    authorize @course_content
     respond_to do |format|
       if @course_content.update(course_content_params)
         format.html { redirect_to edit_course_content_path(@course_content), notice: 'CourseContent was successfully updated.' }
@@ -57,6 +63,7 @@ class CourseContentsController < ApplicationController
   # DELETE /course_contents/1
   # DELETE /course_contents/1.json
   def destroy
+    authorize @course_content
     @course_content.destroy
     respond_to do |format|
       format.html { redirect_to course_contents_url, notice: 'CourseContent was successfully destroyed.' }
@@ -71,6 +78,7 @@ class CourseContentsController < ApplicationController
   #  - For modules/courses/lessons: LessonContentsController
   #  - F projects/assignments: LTIAssignmentSelectionController
   def publish
+    authorize @course_content
     respond_to do |format|
       if @course_content.publish(course_content_params)
 
@@ -87,10 +95,6 @@ class CourseContentsController < ApplicationController
   end
 
   private
-    def set_course_content
-      @course_content = CourseContent.find(params[:id])
-    end
-
     def set_course_contents
       @course_contents = CourseContent.all
     end
