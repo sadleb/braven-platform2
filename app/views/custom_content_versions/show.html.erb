@@ -1,6 +1,6 @@
 <div class="bz-assignment">
   <!-- Project -->
-  <%== @course_content_history.body %>
+  <%== @custom_content_version.body %>
 
   <% unless @user_override_id %>
     <!-- Submit -->
@@ -8,7 +8,7 @@
       hasSubmission: @has_previous_submission,
       ltiLaunchState: params[:state],
       projectId: @course_content.id,
-      projectVersion: @course_content_history.id,
+      projectVersion: @custom_content_version.id,
     })%>
   <% end %>
 </div>

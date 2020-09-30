@@ -33,8 +33,8 @@ RSpec.describe LtiAssignmentSelectionController, type: :controller do
       end
 
       it 'saves a new version of the project' do
-        expect { post :create, params: {state: lti_launch.state, assignment_id: assignment.id} }.to change {CourseContentHistory.count}.by(1)
-        expect(assignment.body).to eq(CourseContentHistory.last.body)
+        expect { post :create, params: {state: lti_launch.state, assignment_id: assignment.id} }.to change {CustomContentVersion.count}.by(1)
+        expect(assignment.body).to eq(CustomContentVersion.last.body)
       end
 
     end

@@ -7,7 +7,7 @@ include Rack::Utils
 
 unless ENV['BZ_AUTH_SERVER'] # Only run these specs if on a server with local database authentication enabled
 
-RSpec.describe CourseContentHistoriesController, type: :feature do
+RSpec.describe CustomContentVersionsController, type: :feature do
   let!(:project) { create(:course_content_assignment_with_versions) }
   let!(:lti_launch_assignment) { create(:lti_launch_assignment) }
 

@@ -1,20 +1,20 @@
 require 'rails_helper'
 
-RSpec.describe "course_content_histories/index", type: :view do
+RSpec.describe "custom_content_versions/index", type: :view do
   let(:course_content) { create(:course_content) }
   let(:user) { create(:admin_user) }
 
   before(:each) do
     assign(:course_content, course_content)
     assign(:user, user)
-    assign(:course_content_histories, [
-      CourseContentHistory.create!(
+    assign(:custom_content_versions, [
+      CustomContentVersion.create!(
         :course_content_id => course_content.id,
         :user => user,
         :title => "Title",
         :body => "MyText"
       ),
-      CourseContentHistory.create!(
+      CustomContentVersion.create!(
         :course_content_id => course_content.id,
         :user => user,
         :title => "Title",
@@ -23,7 +23,7 @@ RSpec.describe "course_content_histories/index", type: :view do
     ])
   end
 
-  it "renders a list of course_content_histories" do
+  it "renders a list of custom_content_versions" do
     render
     assert_select "tr>td", :count => 10
     assert_select "tr>td", :text => "Title".to_s, :count => 2

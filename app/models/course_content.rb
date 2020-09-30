@@ -1,7 +1,7 @@
 require 'canvas_api'
 
 class CourseContent < ApplicationRecord
-  has_many :course_content_histories
+  has_many :custom_content_versions
 
   def publish(params)
     response = CanvasAPI.client.update_course_page(params[:course_id], params[:secondary_id], params[:body])
@@ -11,13 +11,13 @@ class CourseContent < ApplicationRecord
   end
 
   def last_version
-    return nil unless course_content_histories.exists?
-    course_content_histories.last
+    return nil unless custom_content_versions.exists?
+    custom_content_versions.last
   end
 
   def save_version!(user)
     published_at = DateTime.now
-    new_version = CourseContentHistory.new({
+    new_version = CustomContentVersion.new({
         course_content_id: id,
         title: title,
         body: body,

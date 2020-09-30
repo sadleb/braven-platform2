@@ -11,8 +11,8 @@ FactoryBot.define do
         "<textarea id='test-question-id' data-bz-retained=\"h2c2-0600-next-steps\" placeholder=\"\"></textarea>"
       }
 
-      factory :course_content_assignment_with_history do
-        course_content_histories { [build(:course_content_history)] }
+      factory :course_content_assignment_with_version do
+        custom_content_versions { [build(:custom_content_version)] }
       end
     end
 

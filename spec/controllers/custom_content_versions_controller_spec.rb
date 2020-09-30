@@ -25,12 +25,12 @@ require 'lti_advantage_api'
 # removed from Rails core in Rails 5, but can be added back in via the
 # `rails-controller-testing` gem.
 
-RSpec.describe CourseContentHistoriesController, type: :controller do
+RSpec.describe CustomContentVersionsController, type: :controller do
   render_views
   let(:course_content) { create(:course_content) }
-  let(:course_content_history) { create(:course_content_history, attributes) }
+  let(:custom_content_version) { create(:custom_content_version, attributes) }
   let(:attributes) { valid_attributes }
-  let(:valid_attributes) { attributes_for(:course_content_history).merge(course_content_id: course_content.id) }
+  let(:valid_attributes) { attributes_for(:custom_content_version).merge(course_content_id: course_content.id) }
   let(:valid_session) { {} }
   let(:state) { LtiLaunchController.generate_state }
 
@@ -74,7 +74,7 @@ RSpec.describe CourseContentHistoriesController, type: :controller do
           :show,
           params: {
             course_content_id: course_content.id,
-            id: course_content_history.id,
+            id: custom_content_version.id,
             # Note: we don't pass in state
           },
         )
@@ -93,7 +93,7 @@ RSpec.describe CourseContentHistoriesController, type: :controller do
           :show,
           params: {
             course_content_id: course_content.id,
-            id: course_content_history.id,
+            id: custom_content_version.id,
             state: lti_launch.state,
             user_id: user.id,
           },
@@ -114,7 +114,7 @@ RSpec.describe CourseContentHistoriesController, type: :controller do
           :show,
           params: {
             course_content_id: course_content.id,
-            id: course_content_history.id,
+            id: custom_content_version.id,
             state: lti_launch.state,
           },
         )

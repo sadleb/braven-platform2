@@ -4,7 +4,7 @@ require 'lti_advantage_api'
 # project. 
 # Submitting a project is handled by ProjectSubmissionsController.
 # TODO: https://app.asana.com/0/1174274412967132/1186960110311121
-class CourseContentHistoriesController < ApplicationController
+class CustomContentVersionsController < ApplicationController
   include LtiHelper
   include DryCrud::Controllers::Nestable
   nested_resource_of CourseContent
@@ -16,13 +16,13 @@ class CourseContentHistoriesController < ApplicationController
   # GET /course_contents/:id/versions
   # GET /course_contents/:id/versions.json
   def index
-    authorize CourseContentHistory
+    authorize CustomContentVersion
   end
 
   # GET /course_contents/:id/versions/1
   # GET /course_contents/:id/versions/1.json
   def show
-    authorize @course_content_history
+    authorize @custom_content_version
     params.require([:course_content_id])
 
     # TODO: https://app.asana.com/0/1174274412967132/1187445581799823

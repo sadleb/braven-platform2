@@ -26,7 +26,7 @@ class LtiAssignmentSelectionController < ApplicationController
     cc = CourseContent.find(params[:assignment_id])
     cc.save_version!(current_user)
 
-    assignment_url = course_content_course_content_history_url(
+    assignment_url = course_content_custom_content_version_url(
       params[:assignment_id],
       cc.last_version.id,
     )

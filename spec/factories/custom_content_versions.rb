@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :course_content_history do
+  factory :custom_content_version do
     title { "MyString" }
     body { "MyText" }
 
