@@ -4,7 +4,7 @@ FactoryBot.define do
     body { "MyText" }
 
     user { build(:admin_user) }
-    course_content
+    custom_content
 
     factory :project_version do
       body {

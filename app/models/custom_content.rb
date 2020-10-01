@@ -1,6 +1,6 @@
 require 'canvas_api'
 
-class CourseContent < ApplicationRecord
+class CustomContent < ApplicationRecord
   has_many :custom_content_versions
 
   def publish(params)
@@ -18,7 +18,7 @@ class CourseContent < ApplicationRecord
   def save_version!(user)
     published_at = DateTime.now
     new_version = CustomContentVersion.new({
-        course_content_id: id,
+        custom_content_id: id,
         title: title,
         body: body,
         user: user

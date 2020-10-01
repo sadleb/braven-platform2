@@ -6,13 +6,13 @@ include Rack::Utils
 
 unless ENV['BZ_AUTH_SERVER'] # Only run these specs if on a server with local database authentication enabled
 
-RSpec.describe CourseContentsController, type: :routing do
+RSpec.describe CustomContentsController, type: :routing do
   let!(:valid_user) { create(:admin_user) }
   let(:valid_user_creds) {{ email: valid_user.email, password: valid_user.password }}
 
   describe "Content Editor Smoke Tests" do
-    describe "/course_contents/new loads ckeditor", :js do
-      let(:return_service) { '/course_contents/new' }
+    describe "/custom_contents/new loads ckeditor", :js do
+      let(:return_service) { '/custom_contents/new' }
       before(:each) do 
         VCR.configure do |c|
           c.ignore_localhost = true

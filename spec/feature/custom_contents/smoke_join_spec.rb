@@ -6,14 +6,14 @@ include Rack::Utils
 
 if ENV['BZ_AUTH_SERVER'] # Only run these specs if on a server with Join authentication enabled
 
-RSpec.describe CourseContentsController, type: :routing do
+RSpec.describe CustomContentsController, type: :routing do
   let(:valid_user) {{ email: 'platform_user', password: 'rspec_test' }}
   let(:invalid_user) {{ email: 'bad_user', password: 'bad_pass' }}
   let(:host_servers) {{ join_server: "#{ENV['VCR_JOIN_SERVER']}", canvas_server: "#{ENV['VCR_CANVAS_SERVER']}" }}
 
   describe "Content Editor Smoke Tests" do
-    describe "/course_contents/new loads ckeditor", :js do
-      let(:return_service) { '/course_contents/new' }
+    describe "/custom_contents/new loads ckeditor", :js do
+      let(:return_service) { '/custom_contents/new' }
       before(:each) do 
         visit "/cas/login?service=#{url_encode(return_service)}"
         VCR.configure do |c|

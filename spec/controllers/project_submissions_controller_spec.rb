@@ -28,10 +28,10 @@ RSpec.describe ProjectSubmissionsController, type: :controller do
   render_views
   let(:user) { create :fellow_user }
 
-  let(:course_content) { create(:course_content) }
+  let(:custom_content) { create(:custom_content) }
   let(:custom_content_version) { create(:custom_content_version, attributes) }
   let(:attributes) { valid_attributes }
-  let(:valid_attributes) { attributes_for(:custom_content_version).merge(course_content_id: course_content.id) }
+  let(:valid_attributes) { attributes_for(:custom_content_version).merge(custom_content_id: custom_content.id) }
   let(:valid_session) { {} }
   let(:state) { LtiLaunchController.generate_state }
 
@@ -41,7 +41,7 @@ RSpec.describe ProjectSubmissionsController, type: :controller do
 
   describe 'POST #create' do
     let(:lti_launch) { create(:lti_launch_assignment) }
-    let(:project) { create(:course_content_assignment_with_versions) }
+    let(:project) { create(:custom_content_assignment_with_versions) }
 
     it 'creates a submission' do
       allow_any_instance_of(LtiAdvantageAPI)
@@ -50,7 +50,7 @@ RSpec.describe ProjectSubmissionsController, type: :controller do
 
       stub_request(:post, "#{lti_launch.request_message.line_item_url}/scores").to_return(body: '{"fake" : "response"}')
 
-      url = "#{course_content_custom_content_version_url(
+      url = "#{custom_content_custom_content_version_url(
         project,
         project.last_version,
       )}?user_override_id=#{user.id}"

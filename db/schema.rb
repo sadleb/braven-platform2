@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_09_25_184154) do
+ActiveRecord::Schema.define(version: 2020_09_29_235452) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -56,7 +56,24 @@ ActiveRecord::Schema.define(version: 2020_09_25_184154) do
     t.index ["name"], name: "index_base_courses_on_name", unique: true
   end
 
-  create_table "course_contents", force: :cascade do |t|
+  create_table "course_resources", force: :cascade do |t|
+    t.string "name"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "custom_content_versions", force: :cascade do |t|
+    t.bigint "custom_content_id", null: false
+    t.string "title"
+    t.text "body"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.bigint "user_id"
+    t.index ["custom_content_id"], name: "index_custom_content_versions_on_custom_content_id"
+    t.index ["user_id"], name: "index_custom_content_versions_on_user_id"
+  end
+
+  create_table "custom_contents", force: :cascade do |t|
     t.string "title"
     t.text "body"
     t.datetime "published_at"
@@ -66,23 +83,6 @@ ActiveRecord::Schema.define(version: 2020_09_25_184154) do
     t.integer "course_id"
     t.string "secondary_id"
     t.string "course_name"
-  end
-
-  create_table "course_resources", force: :cascade do |t|
-    t.string "name"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-  end
-
-  create_table "custom_content_versions", force: :cascade do |t|
-    t.bigint "course_content_id", null: false
-    t.string "title"
-    t.text "body"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.bigint "user_id"
-    t.index ["course_content_id"], name: "index_custom_content_versions_on_course_content_id"
-    t.index ["user_id"], name: "index_custom_content_versions_on_user_id"
   end
 
   create_table "grade_categories", force: :cascade do |t|
@@ -370,7 +370,7 @@ ActiveRecord::Schema.define(version: 2020_09_25_184154) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "base_courses", "course_resources"
-  add_foreign_key "custom_content_versions", "course_contents"
+  add_foreign_key "custom_content_versions", "custom_contents"
   add_foreign_key "custom_content_versions", "users"
   add_foreign_key "grade_categories", "base_courses"
   add_foreign_key "lesson_interactions", "users"

@@ -1,14 +1,14 @@
 require 'rails_helper'
 
 RSpec.describe "custom_content_versions/show", type: :view do
-  let(:course_content) { create(:course_content) }
-  let(:course_content_assignment) { create(:course_content_assignment) }
+  let(:custom_content) { create(:custom_content) }
+  let(:custom_content_assignment) { create(:custom_content_assignment) }
   let(:user) { create(:admin_user) }
 
   before(:each) do
-    assign(:course_content, course_content)
+    assign(:custom_content, custom_content)
     assign(:user, user)
-    assign(:custom_content_version, course_content_assignment)
+    assign(:custom_content_version, custom_content_assignment)
   end
 
   it "renders bz-assignment" do

@@ -27,10 +27,10 @@ require 'lti_advantage_api'
 
 RSpec.describe CustomContentVersionsController, type: :controller do
   render_views
-  let(:course_content) { create(:course_content) }
+  let(:custom_content) { create(:custom_content) }
   let(:custom_content_version) { create(:custom_content_version, attributes) }
   let(:attributes) { valid_attributes }
-  let(:valid_attributes) { attributes_for(:custom_content_version).merge(course_content_id: course_content.id) }
+  let(:valid_attributes) { attributes_for(:custom_content_version).merge(custom_content_id: custom_content.id) }
   let(:valid_session) { {} }
   let(:state) { LtiLaunchController.generate_state }
 
@@ -49,7 +49,7 @@ RSpec.describe CustomContentVersionsController, type: :controller do
       let(:user) { create :admin_user }
       
       it 'returns a success response' do
-        get :index, params: {course_content_id: course_content.id}, session: valid_session
+        get :index, params: {custom_content_id: custom_content.id}, session: valid_session
         expect(response).to be_successful
       end
     end
@@ -59,7 +59,7 @@ RSpec.describe CustomContentVersionsController, type: :controller do
 
       it 'raises a not-authorized error' do
         expect {
-          get :index, params: {course_content_id: course_content.id}, session: valid_session
+          get :index, params: {custom_content_id: custom_content.id}, session: valid_session
         }.to raise_error(Pundit::NotAuthorizedError)
       end
     end
@@ -73,7 +73,7 @@ RSpec.describe CustomContentVersionsController, type: :controller do
         get(
           :show,
           params: {
-            course_content_id: course_content.id,
+            custom_content_id: custom_content.id,
             id: custom_content_version.id,
             # Note: we don't pass in state
           },
@@ -92,7 +92,7 @@ RSpec.describe CustomContentVersionsController, type: :controller do
         get(
           :show,
           params: {
-            course_content_id: course_content.id,
+            custom_content_id: custom_content.id,
             id: custom_content_version.id,
             state: lti_launch.state,
             user_id: user.id,
@@ -113,7 +113,7 @@ RSpec.describe CustomContentVersionsController, type: :controller do
         get(
           :show,
           params: {
-            course_content_id: course_content.id,
+            custom_content_id: custom_content.id,
             id: custom_content_version.id,
             state: lti_launch.state,
           },

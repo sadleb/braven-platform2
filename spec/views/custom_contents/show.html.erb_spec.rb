@@ -1,8 +1,8 @@
 require 'rails_helper'
 
-RSpec.describe "course_contents/show", type: :view do
+RSpec.describe "custom_contents/show", type: :view do
   before(:each) do
-    assign(:course_content, CourseContent.create!(
+    assign(:custom_content, CustomContent.create!(
       :title => "Title",
       :body => "<p>MyText</p>",
       :content_type => "wiki_page"
@@ -21,7 +21,7 @@ RSpec.describe "course_contents/show", type: :view do
 
 
   it "adds appropriate div class for assignment" do
-    assign(:course_content, CourseContent.create!(
+    assign(:custom_content, CustomContent.create!(
       :title => "Title",
       :body => "<p>MyText</p>",
       :content_type => "assignment"

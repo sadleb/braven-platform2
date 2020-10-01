@@ -7,23 +7,23 @@ require 'lti_advantage_api'
 class CustomContentVersionsController < ApplicationController
   include LtiHelper
   include DryCrud::Controllers::Nestable
-  nested_resource_of CourseContent
+  nested_resource_of CustomContent
   layout 'content_editor'
 
   before_action :set_lti_launch, only: [:show]
-  before_action :set_course_content, only: [:index, :show, :create]
+  before_action :set_custom_content, only: [:index, :show]
 
-  # GET /course_contents/:id/versions
-  # GET /course_contents/:id/versions.json
+  # GET /custom_contents/:id/versions
+  # GET /custom_contents/:id/versions.json
   def index
     authorize CustomContentVersion
   end
 
-  # GET /course_contents/:id/versions/1
-  # GET /course_contents/:id/versions/1.json
+  # GET /custom_contents/:id/versions/1
+  # GET /custom_contents/:id/versions/1.json
   def show
     authorize @custom_content_version
-    params.require([:course_content_id])
+    params.require([:custom_content_id])
 
     # TODO: https://app.asana.com/0/1174274412967132/1187445581799823
     # We can also view this when adding an assignment in Canvas in
@@ -65,7 +65,7 @@ class CustomContentVersionsController < ApplicationController
   end
 
   private
-    def set_course_content
-      @course_content = CourseContent.find(params[:course_content_id])
+    def set_custom_content
+      @custom_content = CustomContent.find(params[:custom_content_id])
     end
 end

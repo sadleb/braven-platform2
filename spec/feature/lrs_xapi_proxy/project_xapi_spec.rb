@@ -8,7 +8,7 @@ include Rack::Utils
 unless ENV['BZ_AUTH_SERVER'] # Only run these specs if on a server with local database authentication enabled
 
 RSpec.describe CustomContentVersionsController, type: :feature do
-  let!(:project) { create(:course_content_assignment_with_versions) }
+  let!(:project) { create(:custom_content_assignment_with_versions) }
   let!(:lti_launch_assignment) { create(:lti_launch_assignment) }
 
   before(:each) do
@@ -42,13 +42,13 @@ RSpec.describe CustomContentVersionsController, type: :feature do
 
   describe "xAPI project", :js do
     vcr_options = { :cassette_name => "lrs_xapi_proxy_load", :match_requests_on => [:path, :method] }
-    describe "/course_contents/:id", :vcr => vcr_options do
+    describe "/custom_contents/:id", :vcr => vcr_options do
 
       context "when valid LtiLaunch" do
         let!(:valid_user) { create(:fellow_user) }
         let!(:lti_launch) { create(:lti_launch_assignment, canvas_user_id: valid_user.canvas_id) }
         let(:return_service) {
-          "/course_contents/#{project.id}"\
+          "/custom_contents/#{project.id}"\
           "/versions/#{project.last_version.id}"\
           "?state=#{lti_launch.state}"
         }
@@ -123,7 +123,7 @@ RSpec.describe CustomContentVersionsController, type: :feature do
       # so we rely on the page title instead. 
       context "when LtiLaunch isn't found" do
         let(:return_service) {
-          "/course_contents/#{project.id}"\
+          "/custom_contents/#{project.id}"\
           "/versions/#{project.last_version.id}"\
           "?state=invalidltilaunchstate"
         }
@@ -141,7 +141,7 @@ RSpec.describe CustomContentVersionsController, type: :feature do
             :lti_launch_assignment,
             canvas_user_id: '987654321',
           )
-          url = "/course_contents/#{project.id}"\
+          url = "/custom_contents/#{project.id}"\
             "/versions/#{project.last_version.id}"\
             "?state=#{lti_launch.state}"
           visit url

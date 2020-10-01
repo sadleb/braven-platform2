@@ -12,7 +12,7 @@ class LtiAssignmentSelectionController < ApplicationController
     params.require([:state])
     authorize @lti_launch
 
-    @assignments = CourseContent.where(content_type: 'assignment')
+    @assignments = CustomContent.where(content_type: 'assignment')
   end
 
   # TODO: this should be in the ProjectsController or a new ProjectContentsController create, not here.
@@ -23,10 +23,10 @@ class LtiAssignmentSelectionController < ApplicationController
     params.require([:state, :assignment_id])
     authorize @lti_launch
 
-    cc = CourseContent.find(params[:assignment_id])
+    cc = CustomContent.find(params[:assignment_id])
     cc.save_version!(current_user)
 
-    assignment_url = course_content_custom_content_version_url(
+    assignment_url = custom_content_custom_content_version_url(
       params[:assignment_id],
       cc.last_version.id,
     )

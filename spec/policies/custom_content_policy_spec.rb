@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe CourseContentPolicy, type: :policy do
+RSpec.describe CustomContentPolicy, type: :policy do
   let(:user) { create(:registered_user) }
 
   subject { described_class }

@@ -1,15 +1,15 @@
 <%= react_component('Sidebar', {
-    courseContents: @course_contents
+    customContents: @custom_contents
 }) %>
 
-<%= form_with(model: course_content, id: 'content-editor', local: true) do |form| %>
+<%= form_with(model: custom_content, id: 'content-editor', local: true) do |form| %>
 
-  <% if course_content.errors.any? %>
+  <% if custom_content.errors.any? %>
     <div id="error_explanation">
-      <h2><%= pluralize(course_content.errors.count, "error") %> prohibited this course_content from being saved:</h2>
+      <h2><%= pluralize(custom_content.errors.count, "error") %> prohibited this custom_content from being saved:</h2>
 
       <ul>
-        <% course_content.errors.full_messages.each do |message| %>
+        <% custom_content.errors.full_messages.each do |message| %>
           <li><%= message %></li>
         <% end %>
       </ul>
@@ -17,7 +17,7 @@
   <% end %>
 
   <div class="field" >
-    <%= react_component('ContentEditor', { course_content: course_content,
+    <%= react_component('ContentEditor', { custom_content: custom_content,
         contentParts: [
             {
                 id: 1,

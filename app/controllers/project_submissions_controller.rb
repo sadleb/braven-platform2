@@ -29,8 +29,8 @@ class ProjectSubmissionsController < ApplicationController
 
     # We're using CustomContentVersionsController to view and work on projects
     submission_url = Addressable::URI.parse(
-      course_content_custom_content_version_url(
-        @project_version.course_content,
+      custom_content_custom_content_version_url(
+        @project_version.custom_content,
         @project_version.id,
       )
     )
