@@ -374,7 +374,8 @@ class CasController < ApplicationController
   end
 
   def set_params
-    @service = Utils.clean_service_url(params['service']) if params['service']
+    safe_service_param = helpers.safe_service_url(params['service'])
+    @service = Utils.clean_service_url(safe_service_param) if safe_service_param
     @ticket = params['ticket'] || nil
     @renew = params['renew'] || nil
     @extra_attributes = {}
