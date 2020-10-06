@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_09_29_235452) do
+ActiveRecord::Schema.define(version: 2020_10_01_230300) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -200,14 +200,16 @@ ActiveRecord::Schema.define(version: 2020_09_29_235452) do
   end
 
   create_table "projects", force: :cascade do |t|
-    t.bigint "grade_category_id", null: false
-    t.string "name", null: false
-    t.integer "points_possible", null: false
-    t.float "percent_of_grade_category", null: false
-    t.boolean "grades_muted", default: false, null: false
-    t.datetime "grades_published_at"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.datetime "grades_published_at"
+    t.boolean "grades_muted"
+    t.float "percent_of_grade_category"
+    t.integer "points_possible"
+    t.string "name"
+    t.bigint "grade_category_id"
+    t.bigint "custom_content_version_id"
+    t.index ["custom_content_version_id"], name: "index_projects_on_custom_content_version_id"
     t.index ["grade_category_id"], name: "index_projects_on_grade_category_id"
   end
 
@@ -380,6 +382,7 @@ ActiveRecord::Schema.define(version: 2020_09_29_235452) do
   add_foreign_key "logistics", "base_courses"
   add_foreign_key "project_submissions", "projects"
   add_foreign_key "project_submissions", "users"
+  add_foreign_key "projects", "custom_content_versions"
   add_foreign_key "projects", "grade_categories"
   add_foreign_key "rubric_grades", "project_submissions"
   add_foreign_key "rubric_grades", "rubrics"
