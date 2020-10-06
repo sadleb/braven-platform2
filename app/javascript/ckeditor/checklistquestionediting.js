@@ -205,7 +205,6 @@ export default class ChecklistQuestionEditing extends Plugin {
             model: 'checkboxLabel',
             view: ( modelElement, viewWriter ) => {
                 return viewWriter.createEditableElement( 'label', {
-                    // HACK: Get the id of the checkbox this label corresponds to.
                     'for': modelElement.parent.getChild(0).getAttribute('id')
                 } );
             }
@@ -214,8 +213,6 @@ export default class ChecklistQuestionEditing extends Plugin {
             model: 'checkboxLabel',
             view: ( modelElement, viewWriter ) => {
                 const label = viewWriter.createEditableElement( 'label', {
-                    // NOTE: We don't set the 'for' attribute in the editing view, so that clicking in the label
-                    // editable to type doesn't also toggle the checkbox.
                 } );
 
                 enablePlaceholder( {
@@ -230,7 +227,6 @@ export default class ChecklistQuestionEditing extends Plugin {
 
 
          // <textareaLabel> converters
-         // the text area label is visible to only screen readers (accessibility purposes)
          conversion.for( 'upcast' ).elementToElement( {
             view: {
                 name: 'div',
@@ -239,18 +235,16 @@ export default class ChecklistQuestionEditing extends Plugin {
             model: ( viewElement, modelWriter ) => {
                 const id = viewElement.getAttribute('id') || this._nextRetainedDataId();
                 return modelWriter.createElement( 'textareaLabel', {
-                    // HACK: Get the id of the textarea this label corresponds to.
                     'id': id,
                 } );
             }
-        } ); // contentBlock = getNamedChildOrSibling( 'content', selectedElement );
+        } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'textareaLabel',
             view: ( modelElement, viewWriter ) => {
                 const id = modelElement.getAttribute('id') || this._nextRetainedDataId();
 
                 return viewWriter.createEditableElement( 'div', {
-                    // HACK: Get the id of the checkbox this label corresponds to.
                     'id': id,
                     'class': 'sr-only text-area-label'
                 } );
@@ -261,8 +255,6 @@ export default class ChecklistQuestionEditing extends Plugin {
             view: ( modelElement, viewWriter ) => {
                 const id = modelElement.getAttribute('id') || this._nextRetainedDataId();
                 const label = viewWriter.createEditableElement( 'div', {
-                    // NOTE: We don't set the 'for' attribute in the editing view, so that clicking in the label
-                    // editable to type doesn't also toggle the checkbox.
                     'id': id,
                     'class': 'sr-only text-area-label'
                 } );
