@@ -45,7 +45,7 @@ Rails.application.routes.draw do
   end
 
   resources :projects, only: [:show, :create] do
-    resources :project_submissions, :path => 'submissions', only: [:create]
+    resources :project_submissions, :path => 'submissions', only: [:show, :new, :create]
   end
 
   resources :lessons, only: [:index, :show] do

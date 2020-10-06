@@ -27,16 +27,9 @@ class ProjectsController < ApplicationController
     @project.save!
 
     # Create a project submission URL tied to this project
-    # TODO: https://app.asana.com/0/1174274412967132/1186960110311121
-    # Use the project submission URL, e.g.:
-    # project_submission_url = new_project_project_submission_url(
-    #   project_id: @project.id,
-    # )
-    project_submission_url = custom_content_custom_content_version_url(
-      @project.custom_content_version.custom_content,
-      @project.custom_content_version,
+    project_submission_url = new_project_project_submission_url(
+      project_id: @project.id,
     )
-
     @deep_link_return_url, @jwt_response = helpers.lti_deep_link_response_message(@lti_launch, project_submission_url)
   end
 
