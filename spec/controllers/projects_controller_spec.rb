@@ -7,7 +7,7 @@ RSpec.describe ProjectsController, type: :controller do
   let(:state) { LtiLaunchController.generate_state }
   let(:target_link_uri) { 'https://target/link' }
   let!(:lti_launch) { create(:lti_launch_assignment_selection, target_link_uri: target_link_uri, state: state) }
-  let!(:user) { create :admin_user, canvas_id: lti_launch.request_message.canvas_user_id}
+  let!(:user) { create :admin_user, canvas_user_id: lti_launch.request_message.canvas_user_id}
 
   describe "GET #show" do
     it "returns a success response" do

@@ -11,7 +11,7 @@ RSpec.describe ProjectSubmissionsController, type: :controller do
       let(:lti_launch) {
         create(
           :lti_launch_assignment,
-          canvas_user_id: project_submission.user.canvas_id,
+          canvas_user_id: project_submission.user.canvas_user_id,
         )
       }
 
@@ -33,7 +33,7 @@ RSpec.describe ProjectSubmissionsController, type: :controller do
     context "as a TA" do
       let(:user) { create :ta_user }
       let(:lti_launch) {
-        create :lti_launch_assignment, canvas_user_id: user.canvas_id
+        create :lti_launch_assignment, canvas_user_id: user.canvas_user_id
       }
 
       it 'returns a success response' do
@@ -105,7 +105,7 @@ RSpec.describe ProjectSubmissionsController, type: :controller do
     let(:project) { create(:project) }
     let(:user) { create :fellow_user }
     let(:lti_launch) {
-      create(:lti_launch_assignment, canvas_user_id: user.canvas_id)
+      create(:lti_launch_assignment, canvas_user_id: user.canvas_user_id)
     }
 
     it 'creates a submission' do
@@ -134,7 +134,7 @@ RSpec.describe ProjectSubmissionsController, type: :controller do
         )
         .with { |req|
           body = JSON.parse(req.body)
-          body['userId'].to_i == user.canvas_id.to_i \
+          body['userId'].to_i == user.canvas_user_id.to_i \
           && body[LtiScore::LTI_SCORE_SUBMISSION_URL_KEY]['submission_data'] == submission_url
         }
         .once

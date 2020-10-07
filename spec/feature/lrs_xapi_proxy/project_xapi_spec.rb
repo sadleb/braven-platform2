@@ -12,7 +12,7 @@ RSpec.describe ProjectSubmissionsController, type: :feature do
   let!(:lti_launch) {
     create(
       :lti_launch_assignment,
-      canvas_user_id: project_submission.user.canvas_id,
+      canvas_user_id: project_submission.user.canvas_user_id,
     )
   }
 

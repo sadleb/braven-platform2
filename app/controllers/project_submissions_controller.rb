@@ -29,7 +29,7 @@ class ProjectSubmissionsController < ApplicationController
     @custom_content_version = @project.custom_content_version
     @has_previous_submission = LtiAdvantageAPI
       .new(@lti_launch)
-      .get_line_item_for_user(current_user.canvas_id)
+      .get_line_item_for_user(current_user.canvas_user_id)
       .present?
     @project_lti_id = @lti_launch.activity_id
   end
@@ -51,7 +51,7 @@ class ProjectSubmissionsController < ApplicationController
     # Save project submission to Canvas.
     # The actual project responses are stored in the LRS.
     lti_score = LtiScore.new_project_submission(
-      current_user.canvas_id,
+      current_user.canvas_user_id,
       project_project_submission_url(
         @project_submission.project,
         @project_submission,

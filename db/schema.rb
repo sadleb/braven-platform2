@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_10_01_230300) do
+ActiveRecord::Schema.define(version: 2020_10_02_212519) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -352,11 +352,11 @@ ActiveRecord::Schema.define(version: 2020_10_01_230300) do
     t.datetime "confirmation_sent_at"
     t.string "unconfirmed_email"
     t.string "salesforce_id"
-    t.integer "canvas_id"
+    t.integer "canvas_user_id"
     t.integer "join_user_id"
     t.string "linked_in_access_token"
     t.string "linked_in_state"
-    t.index ["canvas_id"], name: "index_users_on_canvas_id", unique: true
+    t.index ["canvas_user_id"], name: "index_users_on_canvas_user_id", unique: true
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
