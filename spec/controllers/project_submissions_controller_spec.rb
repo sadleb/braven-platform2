@@ -28,6 +28,27 @@ RSpec.describe ProjectSubmissionsController, type: :controller do
         )
         expect(response).to be_successful
       end
+
+      it 'checks submission time to fetch answers' do
+        # We can't just stub/expect on the project_submission object we created
+        # because the controller action loads a different object
+        allow_any_instance_of(ProjectSubmission)
+          .to receive(:created_at)
+          .and_return(Time.now)
+
+        expect_any_instance_of(ProjectSubmission)
+          .to receive(:created_at)
+          .once
+
+        get(
+          :show,
+          params: {
+            project_id: project_submission.project.id,
+            id: project_submission.id,
+            state: lti_launch.state,
+          },
+        )
+      end
     end
 
     context "as a TA" do
