@@ -1,7 +1,6 @@
 class Section < ApplicationRecord
   resourcify
 
-  belongs_to :logistic
   belongs_to :course, -> {
     where(base_courses: { type: 'Course' })
   }, foreign_key: :base_course_id

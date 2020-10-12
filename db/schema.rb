@@ -164,15 +164,6 @@ ActiveRecord::Schema.define(version: 2020_10_02_212519) do
     t.string "client_hostname", null: false
   end
 
-  create_table "logistics", force: :cascade do |t|
-    t.string "day_of_week", null: false
-    t.string "time_of_day", null: false
-    t.integer "base_course_id", null: false
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.index ["day_of_week", "time_of_day", "base_course_id"], name: "index_logistics_on_day_time_course", unique: true
-  end
-
   create_table "lti_launches", force: :cascade do |t|
     t.string "client_id", null: false
     t.string "login_hint", null: false
@@ -291,10 +282,10 @@ ActiveRecord::Schema.define(version: 2020_10_02_212519) do
 
   create_table "sections", force: :cascade do |t|
     t.string "name", null: false
-    t.integer "logistic_id", null: false
     t.integer "base_course_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.integer "canvas_section_id"
     t.index ["name", "base_course_id"], name: "index_sections_on_name_and_base_course_id", unique: true
   end
 
@@ -379,7 +370,6 @@ ActiveRecord::Schema.define(version: 2020_10_02_212519) do
   add_foreign_key "lesson_submissions", "lessons"
   add_foreign_key "lesson_submissions", "users"
   add_foreign_key "lessons", "grade_categories"
-  add_foreign_key "logistics", "base_courses"
   add_foreign_key "project_submissions", "projects"
   add_foreign_key "project_submissions", "users"
   add_foreign_key "projects", "custom_content_versions"
@@ -393,7 +383,6 @@ ActiveRecord::Schema.define(version: 2020_10_02_212519) do
   add_foreign_key "rubric_rows", "rubric_row_categories"
   add_foreign_key "rubrics", "projects"
   add_foreign_key "sections", "base_courses"
-  add_foreign_key "sections", "logistics"
   add_foreign_key "user_sections", "sections"
   add_foreign_key "user_sections", "users"
 end

@@ -134,10 +134,14 @@ class CanvasAPI
     LMSUser.new(user['id'], user['email'])
   end
 
-
   def find_user_in_canvas(search_term)
-    response = get("/accounts/1/users?search_term=#{CGI.escape(search_term)}")
+    # Note: Don't use CGI.escape on search_term bc RestClient handles this internally.
+    response = get("/accounts/1/users", {
+      'search_term': search_term,
+      'include[]': 'email'
+    })
     users = JSON.parse(response.body)
+    # Only return an object if one and only one user matches the query.
     users.length == 1 ? users[0] : nil
   end 
 
