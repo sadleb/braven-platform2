@@ -7,9 +7,6 @@ class CanvasAPI
   LMSEnrollment = Struct.new(:id, :course_id, :type, :section_id)
   LMSSection = Struct.new(:id, :name)
 
-  TA_ENROLLMENT = :TaEnrollment
-  STUDENT_ENROLLMENT = :StudentEnrollment
-
   attr_reader :canvas_url
 
   # Custom HTML to prepend to each body.

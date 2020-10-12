@@ -5,7 +5,11 @@ RSpec.describe ProjectSubmissionsController, type: :controller do
   render_views
 
   describe 'GET #show' do
-    let(:project_submission) { create :project_submission }
+    let(:project) { create :project }
+    let(:user) { create :fellow_user, section: section }
+    let(:project_submission) { create :project_submission, project_id: project.id, user: user }
+    let(:course_project) { create :course_project, project_id: project.id }
+    let(:section) { create :section, base_course_id: course_project.base_course_id }
 
     context "as a Fellow" do
       let(:lti_launch) {
@@ -52,7 +56,7 @@ RSpec.describe ProjectSubmissionsController, type: :controller do
     end
 
     context "as a TA" do
-      let(:user) { create :ta_user }
+      let(:user) { create :ta_user, section: section }
       let(:lti_launch) {
         create :lti_launch_assignment, canvas_user_id: user.canvas_user_id
       }
@@ -81,7 +85,7 @@ RSpec.describe ProjectSubmissionsController, type: :controller do
         get(
           :show,
           params: {
-            project_id: project_submission.project.id,
+            project_id: project_submission.project_id,
             id: project_submission.id,
             # state: not passed in, will redirect to login
           },
@@ -124,7 +128,10 @@ RSpec.describe ProjectSubmissionsController, type: :controller do
 
   describe 'POST #create' do
     let(:project) { create(:project) }
-    let(:user) { create :fellow_user }
+    let(:course_project) { create :course_project, project_id: project.id }
+    let(:section) { create :section, base_course_id: course_project.base_course_id }
+    let(:user) { create :fellow_user, section: section }
+
     let(:lti_launch) {
       create(:lti_launch_assignment, canvas_user_id: user.canvas_user_id)
     }

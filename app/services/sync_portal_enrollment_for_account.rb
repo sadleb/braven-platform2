@@ -31,13 +31,13 @@ class SyncPortalEnrollmentForAccount
   def add_enrollment!
     case sf_participant.role
     when SalesforceAPI::LEADERSHIP_COACH
-      sync_enrollment(sf_program.fellow_course_id, CanvasAPI::TA_ENROLLMENT, 
+      sync_enrollment(sf_program.fellow_course_id, TA_ENROLLMENT,
                       course_section_name)
       sync_enrollment(sf_program.leadership_coach_course_id,
-                      CanvasAPI::STUDENT_ENROLLMENT,
+                      STUDENT_ENROLLMENT,
                       sf_program.leadership_coach_course_section_name)
     when SalesforceAPI::FELLOW
-      sync_enrollment(sf_program.fellow_course_id, CanvasAPI::STUDENT_ENROLLMENT, 
+      sync_enrollment(sf_program.fellow_course_id, STUDENT_ENROLLMENT,
                       course_section_name)
     else
       logger.warn("Got unknown role #{sf_participant.role} from SF")

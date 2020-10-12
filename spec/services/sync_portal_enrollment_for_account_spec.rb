@@ -76,7 +76,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
       end
 
       it 'de-enrols a user if section changes' do
-        enrollment = CanvasAPI::LMSEnrollment.new(nil, nil, CanvasAPI::STUDENT_ENROLLMENT, 2)
+        enrollment = CanvasAPI::LMSEnrollment.new(nil, nil, STUDENT_ENROLLMENT, 2)
         section = CanvasAPI::LMSSection.new(1)
         allow(lms_client).to receive(:find_enrollment).and_return(enrollment)
         allow(lms_client).to receive(:find_section_by).and_return(section)
@@ -91,7 +91,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
       end
 
       it 'reenrols the user if section changes' do
-        enrollment = CanvasAPI::LMSEnrollment.new(nil, nil, CanvasAPI::STUDENT_ENROLLMENT, 2)
+        enrollment = CanvasAPI::LMSEnrollment.new(nil, nil, STUDENT_ENROLLMENT, 2)
         section = CanvasAPI::LMSSection.new(1)
         allow(lms_client).to receive(:find_enrollment).and_return(enrollment)
         allow(lms_client).to receive(:find_section_by).and_return(section)
@@ -106,7 +106,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
       end
 
       it 'de-enrols a user if role changes' do
-        enrollment = CanvasAPI::LMSEnrollment.new(nil, nil, CanvasAPI::TA_ENROLLMENT, nil)
+        enrollment = CanvasAPI::LMSEnrollment.new(nil, nil, TA_ENROLLMENT, nil)
         allow(lms_client).to receive(:find_enrollment).and_return(enrollment)
 
         SyncPortalEnrollmentForAccount
@@ -119,7 +119,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
       end
 
       it 'reenrols the user if role changes' do
-        enrollment = CanvasAPI::LMSEnrollment.new(nil, nil, CanvasAPI::TA_ENROLLMENT, nil)
+        enrollment = CanvasAPI::LMSEnrollment.new(nil, nil, TA_ENROLLMENT, nil)
         allow(lms_client).to receive(:find_enrollment).and_return(enrollment)
 
         SyncPortalEnrollmentForAccount
