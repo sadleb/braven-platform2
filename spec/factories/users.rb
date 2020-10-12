@@ -27,7 +27,7 @@ FactoryBot.define do
         end
         canvas_user_id { '1234' }
         after :create do |user, options|
-          user.add_role STUDENT_ENROLLMENT, options.section
+          user.add_role RoleConstants::STUDENT_ENROLLMENT, options.section
         end
       end
 
@@ -37,7 +37,7 @@ FactoryBot.define do
         end
         canvas_user_id { '1235' }
         after :create do |user, options|
-          user.add_role TA_ENROLLMENT, options.section
+          user.add_role RoleConstants::TA_ENROLLMENT, options.section
         end
       end
 

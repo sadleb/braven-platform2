@@ -8,7 +8,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
     let(:sf_participant) { SalesforceAPI::SFParticipant.new('first', 'last', 'test1@example.com') }
     let(:sf_program) { SalesforceAPI::SFProgram.new }
     let(:lms_section) { CanvasAPI::LMSSection.new(10, "test section") }
-    let(:lms_enrollment) { CanvasAPI::LMSEnrollment.new(55, 11, STUDENT_ENROLLMENT, lms_section.id) }
+    let(:lms_enrollment) { CanvasAPI::LMSEnrollment.new(55, 11, RoleConstants::STUDENT_ENROLLMENT, lms_section.id) }
     let(:lms_client) { double('CanvasAPI', find_enrollment: lms_enrollment, find_section_by: lms_section, enroll_user_in_course: nil, create_lms_section: lms_section, delete_enrollment: nil) }
     # Create local models, with the assumption that a user that exists on Canvas must already exist locally too.
     # This all falls apart if that assumption is untrue (the tests will pass, but the code won't work), so be careful
@@ -76,7 +76,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
       end
 
       it 'de-enrols a user if section changes' do
-        enrollment = CanvasAPI::LMSEnrollment.new(nil, nil, STUDENT_ENROLLMENT, 2)
+        enrollment = CanvasAPI::LMSEnrollment.new(nil, nil, RoleConstants::STUDENT_ENROLLMENT, 2)
         section = CanvasAPI::LMSSection.new(1)
         allow(lms_client).to receive(:find_enrollment).and_return(enrollment)
         allow(lms_client).to receive(:find_section_by).and_return(section)
@@ -91,7 +91,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
       end
 
       it 'reenrols the user if section changes' do
-        enrollment = CanvasAPI::LMSEnrollment.new(nil, nil, STUDENT_ENROLLMENT, 2)
+        enrollment = CanvasAPI::LMSEnrollment.new(nil, nil, RoleConstants::STUDENT_ENROLLMENT, 2)
         section = CanvasAPI::LMSSection.new(1)
         allow(lms_client).to receive(:find_enrollment).and_return(enrollment)
         allow(lms_client).to receive(:find_section_by).and_return(section)
@@ -106,7 +106,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
       end
 
       it 'de-enrols a user if role changes' do
-        enrollment = CanvasAPI::LMSEnrollment.new(nil, nil, TA_ENROLLMENT, nil)
+        enrollment = CanvasAPI::LMSEnrollment.new(nil, nil, RoleConstants::TA_ENROLLMENT, nil)
         allow(lms_client).to receive(:find_enrollment).and_return(enrollment)
 
         SyncPortalEnrollmentForAccount
@@ -119,7 +119,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
       end
 
       it 'reenrols the user if role changes' do
-        enrollment = CanvasAPI::LMSEnrollment.new(nil, nil, TA_ENROLLMENT, nil)
+        enrollment = CanvasAPI::LMSEnrollment.new(nil, nil, RoleConstants::TA_ENROLLMENT, nil)
         allow(lms_client).to receive(:find_enrollment).and_return(enrollment)
 
         SyncPortalEnrollmentForAccount

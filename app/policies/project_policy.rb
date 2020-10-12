@@ -10,7 +10,7 @@ class ProjectPolicy < ApplicationPolicy
     # Users can see projects attached to a course they are enrolled in.
     record.courses.each do |course|
       course.sections.each do |section|
-        SECTION_ROLES.each do |role|
+        RoleConstants::SECTION_ROLES.each do |role|
           return true if user.has_role? role, section
         end
       end

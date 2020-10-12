@@ -17,7 +17,7 @@ RSpec.describe ProjectPolicy, type: :policy do
 
     it "allows a non-admin user to show a project attached to a course where this user is enrolled" do
       course_project
-      user.add_role STUDENT_ENROLLMENT, section
+      user.add_role RoleConstants::STUDENT_ENROLLMENT, section
       expect(subject).to permit user, project
     end
 
