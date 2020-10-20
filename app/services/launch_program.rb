@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class LaunchProgram
-  def initialize(salesforce_program_id:, fellow_course_template_id:, fellow_course_name:, lc_course_template_id:, lc_course_name:)
+  def initialize(salesforce_program_id, fellow_course_template_id, fellow_course_name, lc_course_template_id, lc_course_name)
     @salfesforce_program_id = salesforce_program_id
     @fellow_course_template = CourseTemplate.find(fellow_course_template_id)
     @fellow_course = Course.create!(
