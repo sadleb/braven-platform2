@@ -25,11 +25,11 @@ class LaunchProgram
     lc_launch_response = LaunchProgram.canvas_launch!(@lc_course, @lc_course_template)
 
     LaunchProgram.after_canvas_launch_completes!(fellow_launch_response) do
-      LaunchProgram.create_canvas_sections!(@fellow_course, @fellow_course_section_names)
+      InitializeNewCourse.new(@fellow_course, @fellow_course_section_names).run
     end
 
     LaunchProgram.after_canvas_launch_completes!(lc_launch_response) do
-      LaunchProgram.create_canvas_sections!(@lc_course, @lc_course_section_names)
+      InitializeNewCourse.new(@lc_course, @lc_course_section_names).run
     end
   end
 
@@ -54,20 +54,6 @@ class LaunchProgram
       response = CanvasAPI.client.get_copy_course_status(progress_url)
     end
     block.call
-  end
-
-  def self.create_canvas_sections!(base_course, section_names)
-    canvas_section_ids = []
-    section_names.each do |sname|
-      cs = CanvasAPI.client.create_lms_section(course_id: base_course.canvas_course_id, name: sname) 
-      canvas_section_ids << cs.id
-      ps = Section.create!(name: cs.name, base_course_id: base_course.id, canvas_section_id: cs.id)      
-    end
-    canvas_assignment_ids = CanvasAPI.client.get_assignments(base_course.canvas_course_id).map { |fa| fa['id'] }
-
-    # Add an AssignmentOverride date object to each assignment for each section so that 
-    # the Edit Assignment Dates page shows the sections.
-    CanvasAPI.client.create_assignment_overrides(base_course.canvas_course_id, canvas_assignment_ids, canvas_section_ids)
   end
 
 private

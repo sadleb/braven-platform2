@@ -231,10 +231,20 @@ class CanvasAPI
     JSON.parse(response.body)
   end
 
+  def get_assignment(course_id, assignment_id)
+    JSON.parse(get("/courses/#{course_id}/assignments/#{assignment_id}").body)
+  end
+
   # Gets a list of all assignments for a course.
   def get_assignments(course_id)
     response = get("/courses/#{course_id}/assignments")
     get_all_from_pagination(response)
+  end
+
+  def update_assignment_lti_launch_url(course_id, assignment_id, new_url)
+    body = { :assignment => { :external_tool_tag_attributes => { :url => new_url } } }
+    response = put("/courses/#{course_id}/assignments/#{assignment_id}", body)
+    JSON.parse(response.body)
   end
 
   # Associates an AssignmentOverride for each section to each assignment. This causes the

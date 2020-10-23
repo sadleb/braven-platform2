@@ -6,6 +6,10 @@ FactoryBot.define do
   factory :canvas_assignment, class: Hash do
     skip_create # This isn't stored in the DB.
 
+    transient do
+      sequence(:lti_launch_url) { |i| "https://platformweb/some/lti_launch/endpoint/#{i}" }
+    end
+
     sequence(:id) 
     description { '<p>The text in the editor box</p>' }
     due_at { '2020-09-26T03:59:59Z' }
@@ -26,7 +30,7 @@ FactoryBot.define do
     workflow_state { 'published' }
     sequence(:external_tool_tag_attributes) { |i| 
       { 
-        'url' => "https://platformweb/some/lti_launch/endpoint/#{i}",
+        'url' => lti_launch_url,
         'new_tab' => false,
         'resource_link_id' => "b4793177cdff4db60af282b4d9eb789ed2ccc3#{i}",
         'external_data' => '',
