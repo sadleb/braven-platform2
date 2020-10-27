@@ -6,12 +6,10 @@ RSpec.describe "custom_contents/index", type: :view do
       CustomContent.create!(
         :title => "Title",
         :body => "MyBody",
-        :content_type => "MyCustomContentType"
       ),
       CustomContent.create!(
         :title => "Title",
         :body => "MyBody",
-        :content_type => "MyCustomContentType"
       )
     ])
   end

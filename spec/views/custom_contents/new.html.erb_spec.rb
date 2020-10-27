@@ -5,7 +5,6 @@ RSpec.describe "custom_contents/new", type: :view do
     assign(:custom_content, CustomContent.new(
       :title => "MyString",
       :body => "MyText",
-      :content_type => "MyText"
     ))
   end
 

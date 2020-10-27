@@ -5,7 +5,6 @@ RSpec.describe "custom_contents/edit", type: :view do
     @custom_content = assign(:custom_content, CustomContent.create!(
       :title => "MyString",
       :body => "MyText",
-      :content_type => "MyText"
     ))
   end
 

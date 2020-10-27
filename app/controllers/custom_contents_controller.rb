@@ -99,6 +99,6 @@ class CustomContentsController < ApplicationController
 
   # Never trust parameters from the scary internet, only allow the white list through.
   def custom_content_params
-    params.require(:custom_content).permit(:title, :body, :published_at, :content_type, :course_id, :course_name, :secondary_id)
+    params.require(:custom_content).permit(:title, :body, :published_at, :course_id, :course_name, :secondary_id)
   end
 end

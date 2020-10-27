@@ -437,14 +437,6 @@ class ContentEditor extends Component {
                             </h2>
                             <details>
                               <summary>Advanced</summary>
-                              <select name="custom_content[content_type]"
-                                      defaultValue={this.props.custom_content['content_type']}
-                                      placeholder="Content Type">
-                                <option value="">SELECT PAGE TYPE</option>
-                                <option value="wiki_page">Module</option>
-                                <option value="assignment">Project</option>
-                              </select>
-                              <br/>
                               <input type="number" name="custom_content[course_id]"
                                      defaultValue={this.props.custom_content['course_id']}
                                      placeholder="Course ID"
