@@ -10,11 +10,6 @@ Rails.application.routes.draw do
     resources :custom_content_versions, path: 'versions', only: [:index, :show]
   end
 
-  # Support public-facing legacy endpoints to course_contents
-  get 'course_contents/:id', to: 'custom_contents#show'
-  get 'course_contents/:custom_content_id/versions', to: 'custom_content_versions#index'
-  get 'course_contents/:custom_content_id/versions/:id', to: 'custom_content_versions#show'
-
   resources :file_upload, only: [:create]
 
   devise_for :users, controllers: { registrations: 'users/registrations', confirmations: 'users/confirmations', passwords: 'users/passwords' }
