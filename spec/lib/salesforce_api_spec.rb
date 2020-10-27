@@ -214,4 +214,19 @@ RSpec.describe SalesforceAPI do
       expect(WebMock).to have_requested(:patch, request_url_regex).once
     end
   end
+
+  describe '#set_canvas_course_ids(program_id, canvas_fellow_course_id, canvas_lc_course_id)' do
+    let(:salesforce) { SalesforceAPI.client }
+    let(:program_id) { '003170000125IpSAAU' }
+
+    it 'calls the correct endpoint' do
+      program_json = FactoryBot.json(:salesforce_program)
+      request_url_regex = /#{SALESFORCE_INSTANCE_URL}#{SalesforceAPI::DATA_SERVICE_PATH}\/sobjects\/Program__c\/#{program_json['id']}.*/
+      stub_request(:patch, request_url_regex)
+
+      response = salesforce.set_canvas_course_ids(program_json['id'], '1234', '5678')
+
+      expect(WebMock).to have_requested(:patch, request_url_regex).once
+    end
+  end
 end

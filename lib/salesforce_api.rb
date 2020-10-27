@@ -234,6 +234,15 @@ class SalesforceAPI
     response = patch("#{DATA_SERVICE_PATH}/sobjects/Contact/#{contact_id}", body.to_json, JSON_HEADERS)
   end
 
+  def set_canvas_course_ids(program_id, canvas_fellow_course_id, canvas_lc_course_id)
+    body = {
+      'Highlander_Accelerator_Course_ID__c' => canvas_fellow_course_id,
+      'Highlander_LCPlaybook_Course_ID__c' => canvas_lc_course_id,
+    }
+    patch("#{DATA_SERVICE_PATH}/sobjects/Program__c/#{program_id}", body.to_json, JSON_HEADERS)
+  end
+
+
 # TODO: delete me if we don't need to use a POST for any reason. I figured out how to accept query params in the get after I had implement this.
 # I'm assuming we'll be fine sending the request to SF in a get and not need this, but just in case I"m leaving this around until we've fully
 # implemented the flow and know we won't use it.

@@ -28,6 +28,7 @@ RSpec.describe LaunchProgram do
     allow(canvas_client).to receive(:copy_course).with(lc_course_template.canvas_course_id, new_lc_course_id).and_return(canvas_copy_lc_course)
     allow(sf_api_client).to receive(:get_program_info).and_return(salesforce_program)
     allow(sf_api_client).to receive(:get_cohort_schedule_section_names).and_return(fellow_section_names)
+    allow(sf_api_client).to receive(:set_canvas_course_ids)
     allow(SalesforceAPI).to receive(:client).and_return(sf_api_client)
   end
 

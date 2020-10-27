@@ -24,6 +24,13 @@ class LaunchProgram
     fellow_launch_response = LaunchProgram.canvas_launch!(@fellow_course, @fellow_course_template)
     lc_launch_response = LaunchProgram.canvas_launch!(@lc_course, @lc_course_template)
 
+    # Update Salesforce program with the new Canvas course IDs.
+    sf_client.set_canvas_course_ids(
+      @salesforce_program.id,
+      @fellow_course.canvas_course_id,
+      @lc_course.canvas_course_id
+    )
+
     LaunchProgram.after_canvas_launch_completes!(fellow_launch_response) do
       InitializeNewCourse.new(@fellow_course, @fellow_course_section_names).run
     end
