@@ -98,7 +98,7 @@ class SalesforceAPI
 
   def get_program_info(program_id)
     soql_query = 
-      "SELECT Id, Name, Target_Course_ID_in_LMS__c, LMS_Coach_Course_Id__c, School__c, " \
+      "SELECT Id, Name, Highlander_Accelerator_Course_ID__c, Highlander_LCPlaybook_Course_ID__c, School__c, " \
         "Section_Name_in_LMS_Coach_Course__c, Default_Timezone__c, Docusign_Template_ID__c, " \
         "Preaccelerator_Qualtrics_Survey_ID__c, Postaccelerator_Qualtrics_Survey_ID__c, " \
         "LC_DocuSign_Template_ID__c " \
@@ -177,8 +177,8 @@ class SalesforceAPI
     raise ProgramNotOnSalesforceError if program.nil?
 
     SFProgram.new(program['Id'], program['Name'], program['SchoolId'],
-              program['Target_Course_ID_in_LMS__c'].to_i,
-              program['LMS_Coach_Course_Id__c'].to_i,
+              program['Highlander_Accelerator_Course_ID__c'].to_i,
+              program['Highlander_LCPlaybook_Course_ID__c'].to_i,
               program['Section_Name_in_LMS_Coach_Course__c'],
               program['Default_Timezone__c'].to_sym,
               program['Docusign_Template_ID__c'],

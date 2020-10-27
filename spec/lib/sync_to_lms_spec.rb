@@ -6,8 +6,8 @@ RSpec.describe SyncToLMS do
   describe '#for_program' do
     let(:program_info) { build(:salesforce_program_record) }
     let(:program_id) { program_info['Id'] }
-    let(:fellow_course_id) { program_info['Target_Course_ID_in_LMS__c'].to_i }
-    let(:lc_course_id) { program_info['LMS_Coach_Course_Id__c'].to_i }
+    let(:fellow_course_id) { program_info['Highlander_Accelerator_Course_ID__c'].to_i }
+    let(:lc_course_id) { program_info['Highlander_LCPlaybook_Course_ID__c'].to_i }
     let(:section) { build(:canvas_section) }
     let(:user) { build(:canvas_user) }
     let(:users) { build_list(:canvas_user, 2) }
@@ -175,7 +175,7 @@ RSpec.describe SyncToLMS do
   describe '#for_contact' do
     let(:program_info) { build(:salesforce_program_record) }
     let(:program_id) { program_info['Id'] }
-    let(:fellow_course_id) { program_info['Target_Course_ID_in_LMS__c'].to_i }
+    let(:fellow_course_id) { program_info['Highlander_Accelerator_Course_ID__c'].to_i }
     let(:section) { build(:canvas_section) }
     let(:user) { build(:canvas_user) }
     let(:enrollment) { build(:canvas_enrollment_student) }
