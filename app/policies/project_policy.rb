@@ -1,2 +1,2 @@
-class ProjectPolicy < ApplicationPolicy
+class ProjectPolicy < CustomContentPolicy
 end
