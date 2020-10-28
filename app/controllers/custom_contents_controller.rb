@@ -6,7 +6,7 @@ class CustomContentsController < ApplicationController
   # GET /custom_contents
   # GET /custom_contents.json
   def index
-    authorize CustomContent
+    authorize custom_content_class
   end
 
   # GET /custom_contents/1
@@ -17,7 +17,7 @@ class CustomContentsController < ApplicationController
 
   # GET /custom_contents/new
   def new
-    @custom_content = CustomContent.new
+    @custom_content = custom_content_class.new
     authorize @custom_content
   end
 
@@ -29,7 +29,7 @@ class CustomContentsController < ApplicationController
   # POST /custom_contents
   # POST /custom_contents.json
   def create
-    @custom_content = CustomContent.new(custom_content_params)
+    @custom_content = custom_content_class.new(custom_content_params)
     authorize @custom_content
 
     respond_to do |format|
@@ -94,11 +94,32 @@ class CustomContentsController < ApplicationController
 
   private
   def set_custom_contents
-    @custom_contents = CustomContent.all
+    @custom_contents = custom_content_class.all
   end
 
-  # Never trust parameters from the scary internet, only allow the white list through.
+  # Always use the following to create a CustomContent object:
+  #   custom_content_class.new
+  # **never** use unsafe `type` from the parameters, e.g.:
+  #   CustomContent.{new, update}(type: params[:type]) # BAD!
+  def custom_content_class
+    case params[:type]
+    when nil
+      CustomContent
+    when 'Project'
+      Project
+    else
+      raise StandardError.new "Unknown CustomContent type: #{type}"
+    end
+  end
+
   def custom_content_params
-    params.require(:custom_content).permit(:title, :body, :published_at, :course_id, :course_name, :secondary_id)
+    params.require(:custom_content).permit(
+      :title,
+      :body,
+      :published_at,
+      :course_id,
+      :course_name,
+      :secondary_id,
+    )
   end
 end

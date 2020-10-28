@@ -10,6 +10,8 @@ Rails.application.routes.draw do
     resources :custom_content_versions, path: 'versions', only: [:index, :show]
   end
 
+  resources :projects, controller: "custom_contents", type: "Project"
+
   resources :file_upload, only: [:create]
 
   devise_for :users, controllers: { registrations: 'users/registrations', confirmations: 'users/confirmations', passwords: 'users/passwords' }
