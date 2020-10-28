@@ -404,6 +404,7 @@ class ContentEditor extends Component {
             <select name="custom_content[type]" defaultValue={type}>
                 <option disabled value=''>Select a Type</option>
                 <option>Project</option>
+                <option>Survey</option>
             </select>
         );
     }

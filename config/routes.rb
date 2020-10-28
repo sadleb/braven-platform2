@@ -11,6 +11,7 @@ Rails.application.routes.draw do
   end
 
   resources :projects, controller: "custom_contents", type: "Project"
+  resources :surveys, controller: "custom_contents", type: "Survey"
 
   resources :file_upload, only: [:create]
 

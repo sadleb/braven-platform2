@@ -1,0 +1,2 @@
+class SurveyPolicy < CustomContentPolicy
+end

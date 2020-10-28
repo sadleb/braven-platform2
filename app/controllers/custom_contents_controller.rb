@@ -111,6 +111,8 @@ class CustomContentsController < ApplicationController
       CustomContent
     when 'Project'
       Project
+    when 'Survey'
+      Survey
     else
       raise StandardError.new "Unknown CustomContent type: #{type}"
     end
