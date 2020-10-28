@@ -1,4 +1,5 @@
 require 'rails_helper'
+require 'json'
 
 RSpec.describe CustomContent, type: :model do
   let(:course) { create :course }
@@ -22,6 +23,12 @@ RSpec.describe CustomContent, type: :model do
     subject { project.course_templates.first }
 
     it { should eq(nil) }
+  end
+
+  describe '#serializable_hash' do
+    subject { project.serializable_hash }
+
+    it { should include("type")  }
   end
 
 end

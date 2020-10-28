@@ -397,6 +397,17 @@ class ContentEditor extends Component {
         }
     }
 
+    _renderTypeSelector() {
+        const type = this.props.custom_content.type || '';
+
+        return (
+            <select name="custom_content[type]" defaultValue={type}>
+                <option disabled value=''>Select a Type</option>
+                <option>Project</option>
+            </select>
+        );
+    }
+
     render() {
             // The application renders two columns:
             // * in the left one, the <CKEditor> and the textarea displaying live
@@ -435,6 +446,7 @@ class ContentEditor extends Component {
                                        placeholder="Page Title"
                                 />
                             </h2>
+                            {this._renderTypeSelector()}
                             <details>
                               <summary>Advanced</summary>
                               <input type="number" name="custom_content[course_id]"

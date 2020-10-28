@@ -47,8 +47,9 @@ class CustomContentsController < ApplicationController
   # PATCH/PUT /custom_contents/1.json
   def update
     authorize @custom_content
+
     respond_to do |format|
-      if @custom_content.update(custom_content_params)
+      if @custom_content.update(update_custom_content_params)
         format.html { redirect_to edit_custom_content_path(@custom_content), notice: 'CustomContent was successfully updated.' }
         format.json { render :show, status: :ok, location: @custom_content }
       else
@@ -78,7 +79,7 @@ class CustomContentsController < ApplicationController
   def publish
     authorize @custom_content
     respond_to do |format|
-      if @custom_content.publish(custom_content_params)
+      if @custom_content.publish(update_custom_content_params)
 
         # update publish time, save a version
         @custom_content.save_version!(@current_user)
@@ -102,7 +103,10 @@ class CustomContentsController < ApplicationController
   # **never** use unsafe `type` from the parameters, e.g.:
   #   CustomContent.{new, update}(type: params[:type]) # BAD!
   def custom_content_class
-    case params[:type]
+    # Prefer `type` specified by form over the one set in route parameters
+    type = params[:custom_content] ? params[:custom_content][:type] : params[:type]
+
+    case type
     when nil
       CustomContent
     when 'Project'
@@ -112,8 +116,11 @@ class CustomContentsController < ApplicationController
     end
   end
 
+  # We always use `custom_content_class.new`, which specifies the subclass
+  # name instead of passing in `type`, so we remove `type` from the 
+  # parameters here
   def custom_content_params
-    params.require(:custom_content).permit(
+    params.require(:custom_content).except(:type).permit(
       :title,
       :body,
       :published_at,
@@ -121,5 +128,12 @@ class CustomContentsController < ApplicationController
       :course_name,
       :secondary_id,
     )
+  end
+
+  def update_custom_content_params
+    update_params = custom_content_params
+    # Only update `type` from non-nil to non-nil value
+    update_params[:type] = custom_content_class.to_s if !@custom_content.type && custom_content_class.to_s != 'CustomContent'
+    update_params
   end
 end
