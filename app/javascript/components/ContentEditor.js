@@ -210,7 +210,6 @@ class ContentEditor extends Component {
             // The initial editor data. It is bound to the editor instance and will change as
             // the user types and modifies the content of the editor.
             editorData: props.custom_content['body'] || "",
-            isPublished: false,
             enabledCommands: [],
             modelPath: [],
             viewPath: [],
@@ -238,7 +237,6 @@ class ContentEditor extends Component {
             },
         };
 
-        this.handleEditorDataChange = this.handleEditorDataChange.bind( this );
         this.handleEditorFocusChange = this.handleEditorFocusChange.bind( this );
         this.handleEditorInit = this.handleEditorInit.bind( this );
         this.handleTabSelect = this.handleTabSelect.bind(this);
@@ -251,17 +249,6 @@ class ContentEditor extends Component {
 
     showFileUpload() {
         this.fileUpload.current.click();
-    }
-
-    // A handler executed when the user types or modifies the editor content.
-    // Tracking content data for the "Design" tab is done by this.editor, so 
-    // we aren't constantly updating and re-rendering state. 
-    handleEditorDataChange( evt, _editor ) {
-        if (this.state.isPublished) {
-            this.setState({
-                isPublished: false,
-            });
-        }
     }
 
     // A handler executed when the current selection changes inside the CKEditor view.
@@ -314,7 +301,6 @@ class ContentEditor extends Component {
     handleHTMLEditorDataChange( evt ) {
         this.setState( {
             editorData: evt.target.value,
-            isPublished: false
         } );
     }
 
@@ -340,31 +326,6 @@ class ContentEditor extends Component {
         if ( window.location.search === '?debug' ) {
             CKEditorInspector.attach( editor );
         }
-    }
-
-    handlePublish( evt ) {
-        fetch("/custom_contents/1/publish.json", {
-                method: 'POST',
-                body: JSON.stringify(this.props.custom_content), // data can be `string` or {object}!
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': Rails.csrfToken()
-                }
-            })
-            .then(res => res.json())
-            .then(
-                (result) => {
-                    this.setState( {'isPublished': true} );
-                    window.open(result['canvas_url']);
-                },
-                // Note: it's important to handle errors here
-                // instead of a catch() block so that we don't swallow
-                // exceptions from actual bugs in components.
-                // TODO: We'll eventually want to actually handle errors, not just log them.
-                (error) => {
-                    console.log(error);
-                }
-            );
     }
 
     handleSave(event) {
@@ -423,9 +384,6 @@ class ContentEditor extends Component {
                     <span id="autosave-indicator" className="saving">Saving...</span>
 
                     <ul>
-                        <li onClick={(evt) => this.handlePublish(evt)} className={this.state['isPublished'] ? "success" : ""}>
-                          Publish{this.state['isPublished'] ? "ed" : ""} {this.state['isPublished']}
-                        </li>
                         <li onClick={(evt) => this.handleSave(evt)}>
                           Save
                         </li>
@@ -919,7 +877,6 @@ class ContentEditor extends Component {
                                         editor={BalloonEditor}
                                         data={this.state.editorData}
                                         config={this.editorConfig}
-                                        onChange={this.handleEditorDataChange}
                                         onInit={this.handleEditorInit}
                                     />
                                     <textarea
