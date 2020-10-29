@@ -10,8 +10,13 @@ Rails.application.routes.draw do
     resources :custom_content_versions, path: 'versions', only: [:index, :show]
   end
 
-  resources :projects, controller: "custom_contents", type: "Project"
-  resources :surveys, controller: "custom_contents", type: "Survey"
+  resources :projects, controller: "custom_contents", type: "Project" do
+    resources :project_versions, path: 'versions', controller: 'custom_content_versions', type: "ProjectVersion", only: [:index, :show]
+  end
+
+  resources :surveys, controller: "custom_contents", type: "Survey" do
+    resources :survey_versions, path: 'versions', controller: 'custom_content_versions', type: "SurveyVersion", only: [:index, :show]
+  end
 
   resources :file_upload, only: [:create]
 

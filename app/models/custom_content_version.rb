@@ -9,4 +9,5 @@ class CustomContentVersion < ApplicationRecord
   has_many :course_templates, -> { course_templates }, through: :base_course_custom_content_versions, source: :base_course, class_name: 'CourseTemplate'
 
   scope :project_versions, -> { where type: 'ProjectVersion' }
+  scope :survey_versions, -> { where type: 'SurveyVersion' }
 end

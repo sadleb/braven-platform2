@@ -66,15 +66,21 @@ RSpec.describe CustomContentVersionsController, type: :controller do
   end
 
   describe 'GET #show' do
-    let(:user) { create :fellow_user }
+    # The user needs to be in a course that the project version is published to
+    let(:course_project_version) { create :course_project_version }
+    let(:section) { create(
+      :section,
+      course: course_project_version.base_course,
+    ) }
+    let(:user) { create :fellow_user, section: section }
 
     it 'returns a success response' do
+      project_version = course_project_version.custom_content_version
       get(
         :show,
         params: {
-          custom_content_id: custom_content.id,
-          id: custom_content_version.id,
-          # Note: we don't pass in state
+          custom_content_id: project_version.project.id,
+          id: project_version.id,
         },
       )
       expect(response).to be_successful

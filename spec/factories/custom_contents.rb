@@ -11,5 +11,12 @@ FactoryBot.define do
         "<textarea id='test-question-id' data-bz-retained=\"h2c2-0600-next-steps\" placeholder=\"\"></textarea>"
       }
     end
+
+    factory :survey, class: 'Survey' do
+      type { 'Survey' }
+      body {
+        "<p>Impact survey stuff here?</p>"
+      }
+    end
   end
 end

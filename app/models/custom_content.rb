@@ -5,6 +5,7 @@ class CustomContent < ApplicationRecord
   alias_attribute :versions, :custom_content_versions
 
   scope :projects, -> { where type: 'Project' }
+  scope :surveys, -> { where type: 'Survey' }
 
   def base_courses
     custom_content_versions.map { |v| v.base_courses or [] }.reduce(:+) or []
@@ -52,6 +53,8 @@ class CustomContent < ApplicationRecord
     case type
     when 'Project'
       'ProjectVersion'
+    when 'Survey'
+      'SurveyVersion'
     end
   end
 end

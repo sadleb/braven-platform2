@@ -1,0 +1,2 @@
+class SurveyVersionPolicy < CustomContentVersionPolicy
+end
