@@ -13,9 +13,15 @@ FactoryBot.define do
     end
 
     factory :survey, class: 'Survey' do
+      title { 'Test Impact Survey' }
       type { 'Survey' }
       body {
-        "<p>Impact survey stuff here?</p>"
+        "<h5>Note: If you were absent from this Learning Lab, please do not "\
+        "complete the survey -- it will not count against you.</h5>"\
+        "<p>Do you have any feedback on today's Learning Lab? Things that "\
+        "could improved, or anything you feel confused about? Feedback about "\
+        "your Leadership Coach?</p>"\
+        "<p><input name=\"unique_input_name\" type=\"text\"></p>"
       }
     end
   end

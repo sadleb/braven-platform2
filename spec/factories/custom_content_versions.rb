@@ -17,8 +17,14 @@ FactoryBot.define do
 
     factory :survey_version, class: 'SurveyVersion' do
       type { 'SurveyVersion' }
+      title { 'Impact Survey' }
       body {
-        "<p>Impact survey stuff here?</p>"
+        "<h5>Note: If you were absent from this Learning Lab, please do not "\
+        "complete the survey -- it will not count against you.</h5>"\
+        "<p>Do you have any feedback on today's Learning Lab? Things that "\
+        "could improved, or anything you feel confused about? Feedback about "\
+        "your Leadership Coach?</p>"\
+        "<p><input name=\"unique_input_name\" type=\"text\"></p>"
       }
       custom_content { build(:survey) }
     end
