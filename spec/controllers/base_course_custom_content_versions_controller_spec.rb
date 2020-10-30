@@ -93,7 +93,36 @@ end # "TODO refactor old specs"
     end  
 
     describe 'POST #update' do
-     context 'with invalid params' do
+      context 'with valid params' do
+
+        context 'for project' do
+          let(:new_body) { 'updated project body' }
+
+          before(:each) do
+            project = course_template_project_version.custom_content_version.custom_content
+            project.body = new_body
+            project.save!
+          end
+  
+          it 'saves a new version of the project' do
+            expect { post :update, params: valid_edit_project_params, session: valid_session }.to change {ProjectVersion.count}.by(1)
+          end
+
+          it 'associates the exsiting BaseCourseCustomContentVersion to the new content version' do
+            expect(course_template_project_version.custom_content_version.body).not_to eq(new_body)
+            expect { post :update, params: valid_edit_project_params, session: valid_session }.not_to change {BaseCourseCustomContentVersion.count}
+            expect(BaseCourseCustomContentVersion.find(course_template_project_version.id).custom_content_version).to eq(ProjectVersion.last)
+          end
+
+          it 'redirects back to edit page and flashes message' do
+            response = post :update, params: valid_edit_project_params, session: valid_session
+            expect(response).to redirect_to(edit_course_template_path(course_template_project_version.base_course))
+            expect(flash[:notice]).to match /successfully published/
+          end
+        end
+      end
+
+      context 'with invalid params' do
         it 'throws when not a CourseTemplate' do
           expect { post :update, params: invalid_edit_project_params, session: valid_session }.to raise_error(BaseCourse::BaseCourseEditError)
         end
@@ -101,6 +130,45 @@ end # "TODO refactor old specs"
     end # 'POST #update'
 
     describe 'POST #delete' do
+      context 'with valid params' do
+
+        context 'for project' do
+
+          before(:each) do
+            allow(canvas_client).to receive(:delete_assignment)
+            course_template_project_version # create it in the DB ahead of time
+          end
+  
+          it 'doesnt delete the project version content' do
+            expect { post :destroy, params: valid_edit_project_params, session: valid_session }.not_to change {ProjectVersion.count}
+          end
+
+          it 'deletes the BaseCourseCustomContentVersion join record' do
+            expect { post :destroy, params: valid_edit_project_params, session: valid_session }.to change {BaseCourseCustomContentVersion.count}.by(-1)
+            expect { BaseCourseCustomContentVersion.find(course_template_project_version.id) }.to raise_error(ActiveRecord::RecordNotFound)
+          end
+
+          it 'deletes the Canvas assignment' do
+            expect(canvas_client).to receive(:delete_assignment)
+              .with(course_template_project_version.base_course.canvas_course_id,
+                    course_template_project_version.canvas_assignment_id)
+            post :destroy, params: valid_edit_project_params, session: valid_session
+          end
+
+          it 'doesnt delete the BaseCourseCustomContentVersion if Canvas assignment deletion fails' do
+            allow(canvas_client).to receive(:delete_assignment).and_raise RestClient::BadRequest
+            expect { post :destroy, params: valid_edit_project_params, session: valid_session }.to raise_error(RestClient::BadRequest)
+            expect(BaseCourseCustomContentVersion.find(course_template_project_version.id)).to be_present
+          end
+
+          it 'redirects back to edit page and flashes message' do
+            response = post :destroy, params: valid_edit_project_params, session: valid_session
+            expect(response).to redirect_to(edit_course_template_path(course_template_project_version.base_course))
+            expect(flash[:notice]).to match /successfully deleted/
+          end
+        end
+      end
+
       context 'with invalid params' do
         it 'throws when not a CourseTemplate' do
           expect { post :destroy, params: invalid_edit_project_params, session: valid_session }.to raise_error(BaseCourse::BaseCourseEditError)

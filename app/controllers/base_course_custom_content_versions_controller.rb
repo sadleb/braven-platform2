@@ -57,16 +57,31 @@ class BaseCourseCustomContentVersionsController < ApplicationController
   def update
     authorize @base_course_custom_content_version
 
-    raise NotImplementedError, "TODO: save a new custom_content_version from the latest and re-associated this BaseCourseCustomContentVersion[#{@base_course_custom_content_version.inspect}] with it. Canvas assignment doesn't need to change."
+    custom_content = @base_course_custom_content_version.custom_content_version.custom_content
+    new_custom_content_version = custom_content.save_version!(current_user)
+    @base_course_custom_content_version.custom_content_version = new_custom_content_version
+    @base_course_custom_content_version.save!
+
+    respond_to do |format|
+      format.html { redirect_to edit_polymorphic_path(@base_course), notice: "Latest version of #{custom_content.title} successfully published to Canvas." }
+      format.json { head :no_content }
+    end
   end
 
   # Deletes a Project, Survey, etc (aka CustomContent) from the Canvas course that this
   # BaseCourseCustomContentVersion join model represents and then deletes this record locally.
   def destroy
     authorize @base_course_custom_content_version
+    name = @base_course_custom_content_version.custom_content_version.title
 
-    raise NotImplementedError, "TODO: delete both the Canvas assignment and this BaseCourseCustomContentVersion[#{@base_course_custom_content_version.inspect}]"
+    # TODO: make this transactional in nature: https://app.asana.com/0/1174274412967132/1198984932600565
+    CanvasAPI.client.delete_assignment(@base_course.canvas_course_id, @base_course_custom_content_version.canvas_assignment_id)
+    @base_course_custom_content_version.destroy
 
+    respond_to do |format|
+      format.html { redirect_to edit_polymorphic_path(@base_course), notice: "#{name} was successfully deleted from #{@base_course.name} in Canvas." }
+      format.json { head :no_content }
+    end
   end
 
   private
