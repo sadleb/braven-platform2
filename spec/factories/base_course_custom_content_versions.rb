@@ -12,5 +12,15 @@ FactoryBot.define do
       association :base_course, factory: :course_template
       association :custom_content_version, factory: :project_version
     end
+
+    factory :course_survey_version do
+      association :base_course, factory: :course
+      association :custom_content_version, factory: :survey_version
+    end
+
+    factory :course_template_survey_version do
+      association :base_course, factory: :course_template
+      association :custom_content_version, factory: :survey_version
+    end
   end
 end
