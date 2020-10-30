@@ -11,5 +11,4 @@
 <%= render 'list', base_courses: @base_courses.where(type: 'CourseTemplate') %>
 
 <h3>Courses</h3>
-<%= link_to 'New course', new_course_path, class: 'btn btn-sm btn-outline-secondary' %>
 <%= render 'list', base_courses: @base_courses.where(type: 'Course') %>

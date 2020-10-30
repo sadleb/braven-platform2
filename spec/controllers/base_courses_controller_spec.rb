@@ -27,8 +27,8 @@ RSpec.describe BaseCoursesController, type: :controller do
   render_views
 
   let(:user) { create :admin_user }
-  let(:course) { create(:course, course_attributes) }
-  let(:course_template) { create(:course_template, course_template_attributes) }
+  let(:course) { create(:course_with_canvas_id, course_attributes) }
+  let(:course_template) { create(:course_template_with_canvas_id, course_template_attributes) }
   let(:course_attributes) { valid_course_attributes }
   let(:course_template_attributes) { valid_course_template_attributes }
   # This should return the minimal set of attributes required to create a valid
@@ -64,9 +64,8 @@ RSpec.describe BaseCoursesController, type: :controller do
       end
 
       describe "GET #edit" do
-        it "returns a success response" do
-          get :edit, params: {id: course.to_param, type: 'Course'}, session: valid_session
-          expect(response).to be_successful
+        it "raises an error" do
+          expect { get :edit, params: {id: course.to_param, type: 'Course'}, session: valid_session }.to raise_error(BaseCourse::BaseCourseEditError)
         end
       end
 
