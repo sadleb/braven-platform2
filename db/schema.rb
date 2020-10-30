@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_10_28_031400) do
+ActiveRecord::Schema.define(version: 2020_10_28_233656) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -295,6 +295,15 @@ ActiveRecord::Schema.define(version: 2020_10_28_031400) do
     t.integer "ticket_granting_ticket_id"
   end
 
+  create_table "survey_submission_answers", force: :cascade do |t|
+    t.bigint "survey_submission_id", null: false
+    t.string "input_name", null: false
+    t.string "input_value"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["survey_submission_id"], name: "index_survey_submission_answers_on_survey_submission_id"
+  end
+
   create_table "survey_submissions", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.bigint "base_course_custom_content_version_id", null: false
@@ -385,6 +394,7 @@ ActiveRecord::Schema.define(version: 2020_10_28_031400) do
   add_foreign_key "rubric_row_ratings", "rubric_rows"
   add_foreign_key "rubric_rows", "rubric_row_categories"
   add_foreign_key "sections", "base_courses"
+  add_foreign_key "survey_submission_answers", "survey_submissions"
   add_foreign_key "survey_submissions", "base_course_custom_content_versions"
   add_foreign_key "survey_submissions", "users"
   add_foreign_key "user_sections", "sections"
