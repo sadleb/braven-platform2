@@ -5,7 +5,7 @@
   <%= react_component('Projects/ProjectSubmitButton', {
     hasSubmission: @has_previous_submission,
     ltiLaunchState: params[:state],
-    courseContentVersionId: @course_content_version.id,
+    courseContentVersionId: @base_course_custom_content_version.id,
   })%>
 </div>
 

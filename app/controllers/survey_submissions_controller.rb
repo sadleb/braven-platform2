@@ -8,8 +8,6 @@ class SurveySubmissionsController < ApplicationController
 
   nested_resource_of BaseCourseCustomContentVersion
 
-  before_action :set_course_survey_version, only: [:new, :create]
-
   def show
     authorize @survey_submission
   end
@@ -17,7 +15,7 @@ class SurveySubmissionsController < ApplicationController
   def new
     @survey_submission = SurveySubmission.new(
       user: current_user,
-      base_course_custom_content_version: @course_survey_version,
+      base_course_custom_content_version: @base_course_custom_content_version,
     )
     authorize @survey_submission
   end
@@ -25,7 +23,7 @@ class SurveySubmissionsController < ApplicationController
   def create
     @survey_submission = SurveySubmission.new(
       user: current_user,
-      base_course_custom_content_version: @course_survey_version,
+      base_course_custom_content_version: @base_course_custom_content_version,
     )
     authorize @survey_submission
 
@@ -38,10 +36,6 @@ class SurveySubmissionsController < ApplicationController
   end
 
   private
-  def set_course_survey_version
-    params.require(:base_course_custom_content_version_id)
-    @course_survey_version = BaseCourseCustomContentVersion.find(params[:base_course_custom_content_version_id])
-  end
 
   # Get the "name" attributes from all the <input> elements in this survey 
   # version. These are the parameters we permit from the form being submitted.

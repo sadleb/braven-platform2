@@ -83,9 +83,16 @@ module DryCrud
       extend ActiveSupport::Concern
       include Controllers
 
+      # DRY's up the index, show, edit, update, destroy, new, and create methods
+      # by setting the appropriate parent instance variable for the corresponding model
+      #
+      # NOTE: you can alway override this behavior by defining whatever you want in the 
+      # associated controller's index, show, edit, etc methods.
       included do
         delegate :parent_resource_classes, to: 'self.class'
-      end
+        before_action :set_parent
+      end 
+
 
       class_methods do
         def nested_resource_of(classes)
@@ -113,6 +120,10 @@ module DryCrud
         ret
       end
 
+      def set_parent
+        @parent = parent
+      end
+
       def set_parent_instance_var(klass)
         id = parent_id(klass)
         instance_variable_set(parent_instance_var_name(klass), klass.find(id)) if id
@@ -127,11 +138,10 @@ module DryCrud
       end
 
       def models_list
-        p = parent
-        if p.present?
+        if @parent.present?
           # E.g. for a Lesson with LessonSubmissions nested under it, this would call
           # Lesson.send(lesson_submissions)
-          p.send(model_class.name.underscore.pluralize)
+          @parent.send(model_class.name.underscore.pluralize)
         else
           super
         end

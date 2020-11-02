@@ -70,7 +70,7 @@ RSpec.describe ProjectSubmissionsController, type: :feature do
     # "sends data to the LRS". 
     # It might be that the shared LRS and reusing the question_id is causing 
     # the value to get overwritten?
-    it "fetches the most recent data from the lrs", ci_exclude: true do
+    it "fetches the most recent data from the lrs - FLAKY", ci_exclude: true do
       question_id = "h2c2-0600-next-steps"
       unique_string = SecureRandom.uuid
       lrs_variables = {
@@ -149,7 +149,7 @@ RSpec.describe ProjectSubmissionsController, type: :feature do
         uri.to_s
       }
 
-      it "fetches only the data for the submission", ci_exclude: true do
+      it "fetches only the data for the submission - FLAKY", ci_exclude: true do
         question_id = "h2c2-0600-next-steps"
         unique_string = SecureRandom.uuid
         lrs_variables = {

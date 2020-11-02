@@ -9,7 +9,7 @@ class BaseCourseCustomContentVersionsController < ApplicationController
   nested_resource_of BaseCourse
 
   before_action :set_custom_content, only: [:create]
-  before_action :set_base_course # TODO: shouldn't DryCrud handle this?
+  before_action :verify_can_edit!
 
   # Show form to select new Project to create as an LTI linked Canvas assignment
   def new
@@ -34,7 +34,7 @@ class BaseCourseCustomContentVersionsController < ApplicationController
    
     # Setup the join table and then update the Canvas assignment to launch it
     custom_content_version = @custom_content.save_version!(current_user)
-    @course_content_version = BaseCourseCustomContentVersion.create!(
+    @base_course_custom_content_version = BaseCourseCustomContentVersion.create!(
       base_course: @base_course,
       custom_content_version: custom_content_version,
       canvas_assignment_id: ca['id']
@@ -45,7 +45,7 @@ class BaseCourseCustomContentVersionsController < ApplicationController
     # Create a submission URL for this course and content version
 
     submission_url = new_base_course_custom_content_version_project_submission_url(
-      base_course_custom_content_version_id: @course_content_version.id,
+      base_course_custom_content_version_id: @base_course_custom_content_version.id,
     )
   
     CanvasAPI.client.update_assignment_lti_launch_url(@base_course.canvas_course_id, ca['id'], submission_url)
@@ -55,7 +55,7 @@ class BaseCourseCustomContentVersionsController < ApplicationController
       format.json { head :no_content }
     end
   rescue => e
-    @course_content_version.destroy if @course_content_version
+    @base_course_custom_content_version.destroy if @base_course_custom_content_version
     CanvasAPI.client.delete_assignment(@base_course.canvas_course_id, ca['id']) if @base_course.canvas_course_id && ca['id']
     raise
   end
@@ -98,8 +98,7 @@ class BaseCourseCustomContentVersionsController < ApplicationController
     @custom_content = CustomContent.find(params[:custom_content_id])
   end
 
-  def set_base_course
-    @base_course = BaseCourse.find(params.require(:base_course_id))
+  def verify_can_edit!
     @base_course.verify_can_edit!
   end
 

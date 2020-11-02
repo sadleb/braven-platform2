@@ -1,6 +1,6 @@
-<%= form_for [@course_survey_version, @survey_submission] do |f| %>
+<%= form_for [@base_course_custom_content_version, @survey_submission] do |f| %>
   <div class="bz-assignment">
-    <%== @course_survey_version.custom_content_version.body %>
+    <%== @base_course_custom_content_version.custom_content_version.body %>
     <div class="actions">
       <%= f.submit "Submit" %>
     </div>
