@@ -51,11 +51,11 @@ class BaseCourse < ApplicationRecord
   end
 
   def base_course_project_versions
-    base_course_custom_content_versions.projects_only
+    base_course_custom_content_versions.with_project_versions
   end
 
   def base_course_survey_versions
-    base_course_custom_content_versions.surveys_only
+    base_course_custom_content_versions.with_survey_versions
   end
 
   def canvas_url

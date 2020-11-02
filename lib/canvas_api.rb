@@ -242,6 +242,24 @@ class CanvasAPI
     get_all_from_pagination(response)
   end
 
+  # Creates an assignment that will launch an LTI External Tool
+  # Note: if you don't specificy a launch_url, you'll have to call
+  # back in using update_assignment_lti_launch_url() to set it.
+  def create_lti_assignment(course_id, name, launch_url = nil)
+    body = { :assignment =>
+      {
+        :name => name,
+        :published => true,
+        :submission_types => [ 'external_tool' ],
+        :external_tool_tag_attributes => {
+          :url => launch_url
+        }
+      }
+    }
+    response = post("/courses/#{course_id}/assignments", body)
+    JSON.parse(response.body)
+  end
+
   def update_assignment_lti_launch_url(course_id, assignment_id, new_url)
     body = { :assignment => { :external_tool_tag_attributes => { :url => new_url } } }
     response = put("/courses/#{course_id}/assignments/#{assignment_id}", body)
@@ -259,15 +277,15 @@ class CanvasAPI
   #
   # See: https://canvas.instructure.com/doc/api/assignments.html#method.assignments_api.index
   def create_assignment_overrides(course_id, assignment_ids, section_ids)
-    overrides = [] 
+    overrides = []
     assignment_ids.each { |aid|
-      section_ids.each { |sid| 
+      section_ids.each { |sid|
         overrides << { :due_at => nil, :assignment_id => aid, :course_section_id => sid }
       }
     }
     body = { :assignment_overrides => overrides }
 
-    response = post("/courses/#{course_id}/assignments/overrides", body) 
+    response = post("/courses/#{course_id}/assignments/overrides", body)
     JSON.parse(response.body)
   end
 

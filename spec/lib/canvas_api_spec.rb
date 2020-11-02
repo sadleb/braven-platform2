@@ -223,6 +223,33 @@ RSpec.describe CanvasAPI do
     end
   end
 
+  describe '#create_lti_assignment' do
+    let(:course_id) { 123457 }
+    let(:name) { 'Test Create Assignment1' }
+    let(:created_assignment) { FactoryBot.json(:canvas_assignment, course_id: course_id, name: name) }
+
+    it 'hits the Canvas API correctly with no launch_url' do
+      request_url = "#{CANVAS_API_URL}/courses/#{course_id}/assignments"
+      stub_request(:post, request_url).to_return( body: created_assignment )
+
+      canvas.create_lti_assignment(course_id, name)
+
+      expect(WebMock).to have_requested(:post, request_url)
+        .with(body: 'assignment[name]=Test+Create+Assignment1&assignment[published]=true&assignment[submission_types][]=external_tool&assignment[external_tool_tag_attributes][url]').once
+    end
+    
+    it 'hits the Canvas API correctly with launch_url' do
+      request_url = "#{CANVAS_API_URL}/courses/#{course_id}/assignments"
+      stub_request(:post, request_url).to_return( body: created_assignment )
+     
+      canvas.create_lti_assignment(course_id, name, 'https://example/url') 
+
+      expect(WebMock).to have_requested(:post, request_url)
+        .with(body: 'assignment[name]=Test+Create+Assignment1&assignment[published]=true&assignment[submission_types][]=external_tool&assignment[external_tool_tag_attributes][url]=https%3A%2F%2Fexample%2Furl').once
+      
+    end
+  end
+
   describe '#create_assignment_overrides' do
     let(:course_id) { 123457 }
     let(:assignemnt_id1) { 1 }

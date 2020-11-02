@@ -3,77 +3,14 @@ require 'rails_helper'
 RSpec.describe BaseCourseCustomContentVersionsController, type: :controller do
   render_views
 
-##########
-# TODO: refactor the below "POST #create" tests to work with the new
-# Course Management approach for publishing a Project/Survey
-#######
-
-context "TODO refactor old specs" do
-
-  let(:base_course_custom_content_version) { create :course_project_version }
-  let(:state) { LtiLaunchController.generate_state }
-  let(:target_link_uri) { 'https://target/link' }
-  let(:course) { create :course_with_canvas_id }
-  let!(:lti_launch) {
-    create(
-      :lti_launch_assignment_selection,
-      target_link_uri: target_link_uri,
-      state: state,
-      course_id: course.canvas_course_id,
-    )
-  }
-  let!(:user) { create :admin_user, canvas_user_id: lti_launch.request_message.canvas_user_id}
-
-  describe "POST #create" do
-    context "with valid params" do
-      let(:custom_content) { create :project }
-
-      it "shows the confirmation form and preview iframe" do
-        expected_url = LtiDeepLinkingRequestMessage.new(lti_launch.id_token_payload).deep_link_return_url
-
-        post :create, params: {state: lti_launch.state, custom_content_id: custom_content.id}
-        expect(response.body).to match /<form action="#{Regexp.escape(expected_url)}"/
-        preview_url = "/custom_contents/#{custom_content.id}?state=#{state}" # We preview without the specific version b/c we don't want it talking to the LRS
-        expect(response.body).to match /<iframe src="#{Regexp.escape(preview_url)}"/
-      end
-
-      it 'saves a new version of the project' do
-        expect {
-          post :create, params: {
-            state: lti_launch.state,
-            custom_content_id: custom_content.id,
-          }
-        }.to change {CustomContentVersion.count}.by(1)
-        expect(custom_content.body).to eq(CustomContentVersion.last.body)
-      end
-    end
-
-    context "with invalid params" do
-      let(:custom_content) { create :project }
-
-      it "redirects to login when state param is missing" do
-        post :create, params: {custom_content_id: custom_content.id}
-        expect(response).to redirect_to(new_user_session_path)
-      end
-
-      it "raises an error when assignment_id param is missing" do
-        expect {
-          post :create, params: {state: state}
-        }.to raise_error ActionController::ParameterMissing
-      end
-    end
-  end
-end # "TODO refactor old specs"
-################
-#### END TODO
-################
-
   let!(:admin_user) { create :admin_user }
   let(:course) { create :course_with_canvas_id }
   let(:course_project_version) { create :course_project_version, base_course: course }
   let(:invalid_edit_project_params) { {base_course_id: course_project_version.base_course_id, id: course_project_version} }
   let(:course_template) { create :course_template_with_canvas_id }
-  let(:course_template_project_version) { create :course_template_project_version, base_course: course_template }
+  let(:project) { create :project }
+  let(:project_version) { create :project_version, custom_content: project }
+  let(:course_template_project_version) { create :course_template_project_version, base_course: course_template, custom_content_version: project_version }
   let(:valid_edit_project_params) { {base_course_id: course_template_project_version.base_course_id, id: course_template_project_version} }
   let(:canvas_client) { double(CanvasAPI) }
 
@@ -92,6 +29,59 @@ end # "TODO refactor old specs"
       sign_in admin_user
     end  
 
+    describe 'POST #create' do
+
+      context 'with valid params' do
+
+        context 'for project' do
+          let(:valid_projet_create_params) { {base_course_id: course_template.id, custom_content_id: project.id} }
+          let(:name) { 'Test Create Project 1' }
+          let(:created_canvas_assignment) { FactoryBot.json(:canvas_assignment, course_id: course_template['canvas_course_id'], name: name) }
+          let(:created_bcccv) { BaseCourseCustomContentVersion.last }
+  
+          before(:each) do
+            allow(canvas_client).to receive(:create_lti_assignment).and_return(created_canvas_assignment)
+            allow(canvas_client).to receive(:update_assignment_lti_launch_url)
+          end
+
+          it 'creates the Canvas assignment' do
+            expect(canvas_client).to receive(:create_lti_assignment)
+              .with(course_template.canvas_course_id, project.title)
+            post :create, params: valid_projet_create_params, session: valid_session
+          end
+
+          it 'saves a new version of the project' do
+            expect { post :create, params: valid_projet_create_params, session: valid_session }.to change {ProjectVersion.count}.by(1)
+          end
+
+          it 'creates a new BaseCourseCustomContentVersion for the new content version' do
+            expect { post :create, params: valid_projet_create_params, session: valid_session }.to change {BaseCourseCustomContentVersion.count}.by(1)
+            expect(created_bcccv.custom_content_version).to eq(ProjectVersion.last)
+          end
+
+          it 'sets the LTI launch URL to the proper project submission URL' do
+            post :create, params: valid_projet_create_params, session: valid_session
+            expect(canvas_client).to have_received(:update_assignment_lti_launch_url)
+              .with(course_template['canvas_course_id'], created_canvas_assignment['id'],
+                    new_base_course_custom_content_version_project_submission_url(base_course_custom_content_version_id: created_bcccv.id) )
+          end
+
+          it 'redirects back to edit page and flashes message' do
+            response = post :create, params: valid_projet_create_params, session: valid_session
+            expect(response).to redirect_to(edit_course_template_path(course_template_project_version.base_course))
+            expect(flash[:notice]).to match /successfully published/
+          end
+        end
+      end
+
+      context 'with invalid params' do
+        it 'throws when not a CourseTemplate' do
+          expect { post :create, params: {base_course_id: course.id, custom_content_id: project.id}, session: valid_session }
+            .to raise_error(BaseCourse::BaseCourseEditError)
+        end
+      end
+    end # 'POST #create'
+
     describe 'POST #update' do
       context 'with valid params' do
 
@@ -103,7 +93,7 @@ end # "TODO refactor old specs"
             project.body = new_body
             project.save!
           end
-  
+
           it 'saves a new version of the project' do
             expect { post :update, params: valid_edit_project_params, session: valid_session }.to change {ProjectVersion.count}.by(1)
           end
@@ -138,7 +128,7 @@ end # "TODO refactor old specs"
             allow(canvas_client).to receive(:delete_assignment)
             course_template_project_version # create it in the DB ahead of time
           end
-  
+
           it 'doesnt delete the project version content' do
             expect { post :destroy, params: valid_edit_project_params, session: valid_session }.not_to change {ProjectVersion.count}
           end

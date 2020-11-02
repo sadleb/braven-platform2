@@ -9,47 +9,55 @@ class BaseCourseCustomContentVersionsController < ApplicationController
   nested_resource_of BaseCourse
 
   before_action :set_custom_content, only: [:create]
-  before_action :set_base_course, except: [:create] # TODO: shouldn't DryCrud handle this?
-
-  # TODO: get rid of these when we refactor to be run from Course Mgmt page.
-  before_action :set_lti_launch, only: [:create]
-  skip_before_action :verify_authenticity_token, only: [:create], if: :is_sessionless_lti_launch?
-  before_action :set_base_course_from_lti_launch, only: [:create]
+  before_action :set_base_course # TODO: shouldn't DryCrud handle this?
 
   # Show form to select new Project to create as an LTI linked Canvas assignment
   def new
     # If we end up adding a designer role, remember to authorize `ProjectVersion.create?`.
     authorize @base_course_custom_content_version
 
+   # TODO: if this is a Survey, show the survey's list.
+
     # TODO: exclude those already on this BaseCourse.
     # https://app.asana.com/0/1174274412967132/1198965066699369
     @projects = Project.all
   end
 
-  # Create a Project for an LTI assignment placement
+  # Publish a new Project or Survey in Canvas.
   def create
-
-    # TODO: refactor this to be run from the Course Mgmt page. Create a new assignment 
-    # in Canvas through the API, save a new custom_content_version and create a new 
-    # BaseCourseCustomContentVersion with it mapping this base course to the new canvas assignment
-    # and content version
-
     # If we end up adding a designer role, remember to authorize `ProjectVersion.create?`.
     authorize BaseCourseCustomContentVersion
-    # Create new version of the content
-    @custom_content.save_version!(current_user)
 
-    # Create join table entry
+    # We need to create the Canvas assignment to get the ID in order to setup the join table
+    # here in platform
+    ca = CanvasAPI.client.create_lti_assignment(@base_course.canvas_course_id, @custom_content.title)
+   
+    # Setup the join table and then update the Canvas assignment to launch it
+    custom_content_version = @custom_content.save_version!(current_user)
     @course_content_version = BaseCourseCustomContentVersion.create!(
       base_course: @base_course,
-      custom_content_version: @custom_content.last_version,
+      custom_content_version: custom_content_version,
+      canvas_assignment_id: ca['id']
     )
+  
+  # TODO: polymorphic path for Project vs Survey
+  
+    # Create a submission URL for this course and content version
 
-    # Create a submission URL for this course and version
     submission_url = new_base_course_custom_content_version_project_submission_url(
       base_course_custom_content_version_id: @course_content_version.id,
     )
-    @deep_link_return_url, @jwt_response = helpers.lti_deep_link_response_message(@lti_launch, submission_url)
+  
+    CanvasAPI.client.update_assignment_lti_launch_url(@base_course.canvas_course_id, ca['id'], submission_url)
+    
+    respond_to do |format|
+      format.html { redirect_to edit_polymorphic_path(@base_course), notice: "'#{@custom_content.title}' successfully published to Canvas." }
+      format.json { head :no_content }
+    end
+  rescue => e
+    @course_content_version.destroy if @course_content_version
+    CanvasAPI.client.delete_assignment(@base_course.canvas_course_id, ca['id']) if @base_course.canvas_course_id && ca['id']
+    raise
   end
 
   # Publish the latest Project, Survey, etc (aka CustomContent) so that the Canvas assignment this
@@ -63,7 +71,7 @@ class BaseCourseCustomContentVersionsController < ApplicationController
     @base_course_custom_content_version.save!
 
     respond_to do |format|
-      format.html { redirect_to edit_polymorphic_path(@base_course), notice: "Latest version of #{custom_content.title} successfully published to Canvas." }
+      format.html { redirect_to edit_polymorphic_path(@base_course), notice: "Latest version of '#{custom_content.title}' successfully published to Canvas." }
       format.json { head :no_content }
     end
   end
@@ -79,7 +87,7 @@ class BaseCourseCustomContentVersionsController < ApplicationController
     @base_course_custom_content_version.destroy
 
     respond_to do |format|
-      format.html { redirect_to edit_polymorphic_path(@base_course), notice: "#{name} was successfully deleted from #{@base_course.name} in Canvas." }
+      format.html { redirect_to edit_polymorphic_path(@base_course), notice: "'#{name}' was successfully deleted from '#{@base_course.name}' in Canvas." }
       format.json { head :no_content }
     end
   end
@@ -95,9 +103,4 @@ class BaseCourseCustomContentVersionsController < ApplicationController
     @base_course.verify_can_edit!
   end
 
- def set_base_course_from_lti_launch
-    @base_course = BaseCourse.find_by!(
-      canvas_course_id: @lti_launch.request_message.custom['course_id'],
-    )
-  end
 end

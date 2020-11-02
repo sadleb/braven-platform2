@@ -12,8 +12,8 @@ class BaseCourseCustomContentVersion < ApplicationRecord
   has_many :users, :through => :project_submissions
   alias_attribute :submissions, :project_submissions
 
-  scope :projects_only, -> { includes(:custom_content_version).where(custom_content_versions: { type: 'ProjectVersion' }) }
-  scope :surveys_only, -> { includes(:custom_content_version).where(custom_content_versions: { type: 'SurveyVersion' }) }
+  scope :with_project_versions, -> { includes(:custom_content_version).where(custom_content_versions: { type: 'ProjectVersion' }) }
+  scope :with_survey_versions, -> { includes(:custom_content_version).where(custom_content_versions: { type: 'SurveyVersion' }) }
 
   def canvas_url
     # TODO: add a validation and make the column constraint be non-null.
