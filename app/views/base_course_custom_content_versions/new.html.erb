@@ -1,9 +1,11 @@
 <div>
-  <p>Select a project to create in Canvas</p>
+  <!-- TODO: say select a "Project" or "Survey" depending on what we're trying to create.
+       See: https://app.asana.com/0/1174274412967132/1198990873749397 -->
+  <p>Select an item to create in Canvas</p>
   <%= form_tag base_course_base_course_custom_content_versions_path do -%>
     <select name="custom_content_id" id="custom_content_id">
-      <% @projects.each do |project| %>
-        <option value="<%= project.id %>"><%= project.title %></option>
+      <% @new_custom_contents.each do |cc| %>
+        <option value="<%= cc.id %>"><%= cc.title %></option>
       <% end %>
     </select>
     <input type='hidden' id="base_course_id" name='base_course_id' value='<%= @base_course.id %>' />

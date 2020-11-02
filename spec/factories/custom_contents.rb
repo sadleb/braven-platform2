@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :custom_content do
-    title { "MyString" }
+    sequence(:title) { |i| "MyString#{i}" }
     body { "MyText" }
     published_at { "2019-11-04 12:45:39" }
 

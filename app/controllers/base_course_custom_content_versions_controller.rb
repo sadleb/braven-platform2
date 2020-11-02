@@ -16,11 +16,8 @@ class BaseCourseCustomContentVersionsController < ApplicationController
     # If we end up adding a designer role, remember to authorize `ProjectVersion.create?`.
     authorize @base_course_custom_content_version
 
-   # TODO: if this is a Survey, show the survey's list.
-
-    # TODO: exclude those already on this BaseCourse.
-    # https://app.asana.com/0/1174274412967132/1198965066699369
-    @projects = Project.all
+    # TODO: if this is a Survey, show the survey's list.
+    @new_custom_contents = Project.all - @base_course.custom_contents
   end
 
   # Publish a new Project or Survey in Canvas.
@@ -101,5 +98,4 @@ class BaseCourseCustomContentVersionsController < ApplicationController
   def verify_can_edit!
     @base_course.verify_can_edit!
   end
-
 end

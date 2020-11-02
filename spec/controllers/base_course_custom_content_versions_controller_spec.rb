@@ -29,6 +29,23 @@ RSpec.describe BaseCourseCustomContentVersionsController, type: :controller do
       sign_in admin_user
     end  
 
+    describe "GET #new" do
+      context 'for project' do
+        let!(:new_project) { create :project }
+
+        it 'returns a success response' do
+          get :new, params: valid_edit_project_params, session: valid_session
+          expect(response).to be_successful
+        end
+
+        it 'excludes already published projects' do
+          get :new, params: valid_edit_project_params, session: valid_session
+          expect(response.body).to match /<option value="#{new_project.id}">#{new_project.title}<\/option>/
+          expect(response.body).not_to match /<option.*>#{project.title}<\/option>/
+        end
+      end
+    end
+
     describe 'POST #create' do
 
       context 'with valid params' do
