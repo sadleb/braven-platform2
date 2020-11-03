@@ -119,12 +119,12 @@ export default class RadioQuestionEditing extends Plugin {
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'radioDiv',
-            view: ( modelElement, viewWriter ) => {
-                const div = viewWriter.createContainerElement( 'div', {
+            view: ( modelElement, { writer } ) => {
+                const div = writer.createContainerElement( 'div', {
                     'class': 'module-radio-div'
                 } );
 
-                return toWidget( div, viewWriter, { label: 'radio option widget' } );
+                return toWidget( div, writer, { label: 'radio option widget' } );
             }
         } );
 
@@ -136,7 +136,7 @@ export default class RadioQuestionEditing extends Plugin {
                     type: 'radio'
                 }
             },
-            model: ( viewElement, modelWriter ) => {
+            model: ( viewElement, { writer } ) => {
                 // All radio buttons in the same question must share the same 'name' attribute,
                 // so let's get a reference to the ancestor module block and use its group name
                 // attribute, if available.
@@ -164,7 +164,7 @@ export default class RadioQuestionEditing extends Plugin {
                 // our fallback.
                 const radioValue = viewElement.getAttribute('value') || this._nextRetainedDataId();
 
-                return modelWriter.createElement( 'radioInput', new Map( [
+                return writer.createElement( 'radioInput', new Map( [
                     [ 'id', [ radioGroupName, radioValue ].join( '_' ) ],
                     [ 'name', radioGroupName ],
                     [ 'value', radioValue ],
@@ -176,7 +176,7 @@ export default class RadioQuestionEditing extends Plugin {
         } );
         conversion.for( 'downcast' ).elementToElement( {
             model: 'radioInput',
-            view: ( modelElement, viewWriter ) => {
+            view: ( modelElement, { writer } ) => {
                 // All radio buttons in the same question must share the same 'name' attribute,
                 // so let's get a reference to the ancestor module block and use its group name
                 // attribute, if available.
@@ -204,7 +204,7 @@ export default class RadioQuestionEditing extends Plugin {
                 // our fallback.
                 const radioValue = modelElement.getAttribute('value') || this._nextRetainedDataId();
 
-                return viewWriter.createEmptyElement( 'input', new Map( [
+                return writer.createEmptyElement( 'input', new Map( [
                     [ 'type', 'radio' ],
                     [ 'id', [ radioGroupName, radioValue ].join( '_' ) ],
                     [ 'name', radioGroupName ],
@@ -220,8 +220,8 @@ export default class RadioQuestionEditing extends Plugin {
             view: {
                 name: 'label'
             },
-            model: ( viewElement, modelWriter ) => {
-                return modelWriter.createElement( 'radioLabel', {
+            model: ( viewElement, { writer } ) => {
+                return writer.createElement( 'radioLabel', {
                     // HACK: Get the id of the radio this label corresponds to.
                     'for': viewElement.parent.getChild(0).getAttribute('id')
                 } );
@@ -230,8 +230,8 @@ export default class RadioQuestionEditing extends Plugin {
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'radioLabel',
-            view: ( modelElement, viewWriter ) => {
-                return viewWriter.createEditableElement( 'label', {
+            view: ( modelElement, { writer } ) => {
+                return writer.createEditableElement( 'label', {
                     // HACK: Get the id of the radio this label corresponds to.
                     'for': modelElement.parent.getChild(0).getAttribute('id')
                 } );
@@ -239,8 +239,8 @@ export default class RadioQuestionEditing extends Plugin {
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'radioLabel',
-            view: ( modelElement, viewWriter ) => {
-                const label = viewWriter.createEditableElement( 'label', {
+            view: ( modelElement, { writer } ) => {
+                const label = writer.createEditableElement( 'label', {
                     // NOTE: We don't set the 'for' attribute in the editing view, so that clicking in the label
                     // editable to type doesn't also toggle the radio.
                 } );
@@ -251,7 +251,7 @@ export default class RadioQuestionEditing extends Plugin {
                     text: 'Answer text'
                 } );
 
-                return toWidgetEditable( label, viewWriter );
+                return toWidgetEditable( label, writer );
             }
         } );
 
@@ -261,23 +261,23 @@ export default class RadioQuestionEditing extends Plugin {
                 name: 'p',
                 classes: ['inline', 'feedback']
             },
-            model: ( viewElement, modelWriter ) => {
-                return modelWriter.createElement( 'radioInlineFeedback' );
+            model: ( viewElement, { writer } ) => {
+                return writer.createElement( 'radioInlineFeedback' );
             }
 
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'radioInlineFeedback',
-            view: ( modelElement, viewWriter ) => {
-                return viewWriter.createEditableElement( 'p', {
+            view: ( modelElement, { writer } ) => {
+                return writer.createEditableElement( 'p', {
                     'class': 'feedback inline',
                 } );
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'radioInlineFeedback',
-            view: ( modelElement, viewWriter ) => {
-                const p = viewWriter.createEditableElement( 'p', {
+            view: ( modelElement, { writer } ) => {
+                const p = writer.createEditableElement( 'p', {
                     'class': 'feedback inline',
                 } );
 
@@ -287,7 +287,7 @@ export default class RadioQuestionEditing extends Plugin {
                     text: 'Inline feedback (optional)'
                 } );
 
-                return toWidgetEditable( p, viewWriter );
+                return toWidgetEditable( p, writer );
             }
         } );
     }

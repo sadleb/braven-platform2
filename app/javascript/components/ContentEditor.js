@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
-import CKEditor from '@ckeditor/ckeditor5-react';
+import { CKEditor } from '@ckeditor/ckeditor5-react';
 import Rails from '@rails/ujs';
 
 // Non-ckeditor React imports
@@ -497,7 +497,7 @@ class ContentEditor extends Component {
                                         editor={BalloonEditor}
                                         data={this.state.editorData}
                                         config={this.editorConfig}
-                                        onInit={this.handleEditorInit}
+                                        onReady={this.handleEditorInit}
                                     />
                                     <textarea
                                         id="secret-html"

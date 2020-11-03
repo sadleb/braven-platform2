@@ -40,6 +40,7 @@ export default class ContentCommonEditing extends Plugin {
         // Shared elements.
         schema.register( 'questionFieldset', {
             isLimit: true,
+            isObject: true,
             allowIn: '$root',
         } );
 
@@ -93,29 +94,30 @@ export default class ContentCommonEditing extends Plugin {
             view: {
                 name: 'fieldset'
             },
-            model: ( viewElement, modelWriter ) => {
+            model: ( viewElement, { writer } ) => {
                 // Only include the class attribute if it's set.
                 const classes = viewElement.getAttribute('class');
                 const attrs = classes ? { 'class': classes } : {};
-                return modelWriter.createElement( 'questionFieldset', attrs );
+                return writer.createElement( 'questionFieldset', attrs );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'questionFieldset',
-            view: ( modelElement, viewWriter ) => {
+            view: ( modelElement, { writer } ) => {
                 // Only include the class attribute if it's set.
                 const classes = modelElement.getAttribute('class');
                 const attrs = classes ? { 'class': classes } : {};
-                return viewWriter.createEditableElement( 'fieldset', attrs );
+                return writer.createEditableElement( 'fieldset', attrs );
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'questionFieldset',
-            view: ( modelElement, viewWriter ) => {
+            view: ( modelElement, { writer } ) => {
                 // Only include the class attribute if it's set.
                 const classes = modelElement.getAttribute('class');
                 const attrs = classes ? { 'class': classes } : {};
-                return viewWriter.createContainerElement( 'fieldset', attrs );
+                const fieldset = writer.createContainerElement( 'fieldset', attrs );
+                return toWidget( fieldset, writer );
             }
         } );
 
@@ -134,8 +136,8 @@ export default class ContentCommonEditing extends Plugin {
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'legend',
-            view: ( modelElement, viewWriter ) => {
-                const legend = viewWriter.createEditableElement( 'legend' );
+            view: ( modelElement, { writer } ) => {
+                const legend = writer.createEditableElement( 'legend' );
 
                 enablePlaceholder( {
                     view: editing.view,
@@ -143,7 +145,7 @@ export default class ContentCommonEditing extends Plugin {
                     text: 'Legend'
                 } );
 
-                return toWidgetEditable( legend, viewWriter );
+                return toWidgetEditable( legend, writer );
             }
         } );
 
@@ -157,33 +159,34 @@ export default class ContentCommonEditing extends Plugin {
                     'type': 'text'
                 }
             },
-            model: ( viewElement, modelWriter ) => {
-                return modelWriter.createElement( 'textInput', new Map( [
-                    ['data-bz-retained', viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId()],
-                    ['placeholder', viewElement.getAttribute('placeholder') || ''],
-                ] ) );
+            model: ( viewElement, { writer } ) => {
+                return writer.createElement( 'textInput', {
+                    'data-bz-retained': viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
+                    'placeholder': viewElement.getAttribute('placeholder') || '',
+                } );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'textInput',
-            view: ( modelElement, viewWriter ) => {
-                const input = viewWriter.createEmptyElement( 'input', new Map( [
-                    [ 'type', 'text' ],
-                    [ 'data-bz-retained', modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
-                    [ 'placeholder', modelElement.getAttribute('placeholder') || '' ],
-                ] ) );
+            view: ( modelElement, { writer } ) => {
+                const input = writer.createEmptyElement( 'input', {
+                    'type': 'text',
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
+                    'placeholder': modelElement.getAttribute('placeholder') || '',
+                } );
                 return input;
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'textInput',
-            view: ( modelElement, viewWriter ) => {
-                const input = viewWriter.createEmptyElement( 'input', new Map( [
-                    [ 'type', 'text' ],
-                    [ 'data-bz-retained', modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
-                    [ 'placeholder', modelElement.getAttribute('placeholder') || '' ],
-                ] ) );
-                return toWidget( input, viewWriter );
+            view: ( modelElement, { writer } ) => {
+                // Note: using a ContainerElement because toWidget can only run on ContainerElements
+                const input = writer.createContainerElement( 'input', {
+                    'type': 'text',
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
+                    'placeholder': modelElement.getAttribute('placeholder') || '',
+                } );
+                return toWidget( input, writer );
             }
         } );
 
@@ -192,50 +195,50 @@ export default class ContentCommonEditing extends Plugin {
             view: {
                 name: 'textarea',
             },
-            model: ( viewElement, modelWriter ) => {
+            model: ( viewElement, { writer } ) => {
                 let arialLabelledBy = ''
                 const textareaLabel =  getNamedChildOrSibling('div', viewElement.parent)
                 if(textareaLabel) {
                     arialLabelledBy = textareaLabel.getAttribute('id');
                 }
                 
-                return modelWriter.createElement( 'textArea', new Map( [
-                    [ 'data-bz-retained', viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
-                    [ 'placeholder', viewElement.getAttribute('placeholder') || '' ],
-                    [ 'aria-labelledby', arialLabelledBy ]
-                ] ) );
+                return writer.createElement( 'textArea', {
+                    'data-bz-retained': viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
+                    'placeholder': viewElement.getAttribute('placeholder') || '',
+                    'aria-labelledby': arialLabelledBy,
+                } );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'textArea',
-            view: ( modelElement, viewWriter ) => {
+            view: ( modelElement, { writer } ) => {
                 let arialLabelledBy = ''
                 const textareaLabel =  getNamedChildOrSibling('textareaLabel', modelElement.parent)
                 if(textareaLabel) {
                     arialLabelledBy = textareaLabel.getAttribute('id');
                 }
-                const textarea = viewWriter.createEmptyElement( 'textarea', new Map( [
-                    [ 'data-bz-retained', modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
-                    [ 'placeholder', modelElement.getAttribute('placeholder') || '' ],
-                    [ 'aria-labelledby', arialLabelledBy ]
-                ] ) );
+                const textarea = writer.createEmptyElement( 'textarea', {
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
+                    'placeholder': modelElement.getAttribute('placeholder') || '',
+                    'aria-labelledby': arialLabelledBy,
+                } );
                 return textarea;
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'textArea',
-            view: ( modelElement, viewWriter ) => {
+            view: ( modelElement, { writer } ) => {
                 let arialLabelledBy = ''
                 const textareaLabel =  getNamedChildOrSibling('textareaLabel', modelElement.parent)
                 if(textareaLabel) {
                     arialLabelledBy = textareaLabel.getAttribute('id');
                 }
-                const textarea = viewWriter.createEmptyElement( 'textarea', new Map( [
-                    [ 'data-bz-retained', modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
-                    [ 'placeholder', modelElement.getAttribute('placeholder') || '' ],
-                    [ 'aria-labelledby', arialLabelledBy ]
-                ] ) );
-                return toWidget( textarea, viewWriter );
+                const textarea = writer.createContainerElement( 'textarea', {
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
+                    'placeholder': modelElement.getAttribute('placeholder') || '',
+                    'aria-labelledby': arialLabelledBy,
+                } );
+                return toWidget( textarea, writer );
             }
         } );
 
@@ -247,31 +250,32 @@ export default class ContentCommonEditing extends Plugin {
                     'type': 'file',
                 }
             },
-            model: ( viewElement, modelWriter ) => {
-                return modelWriter.createElement( 'fileUpload', new Map( [
-                    [ 'data-bz-retained', viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
-                ] ) );
+            model: ( viewElement, { writer } ) => {
+                return writer.createElement( 'fileUpload', {
+                    'data-bz-retained': viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
+                } );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'fileUpload',
-            view: ( modelElement, viewWriter ) => {
-                const input = viewWriter.createEmptyElement( 'input', new Map( [
-                    [ 'type', 'file' ],
-                    [ 'data-bz-retained', modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
-                ] ) );
+            view: ( modelElement, { writer } ) => {
+                const input = writer.createEmptyElement( 'input', {
+                    'type': 'file',
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
+                } );
                 return input;
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'fileUpload',
-            view: ( modelElement, viewWriter ) => {
-                const input = viewWriter.createEmptyElement( 'input', new Map( [
-                    [ 'type', 'file' ],
-                    [ 'disabled', '' ],
-                    [ 'data-bz-retained', modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
-                ] ) );
-                return toWidget( input, viewWriter );
+            view: ( modelElement, { writer } ) => {
+                // Note: using a ContainerElement because toWidget can only run on ContainerElements
+                const input = writer.createContainerElement( 'input', {
+                    'type': 'file',
+                    'disabled': '',
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
+                } );
+                return toWidget( input, writer, {'label': 'test'} );
             }
         } );
 
@@ -280,34 +284,35 @@ export default class ContentCommonEditing extends Plugin {
             view: {
                 name: 'select',
             },
-            model: ( viewElement, modelWriter ) => {
-                return modelWriter.createElement( 'select', new Map( [
-                    [ 'data-bz-retained', viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
-                    [ 'name', viewElement.getAttribute('name') ],
-                    [ 'id', viewElement.getAttribute('id') ],
-                ] ) );
+            model: ( viewElement, { writer } ) => {
+                return writer.createElement( 'select', {
+                    'data-bz-retained': viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
+                    'name': viewElement.getAttribute('name'),
+                    'id': viewElement.getAttribute('id'),
+                } );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'select',
-            view: ( modelElement, viewWriter ) => {
-                const select = viewWriter.createContainerElement( 'select', new Map( [
-                    [ 'data-bz-retained', modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
-                    [ 'name', modelElement.getAttribute('name') ],
-                    [ 'id', modelElement.getAttribute('id') ],
-                ] ) );
+            view: ( modelElement, { writer } ) => {
+                const select = writer.createContainerElement( 'select', {
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
+                    'name': modelElement.getAttribute('name'),
+                    'id': modelElement.getAttribute('id'),
+                } );
                 return select;
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'select',
-            view: ( modelElement, viewWriter ) => {
-                const select = viewWriter.createContainerElement( 'select', new Map( [
-                    [ 'data-bz-retained', modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
-                    [ 'name', modelElement.getAttribute('name') ],
-                    [ 'id', modelElement.getAttribute('id') ],
-                ] ) );
-                return toWidget( select, viewWriter );
+            view: ( modelElement, { writer } ) => {
+                // Note: using a ContainerElement because toWidget can only run on ContainerElements
+                const select = writer.createContainerElement( 'select', {
+                    'data-bz-retained': modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId(),
+                    'name': modelElement.getAttribute('name'),
+                    'id': modelElement.getAttribute('id'),
+                } );
+                return toWidget( select, writer );
             }
         } );
 
@@ -316,16 +321,16 @@ export default class ContentCommonEditing extends Plugin {
             view: {
                 name: 'option',
             },
-            model: ( viewElement, modelWriter ) => {
-                return modelWriter.createElement( 'selectOption', {
+            model: ( viewElement, { writer } ) => {
+                return writer.createElement( 'selectOption', {
                     'value': viewElement.getAttribute('value'),
                 } );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'selectOption',
-            view: ( modelElement, viewWriter ) => {
-                const option = viewWriter.createContainerElement( 'option', {
+            view: ( modelElement, { writer } ) => {
+                const option = writer.createContainerElement( 'option', {
                     'value': modelElement.getAttribute('value'),
                 } );
                 return option;
@@ -333,11 +338,11 @@ export default class ContentCommonEditing extends Plugin {
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'selectOption',
-            view: ( modelElement, viewWriter ) => {
-                const option = viewWriter.createContainerElement( 'option', {
+            view: ( modelElement, { writer } ) => {
+                const option = writer.createContainerElement( 'option', {
                     'value': modelElement.getAttribute('value'),
                 } );
-                return toWidget( option, viewWriter );
+                return toWidget( option, writer );
             }
         } );
 
