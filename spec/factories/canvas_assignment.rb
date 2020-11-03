@@ -45,6 +45,18 @@ FactoryBot.define do
     overrides { nil }
     submissions_download_url { "https://braven.instructure.com/courses/#{course_id}/assignments/#{id}/submissions?zip=1" }
 
+    factory :canvas_assignment_with_rubric, class: Hash do
+      skip_create # This isn't stored in the DB.
+
+      transient do
+        sequence(:rubric_id)
+        sequence(:rubric_title)
+      end
+
+      rubric { build(:canvas_rubric_data) }
+      rubric_settings { build(:canvas_rubric_settings, id: rubric_id, title: rubric_title) }
+    end
+
     initialize_with { attributes.stringify_keys }
   end
 end

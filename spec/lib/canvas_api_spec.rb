@@ -288,4 +288,81 @@ RSpec.describe CanvasAPI do
       expect(response).to eq(JSON.parse(assignment1))
     end
   end
+
+  describe '#get_rubrics' do
+    let(:course_id) { 1255 }
+    let(:existing_rubric_id) { 928373 }
+    let(:existing_rubric_title) { 'Some Existing Rubric1' }
+    let(:canvas_assignment_with_rubric) {
+      create :canvas_assignment_with_rubric,
+        rubric_id: existing_rubric_id,
+        rubric_title: existing_rubric_title,
+        course_id: course_id
+    }
+    let(:canvas_existing_rubric) {
+      create :canvas_rubric_with_association,
+        id: existing_rubric_id,
+        title: existing_rubric_title,
+        course_id: course_id,
+        assignment_id: canvas_assignment_with_rubric['id']
+    }
+    let(:canvas_new_rubric) { create :canvas_rubric, course_id: course_id }
+
+    it 'hits the Canvas API correctly' do
+      request_url = "#{CANVAS_API_URL}/courses/#{course_id}/rubrics"
+      stub_request(:get, request_url).to_return( body: [ canvas_new_rubric ].to_json )
+
+      rubrics = canvas.get_rubrics(course_id)
+
+      expect(WebMock).to have_requested(:get, request_url).once
+      expect(rubrics).to eq( [
+        CanvasAPI::LMSRubric.new(canvas_new_rubric['id'], canvas_new_rubric['title'])
+      ])
+    end
+
+    it 'gets all rubrics by default' do
+      request_url = "#{CANVAS_API_URL}/courses/#{course_id}/rubrics"
+      stub_request(:get, request_url).to_return( body: [ canvas_new_rubric, canvas_existing_rubric ].to_json )
+
+      rubrics = canvas.get_rubrics(course_id)
+
+      expect(WebMock).to have_requested(:get, request_url).once
+      expect(rubrics).to eq([
+        CanvasAPI::LMSRubric.new(canvas_new_rubric['id'], canvas_new_rubric['title']), 
+        CanvasAPI::LMSRubric.new(canvas_existing_rubric['id'], canvas_existing_rubric['title']) 
+      ])
+    end
+
+    it 'filters out already associated rubrics when specified' do
+      expect_any_instance_of(CanvasAPI).to receive(:get_assignments).and_return([canvas_assignment_with_rubric])
+      rubrics_request_url = "#{CANVAS_API_URL}/courses/#{course_id}/rubrics"
+      stub_request(:get, rubrics_request_url).to_return( body: [ canvas_new_rubric, canvas_existing_rubric ].to_json )
+
+      rubrics = canvas.get_rubrics(course_id, true)
+
+      expect(WebMock).to have_requested(:get, rubrics_request_url).once
+      expect(rubrics).to eq([
+        CanvasAPI::LMSRubric.new(canvas_new_rubric['id'], canvas_new_rubric['title'])
+      ])
+    end
+  end
+
+  describe '#add_rubric_to_assignment' do
+    let(:course_id) { 123456 }
+    let(:assignment_id) { 92384 }
+    let(:rubric_id) { 67869 }
+    let(:assignment1) { FactoryBot.json(:canvas_assignment, course_id: course_id, id: assignment_id) }
+    let(:rubric_for_assignment1) { FactoryBot.json(:canvas_rubric_with_association, id: rubric_id, assignment_id: assignment_id) }
+
+    it 'hits the Canvas API correctly' do
+      request_url = "#{CANVAS_API_URL}/courses/#{course_id}/rubric_associations"
+      stub_request(:post, request_url).to_return( body: rubric_for_assignment1 )
+
+      rubric = canvas.add_rubric_to_assignment(course_id, assignment_id, rubric_id)
+
+      expect(WebMock).to have_requested(:post, request_url).once
+      expect(rubric).to eq(JSON.parse(rubric_for_assignment1))
+    end
+  end
+
 end

@@ -6,6 +6,7 @@ class CanvasAPI
   LMSUser = Struct.new(:id, :email)
   LMSEnrollment = Struct.new(:id, :course_id, :type, :section_id)
   LMSSection = Struct.new(:id, :name)
+  LMSRubric = Struct.new(:id, :title)
 
   attr_reader :canvas_url
 
@@ -286,6 +287,55 @@ class CanvasAPI
     body = { :assignment_overrides => overrides }
 
     response = post("/courses/#{course_id}/assignments/overrides", body)
+    JSON.parse(response.body)
+  end
+
+#  def get_rubric(course_id, rubric_id)
+#    response = get("/courses/#{course_id}/rubrics/#{rubric_id}?include[]=assignment_associations")
+#    JSON.parse(response)
+#  end
+
+  # Note: unlike get_rubric(), you cannot pass an 'include[]=assignment_associations' parameter to
+  # to see which rubrics are already associated with an assignment or not. You can however see that
+  # info in the response to get_assigments().
+  #
+  # filter_out_already_associated: true to only return rubrics that are not already
+  #                                associated (attached) to an assignment
+  def get_rubrics(course_id, filter_out_already_associated = false)
+    response = get("/courses/#{course_id}/rubrics")
+    response_json = get_all_from_pagination(response)
+    result = response_json.map { |r| LMSRubric.new(r['id'], r['title']) }
+
+    if filter_out_already_associated
+
+      # TODO: a better way to do this will be to store rubric_ids on the base_course_custom_content_versions
+      # join  model, but that's more work and we need to handle course clone, and this happens rarely (only when
+      # designers are publishing new Projects/Survey), so this is a hack for now.
+      # Task to do this properly: 
+      # https://app.asana.com/0/1174274412967132/1198996949946468 
+      already_associated_rubrics = CanvasAPI.client.get_assignments(course_id).map do |ca| 
+        assoc_rubric = ca['rubric_settings']
+        CanvasAPI::LMSRubric.new(assoc_rubric['id'], assoc_rubric['title']) if assoc_rubric
+      end
+
+      result = result - already_associated_rubrics
+
+    end
+    result
+  end
+
+  def add_rubric_to_assignment(course_id, assignment_id, rubric_id)
+    body = { :rubric_association =>
+      {
+        :rubric_id => rubric_id,
+        :association_id => assignment_id,
+        :association_type => 'Assignment',
+#        :title => '<insert_assignment_title>',
+        :use_for_grading => true,
+        :purpose => 'grading'
+      }
+    }
+    response = post("/courses/#{course_id}/rubric_associations", body)
     JSON.parse(response.body)
   end
 

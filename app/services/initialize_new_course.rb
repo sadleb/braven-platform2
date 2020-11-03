@@ -55,7 +55,7 @@ private
 
       lti_launch_url = parse_lti_launch_url(ca)
       if lti_launch_url
-        initialize_lti_launch_resource(lti_launch_url, canvas_assignment_id)
+        initialize_new_base_course_custom_content_version(lti_launch_url, canvas_assignment_id)
       else
         Rails.logger.debug("Skipping Canvas Assignment[#{canvas_assignment_id}] - not an LTI linked assignment")
       end
@@ -64,16 +64,21 @@ private
     canvas_assignment_ids
   end
 
-  def initialize_lti_launch_resource(lti_launch_url, canvas_assignment_id)
+  # When the assignment is loaded in Canvas and does an LTI Launch, it launches a 
+  # BaseCourseCustomContentVersion's submission URL. This initializes that both locally
+  # and in Canvas by looking up the old one using the old lti_launch_url and creating a
+  # new one associating this new BaseCourse to that custom_content_version, publishing the
+  # new URL to the new canvas_assignment_id
+  def initialize_new_base_course_custom_content_version(old_lti_launch_url, canvas_assignment_id)
     new_launch_url = nil
 
     # TODO: Instead of going this route of parsing the URL, the plan is to move LTI selection linking to a platform UI 
     # and do it programatically, linking everything up using a resourceId in the LineItem API.
     # See: https://app.asana.com/0/1174274412967132/1198900743766613
-    course_template_content_version = BaseCourseCustomContentVersion.find_by_url(lti_launch_url) 
+    course_template_content_version = BaseCourseCustomContentVersion.find_by_url(old_lti_launch_url) 
     if course_template_content_version
       if course_template_content_version.base_course.is_a? CourseTemplate
-        new_launch_url = create_new_custom_content_resource(course_template_content_version, canvas_assignment_id)
+        new_launch_url = create_new_base_course_custom_content_version(course_template_content_version, canvas_assignment_id)
         Rails.logger.debug("Updating Canvas Assignment[#{canvas_assignment_id}] - changing LTI launch URL to: #{new_launch_url}")
         CanvasAPI.client.update_assignment_lti_launch_url(@new_course.canvas_course_id, canvas_assignment_id, new_launch_url)
       else
@@ -87,7 +92,7 @@ private
 
   end
 
-  def create_new_custom_content_resource(old_course_custom_content_version, canvas_assignment_id)
+  def create_new_base_course_custom_content_version(old_course_custom_content_version, canvas_assignment_id)
     if old_course_custom_content_version.base_course_id == @new_course.canvas_course_id
       raise InitializeNewCourseError, "Canvas Assignment[#{canvas_assignment_id}] is already associated with #{@new_course}"
     end

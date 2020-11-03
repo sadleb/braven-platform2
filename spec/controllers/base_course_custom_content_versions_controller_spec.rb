@@ -6,12 +6,17 @@ RSpec.describe BaseCourseCustomContentVersionsController, type: :controller do
   let!(:admin_user) { create :admin_user }
   let(:course) { create :course_with_canvas_id }
   let(:course_project_version) { create :course_project_version, base_course: course }
-  let(:invalid_edit_project_params) { {base_course_id: course_project_version.base_course_id, id: course_project_version} }
+  let(:invalid_edit_project_params) { {base_course_id: course_project_version.base_course_id, id: course_project_version, type: 'Project' } }
   let(:course_template) { create :course_template_with_canvas_id }
+  let(:canvas_new_rubric) { create :canvas_rubric, course_id: course_template.id }
   let(:project) { create :project }
   let(:project_version) { create :project_version, custom_content: project }
   let(:course_template_project_version) { create :course_template_project_version, base_course: course_template, custom_content_version: project_version }
-  let(:valid_edit_project_params) { {base_course_id: course_template_project_version.base_course_id, id: course_template_project_version} }
+  let(:valid_edit_project_params) { {base_course_id: course_template_project_version.base_course_id, id: course_template_project_version, type: 'Project' } }
+  let(:survey) { create :survey }
+  let(:survey_version) { create :survey_version, custom_content: survey }
+  let(:course_template_survey_version) { create :course_template_survey_version, base_course: course_template, custom_content_version: survey_version }
+  let(:valid_edit_survey_params) { {base_course_id: course_template_survey_version.base_course_id, id: course_template_survey_version, type: 'Survey' } }
   let(:canvas_client) { double(CanvasAPI) }
 
 
@@ -30,8 +35,15 @@ RSpec.describe BaseCourseCustomContentVersionsController, type: :controller do
     end  
 
     describe "GET #new" do
+
       context 'for project' do
         let!(:new_project) { create :project }
+
+        before(:each) do
+          allow(canvas_client).to receive(:get_rubrics).with(course_template.canvas_course_id, true).and_return([
+            CanvasAPI::LMSRubric.new(canvas_new_rubric['id'], canvas_new_rubric['title'])
+          ])
+        end
 
         it 'returns a success response' do
           get :new, params: valid_edit_project_params, session: valid_session
@@ -43,6 +55,30 @@ RSpec.describe BaseCourseCustomContentVersionsController, type: :controller do
           expect(response.body).to match /<option value="#{new_project.id}">#{new_project.title}<\/option>/
           expect(response.body).not_to match /<option.*>#{project.title}<\/option>/
         end
+
+        it 'sets the rubrics list' do
+          response = get :new, params: valid_edit_project_params, session: valid_session
+          expect(response.body).to match /<option value="#{canvas_new_rubric['id']}">#{canvas_new_rubric['title']}<\/option>/
+        end
+
+        it 'excludes rubrics already associated with an assignment from the list' do
+          expect(canvas_client).to receive(:get_rubrics).with(course_template.canvas_course_id, true).once
+          response = get :new, params: valid_edit_project_params, session: valid_session
+        end
+        
+      end
+
+      context 'for survey' do
+        it 'returns a success response' do
+          get :new, params: valid_edit_survey_params, session: valid_session
+          expect(response).to be_successful
+        end
+
+        it 'doesnt set the rubrics list' do
+          expect(canvas_client).not_to receive(:get_rubrics)
+          expect(canvas_client).not_to receive(:get_assignments)
+          response = get :new, params: valid_edit_survey_params, session: valid_session
+        end
       end
     end
 
@@ -53,12 +89,13 @@ RSpec.describe BaseCourseCustomContentVersionsController, type: :controller do
         context 'for project' do
           let(:valid_projet_create_params) { {base_course_id: course_template.id, custom_content_id: project.id} }
           let(:name) { 'Test Create Project 1' }
-          let(:created_canvas_assignment) { FactoryBot.json(:canvas_assignment, course_id: course_template['canvas_course_id'], name: name) }
+          let(:created_canvas_assignment) { build(:canvas_assignment, course_id: course_template['canvas_course_id'], name: name) }
           let(:created_bcccv) { BaseCourseCustomContentVersion.last }
   
           before(:each) do
             allow(canvas_client).to receive(:create_lti_assignment).and_return(created_canvas_assignment)
             allow(canvas_client).to receive(:update_assignment_lti_launch_url)
+            allow(canvas_client).to receive(:add_rubric_to_assignment)
           end
 
           it 'creates the Canvas assignment' do
@@ -81,12 +118,23 @@ RSpec.describe BaseCourseCustomContentVersionsController, type: :controller do
             expect(canvas_client).to have_received(:update_assignment_lti_launch_url)
               .with(course_template['canvas_course_id'], created_canvas_assignment['id'],
                     new_base_course_custom_content_version_project_submission_url(base_course_custom_content_version_id: created_bcccv.id) )
+              .once
           end
 
           it 'redirects back to edit page and flashes message' do
             response = post :create, params: valid_projet_create_params, session: valid_session
             expect(response).to redirect_to(edit_course_template_path(course_template_project_version.base_course))
             expect(flash[:notice]).to match /successfully published/
+          end
+
+          context 'with rubric' do
+            let(:projet_create_params_with_rubric) { {base_course_id: course_template.id, custom_content_id: project.id, rubric_id: canvas_new_rubric['id']} }
+
+            it 'associates the rubric with the project in Canvas' do
+              response = post :create, params: projet_create_params_with_rubric, session: valid_session
+              expect(canvas_client).to have_received(:add_rubric_to_assignment)
+                .with(course_template['canvas_course_id'], created_canvas_assignment['id'], canvas_new_rubric['id'].to_s).once
+            end
           end
         end
       end
