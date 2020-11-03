@@ -43,11 +43,9 @@ function createRadio( writer ) {
     const radioDiv = writer.createElement( 'radioDiv' );
     const radioInput = writer.createElement( 'radioInput' );
     const radioLabel = writer.createElement( 'radioLabel' );
-    const radioInlineFeedback = writer.createElement( 'radioInlineFeedback' );
 
     writer.append( radioInput, radioDiv );
     writer.append( radioLabel, radioDiv );
-    writer.append( radioInlineFeedback, radioDiv );
 
     // Add text to empty editables where placeholders don't work.
     writer.insertText( 'Radio label', radioLabel );

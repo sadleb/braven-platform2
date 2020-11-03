@@ -5,7 +5,6 @@ import Widget from '@ckeditor/ckeditor5-widget/src/widget';
 import RetainedData from './retaineddata';
 import InsertRadioQuestionCommand from './insertradioquestioncommand';
 import InsertRadioCommand from './insertradiocommand';
-import { ALLOWED_ATTRIBUTES, filterAllowedAttributes } from './customelementattributepreservation.js';
 
 export default class RadioQuestionEditing extends Plugin {
     static get requires() {
@@ -79,7 +78,7 @@ export default class RadioQuestionEditing extends Plugin {
             isInline: true,
             isObject: true,
             allowIn: [ 'radioDiv', 'tableCell' ],
-            allowAttributes: [ 'id', 'name', 'value', 'data-correctness' ].concat(ALLOWED_ATTRIBUTES),
+            allowAttributes: [ 'id', 'name', 'value', 'data-correctness' ],
         } );
 
         schema.register( 'radioLabel', {
@@ -166,7 +165,6 @@ export default class RadioQuestionEditing extends Plugin {
                 const radioValue = viewElement.getAttribute('value') || this._nextRetainedDataId();
 
                 return modelWriter.createElement( 'radioInput', new Map( [
-                    ...filterAllowedAttributes(viewElement.getAttributes()),
                     [ 'id', [ radioGroupName, radioValue ].join( '_' ) ],
                     [ 'name', radioGroupName ],
                     [ 'value', radioValue ],
@@ -207,7 +205,6 @@ export default class RadioQuestionEditing extends Plugin {
                 const radioValue = modelElement.getAttribute('value') || this._nextRetainedDataId();
 
                 return viewWriter.createEmptyElement( 'input', new Map( [
-                    ...filterAllowedAttributes(modelElement.getAttributes()),
                     [ 'type', 'radio' ],
                     [ 'id', [ radioGroupName, radioValue ].join( '_' ) ],
                     [ 'name', radioGroupName ],

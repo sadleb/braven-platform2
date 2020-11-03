@@ -48,7 +48,6 @@ import PortalImageEditing from '../ckeditor/portalimageediting';
 
 import Tooltip from '../ckeditor/tooltip';
 import ImageLink from '../ckeditor/imagelink';
-import CustomElementAttributePreservation from '../ckeditor/customelementattributepreservation';
 
 // React components to render the list of content parts and the content part preview.
 import CommandButton from './CommandButton';
@@ -99,7 +98,6 @@ BalloonEditor.builtinPlugins = [
 
 // Editor configuration.
 BalloonEditor.defaultConfig = {
-    extraPlugins: [ CustomElementAttributePreservation ],
     blockToolbar: [
         'heading',
         '|',
@@ -421,17 +419,17 @@ class ContentEditor extends Component {
                                         this.editor.editing.view.focus();
                                     }}
                                     onClickDisabled={() => this.editor.editing.view.focus()}
-                                    {...{name: 'Radio Question'}}
+                                    name='Radio Question'
                                 />
                                 <CommandButton
-                                    key="insertFileUploadQuestion"
-                                    enabled={this.state.enabledCommands.includes('insertFileUploadQuestion')}
+                                    key="insertFileUpload"
+                                    enabled={this.state.enabledCommands.includes('insertFileUpload')}
                                     onClick={( id ) => {
-                                        this.editor.execute( 'insertFileUploadQuestion' );
+                                        this.editor.execute( 'insertFileUpload' );
                                         this.editor.editing.view.focus();
                                     }}
                                     onClickDisabled={() => this.editor.editing.view.focus()}
-                                    {...{name: 'File Upload Question'}}
+                                    name='File Upload'
                                 />
                             </ul>
                             <ul key="content-part-list-elements" className="widget-list">
@@ -443,7 +441,7 @@ class ContentEditor extends Component {
                                         this.editor.editing.view.focus();
                                     }}
                                     onClickDisabled={() => this.editor.editing.view.focus()}
-                                    {...{name: 'Text Area'}}
+                                    name='Text Area'
                                 />
                                 <CommandButton
                                     key="insertTextInput"
@@ -453,7 +451,7 @@ class ContentEditor extends Component {
                                         this.editor.editing.view.focus();
                                     }}
                                     onClickDisabled={() => this.editor.editing.view.focus()}
-                                    {...{name: 'Text Input'}}
+                                    name='Text Input'
                                 />
                                 <input
                                     type="file"
@@ -469,7 +467,7 @@ class ContentEditor extends Component {
                                     enabled={this.state.enabledCommands.includes('imageUpload')}
                                     onClick={this.showFileUpload}
                                     onClickDisabled={() => this.editor.editing.view.focus()}
-                                    {...{name: 'Image (Upload)'}}
+                                    name='Image (Upload)'
                                 />
                                 <CommandButton
                                     key="imageInsert"
@@ -480,7 +478,7 @@ class ContentEditor extends Component {
                                         this.editor.editing.view.focus();
                                     }}
                                     onClickDisabled={() => this.editor.editing.view.focus()}
-                                    {...{name: 'Image (URL)'}}
+                                    name='Image (URL)'
                                 />
                             </ul>
                         </div>

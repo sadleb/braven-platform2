@@ -6,11 +6,10 @@ import List from '@ckeditor/ckeditor5-list/src/list';
 import Table from '@ckeditor/ckeditor5-table/src/table';
 import RetainedData from './retaineddata';
 import InsertTextInputCommand from './inserttextinputcommand';
-import InsertFileUploadQuestionCommand from './insertfileuploadquestioncommand';
+import InsertFileUploadCommand from './insertfileuploadcommand';
 import InsertTextAreaQuestionCommand from './inserttextareaquestioncommand';
 import InsertTextAreaCommand from './inserttextareacommand';
 import SetAttributesCommand from './setattributescommand';
-import { ALLOWED_ATTRIBUTES, filterAllowedAttributes } from './customelementattributepreservation';
 import { getNamedChildOrSibling } from './utils';
 
 export default class ContentCommonEditing extends Plugin {
@@ -26,7 +25,7 @@ export default class ContentCommonEditing extends Plugin {
         this.editor.commands.add( 'insertTextInput', new InsertTextInputCommand( this.editor ) );
         this.editor.commands.add( 'insertTextArea', new InsertTextAreaCommand( this.editor ) );
         // Blocks.
-        this.editor.commands.add( 'insertFileUploadQuestion', new InsertFileUploadQuestionCommand( this.editor ) );
+        this.editor.commands.add( 'insertFileUpload', new InsertFileUploadCommand( this.editor ) );
         // SetAttributes.
         this.editor.commands.add( 'setAttributes', new SetAttributesCommand( this.editor ) );
 
@@ -35,41 +34,13 @@ export default class ContentCommonEditing extends Plugin {
         this._nextId = this.editor.plugins.get('RetainedData').getNextCount;
     }
 
-    /**
-     * Example valid structures:
-     *
-     * <moduleBlock>
-     *   <content>
-     *     <contentTitle>$text</contentTitle>
-     *     <contentBody>$block</contentBody>
-     *     <doneButton/>
-     *   </content>
-     * </moduleBlock>
-     *
-     * <moduleBlock>
-     *   <question>
-     *     <questionTitle>$text</questionTitle>
-     *     <questionBody>$block</questionBody>
-     *     <questionForm>
-     *       <questionFieldset>
-     *         ...inputs...
-     *       </questionFieldset>
-     *       <doneButton/>
-     *     </questionForm>
-     *   </question>
-     *   <answer>
-     *     <answerTitle>$text</answerTitle>
-     *     <answerBody>$block</answerBody>
-     *   </answer>
-     * </moduleBlock>
-     */
     _defineSchema() {
         const schema = this.editor.model.schema;
 
         // Shared elements.
         schema.register( 'questionFieldset', {
             isLimit: true,
-            allowIn: 'questionForm',
+            allowIn: '$root',
         } );
 
         // Matrix question table.
@@ -82,25 +53,25 @@ export default class ContentCommonEditing extends Plugin {
         // Shared inputs.
         schema.register( 'textInput', {
             isObject: true,
-            allowAttributes: [ 'type', 'placeholder' ].concat(ALLOWED_ATTRIBUTES),
+            allowAttributes: [ 'type', 'placeholder' ],
             allowIn: [ '$root', '$block', 'tableCell', 'questionFieldset' ],
         } );
 
         schema.register( 'textArea', {
             isObject: true,
-            allowAttributes: [ 'placeholder' , 'aria-labelledby'].concat(ALLOWED_ATTRIBUTES),
+            allowAttributes: [ 'placeholder' , 'aria-labelledby'],
             allowIn: [ '$root', '$block', 'checkboxDiv', 'radioDiv', 'tableCell', 'questionFieldset' ],
         } );
 
         schema.register( 'fileUpload', {
             isObject: true,
-            allowAttributes: [ 'type' ].concat(ALLOWED_ATTRIBUTES),
+            allowAttributes: [ 'type' ],
             allowIn: [ '$root', 'questionFieldset' ],
         } );
 
         schema.register( 'select', {
             isObject: true,
-            allowAttributes: [ 'id', 'name' ].concat(ALLOWED_ATTRIBUTES),
+            allowAttributes: [ 'id', 'name' ],
             allowIn: [ '$root', 'questionFieldset' ],
         } );
 
@@ -188,7 +159,6 @@ export default class ContentCommonEditing extends Plugin {
             },
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'textInput', new Map( [
-                    ...filterAllowedAttributes(viewElement.getAttributes()),
                     ['data-bz-retained', viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId()],
                     ['placeholder', viewElement.getAttribute('placeholder') || ''],
                 ] ) );
@@ -198,7 +168,6 @@ export default class ContentCommonEditing extends Plugin {
             model: 'textInput',
             view: ( modelElement, viewWriter ) => {
                 const input = viewWriter.createEmptyElement( 'input', new Map( [
-                    ...filterAllowedAttributes(modelElement.getAttributes()),
                     [ 'type', 'text' ],
                     [ 'data-bz-retained', modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
                     [ 'placeholder', modelElement.getAttribute('placeholder') || '' ],
@@ -210,7 +179,6 @@ export default class ContentCommonEditing extends Plugin {
             model: 'textInput',
             view: ( modelElement, viewWriter ) => {
                 const input = viewWriter.createEmptyElement( 'input', new Map( [
-                    ...filterAllowedAttributes(modelElement.getAttributes()),
                     [ 'type', 'text' ],
                     [ 'data-bz-retained', modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
                     [ 'placeholder', modelElement.getAttribute('placeholder') || '' ],
@@ -232,7 +200,6 @@ export default class ContentCommonEditing extends Plugin {
                 }
                 
                 return modelWriter.createElement( 'textArea', new Map( [
-                    ...filterAllowedAttributes(viewElement.getAttributes()),
                     [ 'data-bz-retained', viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
                     [ 'placeholder', viewElement.getAttribute('placeholder') || '' ],
                     [ 'aria-labelledby', arialLabelledBy ]
@@ -248,7 +215,6 @@ export default class ContentCommonEditing extends Plugin {
                     arialLabelledBy = textareaLabel.getAttribute('id');
                 }
                 const textarea = viewWriter.createEmptyElement( 'textarea', new Map( [
-                    ...filterAllowedAttributes(modelElement.getAttributes()),
                     [ 'data-bz-retained', modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
                     [ 'placeholder', modelElement.getAttribute('placeholder') || '' ],
                     [ 'aria-labelledby', arialLabelledBy ]
@@ -265,7 +231,6 @@ export default class ContentCommonEditing extends Plugin {
                     arialLabelledBy = textareaLabel.getAttribute('id');
                 }
                 const textarea = viewWriter.createEmptyElement( 'textarea', new Map( [
-                    ...filterAllowedAttributes(modelElement.getAttributes()),
                     [ 'data-bz-retained', modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
                     [ 'placeholder', modelElement.getAttribute('placeholder') || '' ],
                     [ 'aria-labelledby', arialLabelledBy ]
@@ -284,7 +249,6 @@ export default class ContentCommonEditing extends Plugin {
             },
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'fileUpload', new Map( [
-                    ...filterAllowedAttributes(viewElement.getAttributes()),
                     [ 'data-bz-retained', viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
                 ] ) );
             }
@@ -293,7 +257,6 @@ export default class ContentCommonEditing extends Plugin {
             model: 'fileUpload',
             view: ( modelElement, viewWriter ) => {
                 const input = viewWriter.createEmptyElement( 'input', new Map( [
-                    ...filterAllowedAttributes(modelElement.getAttributes()),
                     [ 'type', 'file' ],
                     [ 'data-bz-retained', modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
                 ] ) );
@@ -304,7 +267,6 @@ export default class ContentCommonEditing extends Plugin {
             model: 'fileUpload',
             view: ( modelElement, viewWriter ) => {
                 const input = viewWriter.createEmptyElement( 'input', new Map( [
-                    ...filterAllowedAttributes(modelElement.getAttributes()),
                     [ 'type', 'file' ],
                     [ 'disabled', '' ],
                     [ 'data-bz-retained', modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
@@ -320,7 +282,6 @@ export default class ContentCommonEditing extends Plugin {
             },
             model: ( viewElement, modelWriter ) => {
                 return modelWriter.createElement( 'select', new Map( [
-                    ...filterAllowedAttributes(viewElement.getAttributes()),
                     [ 'data-bz-retained', viewElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
                     [ 'name', viewElement.getAttribute('name') ],
                     [ 'id', viewElement.getAttribute('id') ],
@@ -331,7 +292,6 @@ export default class ContentCommonEditing extends Plugin {
             model: 'select',
             view: ( modelElement, viewWriter ) => {
                 const select = viewWriter.createContainerElement( 'select', new Map( [
-                    ...filterAllowedAttributes(modelElement.getAttributes()),
                     [ 'data-bz-retained', modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
                     [ 'name', modelElement.getAttribute('name') ],
                     [ 'id', modelElement.getAttribute('id') ],
@@ -343,7 +303,6 @@ export default class ContentCommonEditing extends Plugin {
             model: 'select',
             view: ( modelElement, viewWriter ) => {
                 const select = viewWriter.createContainerElement( 'select', new Map( [
-                    ...filterAllowedAttributes(modelElement.getAttributes()),
                     [ 'data-bz-retained', modelElement.getAttribute('data-bz-retained') || this._nextRetainedDataId() ],
                     [ 'name', modelElement.getAttribute('name') ],
                     [ 'id', modelElement.getAttribute('id') ],
