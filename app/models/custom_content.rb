@@ -19,13 +19,6 @@ class CustomContent < ApplicationRecord
     custom_content_versions.map { |v| v.course_templates }.reduce(:+) or []
   end
 
-  def publish(params)
-    response = CanvasAPI.client.update_course_page(params[:course_id], params[:secondary_id], params[:body])
-
-    # Some APIs return 200, some 201.
-    response.code == 200 or response.code == 201
-  end
-
   def last_version
     return nil unless custom_content_versions.exists?
     custom_content_versions.last

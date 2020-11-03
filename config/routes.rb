@@ -6,7 +6,6 @@ Rails.application.routes.draw do
   resources :course_resources
 
   resources :custom_contents do
-    post :publish
     resources :custom_content_versions, path: 'versions', only: [:index, :show]
   end
 

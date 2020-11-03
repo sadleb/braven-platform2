@@ -1,6 +1,5 @@
 class CustomContentsController < ApplicationController
   layout 'content_editor'
-  before_action :set_model_instance, only: [:show, :edit, :update, :destroy, :publish]
   before_action :set_custom_contents, only: [:index, :edit, :new]
 
   # GET /custom_contents
@@ -67,29 +66,6 @@ class CustomContentsController < ApplicationController
     respond_to do |format|
       format.html { redirect_to custom_contents_url, notice: 'CustomContent was successfully destroyed.' }
       format.json { head :no_content }
-    end
-  end
-
-  # POST /custom_contents/1/publish
-  # POST /custom_contents/1/publish.json
-  # This is for publishing content to *portal.bebraven.org (aka Portal).
-  # To publish to braven.instructure.com (aka Canvas LMS), we use LTI:
-  #  - For modules/courses/lessons: LessonContentsController
-  #  - F projects/assignments: LTIAssignmentSelectionController
-  def publish
-    authorize @custom_content
-    respond_to do |format|
-      if @custom_content.publish(update_custom_content_params)
-
-        # update publish time, save a version
-        @custom_content.save_version!(@current_user)
-
-        format.html { redirect_to @custom_content, notice: 'CustomContent was successfully published.' }
-        format.json { render :show, status: :ok }
-      else
-        format.html { render :edit }
-        format.json { render json: @custom_content.errors, status: :unprocessable_entity }
-      end
     end
   end
 
