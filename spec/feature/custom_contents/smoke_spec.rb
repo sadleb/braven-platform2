@@ -32,17 +32,15 @@ RSpec.describe CustomContentsController, type: :routing do
           expect(current_url).to include(return_service)
           expect(page).to have_title("Content Editor")
           expect(page).to have_selector("h1", text: "BRAVEN CONTENT EDITOR")
-          expect(page).to have_content("Checklist Question")
+          expect(page).to have_content("Text Input")
         end
 
         it "inserts a checklist question" do
-          # Insert a question.
-          find("li", text: "Section").click
-          find("li", text: "Checklist Question").click
+          # Insert a text input.
+          find("li", text: "Text Input").click
 
-          # Make sure the question was inserted.
-          expect(page).to have_selector("h5.ck-editor__editable.ck-editor__nested-editable")
-          expect(page).to have_selector('input[type="checkbox"]')
+          # Make sure the content was inserted.
+          expect(page).to have_selector('.ck-content input[type="text"]')
         end
       end
     end

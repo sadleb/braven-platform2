@@ -5,10 +5,10 @@ import { mount, configure } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 configure({ adapter: new Adapter() });
 
-import ContentPartPreview from 'components/ContentPartPreview';
+import CommandButton from 'components/CommandButton';
 
 test('rendered component', () => {
-  const wrapper = mount(<ContentPartPreview
+  const wrapper = mount(<CommandButton
     image={null}
     id={1}
     name={'test-name'}

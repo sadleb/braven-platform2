@@ -17,24 +17,6 @@
   <% end %>
 
   <div class="field" >
-    <%= react_component('ContentEditor', { custom_content: custom_content,
-        contentParts: [
-            {
-                id: 1,
-                name: 'Question',
-                image: 'product1.jpg'
-            },
-            {
-                id: 2,
-                name: 'Answer',
-                image: 'product2.jpg'
-            },
-            {
-                id: 3,
-                name: 'Heading',
-                image: 'product3.jpg'
-            },
-        ]
-                    }) %>
+    <%= react_component('ContentEditor', { custom_content: custom_content }) %>
   </div>
 <% end %>
