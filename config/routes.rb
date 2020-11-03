@@ -43,8 +43,8 @@ Rails.application.routes.draw do
     resources :base_course_custom_content_versions, only: [:new, :create, :update, :destroy]
   end
 
-  resources :base_course_custom_content_versions, only: [] do 
-    resources :project_submissions, :path => 'submissions', only: [:show, :new, :create]
+  resources :base_course_custom_content_versions, only: [] do
+    resources :project_submissions, only: [:show, :new, :create]
     resources :survey_submissions, only: [:show, :new, :create]
   end
 

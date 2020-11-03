@@ -4,7 +4,7 @@ class BaseCourseCustomContentVersionsController < ApplicationController
   include DryCrud::Controllers::Nestable
   include LtiHelper
 
-  layout 'lti_placement'
+  layout 'admin'
 
   nested_resource_of BaseCourse
 
@@ -16,8 +16,7 @@ class BaseCourseCustomContentVersionsController < ApplicationController
     # If we end up adding a designer role, remember to authorize `ProjectVersion.create?`.
     authorize @base_course_custom_content_version
 
-    # TODO: if this is a Survey, show the survey's list.
-    @new_custom_contents = Project.all - @base_course.custom_contents
+    @new_custom_contents = custom_content_class.all - @base_course.custom_contents
   end
 
   # Publish a new Project or Survey in Canvas.
@@ -36,14 +35,12 @@ class BaseCourseCustomContentVersionsController < ApplicationController
       custom_content_version: custom_content_version,
       canvas_assignment_id: ca['id']
     )
-  
-  # TODO: polymorphic path for Project vs Survey
-  
-    # Create a submission URL for this course and content version
 
-    submission_url = new_base_course_custom_content_version_project_submission_url(
-      base_course_custom_content_version_id: @base_course_custom_content_version.id,
-    )
+    # Create a submission URL for this course and content version
+    submission_url = new_polymorphic_url([
+      @base_course_custom_content_version,
+      "#{@custom_content.class}Submission".constantize.new,
+    ])
   
     CanvasAPI.client.update_assignment_lti_launch_url(@base_course.canvas_course_id, ca['id'], submission_url)
     
@@ -90,6 +87,10 @@ class BaseCourseCustomContentVersionsController < ApplicationController
   end
 
   private
+  def custom_content_class
+    CustomContentsController.class_from_type(params[:type])
+  end
+
   def set_custom_content
     params.require(:custom_content_id)
     @custom_content = CustomContent.find(params[:custom_content_id])

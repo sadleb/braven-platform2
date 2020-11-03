@@ -129,7 +129,7 @@ RSpec.describe LaunchProgram do
       context "adjusts LTI launch URLs" do
 
         let(:course_project_version_template) { create(:course_project_version, base_course: fellow_course_template) } 
-        let(:lti_launch_url_project_template) { "https://platformweb/base_course_custom_content_versions/#{course_project_version_template.id}/submissions/new" }
+        let(:lti_launch_url_project_template) { "https://platformweb/base_course_custom_content_versions/#{course_project_version_template.id}/project_submissions/new" }
         # This mimics an assignment that was cloned to the new course with the old launch URL for the template
         let(:assignment_needing_launch_url_update1) { build(:canvas_assignment, course_id: new_fellow_course_id, lti_launch_url: lti_launch_url_project_template) }
 

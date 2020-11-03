@@ -68,7 +68,7 @@ module DryCrud
     # model when the route is called.
     #
     # E.g. if a Project has many ProjectSubmissions and you want the index to only list
-    # ProjectSubmissions for a given Project, e.g. http://blah/project/:id/submissions
+    # ProjectSubmissions for a given Project, e.g. http://blah/project/:id/project_submissions
     # then you would add this to your ProjectSubmissionsController
     #
     # class ProjectSubmissionsController < ApplicationController 
