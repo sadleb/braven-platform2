@@ -110,7 +110,6 @@ BalloonEditor.defaultConfig = {
         'alignment',
         '|',
         'imageUpload',
-        'insertTable',
         '|',
         'undo',
         'redo'
