@@ -2,6 +2,9 @@ class BaseCourse < ApplicationRecord
   BaseCourseEditError = Class.new(StandardError)
   belongs_to :course_resource, optional: true
 
+  scope :courses, -> { where type: 'Course' }
+  scope :course_templates, -> { where type: 'CourseTemplate' }
+
   has_many :base_course_custom_content_versions
   has_many :custom_content_versions, :through => :base_course_custom_content_versions
 

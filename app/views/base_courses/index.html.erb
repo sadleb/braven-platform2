@@ -1,14 +1,22 @@
-<% content_for(:headline) do %>
-  Course Management
-<% end %>
+<%= render(
+  'list',
+  title: 'Course Management',
+  button_label: 'Launch New Program',
+  button_url: course_management_launch_path,
+  base_courses: [],
+) %>
 
-<% content_for(:headline_buttons) do %>
-  <%= link_to 'Launch new program', course_management_launch_path, class: 'btn btn-sm btn-outline-secondary' %>
-<% end %>
+<%= render(
+  'list',
+  title: 'Course Templates',
+  button_label: 'Add Course Template',
+  button_url: new_course_template_path,
+  base_courses: @base_courses.course_templates,
+) %>
 
-<h3>Course Templates</h3>
-<%= link_to 'New course template', new_course_template_path, class: 'btn btn-sm btn-outline-secondary' %>
-<%= render 'list', base_courses: @base_courses.where(type: 'CourseTemplate') %>
-
-<h3>Courses</h3>
-<%= render 'list', base_courses: @base_courses.where(type: 'Course') %>
+<%= render(
+  'list',
+  title: 'Courses',
+  base_courses: @base_courses.courses,
+  button_label: nil,
+) %>
