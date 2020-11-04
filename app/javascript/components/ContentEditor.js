@@ -324,197 +324,196 @@ class ContentEditor extends Component {
         }
     }
 
-    _renderTypeSelector() {
-        const type = this.props.custom_content.type || '';
+    // Heading with "Save" button
+    _renderHeader() {
+        return (
+            <header>
+                <h1>Braven Content Editor</h1>
+                <span id="autosave-indicator" className="saved">Saved</span>
+                <span id="autosave-indicator" className="saving">Saving...</span>
+                <ul>
+                    <li onClick={(evt) => this.handleSave(evt)}>
+                        Save
+                    </li>
+                </ul>
+            </header>
+        );
+    }
+
+    // Custom content settings, like title, type
+    _renderCustomContentSettings() {
+    	const type = this.props.custom_content.type || '';
 
         return (
-            <select name="custom_content[type]" defaultValue={type}>
-                <option disabled value=''>Select a Type</option>
-                <option>Project</option>
-                <option>Survey</option>
-            </select>
+            <div id="toolbar-page-settings">
+                <h4>Details</h4>
+                <h2>
+                    <input type="text"
+                        name="custom_content[title]"
+                        defaultValue={this.props.custom_content['title']}
+                        placeholder="Title"
+                    />
+                </h2>
+                <select name="custom_content[type]" defaultValue={type}>
+            		<option disabled value=''>Select a Type</option>
+            		<option>Project</option>
+            		<option>Survey</option>
+        		</select>
+            </div>
+        );
+    }
+
+    // Text area and text input have placeholder setting
+    _renderTextPlaceholder() {
+        return (
+            <div id="toolbar-contextual">
+                {this.state.modelPath.map( modelElement => {
+                    if ( ['textArea', 'textInput'].includes( modelElement ) ) {
+                        return (
+                            <>
+                                <h4>Text Input</h4>
+                                <input
+                                    type='text'
+                                    id='input-placeholder'
+                                    value={this.state['selectedElement'].getAttribute('placeholder')}
+                                    onChange={( evt ) => {
+                                        this.editor.execute( 'setAttributes', { 'placeholder': evt.target.value } );
+                                    }}
+                                />
+                                <label htmlFor='input-placeholder'>Placeholder</label>
+                            </>
+                        );
+                    }
+                } )
+            }
+            </div>
+        );
+    }
+
+    // List of CommandButtons for inserting content in editor tabs
+    _renderEditorCommands() {
+        const questionComponents = Object.entries({
+            'insertRadioQuestion': 'Radio Question',
+            'insertFileUpload': 'File Upload',
+        }).map( ([key, name]) => this._renderCommandButton(key, name) );
+
+        const elementComponents = Object.entries({
+        	'insertTextArea': 'Text Area',
+        	'insertTextInput': 'Text Input',
+        }).map( ([key, name]) => this._renderCommandButton(key, name) );
+
+        return (
+            <div id="toolbar-components">
+                <h4>Insert Component</h4>
+                <ul key="content-part-list-questions" className="widget-list">
+                    {questionComponents}
+                </ul>
+                <ul key="content-part-list-elements" className="widget-list">
+                	{elementComponents}
+                    <input
+                        type="file"
+                        style={{ display: "none" }}
+                        ref={this.fileUpload}
+                        onChange={e => {
+                            this.editor.execute( 'imageUpload', {file: e.target.files[0]} );
+                            this.editor.editing.view.focus();
+                        }}
+                    />
+                    <CommandButton
+                        key="imageUpload"
+                        enabled={this.state.enabledCommands.includes('imageUpload')}
+                        onClick={this.showFileUpload}
+                        onClickDisabled={() => this.editor.editing.view.focus()}
+                        name='Image (Upload)'
+                    />
+                    <CommandButton
+                        key="imageInsert"
+                        enabled={this.state.enabledCommands.includes('imageInsert')}
+                        onClick={( id ) => {
+                            const url = window.prompt('URL', 'http://placekitten.com/200/300');
+                            this.editor.execute( 'imageInsert', {source: url} );
+                            this.editor.editing.view.focus();
+                        }}
+                        onClickDisabled={() => this.editor.editing.view.focus()}
+                        name='Image (URL)'
+                    />
+                </ul>
+            </div>
+        );
+    }
+
+    _renderCommandButton(key, name) {
+        return (
+            <CommandButton
+                key={key}
+                enabled={this.state.enabledCommands.includes(key)}
+                onClick={( id ) => {
+                    this.editor.execute( key, '' );
+                    this.editor.editing.view.focus();
+                }}
+                onClickDisabled={() => this.editor.editing.view.focus()}
+                name={name}
+            />
+        );
+    }
+
+    // The Design (CKE) and Code (HTML) content editor tabs
+    _renderEditorTabs() {
+        return (
+            <Tabs 
+                defaultIndex={this.state.tabIndex}
+                onSelect={(evt) => this.handleTabSelect(evt)}>
+                <div id="workspace">
+                    <TabList id="view-mode">
+                        <Tab>Design</Tab>
+                        <Tab>Code</Tab>
+                    </TabList>
+                    <TabPanel>
+                        <div id="wysiwyg-container" className="bz-module">
+                            <CKEditor
+                                editor={BalloonEditor}
+                                data={this.state.editorData}
+                                config={this.editorConfig}
+                                onReady={this.handleEditorInit}
+                            />
+                            <textarea
+                                id="secret-html"
+                                value={this.state.editorData}
+                                className="secret-html"
+                                readOnly={true}
+                                name="custom_content[body]"
+                            />
+                        </div>
+                    </TabPanel>
+                    <TabPanel>
+                        <div id="raw-html-container">
+                            <textarea
+                                value={this.state.editorData}
+                                onChange={(evt) => this.handleHTMLEditorDataChange(evt)}
+                                name="custom_content[body]"
+                            />
+                        </div>
+                    </TabPanel>
+                </div>
+            </Tabs>
         );
     }
 
     render() {
-            // The application renders two columns:
-            // * in the left one, the <CKEditor> and the textarea displaying live
-            //   editor data are rendered.
-            // * in the right column, html is rendered with available <CommandButtons>
-            //   to choose from.
+        // The application renders two columns:
+        // * in the left one, the <CKEditor> and the textarea displaying live
+        //   editor data are rendered.
+        // * in the right column, available <CommandButtons> to choose from.
         return (
             <div id="container" key="content-editor">
-                <header>
-                    <h1>Braven Content Editor</h1>
-                    <span id="autosave-indicator" className="saved">Saved</span>
-                    <span id="autosave-indicator" className="saving">Saving...</span>
-
-                    <ul>
-                        <li onClick={(evt) => this.handleSave(evt)}>
-                          Save
-                        </li>
-                    </ul>
-
-                </header>
-
+                {this._renderHeader()}
                 <main>
                     <div id="vertical-toolbar">
-                        <div id="toolbar-page-settings">
-                            <h4>Page Details</h4>
-                            <ul id="edit-page">
-                                <li><i className="fas fa-trash-alt"></i></li>
-                                <li className="active"><i className="fas fa-copy"></i></li>
-                            </ul>
-                            <h2>
-                                <input type="text" name="custom_content[title]"
-                                       defaultValue={this.props.custom_content['title']}
-                                       placeholder="Page Title"
-                                />
-                            </h2>
-                            {this._renderTypeSelector()}
-                            <details>
-                              <summary>Advanced</summary>
-                              <input type="number" name="custom_content[course_id]"
-                                     defaultValue={this.props.custom_content['course_id']}
-                                     placeholder="Course ID"
-                              />
-                              <input type="text" name="custom_content[secondary_id]"
-                                     defaultValue={this.props.custom_content['secondary_id']}
-                                     placeholder="Secondary ID"
-                              />
-                            </details>
-                        </div>
-                        <div id="toolbar-contextual">
-                            {this.state.modelPath.map( modelElement => {
-                                if ( ['textArea', 'textInput'].includes( modelElement ) ) {
-                                    // Text inputs and textareas have placeholder settings.
-                                    return (
-                                        <>
-                                            <h4>Text Input</h4>
-                                            <input
-                                                type='text'
-                                                id='input-placeholder'
-                                                value={this.state['selectedElement'].getAttribute('placeholder')}
-                                                onChange={( evt ) => {
-                                                    this.editor.execute( 'setAttributes', { 'placeholder': evt.target.value } );
-                                                }}
-                                            />
-                                            <label htmlFor='input-placeholder'>Placeholder</label>
-                                        </>
-                                    );
-                                }
-                            } )
-                        }
-                        </div>
-                        <div id="toolbar-components">
-                            <h4>Insert Component</h4>
-
-                            <ul key="content-part-list-questions" className="widget-list">
-                                <CommandButton
-                                    key="insertRadioQuestion"
-                                    enabled={this.state.enabledCommands.includes('insertRadioQuestion')}
-                                    onClick={( id ) => {
-                                        this.editor.execute( 'insertRadioQuestion' );
-                                        this.editor.editing.view.focus();
-                                    }}
-                                    onClickDisabled={() => this.editor.editing.view.focus()}
-                                    name='Radio Question'
-                                />
-                                <CommandButton
-                                    key="insertFileUpload"
-                                    enabled={this.state.enabledCommands.includes('insertFileUpload')}
-                                    onClick={( id ) => {
-                                        this.editor.execute( 'insertFileUpload' );
-                                        this.editor.editing.view.focus();
-                                    }}
-                                    onClickDisabled={() => this.editor.editing.view.focus()}
-                                    name='File Upload'
-                                />
-                            </ul>
-                            <ul key="content-part-list-elements" className="widget-list">
-                                <CommandButton
-                                    key="insertTextArea"
-                                    enabled={this.state.enabledCommands.includes('insertTextArea')}
-                                    onClick={( id ) => {
-                                        this.editor.execute( 'insertTextArea', '' );
-                                        this.editor.editing.view.focus();
-                                    }}
-                                    onClickDisabled={() => this.editor.editing.view.focus()}
-                                    name='Text Area'
-                                />
-                                <CommandButton
-                                    key="insertTextInput"
-                                    enabled={this.state.enabledCommands.includes('insertTextInput')}
-                                    onClick={( id ) => {
-                                        this.editor.execute( 'insertTextInput', '' );
-                                        this.editor.editing.view.focus();
-                                    }}
-                                    onClickDisabled={() => this.editor.editing.view.focus()}
-                                    name='Text Input'
-                                />
-                                <input
-                                    type="file"
-                                    style={{ display: "none" }}
-                                    ref={this.fileUpload}
-                                    onChange={e => {
-                                        this.editor.execute( 'imageUpload', {file: e.target.files[0]} );
-                                        this.editor.editing.view.focus();
-                                    }}
-                                />
-                                <CommandButton
-                                    key="imageUpload"
-                                    enabled={this.state.enabledCommands.includes('imageUpload')}
-                                    onClick={this.showFileUpload}
-                                    onClickDisabled={() => this.editor.editing.view.focus()}
-                                    name='Image (Upload)'
-                                />
-                                <CommandButton
-                                    key="imageInsert"
-                                    enabled={this.state.enabledCommands.includes('imageInsert')}
-                                    onClick={( id ) => {
-                                        const url = window.prompt('URL', 'http://placekitten.com/200/300');
-                                        this.editor.execute( 'imageInsert', {source: url} );
-                                        this.editor.editing.view.focus();
-                                    }}
-                                    onClickDisabled={() => this.editor.editing.view.focus()}
-                                    name='Image (URL)'
-                                />
-                            </ul>
-                        </div>
+                        {this._renderCustomContentSettings()}
+                        {this._renderTextPlaceholder()}
+                        {this._renderEditorCommands()}
                     </div>
-                    <Tabs 
-                        defaultIndex={this.state.tabIndex}
-                        onSelect={(evt) => this.handleTabSelect(evt)}>
-                        <div id="workspace">
-                            <TabList id="view-mode">
-                                <Tab>Design</Tab>
-                                <Tab>Code</Tab>
-                            </TabList>
-                            <TabPanel>
-                                <div id="wysiwyg-container" className="bz-module">
-                                    <CKEditor
-                                        editor={BalloonEditor}
-                                        data={this.state.editorData}
-                                        config={this.editorConfig}
-                                        onReady={this.handleEditorInit}
-                                    />
-                                    <textarea
-                                        id="secret-html"
-                                        value={this.state.editorData}
-                                        className="secret-html"                                                                                                                                                                                                        
-                                        readOnly={true}                                                                                                                                                                                                                
-                                        name="custom_content[body]"></textarea> 
-                                </div>
-                            </TabPanel>
-                            <TabPanel>
-                                <div id="raw-html-container">
-                                    <textarea value={this.state.editorData}
-                                              onChange={(evt) => this.handleHTMLEditorDataChange(evt)}
-                                              name="custom_content[body]"></textarea>
-                                </div>
-                            </TabPanel>
-                        </div>
-                    </Tabs>
+                    {this._renderEditorTabs()}
                 </main>
             </div>
         );
