@@ -65,6 +65,10 @@ class BaseCourse < ApplicationRecord
     "#{Rails.application.secrets.canvas_url}/courses/#{canvas_course_id}"
   end
 
+  def canvas_rubrics_url
+    "#{Rails.application.secrets.canvas_url}/courses/#{canvas_course_id}/rubrics"
+  end
+
   def verify_can_edit!
     unless can_edit?
       raise BaseCourseEditError, "Only editing Course Templates is currently supported, not an already launched Course[#{inspect}]"
