@@ -1,14 +1,12 @@
 # frozen_string_literal: true
 
 class BaseCourseCustomContentVersionsController < ApplicationController
-  include DryCrud::Controllers::Nestable
   include LtiHelper
 
   layout 'admin'
 
-  nested_resource_of BaseCourse
-
-  before_action :set_custom_content, only: [:create]
+  before_action :set_base_course
+  before_action :set_custom_content, except: [:new]
   before_action :set_new_custom_contents, only: [:new]
   before_action :set_rubrics, only: [:new], if: :for_project?
   before_action :verify_can_edit!
@@ -64,13 +62,12 @@ class BaseCourseCustomContentVersionsController < ApplicationController
   def update
     authorize @base_course_custom_content_version
 
-    custom_content = @base_course_custom_content_version.custom_content_version.custom_content
-    new_custom_content_version = custom_content.save_version!(current_user)
-    @base_course_custom_content_version.custom_content_version = new_custom_content_version
-    @base_course_custom_content_version.save!
+    @base_course_custom_content_version.update!(
+      custom_content_version: @custom_content.save_version!(current_user),
+    )
 
     respond_to do |format|
-      format.html { redirect_to edit_polymorphic_path(@base_course), notice: "Latest version of '#{custom_content.title}' successfully published to Canvas." }
+      format.html { redirect_to edit_polymorphic_path(@base_course), notice: "Latest version of '#{@custom_content.title}' successfully published to Canvas." }
       format.json { head :no_content }
     end
   end
@@ -97,14 +94,20 @@ class BaseCourseCustomContentVersionsController < ApplicationController
   helper_method :for_project?
 
 private
-
   def custom_content_class
     CustomContentsController.class_from_type(params[:type])
   end
 
+  def set_base_course
+    @base_course = params[:base_course_id] ?
+      BaseCourse.find(params[:base_course_id]) :
+      @base_course_custom_content_version.base_course
+  end
+
   def set_custom_content
-    params.require(:custom_content_id)
-    @custom_content = CustomContent.find(params[:custom_content_id])
+    @custom_content = params[:custom_content_id] ?
+      CustomContent.find(params[:custom_content_id]) :
+      @base_course_custom_content_version.custom_content_version.custom_content
   end
 
   def set_new_custom_contents
@@ -112,8 +115,10 @@ private
   end
 
   def set_rubrics
-    filter_already_associated_rubrics = true
-    @rubrics = CanvasAPI.client.get_rubrics(@base_course.canvas_course_id, filter_already_associated_rubrics)
+    @rubrics = CanvasAPI.client.get_rubrics(
+      @base_course.canvas_course_id,
+      true, # filter_already_associated_rubrics
+    )
   end
 
   def verify_can_edit!
