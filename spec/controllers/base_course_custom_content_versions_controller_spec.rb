@@ -116,8 +116,11 @@ RSpec.describe BaseCourseCustomContentVersionsController, type: :controller do
           it 'sets the LTI launch URL to the proper project submission URL' do
             post :create, params: valid_projet_create_params, session: valid_session
             expect(canvas_client).to have_received(:update_assignment_lti_launch_url)
-              .with(course_template['canvas_course_id'], created_canvas_assignment['id'],
-                    new_base_course_custom_content_version_project_submission_url(base_course_custom_content_version_id: created_bcccv.id) )
+              .with(
+                course_template['canvas_course_id'],
+                created_canvas_assignment['id'],
+                created_bcccv.new_submission_url,
+              )
               .once
           end
 

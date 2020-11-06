@@ -8,10 +8,10 @@ RSpec.describe LaunchProgram do
   let(:fellow_course_template) { create(:course_template, attributes_for(:course_template_with_resource)) }
   let(:lc_course_template) { create(:course_template_with_canvas_id) }
   let(:lc_course_name) { 'Test LC Course Name' }
-  let(:new_fellow_course_id) { 93487 }
-  let(:new_lc_course_id) { 93488 }
-  let(:canvas_create_fellow_course) { build(:canvas_course, id: new_fellow_course_id) }
-  let(:canvas_create_lc_course) { build(:canvas_course, id: new_lc_course_id) }
+  let(:new_fellow_canvas_course_id) { 93487 }
+  let(:new_lc_canvas_course_id) { 93488 }
+  let(:canvas_create_fellow_course) { build(:canvas_course, id: new_fellow_canvas_course_id) }
+  let(:canvas_create_lc_course) { build(:canvas_course, id: new_lc_canvas_course_id) }
   let(:canvas_copy_fellow_course) { build(:canvas_content_migration, source_course_id: fellow_course_template.canvas_course_id) }
   let(:canvas_copy_lc_course) { build(:canvas_content_migration, source_course_id: lc_course_template.canvas_course_id) }
   let(:canvas_client) { double(CanvasAPI) }
@@ -23,9 +23,9 @@ RSpec.describe LaunchProgram do
     allow(LaunchProgram).to receive(:sleep).and_return(nil)
     allow(CanvasAPI).to receive(:client).and_return(canvas_client)
     allow(canvas_client).to receive(:create_course).with(fellow_course_name).and_return(canvas_create_fellow_course)
-    allow(canvas_client).to receive(:copy_course).with(fellow_course_template.canvas_course_id, new_fellow_course_id).and_return(canvas_copy_fellow_course)
+    allow(canvas_client).to receive(:copy_course).with(fellow_course_template.canvas_course_id, new_fellow_canvas_course_id).and_return(canvas_copy_fellow_course)
     allow(canvas_client).to receive(:create_course).with(lc_course_name).and_return(canvas_create_lc_course)
-    allow(canvas_client).to receive(:copy_course).with(lc_course_template.canvas_course_id, new_lc_course_id).and_return(canvas_copy_lc_course)
+    allow(canvas_client).to receive(:copy_course).with(lc_course_template.canvas_course_id, new_lc_canvas_course_id).and_return(canvas_copy_lc_course)
     allow(sf_api_client).to receive(:get_program_info).and_return(salesforce_program)
     allow(sf_api_client).to receive(:get_cohort_schedule_section_names).and_return(fellow_section_names)
     allow(sf_api_client).to receive(:set_canvas_course_ids)
@@ -63,13 +63,48 @@ RSpec.describe LaunchProgram do
     end
   end
 
+  shared_examples 'template assignment is copied to course assignment' do
+    scenario 'it updates the LTI launch/submission URL' do
+      template_url = course_template_custom_content_version.new_submission_url
+
+      # This mimics an assignment that was cloned to the new course with the old launch URL for the template
+      canvas_course_assignment = build(
+        :canvas_assignment,
+        course_id: new_fellow_canvas_course_id,
+        lti_launch_url: template_url,
+      )
+
+      allow(canvas_client)
+        .to receive(:get_assignments)
+        .and_return([canvas_course_assignment])
+
+      launch_program.run
+
+      course_custom_content_version = BaseCourseCustomContentVersion.find_by(
+        canvas_assignment_id: canvas_course_assignment['id'],
+      )
+      course_url = course_custom_content_version.new_submission_url
+
+      expect(canvas_client)
+        .to have_received(:update_assignment_lti_launch_url)
+        .with(
+          new_fellow_canvas_course_id,
+          canvas_course_assignment['id'],
+          course_url,
+        )
+        .once
+
+      expect(template_url).not_to eq(course_url)
+    end
+  end
+
   describe '#run' do
     let(:fellow_section_names) { [ 'Test CohortSchedule 1', 'Test CohortSchedule 2' ] }
     let(:canvas_sections) { [] }
 
     # TODO: the LC course shouldn't return these.
-    let(:assignment1) { build(:canvas_assignment, course_id: new_fellow_course_id) }
-    let(:assignment2) { build(:canvas_assignment, course_id: new_fellow_course_id) }
+    let(:assignment1) { build(:canvas_assignment, course_id: new_fellow_canvas_course_id) }
+    let(:assignment2) { build(:canvas_assignment, course_id: new_fellow_canvas_course_id) }
     let(:assignments) { [assignment1, assignment2] }
     let(:copy_progress_running) { build(:canvas_progress, workflow_state: 'running') }
     let(:copy_progress_complete) { build(:canvas_progress, workflow_state: 'completed') }
@@ -114,36 +149,35 @@ RSpec.describe LaunchProgram do
       end
 
       it "creates the Canvas sections" do
-        expect(canvas_client).to receive(:create_lms_section).with(course_id: new_fellow_course_id, name: fellow_section_names[0]).once
-        expect(canvas_client).to receive(:create_lms_section).with(course_id: new_fellow_course_id, name: fellow_section_names[1]).once
-        expect(canvas_client).to receive(:create_lms_section).with(course_id: new_lc_course_id, name: salesforce_program['Section_Name_in_LMS_Coach_Course__c']).once
+        expect(canvas_client).to receive(:create_lms_section).with(course_id: new_fellow_canvas_course_id, name: fellow_section_names[0]).once
+        expect(canvas_client).to receive(:create_lms_section).with(course_id: new_fellow_canvas_course_id, name: fellow_section_names[1]).once
+        expect(canvas_client).to receive(:create_lms_section).with(course_id: new_lc_canvas_course_id, name: salesforce_program['Section_Name_in_LMS_Coach_Course__c']).once
         launch_program.run
       end
 
       it "sets the AssignmentOverrides" do
         launch_program.run
         expect(canvas_client).to have_received(:create_assignment_overrides)
-          .with(new_fellow_course_id, [assignment1['id'], assignment2['id']], [canvas_sections[0]['id'], canvas_sections[1]['id']]).once
+          .with(new_fellow_canvas_course_id, [assignment1['id'], assignment2['id']], [canvas_sections[0]['id'], canvas_sections[1]['id']]).once
       end
 
-      context "adjusts LTI launch URLs" do
+      context 'impact surveys' do
+        let(:course_template_custom_content_version) { create(
+          :course_template_survey_version,
+          base_course: fellow_course_template,
+        ) }
 
-        let(:course_project_version_template) { create(:course_project_version, base_course: fellow_course_template) } 
-        let(:lti_launch_url_project_template) { "https://platformweb/base_course_custom_content_versions/#{course_project_version_template.id}/project_submissions/new" }
-        # This mimics an assignment that was cloned to the new course with the old launch URL for the template
-        let(:assignment_needing_launch_url_update1) { build(:canvas_assignment, course_id: new_fellow_course_id, lti_launch_url: lti_launch_url_project_template) }
-
-        xit "calls CanvasAPI.update_assignment_lti_launch_url() with the proper arguments" do
-          # TODO: setup an LTI assignment on the fellow template. Setup a different one with the same base_course_custom_content_versions.id
-          # on the copied course. Make sure a call to the CanvasAPI to update the copied course Canva assigment's LTI launch URL from the old
-          #  URL to a new URL for a new base_course_custom_content_versions record inserted that maps the newly copied assignment to the same
-          # custom_contents_version. See: https://app.asana.com/0/1174274412967132/1198900743766613
-          allow(canvas_client).to receive(:get_assignments).and_return([assignment_needing_launch_url_update1])
-          launch_program.run
-          expect(canvas_client).to have_received(:update_assignment_lti_launch_url).with(course_id: new_fellow_course_id, assignment_id: fellow_assignment1['id'], new_url: "TODO").once
-        end
+        it_behaves_like 'template assignment is copied to course assignment'
       end
 
+      context 'projects' do
+        let(:course_template_custom_content_version) { create(
+          :course_template_project_version,
+          base_course: fellow_course_template,
+        ) }
+
+        it_behaves_like 'template assignment is copied to course assignment'
+      end
     end
 
     context "with Canvas API failure" do

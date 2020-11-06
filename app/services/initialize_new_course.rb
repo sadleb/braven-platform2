@@ -22,7 +22,6 @@ require 'canvas_api'
 # moving towards is having this be able to both setup and sync the local database information from 
 # the Canvas course information.
 class InitializeNewCourse
-
   InitializeNewCourseError = Class.new(StandardError)
 
   def initialize(new_course, section_names)
@@ -100,11 +99,10 @@ private
     new_cccv = BaseCourseCustomContentVersion.create!(
       base_course: @new_course,
       custom_content_version: old_course_custom_content_version.custom_content_version,
-      canvas_assignment_id: canvas_assignment_id
+      canvas_assignment_id: canvas_assignment_id,
     )
 
-    new_launch_url = Rails.application.routes.url_helpers
-      .new_base_course_custom_content_version_project_submission_url(new_cccv, :protocol => 'https')
+    new_launch_url = new_cccv.new_submission_url
   end
 
   def parse_lti_launch_url(canvas_assignment)

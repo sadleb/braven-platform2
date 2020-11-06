@@ -28,18 +28,14 @@ class BaseCourseCustomContentVersionsController < ApplicationController
     canvas_assignment_id = ca['id']
    
     # Setup the join table and then update the Canvas assignment to launch it
-    custom_content_version = @custom_content.save_version!(current_user)
     @base_course_custom_content_version = BaseCourseCustomContentVersion.create!(
       base_course: @base_course,
-      custom_content_version: custom_content_version,
-      canvas_assignment_id: canvas_assignment_id
+      custom_content_version: @custom_content.save_version!(current_user),
+      canvas_assignment_id: canvas_assignment_id,
     )
 
     # Create a submission URL for this course and content version
-    submission_url = new_polymorphic_url([
-      @base_course_custom_content_version,
-      "#{@custom_content.class}Submission".constantize.new,
-    ])
+    submission_url = @base_course_custom_content_version.new_submission_url
   
     CanvasAPI.client.update_assignment_lti_launch_url(@base_course.canvas_course_id, canvas_assignment_id, submission_url)
 

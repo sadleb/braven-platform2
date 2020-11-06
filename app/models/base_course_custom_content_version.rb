@@ -1,5 +1,9 @@
 class BaseCourseCustomContentVersion < ApplicationRecord
+
+  include Rails.application.routes.url_helpers
+
   MissingCanvasAssignmentIdError = Class.new(StandardError)
+
   belongs_to :base_course
   belongs_to :custom_content_version
 
@@ -15,6 +19,10 @@ class BaseCourseCustomContentVersion < ApplicationRecord
   scope :with_project_versions, -> { includes(:custom_content_version).where(custom_content_versions: { type: 'ProjectVersion' }) }
   scope :with_survey_versions, -> { includes(:custom_content_version).where(custom_content_versions: { type: 'SurveyVersion' }) }
 
+  def new_submission_url
+    new_polymorphic_url([self, submission_type.new], protocol: 'https')
+  end
+
   def canvas_url
     # TODO: add a validation and make the column constraint be non-null.
     # https://app.asana.com/0/1174274412967132/1198965066699365
@@ -28,4 +36,13 @@ class BaseCourseCustomContentVersion < ApplicationRecord
     BaseCourseCustomContentVersion.find(id) if id
   end
 
+  private
+  def submission_type
+    case custom_content_version.type
+    when 'ProjectVersion'
+      ProjectSubmission
+    when 'SurveyVersion'
+      SurveySubmission
+    end
+  end
 end
