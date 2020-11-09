@@ -29,7 +29,7 @@ try {
 document.addEventListener('DOMContentLoaded', () => {
 
     // Attach the xAPI function to all appropriate inputs, and load any existing data.
-    const inputs = document.querySelectorAll('textarea,input[type="text"]');
+    const inputs = document.querySelectorAll('textarea, input[type="text"], select');
     const javascript_variables = document.getElementById('javascript_variables').attributes;
 
     const modifyInputElementForViewer = javascript_variables[USER_OVERRIDE_ID_ATTR]
@@ -48,17 +48,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function sendStatement(e) {
     const input = e.target;
-    const text = input.value;
+    const value = input.value;
 
     const project_lti_id = document.getElementById('javascript_variables').attributes['data-project-lti-id'].value;
     const activity_id = project_lti_id; // e.g. https://braven.instructure.com/courses/48/assignments/158
     const current_url = `${window.location.origin}${window.location.pathname}`
     const data_input_id = input.attributes[`${INPUT_ID_ATTR}`].value;
     const data_input_url = `${current_url}#/${data_input_id}`;
-   
+
     const honey_span = new HoneycombXhrSpan(XAPI_CONTROLLER_HONEYCOMB_NAME, 'sendStatement', {
                                          'statement.input.key': data_input_id,
-                                         'statement.input.value': text,
+                                         'statement.input.value': value,
                                          'statement.activity_id': activity_id });
 
     // Form the statement payload
@@ -75,7 +75,7 @@ function sendStatement(e) {
             id: activity_id,
         },
         result: {
-            response: text
+            response: value,
         },
         "object": {
             "id": activity_id,

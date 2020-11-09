@@ -11,7 +11,11 @@ RSpec.describe ProjectSubmissionsController, type: :feature do
   let(:base_course_custom_content_version) { create :course_project_version }
   let(:section) { create :section, course: base_course_custom_content_version.base_course }
   let(:user) { create :fellow_user, section: section }
-  let(:project_submission) { create :project_submission, user: user, base_course_custom_content_version: base_course_custom_content_version }
+  let(:project_submission) { create(
+    :project_submission,
+    user: user,
+    base_course_custom_content_version: base_course_custom_content_version,
+  ) }
   let!(:lti_launch) {
     create(
       :lti_launch_assignment,
@@ -96,25 +100,29 @@ RSpec.describe ProjectSubmissionsController, type: :feature do
         .at_least_once
     end
 
-    ['', SecureRandom.uuid].each do |answer|
-      it "sends '#{answer}' to the LRS" do  
+    [
+      { element: 'textarea', value: '' },
+      { element: 'textarea', value: SecureRandom.uuid},
+      { element: 'select', value: 'A' },
+    ].each do |input|
+      it 'sends the input value to the LRS' do
         VCR.use_cassette(
           'lrs_xapi_proxy_load_send',
           :match_requests_on => [:path, :method],
         ) do
-          find("textarea").fill_in with: answer
-          # The xAPI code runs on blur, so click off the textarea.
+          find(input[:element]).set input[:value]
+          # The xAPI code runs on blur, so click off the element.
           find("p").click
           # Wait for the async JS to finish and update the DOM.
-          expect(page).to have_selector("textarea[data-xapi-statement-id]")
+          expect(page).to have_selector("#{input[:element]}[data-xapi-statement-id]")
         end
 
         # Check the LRS to make sure the answer actually got there.
         question_id = "h2c2-0600-next-steps"
-        statement_id = find("textarea")['data-xapi-statement-id']
+        statement_id = find("#{input[:element]}")['data-xapi-statement-id']
 
         lrs_variables = {
-          response: answer,
+          response: input[:value],
           lrs_url: Rails.application.secrets.lrs_url,
           id: statement_id,
         }
@@ -125,7 +133,7 @@ RSpec.describe ProjectSubmissionsController, type: :feature do
           xapi_response = JSON.parse page.text
           expect(xapi_response['id']).to eq statement_id
           expect(xapi_response['object']['definition']['name']['und']).to eq question_id
-          expect(xapi_response['result']['response']).to eq answer
+          expect(xapi_response['result']['response']).to eq input[:value]
         end
       end
     end
