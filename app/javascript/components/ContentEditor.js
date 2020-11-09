@@ -400,6 +400,7 @@ class ContentEditor extends Component {
         const elementComponents = Object.entries({
         	'insertTextArea': 'Text Area',
         	'insertTextInput': 'Text Input',
+            'insertIndustrySelector': 'Industry Selector',
         }).map( ([key, name]) => this._renderCommandButton(key, name) );
 
         return (

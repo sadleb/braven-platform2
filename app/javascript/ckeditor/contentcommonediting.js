@@ -5,6 +5,7 @@ import Widget from '@ckeditor/ckeditor5-widget/src/widget';
 import List from '@ckeditor/ckeditor5-list/src/list';
 import Table from '@ckeditor/ckeditor5-table/src/table';
 import RetainedData from './retaineddata';
+import InsertIndustrySelectorCommand from './insertindustryselectorcommand';
 import InsertTextInputCommand from './inserttextinputcommand';
 import InsertFileUploadCommand from './insertfileuploadcommand';
 import InsertTextAreaQuestionCommand from './inserttextareaquestioncommand';
@@ -24,6 +25,7 @@ export default class ContentCommonEditing extends Plugin {
         // Individial elements.
         this.editor.commands.add( 'insertTextInput', new InsertTextInputCommand( this.editor ) );
         this.editor.commands.add( 'insertTextArea', new InsertTextAreaCommand( this.editor ) );
+        this.editor.commands.add( 'insertIndustrySelector', new InsertIndustrySelectorCommand( this.editor ) );
         // Blocks.
         this.editor.commands.add( 'insertFileUpload', new InsertFileUploadCommand( this.editor ) );
         // SetAttributes.
@@ -55,7 +57,7 @@ export default class ContentCommonEditing extends Plugin {
         schema.register( 'textInput', {
             isObject: true,
             allowAttributes: [ 'type', 'placeholder' ],
-            allowIn: [ '$root', '$block', 'tableCell', 'questionFieldset' ],
+            allowIn: [ '$root', '$block', 'tableCell', 'questionFieldset', 'industrySelectorContainer' ],
         } );
 
         schema.register( 'textArea', {
@@ -72,8 +74,8 @@ export default class ContentCommonEditing extends Plugin {
 
         schema.register( 'select', {
             isObject: true,
-            allowAttributes: [ 'id', 'name' ],
-            allowIn: [ '$root', 'questionFieldset' ],
+            allowAttributes: [ 'id', 'name', 'data-bz-retained' ],
+            allowIn: [ 'questionFieldset', 'industrySelectorContainer' ],
         } );
 
         schema.register( 'selectOption', {
@@ -82,6 +84,12 @@ export default class ContentCommonEditing extends Plugin {
             allowIn: [ 'select' ],
             allowContentOf: '$block'
         } );
+
+        schema.register( 'industrySelectorContainer', {
+            isObject: true,
+            allowIn: '$root',
+            allowContentOf: [ '$root', 'select', 'textInput' ],
+        });
     }
 
     _defineConverters() {
@@ -344,6 +352,22 @@ export default class ContentCommonEditing extends Plugin {
                 } );
                 return toWidget( option, writer );
             }
+        } );
+
+        // <industrySelectorContainer> converters
+        conversion.for( 'upcast' ).elementToElement( {
+            view: {
+                name: 'div',
+                classes: 'industry-selector-container',
+            },
+            model: 'industrySelectorContainer',
+        } );
+        conversion.for( 'downcast' ).elementToElement( {
+            model: 'industrySelectorContainer',
+            view: {
+                name: 'div',
+                classes: 'industry-selector-container',
+            },
         } );
 
         // Shared attribute converters.
