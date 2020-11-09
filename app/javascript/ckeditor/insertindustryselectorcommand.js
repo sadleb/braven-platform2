@@ -59,6 +59,7 @@ function createSelector( writer, retained_data_id ) {
 
 function createOptions( writer ) {
   const industries = [
+    '',
     'Accounting',
     'Advertising',
     'Aerospace',
