@@ -46,6 +46,7 @@ import RetainedData from '../ckeditor/retaineddata';
 import ContentCommonEditing from '../ckeditor/contentcommonediting';
 import RadioQuestionEditing from '../ckeditor/radioquestionediting';
 import PortalImageEditing from '../ckeditor/portalimageediting';
+import WatchOutBoxEditing from '../ckeditor/watchoutboxediting';
 
 import Tooltip from '../ckeditor/tooltip';
 import ImageLink from '../ckeditor/imagelink';
@@ -96,6 +97,7 @@ BalloonEditor.builtinPlugins = [
     ContentCommonEditing,
     RadioQuestionEditing,
     PortalImageEditing,
+    WatchOutBoxEditing,
 ];
 
 // Editor configuration.
@@ -401,6 +403,7 @@ class ContentEditor extends Component {
         }).map( ([key, name]) => this._renderCommandButton(key, name) );
 
         const elementComponents = Object.entries({
+        	'insertWatchOutBox': '"Watch Out" Box',
         	'insertTextArea': 'Text Area',
         	'insertTextInput': 'Text Input',
             'insertIndustrySelector': 'Industry Selector',
@@ -473,7 +476,7 @@ class ContentEditor extends Component {
                         <Tab>Code</Tab>
                     </TabList>
                     <TabPanel>
-                        <div id="wysiwyg-container" className="bz-module">
+                        <div id="wysiwyg-container" className="bz-assignment">
                             <CKEditor
                                 editor={BalloonEditor}
                                 data={this.state.editorData}
