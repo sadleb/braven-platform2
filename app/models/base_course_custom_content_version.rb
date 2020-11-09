@@ -19,6 +19,27 @@ class BaseCourseCustomContentVersion < ApplicationRecord
   scope :with_project_versions, -> { includes(:custom_content_version).where(custom_content_versions: { type: 'ProjectVersion' }) }
   scope :with_survey_versions, -> { includes(:custom_content_version).where(custom_content_versions: { type: 'SurveyVersion' }) }
 
+  # This does a destroy! and also deletes the Canvas assignment from the Canvas course.
+  def remove!
+    begin
+      transaction do
+        # The order here is important.
+        # We only delete from Canvas iff we can destroy! the model because it
+        # is more difficult to re-create the Canvas assignment if we delete it
+        # first and later fail updating our model in destroy!.
+        destroy!
+        CanvasAPI.client.delete_assignment(
+          base_course.canvas_course_id,
+          canvas_assignment_id,
+        )
+      end
+    rescue RestClient::NotFound
+      # This gets thrown when the assignment doesn't exist in Canvas.
+      # It's fine to delete the record from our DB in this case.
+      destroy!
+    end
+  end
+
   def new_submission_url
     new_polymorphic_url([self, submission_type.new], protocol: 'https')
   end

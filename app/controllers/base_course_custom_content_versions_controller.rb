@@ -72,14 +72,12 @@ class BaseCourseCustomContentVersionsController < ApplicationController
   # BaseCourseCustomContentVersion join model represents and then deletes this record locally.
   def destroy
     authorize @base_course_custom_content_version
-    name = @base_course_custom_content_version.custom_content_version.title
+    title = @base_course_custom_content_version.custom_content_version.title
 
-    # TODO: make this transactional in nature: https://app.asana.com/0/1174274412967132/1198984932600565
-    CanvasAPI.client.delete_assignment(@base_course.canvas_course_id, @base_course_custom_content_version.canvas_assignment_id)
-    @base_course_custom_content_version.destroy
+    @base_course_custom_content_version.remove!
 
     respond_to do |format|
-      format.html { redirect_to edit_polymorphic_path(@base_course), notice: "'#{name}' was successfully deleted from '#{@base_course.name}' in Canvas." }
+      format.html { redirect_to edit_polymorphic_path(@base_course), notice: "'#{title}' was successfully deleted from '#{@base_course.name}' in Canvas." }
       format.json { head :no_content }
     end
   end
