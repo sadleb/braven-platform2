@@ -15,6 +15,58 @@ RSpec.describe BaseCourseCustomContentVersion, type: :model do
     end
   end
 
+  describe '#publish_latest!' do
+    let(:canvas_client) { double(CanvasAPI) }
+    let(:admin_user) { create :admin_user }
+
+    before(:each) do
+      allow(CanvasAPI).to receive(:client).and_return(canvas_client)
+    end
+
+    context 'assignment exists in Canvas' do
+      before(:each) do
+        allow(canvas_client)
+          .to receive(:get_assignment)
+          .with(course.canvas_course_id, base_course_custom_content_version.canvas_assignment_id)
+          .and_return({ assignment: { id: base_course_custom_content_version.canvas_assignment_id } })
+      end
+
+      it 'creates a new version' do
+        expect {
+          base_course_custom_content_version.publish_latest!(admin_user)
+        }.to change(CustomContentVersion, :count).by(1)
+      end
+
+      it 'updates the version in the record' do
+        base_course_custom_content_version.publish_latest!(admin_user)
+        expect(CustomContentVersion.last.id).to eq(
+          base_course_custom_content_version.custom_content_version.id,
+        )
+      end
+    end
+
+    context 'assignment deleted in Canvas' do
+      before(:each) do
+        allow(canvas_client)
+          .to receive(:get_assignment)
+          .with(course.canvas_course_id, base_course_custom_content_version.canvas_assignment_id)
+          .and_raise(RestClient::NotFound)
+      end
+
+      it 'does not create a new version' do
+        expect {
+          base_course_custom_content_version.publish_latest!(admin_user) rescue nil
+        }.not_to change(CustomContentVersion, :count)
+      end
+
+      it 'does not update the version in the record' do
+        version = base_course_custom_content_version.custom_content_version
+        base_course_custom_content_version.publish_latest!(admin_user) rescue nil
+        expect(version).to eq(base_course_custom_content_version.custom_content_version)
+      end
+    end
+  end
+
   describe '#remove!' do
     let!(:canvas_client) { double(CanvasAPI) }
 

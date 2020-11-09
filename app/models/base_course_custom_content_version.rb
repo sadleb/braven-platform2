@@ -19,6 +19,20 @@ class BaseCourseCustomContentVersion < ApplicationRecord
   scope :with_project_versions, -> { includes(:custom_content_version).where(custom_content_versions: { type: 'ProjectVersion' }) }
   scope :with_survey_versions, -> { includes(:custom_content_version).where(custom_content_versions: { type: 'SurveyVersion' }) }
 
+  def publish_latest!(user)
+    transaction do
+      # We don't need to update the assignment in Canvas when we update the version,
+      # but we need to check that that assignment still exists (e.g., it wasn't deleted
+      # in Canvas and not through our Course Management page) so we don't fail silently
+      # (e.g., we think we're updating an assignment, but nothing's changing in Canvas).
+      CanvasAPI.client.get_assignment(
+        base_course.canvas_course_id,
+        canvas_assignment_id,
+      )
+      update!(custom_content_version: custom_content_version.custom_content.save_version!(user))
+    end
+  end
+
   # This does a destroy! and also deletes the Canvas assignment from the Canvas course.
   def remove!
     begin

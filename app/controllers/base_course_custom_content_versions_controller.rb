@@ -58,9 +58,7 @@ class BaseCourseCustomContentVersionsController < ApplicationController
   def update
     authorize @base_course_custom_content_version
 
-    @base_course_custom_content_version.update!(
-      custom_content_version: @custom_content.save_version!(current_user),
-    )
+    @base_course_custom_content_version.publish_latest!(@current_user)
 
     respond_to do |format|
       format.html { redirect_to edit_polymorphic_path(@base_course), notice: "Latest version of '#{@custom_content.title}' successfully published to Canvas." }

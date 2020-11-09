@@ -157,6 +157,7 @@ RSpec.describe BaseCourseCustomContentVersionsController, type: :controller do
           let(:new_body) { 'updated project body' }
 
           before(:each) do
+            allow(canvas_client).to receive(:get_assignment)
             project = course_template_project_version.custom_content_version.custom_content
             project.body = new_body
             project.save!
