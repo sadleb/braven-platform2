@@ -77,7 +77,7 @@ export default class RadioQuestionEditing extends Plugin {
         schema.register( 'radioInput', {
             isInline: true,
             isObject: true,
-            allowIn: [ 'radioDiv', 'tableCell' ],
+            allowIn: [ 'radioDiv' ],
             allowAttributes: [ 'id', 'name', 'value', 'data-correctness' ],
         } );
 

@@ -32,8 +32,6 @@ import List from '@ckeditor/ckeditor5-list/src/list';
 import MediaEmbed from '@ckeditor/ckeditor5-media-embed/src/mediaembed';
 import Paragraph from '@ckeditor/ckeditor5-paragraph/src/paragraph';
 import PasteFromOffice from '@ckeditor/ckeditor5-paste-from-office/src/pastefromoffice';
-import Table from '@ckeditor/ckeditor5-table/src/table';
-import TableToolbar from '@ckeditor/ckeditor5-table/src/tabletoolbar';
 import Underline from '@ckeditor/ckeditor5-basic-styles/src/underline';
 import Alignment from '@ckeditor/ckeditor5-alignment/src/alignment';
 import Font from '@ckeditor/ckeditor5-font/src/font';
@@ -86,13 +84,10 @@ BalloonEditor.builtinPlugins = [
     MediaEmbed,
     Paragraph,
     PasteFromOffice,
-    Table,
-    TableToolbar,
     Alignment,
     Font,
     SimpleUploadAdapter,
     HorizontalLine,
-
     RetainedData,
     ContentCommonEditing,
     RadioQuestionEditing,
@@ -136,7 +131,6 @@ BalloonEditor.defaultConfig = {
             'alignment',
             '|',
             'imageUpload',
-            'insertTable',
             'undo',
             'redo'
         ]
@@ -148,13 +142,6 @@ BalloonEditor.defaultConfig = {
             'imageStyle:side',
             '|',
             'imageTextAlternative',
-        ]
-    },
-    table: {
-        contentToolbar: [
-            'tableColumn',
-            'tableRow',
-            'mergeTableCells'
         ]
     },
     heading: {

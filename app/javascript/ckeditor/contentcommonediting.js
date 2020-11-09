@@ -3,7 +3,6 @@ import { enablePlaceholder } from '@ckeditor/ckeditor5-engine/src/view/placehold
 import { toWidget, toWidgetEditable } from '@ckeditor/ckeditor5-widget/src/utils';
 import Widget from '@ckeditor/ckeditor5-widget/src/widget';
 import List from '@ckeditor/ckeditor5-list/src/list';
-import Table from '@ckeditor/ckeditor5-table/src/table';
 import RetainedData from './retaineddata';
 import InsertIndustrySelectorCommand from './insertindustryselectorcommand';
 import InsertTextInputCommand from './inserttextinputcommand';
@@ -15,7 +14,7 @@ import { getNamedChildOrSibling } from './utils';
 
 export default class ContentCommonEditing extends Plugin {
     static get requires() {
-        return [ Widget, RetainedData, List, Table ];
+        return [ Widget, RetainedData, List ];
     }
 
     init() {
@@ -57,13 +56,13 @@ export default class ContentCommonEditing extends Plugin {
         schema.register( 'textInput', {
             isObject: true,
             allowAttributes: [ 'type', 'placeholder' ],
-            allowIn: [ '$root', '$block', 'tableCell', 'questionFieldset', 'industrySelectorContainer' ],
+            allowIn: [ '$root', '$block', 'questionFieldset', 'industrySelectorContainer' ],
         } );
 
         schema.register( 'textArea', {
             isObject: true,
             allowAttributes: [ 'placeholder' , 'aria-labelledby'],
-            allowIn: [ '$root', '$block', 'checkboxDiv', 'radioDiv', 'tableCell', 'questionFieldset' ],
+            allowIn: [ '$root', '$block', 'checkboxDiv', 'radioDiv', 'questionFieldset' ],
         } );
 
         schema.register( 'fileUpload', {
