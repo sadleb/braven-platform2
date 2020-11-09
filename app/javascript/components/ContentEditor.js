@@ -38,6 +38,7 @@ import Underline from '@ckeditor/ckeditor5-basic-styles/src/underline';
 import Alignment from '@ckeditor/ckeditor5-alignment/src/alignment';
 import Font from '@ckeditor/ckeditor5-font/src/font';
 import SimpleUploadAdapter from '@ckeditor/ckeditor5-upload/src/adapters/simpleuploadadapter';
+import HorizontalLine from '@ckeditor/ckeditor5-horizontal-line/src/horizontalline';
 
 
 // CKEditor plugin implementing a content part widget to be used in the editor content.
@@ -89,6 +90,7 @@ BalloonEditor.builtinPlugins = [
     Alignment,
     Font,
     SimpleUploadAdapter,
+    HorizontalLine,
 
     RetainedData,
     ContentCommonEditing,
@@ -110,6 +112,7 @@ BalloonEditor.defaultConfig = {
         'alignment',
         '|',
         'imageUpload',
+        'horizontalLine',
         '|',
         'undo',
         'redo'
