@@ -5,22 +5,22 @@ require 'lti_advantage_api'
 require 'lti_score'
 
 RSpec.feature 'Submit a project', :type => :feature do
-  let(:base_course_custom_content_version) { create :course_project_version }
-  let(:section) { create :section, course: base_course_custom_content_version.base_course }
+  let(:base_course_project_version) { create :course_project_version }
+  let(:section) { create :section, course: base_course_project_version.base_course }
   let(:user) { create :fellow_user, section: section }
-  let(:project_submission) { create :project_submission, user: user, base_course_custom_content_version: base_course_custom_content_version }
+  let(:project_submission) { create :project_submission, user: user, base_course_project_version: base_course_project_version }
   
   let!(:lti_launch) { 
     create(
       :lti_launch_assignment, 
       canvas_user_id: project_submission.user.canvas_user_id,
-      course_id: project_submission.base_course_custom_content_version.base_course.id,
+      course_id: project_submission.base_course_project_version.base_course.id,
     )
   }
   let(:uri) {
     path = Addressable::URI.parse(
-      new_base_course_custom_content_version_project_submission_path(
-        project_submission.base_course_custom_content_version,
+      new_base_course_project_version_project_submission_path(
+        project_submission.base_course_project_version,
       ),
     )
     # To let us bypass login using the state query parameter
@@ -59,10 +59,6 @@ RSpec.feature 'Submit a project', :type => :feature do
     end
 
     it "shows a re-submit button", js: true do
-      allow(ProjectSubmission)
-        .to receive(:for_custom_content_version_and_user)
-        .and_return(ProjectSubmission.all)
-
       visit uri
       expect(page).to have_button('project-submit-button')
       expect(page).to have_button('Re-Submit')
@@ -93,9 +89,6 @@ RSpec.feature 'Submit a project', :type => :feature do
   describe "invalid project submission" do
     context "with previous submission" do
       it "still shows re-submit button text", js: true do
-        allow(ProjectSubmission)
-          .to receive(:for_custom_content_version_and_user)
-          .and_return(ProjectSubmission.all)
 
         # Generate an error when we're trying to create the submission
         allow_any_instance_of(LtiAdvantageAPI)

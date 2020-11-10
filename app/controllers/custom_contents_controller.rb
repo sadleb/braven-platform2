@@ -69,20 +69,8 @@ class CustomContentsController < ApplicationController
     end
   end
 
-  def self.class_from_type(type)
-    case type
-    when nil
-      CustomContent
-    when 'Project'
-      Project
-    when 'Survey'
-      Survey
-    else
-      raise TypeError.new "Unknown CustomContent type: #{type}"
-    end
-  end
+private
 
-  private
   def set_custom_contents
     @custom_contents = custom_content_class.all
   end
@@ -94,7 +82,20 @@ class CustomContentsController < ApplicationController
   def custom_content_class
     # Prefer `type` specified by form over the one set in route parameters
     type = params[:custom_content] ? params[:custom_content][:type] : params[:type]
-    CustomContentsController.class_from_type(type)
+    class_from_type(type)
+  end
+
+ def class_from_type(type)
+    case type
+    when nil
+      CustomContent
+    when 'Project'
+      Project
+    when 'Survey'
+      Survey
+    else
+      raise TypeError.new "Unknown CustomContent type: #{type}"
+    end
   end
 
   # We always use `custom_content_class.new`, which specifies the subclass

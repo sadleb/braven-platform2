@@ -28,7 +28,7 @@ class BaseCourseCustomContentVersionsController < ApplicationController
     canvas_assignment_id = ca['id']
    
     # Setup the join table and then update the Canvas assignment to launch it
-    @base_course_custom_content_version = BaseCourseCustomContentVersion.create!(
+    @base_course_custom_content_version = class_from_type.create!(
       base_course: @base_course,
       custom_content_version: @custom_content.save_version!(current_user),
       canvas_assignment_id: canvas_assignment_id,
@@ -80,14 +80,43 @@ class BaseCourseCustomContentVersionsController < ApplicationController
     end
   end
 
+  def humanized_custom_content_type 
+    custom_content_class.model_name.human
+  end
+  helper_method :humanized_custom_content_type
+
   def for_project?
     custom_content_class == Project
   end
   helper_method :for_project?
 
 private
+
   def custom_content_class
-    CustomContentsController.class_from_type(params[:type])
+    case params[:type]
+    when nil
+      BaseCourseCustomContent
+    when 'BaseCourseProjectVersion'
+      Project
+    when 'BaseCourseSurveyVersion'
+      Survey
+    else
+      raise TypeError.new "Unknown BaseCourseCustomContentVersion type: #{type}"
+    end
+
+  end
+
+  def class_from_type
+    case params[:type]
+    when nil
+      BaseCourseCustomContentVersion
+    when 'BaseCourseProjectVersion'
+      BaseCourseProjectVersion
+    when 'BaseCourseSurveyVersion'
+      BaseCourseSurveyVersion
+    else
+      raise TypeError.new "Unknown BaseCourseCustomContentVersion type: #{type}"
+    end
   end
 
   def set_base_course

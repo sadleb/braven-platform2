@@ -5,13 +5,13 @@
 # the responses.
 class SurveySubmission < ApplicationRecord
   belongs_to :user
-  belongs_to :base_course_custom_content_version
+  belongs_to :base_course_survey_version, foreign_key: "base_course_custom_content_version_id"
 
   has_many :survey_submission_answers
   alias_attribute :answers, :survey_submission_answers
 
-  has_one :course, through: :base_course_custom_content_version, source: :base_course, class_name: 'Course'
-  has_one :survey_version, through: :base_course_custom_content_version, source: :custom_content_version, class_name: 'SurveyVersion'
+  has_one :course, through: :base_course_survey_version, source: :base_course, class_name: 'Course'
+  has_one :survey_version, through: :base_course_survey_version, source: :custom_content_version, class_name: 'SurveyVersion'
 
   def survey
     survey_version.survey

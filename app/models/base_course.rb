@@ -8,8 +8,15 @@ class BaseCourse < ApplicationRecord
   has_many :base_course_custom_content_versions
   has_many :custom_content_versions, :through => :base_course_custom_content_versions
 
-  # These are the published project content versions associated, but not the actual join table from BaseCourse to ProjectVersion
+  # These are the published versions of project and survey content associated with this base_course.
+  # Note: they are not the actual join table records from BaseCourse to ProjectVersion or SurveyVersion
   has_many :project_versions, -> { project_versions }, through: :base_course_custom_content_versions, source: :custom_content_version, class_name: 'ProjectVersion'
+  has_many :survey_versions, -> { survey_versions }, through: :base_course_custom_content_versions, source: :custom_content_version, class_name: 'SurveyVersion'
+
+  # These are the actual join table records the represent a published ProjectVersion or SurveyVersion
+  # to a particular BaseCourse
+  has_many :base_course_project_versions, -> { base_course_project_versions}, source: :base_course_custom_content_version, class_name: 'BaseCourseProjectVersion'
+  has_many :base_course_survey_versions, -> { base_course_survey_versions}, source: :base_course_custom_content_version, class_name: 'BaseCourseSurveyVersion'
 
   has_many :grade_categories
   has_many :lessons, :through => :grade_categories
@@ -51,14 +58,6 @@ class BaseCourse < ApplicationRecord
 
   def projects
     project_versions.map { |v| v.project }
-  end
-
-  def base_course_project_versions
-    base_course_custom_content_versions.with_project_versions
-  end
-
-  def base_course_survey_versions
-    base_course_custom_content_versions.with_survey_versions
   end
 
   def canvas_url

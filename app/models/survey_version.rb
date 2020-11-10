@@ -1,3 +1,3 @@
 class SurveyVersion < CustomContentVersion
-  alias_attribute :survey, :custom_content
+  belongs_to :survey, foreign_key: "custom_content_id"
 end

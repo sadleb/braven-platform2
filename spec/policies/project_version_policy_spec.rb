@@ -4,9 +4,9 @@ RSpec.describe ProjectVersionPolicy, type: :policy do
   let(:user) { create(:registered_user) }
   let(:course) { create(:course) }
   let(:project) { create(:project) }
-  let(:project_version) { create(:project_version, custom_content: project) }
+  let(:project_version) { create(:project_version, project: project) }
   let(:section) { create(:section, base_course_id: course.id) }
-  let(:base_course_custom_content_version) { create(:base_course_custom_content_version, base_course: course, custom_content_version: project_version) }
+  let(:base_course_project_version) { create(:course_project_version, base_course: course, project_version: project_version) }
 
   subject { described_class }
 
@@ -17,7 +17,7 @@ RSpec.describe ProjectVersionPolicy, type: :policy do
     end
 
     it "allows a non-admin user to show a project version attached to a course where this user is enrolled" do
-      base_course_custom_content_version
+      base_course_project_version
       user.add_role RoleConstants::STUDENT_ENROLLMENT, section
       expect(subject).to permit user, project_version
     end

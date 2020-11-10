@@ -8,7 +8,7 @@ class ProjectSubmissionsController < ApplicationController
   
   layout 'projects'
 
-  nested_resource_of BaseCourseCustomContentVersion
+  nested_resource_of BaseCourseProjectVersion
 
   before_action :set_lti_launch
   skip_before_action :verify_authenticity_token, only: [:create], if: :is_sessionless_lti_launch?
@@ -16,7 +16,7 @@ class ProjectSubmissionsController < ApplicationController
   def show
     authorize @project_submission
     # Setting this here b/c we use the root path instead of a nested path for viewing project submissions.
-    @base_course_custom_content_version = @project_submission.base_course_custom_content_version
+    @base_course_project_version = @project_submission.base_course_project_version
     @user_override_id = @project_submission.user.id
     @project_lti_id = @lti_launch.activity_id
   end
@@ -24,13 +24,13 @@ class ProjectSubmissionsController < ApplicationController
   def new
     @project_submission = ProjectSubmission.new(
       user: current_user,
-      base_course_custom_content_version: @base_course_custom_content_version,
+      base_course_project_version: @base_course_project_version,
     )
     authorize @project_submission
 
-    @has_previous_submission = ProjectSubmission.for_custom_content_version_and_user(
-      @base_course_custom_content_version.custom_content_version,
-      @project_submission.user,
+    @has_previous_submission = ProjectSubmission.where(
+      base_course_project_version: @base_course_project_version,
+      user: @project_submission.user,
     ).exists?
 
     @project_lti_id = @lti_launch.activity_id
@@ -46,10 +46,16 @@ class ProjectSubmissionsController < ApplicationController
     # Create a submission for this user and project
     @project_submission = ProjectSubmission.new(
       user: current_user,
-      base_course_custom_content_version: @base_course_custom_content_version,
+      base_course_project_version: @base_course_project_version,
     )
     authorize @project_submission
     @project_submission.save!
+
+   # TODO: this is failing. I think it may be related to how we're creating the projects (and surveys)
+   # from platform using the CanvasAPI instead of the Line Items API. I get:
+   #{"Error":"400 Bad Request"}
+   #{"error":"invalid_request","error_description":"JWS signature invalid."}
+   # Task: https://app.asana.com/0/1174274412967132/1199129462216589
 
     # Save project submission to Canvas.
     # The actual project responses are stored in the LRS.

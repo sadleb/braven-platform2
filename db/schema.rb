@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_10_28_233656) do
+ActiveRecord::Schema.define(version: 2020_11_06_150928) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -49,6 +49,7 @@ ActiveRecord::Schema.define(version: 2020_10_28_233656) do
     t.bigint "base_course_id", null: false
     t.bigint "custom_content_version_id", null: false
     t.integer "canvas_assignment_id"
+    t.string "type"
     t.index ["base_course_id", "custom_content_version_id"], name: "index_bcccv_unique_version_ids", unique: true
     t.index ["base_course_id"], name: "index_base_course_custom_content_versions_on_base_course_id"
     t.index ["custom_content_version_id"], name: "index_base_course_custom_content_versions_on_version_id"

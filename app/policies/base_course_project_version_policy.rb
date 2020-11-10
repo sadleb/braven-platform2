@@ -1,0 +1,2 @@
+class BaseCourseProjectVersionPolicy < BaseCourseCustomContentVersionPolicy
+end

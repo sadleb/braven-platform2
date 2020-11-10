@@ -41,12 +41,18 @@ Rails.application.routes.draw do
   resources :base_courses, only: [:index], path: 'course_management' do
     # We only support adding a project/survey to a course in the context of
     # a course template, e.g. through the Course Management page.
-    resources :base_course_custom_content_versions, only: [:new]
+    resources :base_course_project_versions, controller: 'base_course_custom_content_versions', type: 'BaseCourseProjectVersion', only: [:new]
+    resources :base_course_survey_versions, controller: 'base_course_custom_content_versions', type: 'BaseCourseSurveyVersion', only: [:new]
   end
 
-  resources :base_course_custom_content_versions, only: [:create, :update, :destroy] do
-    resources :project_submissions, only: [:show, :new, :create]
-    resources :survey_submissions, only: [:show, :new, :create]
+  resources :base_course_custom_content_versions, only: [:create, :update, :destroy] 
+
+  resources :base_course_project_versions, controller: 'base_course_custom_content_versions', type: 'BaseCourseProjectVersion', only: [] do
+    resources :project_submissions, only: [:new, :create]
+  end
+
+  resources :base_course_survey_versions, controller: 'base_course_custom_content_versions', type: 'BaseCourseSurveyVersion', only: [] do
+    resources :survey_submissions, only: [:new, :create]
   end
 
   resources :courses, only: [:index, :show] do

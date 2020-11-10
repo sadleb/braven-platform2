@@ -3,9 +3,8 @@ require 'rails_helper'
 RSpec.describe BaseCourseCustomContentVersion, type: :model do
 
   let(:course) { create :course_with_canvas_id }
-  let(:project) { create :project }
-  let(:project_version) { create :project_version, custom_content: project }
-  let(:base_course_custom_content_version) { create :base_course_custom_content_version, base_course: course, custom_content_version: project_version }
+  let(:custom_content_version) { create :custom_content_version }
+  let(:base_course_custom_content_version) { create :base_course_custom_content_version, base_course: course, custom_content_version: custom_content_version }
   
   describe '#valid?' do
     subject { base_course_custom_content_version }

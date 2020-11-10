@@ -10,14 +10,14 @@ class BaseCourseCustomContentVersion < ApplicationRecord
   validates :base_course, :custom_content_version, presence: true
   validates :base_course, uniqueness: { scope: :custom_content_version }
 
-  # Project submission needs to have access to project and course
-  # so it goes on the join table
   has_many :project_submissions
+  has_many :survey_submissions
+
   has_many :users, :through => :project_submissions
   alias_attribute :submissions, :project_submissions
-
-  scope :with_project_versions, -> { includes(:custom_content_version).where(custom_content_versions: { type: 'ProjectVersion' }) }
-  scope :with_survey_versions, -> { includes(:custom_content_version).where(custom_content_versions: { type: 'SurveyVersion' }) }
+  
+  scope :base_course_project_versions, -> { where type: 'BaseCourseProjectVersion' }
+  scope :base_course_survey_versions, -> { where type: 'BaseCourseSurveyVersion' }
 
   def publish_latest!(user)
     transaction do
@@ -66,9 +66,12 @@ class BaseCourseCustomContentVersion < ApplicationRecord
   end
 
   # Finds an existing BaseCourseCustomContentVersion by parsing the URL for one.
-  def self.find_by_url(url)
-    id = url[/.*\/base_course_custom_content_versions\/(\d+)/, 1]
-    BaseCourseCustomContentVersion.find(id) if id
+  def self.find_by_lti_launch_url(url)
+    project_id = url[/.*\/base_course_project_versions\/(\d+)/, 1]
+    return BaseCourseProjectVersion.find(project_id) if project_id
+    survey_id = url[/.*\/base_course_survey_versions\/(\d+)/, 1]
+    return BaseCourseSurveyVersion.find(survey_id) if survey_id
+    nil # This could be an Lti Launch URL for something else (like a different LTI extension) which we ignore
   end
 
   private

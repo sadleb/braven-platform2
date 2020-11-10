@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :custom_content_version do
+  factory :custom_content_version, class: 'CustomContentVersion' do
     title { "MyString" }
     body { "MyText" }
 
@@ -13,7 +13,8 @@ FactoryBot.define do
         "<textarea id='test-question-id' data-bz-retained=\"h2c2-0600-next-steps\" placeholder=\"\"></textarea>"\
         "<select id='test-selector-id' data-bz-retained=\"h2c2-0600-next-steps\"><option value='A'>A</option></select>"
       }
-      custom_content { build(:project) }
+      project
+      custom_content { project }
     end
 
     factory :survey_version, class: 'SurveyVersion' do
@@ -27,7 +28,8 @@ FactoryBot.define do
         "your Leadership Coach?</p>"\
         "<p><input name=\"unique_input_name\" type=\"text\"></p>"
       }
-      custom_content { build(:survey) }
+      survey
+      custom_content { survey }
     end
   end
 end

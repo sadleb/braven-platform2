@@ -74,7 +74,7 @@ private
     # TODO: Instead of going this route of parsing the URL, the plan is to move LTI selection linking to a platform UI 
     # and do it programatically, linking everything up using a resourceId in the LineItem API.
     # See: https://app.asana.com/0/1174274412967132/1198900743766613
-    course_template_content_version = BaseCourseCustomContentVersion.find_by_url(old_lti_launch_url) 
+    course_template_content_version = BaseCourseCustomContentVersion.find_by_lti_launch_url(old_lti_launch_url) 
     if course_template_content_version
       if course_template_content_version.base_course.is_a? CourseTemplate
         new_launch_url = create_new_base_course_custom_content_version(course_template_content_version, canvas_assignment_id)
@@ -96,7 +96,7 @@ private
       raise InitializeNewCourseError, "Canvas Assignment[#{canvas_assignment_id}] is already associated with #{@new_course}"
     end
 
-    new_cccv = BaseCourseCustomContentVersion.create!(
+    new_cccv = old_course_custom_content_version.class.create!(
       base_course: @new_course,
       custom_content_version: old_course_custom_content_version.custom_content_version,
       canvas_assignment_id: canvas_assignment_id,

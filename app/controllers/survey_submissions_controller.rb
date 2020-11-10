@@ -6,7 +6,7 @@ class SurveySubmissionsController < ApplicationController
   
   layout 'projects'
 
-  nested_resource_of BaseCourseCustomContentVersion
+  nested_resource_of BaseCourseSurveyVersion
 
   def show
     authorize @survey_submission
@@ -15,7 +15,7 @@ class SurveySubmissionsController < ApplicationController
   def new
     @survey_submission = SurveySubmission.new(
       user: current_user,
-      base_course_custom_content_version: @base_course_custom_content_version,
+      base_course_survey_version: @base_course_survey_version,
     )
     authorize @survey_submission
   end
@@ -23,7 +23,7 @@ class SurveySubmissionsController < ApplicationController
   def create
     @survey_submission = SurveySubmission.new(
       user: current_user,
-      base_course_custom_content_version: @base_course_custom_content_version,
+      base_course_survey_version: @base_course_survey_version,
     )
     authorize @survey_submission
 

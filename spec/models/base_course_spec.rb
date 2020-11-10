@@ -7,8 +7,8 @@ RSpec.describe BaseCourse, type: :model do
 
   let(:course) { create :course }
   let(:project) { create :project }
-  let(:project_version) { create :project_version, custom_content: project }
-  let!(:base_course_custom_content_version) { create :base_course_custom_content_version, base_course: course, custom_content_version: project_version }
+  let(:project_version) { create :project_version, project: project }
+  let!(:base_course_project_version) { create :course_project_version, base_course: course, project_version: project_version }
 
   describe '#valid?' do
     subject { base_course }

@@ -3,19 +3,10 @@ require 'rails_helper'
 RSpec.describe SurveySubmissionsController, type: :controller do
   render_views
 
-  # This puts the Fellow in the course's section
-  let(:course) { create :course }
-  let(:section) { create :section, course: course }
+  let(:course_survey_version) { create(:course_survey_version) }
+  let(:section) { create :section, course: course_survey_version.base_course }
   let(:user) { create :fellow_user, section: section }
-
-  # This puts the survey in the course
-  let(:survey_version) { create :survey_version }
-  let(:course_survey_version) { create(
-    :base_course_custom_content_version, 
-    base_course: course,
-    custom_content_version: survey_version,
-  )}
-
+ 
   before do
     sign_in user
   end
@@ -27,13 +18,13 @@ RSpec.describe SurveySubmissionsController, type: :controller do
     let(:survey_submission) { create(
       :survey_submission,
       user: user,
-      base_course_custom_content_version: course_survey_version,
+      base_course_survey_version: course_survey_version,
     )}
 
     it 'returns a success response' do
       get(
         :show,
-        params: { id: survey_submission.id },
+        params: { id: survey_submission.id, type: 'BaseCourseSurveyVersion' },
       )
       expect(response).to be_successful
     end
@@ -44,7 +35,8 @@ RSpec.describe SurveySubmissionsController, type: :controller do
       get(
         :new,
         params: {
-          base_course_custom_content_version_id: course_survey_version.id,
+          base_course_survey_version_id: course_survey_version.id,
+          type: 'BaseCourseSurveyVersion'
         },
       )
       expect(response).to be_successful
@@ -56,7 +48,8 @@ RSpec.describe SurveySubmissionsController, type: :controller do
       post(
         :create,
         params: {
-          base_course_custom_content_version_id: course_survey_version.id,
+          base_course_survey_version_id: course_survey_version.id,
+          type: 'BaseCourseSurveyVersion',
           # This key has to match the ... in <input name="..."> in the 
           # course_survey_version.survey_version.body being used
           unique_input_name: 'my test input',

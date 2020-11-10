@@ -1,3 +1,3 @@
 class ProjectVersion < CustomContentVersion
-  alias_attribute :project, :custom_content
+  belongs_to :project, foreign_key: "custom_content_id"
 end

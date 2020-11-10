@@ -6,17 +6,17 @@ RSpec.describe BaseCourseCustomContentVersionsController, type: :controller do
   let!(:admin_user) { create :admin_user }
   let(:course) { create :course_with_canvas_id }
   let(:course_project_version) { create :course_project_version, base_course: course }
-  let(:invalid_edit_project_params) { {base_course_id: course_project_version.base_course_id, id: course_project_version, type: 'Project' } }
+  let(:invalid_edit_project_params) { {base_course_id: course_project_version.base_course_id, id: course_project_version, type: 'BaseCourseProjectVersion' } }
   let(:course_template) { create :course_template_with_canvas_id }
   let(:canvas_new_rubric) { create :canvas_rubric, course_id: course_template.id }
   let(:project) { create :project }
-  let(:project_version) { create :project_version, custom_content: project }
-  let(:course_template_project_version) { create :course_template_project_version, base_course: course_template, custom_content_version: project_version }
-  let(:valid_edit_project_params) { {base_course_id: course_template_project_version.base_course_id, id: course_template_project_version, type: 'Project' } }
+  let(:project_version) { create :project_version, project: project }
+  let(:course_template_project_version) { create :course_template_project_version, base_course: course_template, project_version: project_version }
+  let(:valid_edit_project_params) { {base_course_id: course_template_project_version.base_course_id, id: course_template_project_version, type: 'BaseCourseProjectVersion' } }
   let(:survey) { create :survey }
-  let(:survey_version) { create :survey_version, custom_content: survey }
-  let(:course_template_survey_version) { create :course_template_survey_version, base_course: course_template, custom_content_version: survey_version }
-  let(:valid_edit_survey_params) { {base_course_id: course_template_survey_version.base_course_id, id: course_template_survey_version, type: 'Survey' } }
+  let(:survey_version) { create :survey_version, survey: survey }
+  let(:course_template_survey_version) { create :course_template_survey_version, base_course: course_template, survey_version: survey_version }
+  let(:valid_edit_survey_params) { {base_course_id: course_template_survey_version.base_course_id, id: course_template_survey_version, type: 'BaseCourseSurveyVersion' } }
   let(:canvas_client) { double(CanvasAPI) }
 
 
@@ -87,10 +87,10 @@ RSpec.describe BaseCourseCustomContentVersionsController, type: :controller do
       context 'with valid params' do
 
         context 'for project' do
-          let(:valid_projet_create_params) { {base_course_id: course_template.id, custom_content_id: project.id} }
+          let(:valid_project_create_params) { {base_course_id: course_template.id, custom_content_id: project.id, type: 'BaseCourseProjectVersion'} }
           let(:name) { 'Test Create Project 1' }
           let(:created_canvas_assignment) { build(:canvas_assignment, course_id: course_template['canvas_course_id'], name: name) }
-          let(:created_bcccv) { BaseCourseCustomContentVersion.last }
+          let(:created_bcccv) { BaseCourseProjectVersion.last }
   
           before(:each) do
             allow(canvas_client).to receive(:create_lti_assignment).and_return(created_canvas_assignment)
@@ -101,20 +101,20 @@ RSpec.describe BaseCourseCustomContentVersionsController, type: :controller do
           it 'creates the Canvas assignment' do
             expect(canvas_client).to receive(:create_lti_assignment)
               .with(course_template.canvas_course_id, project.title)
-            post :create, params: valid_projet_create_params, session: valid_session
+            post :create, params: valid_project_create_params, session: valid_session
           end
 
           it 'saves a new version of the project' do
-            expect { post :create, params: valid_projet_create_params, session: valid_session }.to change {ProjectVersion.count}.by(1)
+            expect { post :create, params: valid_project_create_params, session: valid_session }.to change {ProjectVersion.count}.by(1)
           end
 
-          it 'creates a new BaseCourseCustomContentVersion for the new content version' do
-            expect { post :create, params: valid_projet_create_params, session: valid_session }.to change {BaseCourseCustomContentVersion.count}.by(1)
+          it 'creates a new BaseCourseProjectVersion for the new content version' do
+            expect { post :create, params: valid_project_create_params, session: valid_session }.to change {BaseCourseProjectVersion.count}.by(1)
             expect(created_bcccv.custom_content_version).to eq(ProjectVersion.last)
           end
 
           it 'sets the LTI launch URL to the proper project submission URL' do
-            post :create, params: valid_projet_create_params, session: valid_session
+            post :create, params: valid_project_create_params, session: valid_session
             expect(canvas_client).to have_received(:update_assignment_lti_launch_url)
               .with(
                 course_template['canvas_course_id'],
@@ -125,13 +125,13 @@ RSpec.describe BaseCourseCustomContentVersionsController, type: :controller do
           end
 
           it 'redirects back to edit page and flashes message' do
-            response = post :create, params: valid_projet_create_params, session: valid_session
+            response = post :create, params: valid_project_create_params, session: valid_session
             expect(response).to redirect_to(edit_course_template_path(course_template_project_version.base_course))
             expect(flash[:notice]).to match /successfully published/
           end
 
           context 'with rubric' do
-            let(:projet_create_params_with_rubric) { {base_course_id: course_template.id, custom_content_id: project.id, rubric_id: canvas_new_rubric['id']} }
+            let(:projet_create_params_with_rubric) { {base_course_id: course_template.id, custom_content_id: project.id, rubric_id: canvas_new_rubric['id'], type: 'BaseCourseProjectVersion'} }
 
             it 'associates the rubric with the project in Canvas' do
               response = post :create, params: projet_create_params_with_rubric, session: valid_session
@@ -158,7 +158,7 @@ RSpec.describe BaseCourseCustomContentVersionsController, type: :controller do
 
           before(:each) do
             allow(canvas_client).to receive(:get_assignment)
-            project = course_template_project_version.custom_content_version.custom_content
+            project = course_template_project_version.project_version.project
             project.body = new_body
             project.save!
           end
@@ -167,10 +167,10 @@ RSpec.describe BaseCourseCustomContentVersionsController, type: :controller do
             expect { post :update, params: valid_edit_project_params, session: valid_session }.to change {ProjectVersion.count}.by(1)
           end
 
-          it 'associates the exsiting BaseCourseCustomContentVersion to the new content version' do
-            expect(course_template_project_version.custom_content_version.body).not_to eq(new_body)
-            expect { post :update, params: valid_edit_project_params, session: valid_session }.not_to change {BaseCourseCustomContentVersion.count}
-            expect(BaseCourseCustomContentVersion.find(course_template_project_version.id).custom_content_version).to eq(ProjectVersion.last)
+          it 'associates the exsiting BaseCourseProjectVersion to the new content version' do
+            expect(course_template_project_version.project_version.body).not_to eq(new_body)
+            expect { post :update, params: valid_edit_project_params, session: valid_session }.not_to change {BaseCourseProjectVersion.count}
+            expect(BaseCourseProjectVersion.find(course_template_project_version.id).custom_content_version).to eq(ProjectVersion.last)
           end
 
           it 'redirects back to edit page and flashes message' do
@@ -202,9 +202,9 @@ RSpec.describe BaseCourseCustomContentVersionsController, type: :controller do
             expect { post :destroy, params: valid_edit_project_params, session: valid_session }.not_to change {ProjectVersion.count}
           end
 
-          it 'deletes the BaseCourseCustomContentVersion join record' do
-            expect { post :destroy, params: valid_edit_project_params, session: valid_session }.to change {BaseCourseCustomContentVersion.count}.by(-1)
-            expect { BaseCourseCustomContentVersion.find(course_template_project_version.id) }.to raise_error(ActiveRecord::RecordNotFound)
+          it 'deletes the BaseCourseProjectVersion join record' do
+            expect { post :destroy, params: valid_edit_project_params, session: valid_session }.to change {BaseCourseProjectVersion.count}.by(-1)
+            expect { BaseCourseProjectVersion.find(course_template_project_version.id) }.to raise_error(ActiveRecord::RecordNotFound)
           end
 
           it 'deletes the Canvas assignment' do
@@ -214,10 +214,10 @@ RSpec.describe BaseCourseCustomContentVersionsController, type: :controller do
             post :destroy, params: valid_edit_project_params, session: valid_session
           end
 
-          it 'doesnt delete the BaseCourseCustomContentVersion if Canvas assignment deletion fails' do
+          it 'doesnt delete the BaseCourseProjectVersion if Canvas assignment deletion fails' do
             allow(canvas_client).to receive(:delete_assignment).and_raise RestClient::BadRequest
             expect { post :destroy, params: valid_edit_project_params, session: valid_session }.to raise_error(RestClient::BadRequest)
-            expect(BaseCourseCustomContentVersion.find(course_template_project_version.id)).to be_present
+            expect(BaseCourseProjectVersion.find(course_template_project_version.id)).to be_present
           end
 
           it 'redirects back to edit page and flashes message' do
