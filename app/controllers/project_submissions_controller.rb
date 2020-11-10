@@ -51,12 +51,6 @@ class ProjectSubmissionsController < ApplicationController
     authorize @project_submission
     @project_submission.save!
 
-   # TODO: this is failing. I think it may be related to how we're creating the projects (and surveys)
-   # from platform using the CanvasAPI instead of the Line Items API. I get:
-   #{"Error":"400 Bad Request"}
-   #{"error":"invalid_request","error_description":"JWS signature invalid."}
-   # Task: https://app.asana.com/0/1174274412967132/1199129462216589
-
     # Save project submission to Canvas.
     # The actual project responses are stored in the LRS.
     lti_score = LtiScore.new_project_submission(
