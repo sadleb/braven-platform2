@@ -3,7 +3,7 @@
     <div class="col-sm-4">
 
       <h4>Select a <%= humanized_custom_content_type %> to create in Canvas</h4>
-      <%= form_with url: base_course_custom_content_versions_path do |form| %>
+      <%= form_with(url: base_course_custom_content_versions_path, local: true) do |form| %>
         <div class="form-group">
           <div class="row">
             <%= form.label :name, class: 'col-sm-3' %>
