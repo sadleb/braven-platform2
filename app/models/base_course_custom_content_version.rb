@@ -19,6 +19,55 @@ class BaseCourseCustomContentVersion < ApplicationRecord
   scope :base_course_project_versions, -> { where type: 'BaseCourseProjectVersion' }
   scope :base_course_survey_versions, -> { where type: 'BaseCourseSurveyVersion' }
 
+  # Create! a new record and its corresponding Canvas assignment
+  def self.publish!(base_course, custom_content, user, rubric_id=nil)
+    canvas_assignment = nil
+
+    begin
+      transaction do
+        custom_content_version = custom_content.save_version!(user)
+  
+        # Create the LTI assignment and get the Canvas assignment ID
+        canvas_assignment = CanvasAPI.client.create_lti_assignment(
+          base_course.canvas_course_id,
+          custom_content_version.title,
+        )
+
+        # Update the assignment ID in the record
+        # Note: the create! can fail, so clean up things not handled by the
+        # model transaction, e.g. any Canvas state, before this point
+        base_course_custom_content_version = create!(
+          base_course: base_course,
+          custom_content_version: custom_content_version,
+          canvas_assignment_id: canvas_assignment['id'],
+          type: "BaseCourse#{custom_content.type}Version",
+        )
+
+        # Note: this comes after save! because if this fails, the transaction
+        # will handle the model clean up, but not vice-versa.
+        # See remove! for another example of this
+        CanvasAPI.client.update_assignment_lti_launch_url(
+          base_course.canvas_course_id,
+          canvas_assignment['id'],
+          base_course_custom_content_version.new_submission_url,
+        )
+
+        CanvasAPI.client.add_rubric_to_assignment(
+          base_course.canvas_course_id,
+          canvas_assignment['id'],
+          rubric_id,
+        ) if rubric_id
+
+        base_course_custom_content_version
+      end
+    rescue
+      # If we error out afer the assignment is created, we need to clean this
+      # up because it's not handled by the model's transaction
+      CanvasAPI.client.delete_assignment(canvas_assignment['id']) if canvas_assignment
+      raise
+    end
+  end
+
   def publish_latest!(user)
     transaction do
       # We don't need to update the assignment in Canvas when we update the version,
@@ -74,7 +123,7 @@ class BaseCourseCustomContentVersion < ApplicationRecord
     nil # This could be an Lti Launch URL for something else (like a different LTI extension) which we ignore
   end
 
-  private
+private
   def submission_type
     case custom_content_version.type
     when 'ProjectVersion'
