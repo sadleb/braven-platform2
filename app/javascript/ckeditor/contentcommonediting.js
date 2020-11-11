@@ -55,7 +55,7 @@ export default class ContentCommonEditing extends Plugin {
         // Shared inputs.
         schema.register( 'textInput', {
             isObject: true,
-            allowAttributes: [ 'type', 'placeholder' ],
+            allowAttributes: [ 'type', 'placeholder', 'data-bz-retained' ],
             allowIn: [ '$root', '$block', 'questionFieldset', 'industrySelectorContainer' ],
         } );
 

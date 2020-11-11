@@ -7,6 +7,7 @@ const SELECTOR_RETAINED_DATA_IDS = [
   'dyc-industry-1',
   'dyc-industry-2',
 ];
+const TEXTINPUT_RETAINED_DATA_ID = 'dyc-industry-freeform-other';
 
 export default class InsertIndustrySelectorCommand extends Command {
   execute( ) {
@@ -37,7 +38,7 @@ function createIndustrySelectorContainer( writer ) {
   writer.append( createParagraph( writer, 'and' ), container );
   writer.append( createSelector( writer, SELECTOR_RETAINED_DATA_IDS[1] ), container );
   writer.append( createParagraph( writer, textarea_prompt), container );
-  writer.append( writer.createElement( 'textInput' ), container );
+  writer.append( writer.createElement( 'textInput', { 'data-bz-retained': TEXTINPUT_RETAINED_DATA_ID } ), container );
 
   return container;
 }
