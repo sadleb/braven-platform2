@@ -74,14 +74,9 @@ class SyncPortalEnrollmentForAccount
 
     logger.info('Removing user enrollment from canvas')
     canvas_client.delete_enrollment(enrollment: enrollment)
+    section = Section.find_by!(canvas_section_id: enrollment.section_id)
     # remove_role passes if the role doesn't exist.
-    # TODO: Remove the fallback code below once Highlander becomes production.
-    # https://app.asana.com/0/1174274412967132/1197893935338145/f
-    # At that point this should find_by! instead so it doesn't cover up issues.
-    section = Section.find_by(canvas_section_id: enrollment.section_id)
-    if section
-      user.remove_role enrollment.type, section
-    end
+    user.remove_role enrollment.type, section
   end
 
   def sync_enrollment(canvas_course_id, role, section_name)
@@ -113,12 +108,7 @@ class SyncPortalEnrollmentForAccount
       canvas_section = canvas_client.create_lms_section(course_id: canvas_course_id, name: section_name)
     end
 
-    # TODO: Remove this fallback code once Highlander is in production.
-    # https://app.asana.com/0/1174274412967132/1197893935338145/f
-    base_course = BaseCourse.find_by(canvas_course_id: canvas_course_id)
-    if base_course.nil?
-      base_course = BaseCourse.find_by(name: 'Production Dummy')
-    end
+    base_course = BaseCourse.find_by!(canvas_course_id: canvas_course_id)
     Section.find_or_create_by!(
       base_course_id: base_course.id,
       name: section_name,
