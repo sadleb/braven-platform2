@@ -75,13 +75,22 @@ RSpec.describe BaseCourseCustomContentVersion, type: :model do
         end
       end
 
-      context 'without rubric' do
-        it_behaves_like 'updates the DB'
-        it_behaves_like 'updates Canvas'
-
-        it 'does not add a rubric' do
+      shared_examples 'does not add a rubric' do
+        scenario 'does not make Canvas API call to add association' do
           BaseCourseCustomContentVersion.publish!(course, project, admin_user, rubric_id)
           expect(canvas_client).not_to have_received(:add_rubric_to_assignment)
+        end
+      end
+
+      context 'without a rubric' do
+        [nil, ''].each do |rubric_id|
+          context "rubric ID is '#{rubric_id}'" do
+            let(:rubric_id) { rubric_id }
+
+            it_behaves_like 'updates the DB'
+            it_behaves_like 'updates Canvas'
+            it_behaves_like 'does not add a rubric'
+          end
         end
       end
 
@@ -121,7 +130,7 @@ RSpec.describe BaseCourseCustomContentVersion, type: :model do
           BaseCourseCustomContentVersion.publish!(course, project, admin_user, rubric_id) rescue nil
           expect(canvas_client)
             .to have_received(:delete_assignment)
-            .with(canvas_assignment_id)
+            .with(course.canvas_course_id, canvas_assignment_id)
             .once
         end
       end

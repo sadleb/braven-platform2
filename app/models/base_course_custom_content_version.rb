@@ -56,14 +56,14 @@ class BaseCourseCustomContentVersion < ApplicationRecord
           base_course.canvas_course_id,
           canvas_assignment['id'],
           rubric_id,
-        ) if rubric_id
+        ) if rubric_id.present?
 
         base_course_custom_content_version
       end
     rescue
       # If we error out afer the assignment is created, we need to clean this
       # up because it's not handled by the model's transaction
-      CanvasAPI.client.delete_assignment(canvas_assignment['id']) if canvas_assignment
+      CanvasAPI.client.delete_assignment(base_course.canvas_course_id, canvas_assignment['id']) if canvas_assignment
       raise
     end
   end
