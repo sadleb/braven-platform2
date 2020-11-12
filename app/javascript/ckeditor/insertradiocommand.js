@@ -1,5 +1,6 @@
 import Command from '@ckeditor/ckeditor5-core/src/command';
 import { findAllowedParentIgnoreLimit, getNamedAncestor } from './utils';
+import uid from '@ckeditor/ckeditor5-utils/src/uid';
 
 export default class InsertRadioCommand extends Command {
     execute() {
@@ -22,8 +23,12 @@ export default class InsertRadioCommand extends Command {
                 // This makes us a bit more robust, in case we modify radioDiv later on.
                 return;
             }
+
             writer.setSelection( radioDiv, 'after' );
-            this.editor.model.insertContent( createRadio( writer ) );
+            this.editor.model.insertContent( createRadio(
+                writer,
+                radioDiv.parent.getAttribute( 'data-radio-group' ),
+            ) );
         } );
     }
 
@@ -39,17 +44,25 @@ export default class InsertRadioCommand extends Command {
     }
 }
 
-function createRadio( writer ) {
+function createRadio( writer, name ) {
+    const value = uid();
+    const id = [name, value].join('_');
+
     const radioDiv = writer.createElement( 'radioDiv' );
-    const radioInput = writer.createElement( 'radioInput' );
-    const radioLabel = writer.createElement( 'radioLabel' );
+    const radioInput = writer.createElement( 'radioInput', {
+        name: name,
+        id: id,
+        value: value,
+    } );
+    const radioLabel = writer.createElement( 'radioLabel', { 
+        'for': id,
+    } );
 
     writer.append( radioInput, radioDiv );
     writer.append( radioLabel, radioDiv );
 
     // Add text to empty editables where placeholders don't work.
     writer.insertText( 'Radio label', radioLabel );
-
 
     return radioDiv;
 }

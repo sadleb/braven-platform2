@@ -94,11 +94,14 @@
     textarea, input {
         font-family: 'Mercury Text', 'Georgia', serif;
         font-size: 1rem;
-        width: 100% !important;
         margin-top: 8px;
         margin-bottom: 8px;
         padding: 6px;
         min-width: 100px;
+    }
+
+    textarea, input[type="text"] {
+        width: 100% !important;
     }
 
     textarea {

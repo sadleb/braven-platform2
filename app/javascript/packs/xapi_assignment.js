@@ -29,7 +29,7 @@ try {
 document.addEventListener('DOMContentLoaded', () => {
 
     // Attach the xAPI function to all appropriate inputs, and load any existing data.
-    const inputs = document.querySelectorAll('textarea, input[type="text"], select');
+    const inputs = document.querySelectorAll('textarea, input[type="text"], input[type="radio"], select');
     const javascript_variables = document.getElementById('javascript_variables').attributes;
 
     const modifyInputElementForViewer = javascript_variables[USER_OVERRIDE_ID_ATTR]
@@ -88,7 +88,7 @@ function sendStatement(e) {
                 "description": {
                     "und": data_input_url
                 },
-                "interactionType": "fill-in",
+                "interactionType": input.type == "radio" ? "choice" : "fill-in"
             }
         }
     });
@@ -143,7 +143,16 @@ function populatePreviousAnswers() {
             const data_input_id = statement.target.definition.name.und;
 
             document.querySelectorAll(`[${INPUT_ID_ATTR}="${data_input_id}"]`).forEach(input => {
-                if (!filledInDataInputIDs.has(data_input_id)) {
+                if (filledInDataInputIDs.has(data_input_id)) {
+                    return; // Already filled in
+                }
+                if (input.type == 'radio') {
+                    if (input.value == statement.result.response) {
+                        input.checked = true;
+                        filledInDataInputIDs.add(data_input_id);
+                    }
+                }
+                else {
                     input.value = statement.result.response;
                     filledInDataInputIDs.add(data_input_id);
                 }

@@ -32,9 +32,9 @@ export default class ContentCommonEditing extends Plugin {
 
         // Shared elements.
         schema.register( 'questionFieldset', {
-            isLimit: true,
             isObject: true,
             allowIn: '$root',
+            allowAttributes: [ 'data-radio-group' ],
         } );
 
         // Matrix question table.
@@ -48,19 +48,19 @@ export default class ContentCommonEditing extends Plugin {
         schema.register( 'textInput', {
             isObject: true,
             allowAttributes: [ 'type', 'placeholder', 'data-bz-retained' ],
-            allowIn: [ '$root', '$block', 'questionFieldset', 'industrySelectorContainer' ],
+            allowIn: [ '$root', 'industrySelectorContainer' ],
         } );
 
         schema.register( 'textArea', {
             isObject: true,
-            allowAttributes: [ 'placeholder' , 'aria-labelledby'],
-            allowIn: [ '$root', '$block', 'checkboxDiv', 'radioDiv', 'questionFieldset' ],
+            allowAttributes: [ 'placeholder' , 'aria-labelledby' ],
+            allowIn: [ '$root' ],
         } );
 
         schema.register( 'fileUpload', {
             isObject: true,
             allowAttributes: [ 'type' ],
-            allowIn: [ '$root', 'questionFieldset' ],
+            allowIn: [ '$root' ],
         } );
 
         schema.register( 'select', {
@@ -94,28 +94,25 @@ export default class ContentCommonEditing extends Plugin {
                 name: 'fieldset'
             },
             model: ( viewElement, { writer } ) => {
-                // Only include the class attribute if it's set.
-                const classes = viewElement.getAttribute('class');
-                const attrs = classes ? { 'class': classes } : {};
-                return writer.createElement( 'questionFieldset', attrs );
+                return writer.createElement( 'questionFieldset', {
+                    'data-radio-group': viewElement.getAttribute( 'data-radio-group' ),
+                } );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'questionFieldset',
             view: ( modelElement, { writer } ) => {
-                // Only include the class attribute if it's set.
-                const classes = modelElement.getAttribute('class');
-                const attrs = classes ? { 'class': classes } : {};
-                return writer.createEditableElement( 'fieldset', attrs );
+                return writer.createEditableElement( 'fieldset', {
+                    'data-radio-group': modelElement.getAttribute( 'data-radio-group' ),
+                } );
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'questionFieldset',
             view: ( modelElement, { writer } ) => {
-                // Only include the class attribute if it's set.
-                const classes = modelElement.getAttribute('class');
-                const attrs = classes ? { 'class': classes } : {};
-                const fieldset = writer.createContainerElement( 'fieldset', attrs );
+                const fieldset = writer.createContainerElement( 'fieldset', {
+                    'data-radio-group': modelElement.getAttribute( 'data-radio-group' ),
+                } );
                 return toWidget( fieldset, writer );
             }
         } );
