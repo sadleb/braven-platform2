@@ -38,9 +38,10 @@ import Font from '@ckeditor/ckeditor5-font/src/font';
 import SimpleUploadAdapter from '@ckeditor/ckeditor5-upload/src/adapters/simpleuploadadapter';
 import HorizontalLine from '@ckeditor/ckeditor5-horizontal-line/src/horizontalline';
 
-
 // CKEditor plugin implementing a content part widget to be used in the editor content.
-import RetainedData from '../ckeditor/retaineddata';
+import AttributeEditing from '../ckeditor/attributeediting';
+import UniqueId from '../ckeditor/uniqueid';
+import ElementIdEditing from '../ckeditor/elementidediting';
 import ContentCommonEditing from '../ckeditor/contentcommonediting';
 import RadioQuestionEditing from '../ckeditor/radioquestionediting';
 import PortalImageEditing from '../ckeditor/portalimageediting';
@@ -88,7 +89,10 @@ BalloonEditor.builtinPlugins = [
     Font,
     SimpleUploadAdapter,
     HorizontalLine,
-    RetainedData,
+
+    AttributeEditing,
+    UniqueId,
+    ElementIdEditing,
     ContentCommonEditing,
     RadioQuestionEditing,
     PortalImageEditing,
@@ -146,12 +150,12 @@ BalloonEditor.defaultConfig = {
     },
     heading: {
         options: [
-            { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph', converterPriority: 'low' },
-            { model: 'heading1', view: 'h2', title: 'Heading 1', class: 'ck-heading_h2', converterPriority: 'low' },
-            { model: 'heading2', view: 'h3', title: 'Heading 2', class: 'ck-heading_h3', converterPriority: 'low' },
-            { model: 'heading3', view: 'h4', title: 'Heading 3', class: 'ck-heading_h4', converterPriority: 'low' },
-            { model: 'heading4', view: 'h5', title: 'Heading 4', class: 'ck-heading_h5', converterPriority: 'low' },
-            { model: 'heading5', view: 'h6', title: 'Heading 5', class: 'ck-heading_h6', converterPriority: 'low' },
+            { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+            { model: 'heading1', view: 'h2', title: 'Heading 1', class: 'ck-heading_h2' },
+            { model: 'heading2', view: 'h3', title: 'Heading 2', class: 'ck-heading_h3' },
+            { model: 'heading3', view: 'h4', title: 'Heading 3', class: 'ck-heading_h4' },
+            { model: 'heading4', view: 'h5', title: 'Heading 4', class: 'ck-heading_h5' },
+            { model: 'heading5', view: 'h6', title: 'Heading 5', class: 'ck-heading_h6' },
         ]
     },
     simpleUpload: {
@@ -188,12 +192,7 @@ class ContentEditor extends Component {
         };
 
         // The configuration of the <CKEditor> instance.
-        this.editorConfig = {
-            // Custom config for retained data plugin.
-            retainedData: {
-                pageId: props.custom_content['id'],
-            },
-        };
+        this.editorConfig = {};
 
         this.handleEditorFocusChange = this.handleEditorFocusChange.bind( this );
         this.handleEditorInit = this.handleEditorInit.bind( this );
@@ -373,6 +372,25 @@ class ContentEditor extends Component {
                                     }}
                                 />
                                 <label htmlFor='input-placeholder'>Placeholder</label>
+                            </>
+                        );
+                    } else if ( modelElement.startsWith('heading') ) {
+                        return (
+                            <>
+                                <h4>Heading</h4>
+                                <input
+                                    type='text'
+                                    id='input-heading-id'
+                                    value={'#' + this.state['selectedElement'].getAttribute('id')}
+                                    disabled={ true }
+                                />
+                                <label htmlFor='input-heading-id'>Heading Anchor</label>
+                                <p>To link to this heading:</p>
+                                <ol>
+                                    <li>Add a new link (or edit an existing one),</li>
+                                    <li>Copy the <strong>Heading Anchor</strong> above and use it as the link URL.</li>
+                                </ol>
+                                <p><small>Tip: Triple-click the heading anchor to select it all at once.</small></p>
                             </>
                         );
                     }

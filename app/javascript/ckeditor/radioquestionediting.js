@@ -2,13 +2,12 @@ import Plugin from '@ckeditor/ckeditor5-core/src/plugin';
 import { enablePlaceholder } from '@ckeditor/ckeditor5-engine/src/view/placeholder';
 import { toWidget, toWidgetEditable } from '@ckeditor/ckeditor5-widget/src/utils';
 import Widget from '@ckeditor/ckeditor5-widget/src/widget';
-import RetainedData from './retaineddata';
 import InsertRadioQuestionCommand from './insertradioquestioncommand';
 import InsertRadioCommand from './insertradiocommand';
 
 export default class RadioQuestionEditing extends Plugin {
     static get requires() {
-        return [ Widget, RetainedData ];
+        return [ Widget ];
     }
 
     init() {
@@ -17,9 +16,6 @@ export default class RadioQuestionEditing extends Plugin {
 
         this.editor.commands.add( 'insertRadioQuestion', new InsertRadioQuestionCommand( this.editor ) );
         this.editor.commands.add( 'insertRadio', new InsertRadioCommand( this.editor ) );
-
-        // Add a shortcut to the retained data ID function.
-        this._nextRetainedDataId = this.editor.plugins.get('RetainedData').getNextId;
 
         // Because 'enter' events are consumed by Widget._onKeydown when the current selection is a non-inline
         // block widget, we have to re-fire them explicitly for radioDivs.
@@ -162,7 +158,7 @@ export default class RadioQuestionEditing extends Plugin {
                 // Radio values don't have to be unique within the page, only within the group.
                 // But we already have the RetainedData plugin, so let's just use that as
                 // our fallback.
-                const radioValue = viewElement.getAttribute('value') || this._nextRetainedDataId();
+                const radioValue = viewElement.getAttribute('value');
 
                 return writer.createElement( 'radioInput', new Map( [
                     [ 'id', [ radioGroupName, radioValue ].join( '_' ) ],
@@ -202,7 +198,7 @@ export default class RadioQuestionEditing extends Plugin {
                 // Radio values don't have to be unique within the page, only within the group.
                 // But we already have the RetainedData plugin, so let's just use that as
                 // our fallback.
-                const radioValue = modelElement.getAttribute('value') || this._nextRetainedDataId();
+                const radioValue = modelElement.getAttribute('value');
 
                 return writer.createEmptyElement( 'input', new Map( [
                     [ 'type', 'radio' ],
