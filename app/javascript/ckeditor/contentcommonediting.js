@@ -53,7 +53,7 @@ export default class ContentCommonEditing extends Plugin {
 
         schema.register( 'textArea', {
             isObject: true,
-            allowAttributes: [ 'placeholder' , 'aria-labelledby' ],
+            allowAttributes: [ 'placeholder' ],
             allowIn: [ '$root' ],
         } );
 
@@ -192,31 +192,18 @@ export default class ContentCommonEditing extends Plugin {
                 name: 'textarea',
             },
             model: ( viewElement, { writer } ) => {
-                let arialLabelledBy = ''
-                const textareaLabel =  getNamedChildOrSibling('div', viewElement.parent)
-                if(textareaLabel) {
-                    arialLabelledBy = textareaLabel.getAttribute('id');
-                }
-                
                 return writer.createElement( 'textArea', {
                     'data-bz-retained': viewElement.getAttribute('data-bz-retained'),
                     'placeholder': viewElement.getAttribute('placeholder') || '',
-                    'aria-labelledby': arialLabelledBy,
                 } );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'textArea',
             view: ( modelElement, { writer } ) => {
-                let arialLabelledBy = ''
-                const textareaLabel =  getNamedChildOrSibling('textareaLabel', modelElement.parent)
-                if(textareaLabel) {
-                    arialLabelledBy = textareaLabel.getAttribute('id');
-                }
                 const textarea = writer.createEmptyElement( 'textarea', {
                     'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
                     'placeholder': modelElement.getAttribute('placeholder') || '',
-                    'aria-labelledby': arialLabelledBy,
                 } );
                 return textarea;
             }
@@ -224,15 +211,9 @@ export default class ContentCommonEditing extends Plugin {
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'textArea',
             view: ( modelElement, { writer } ) => {
-                let arialLabelledBy = ''
-                const textareaLabel =  getNamedChildOrSibling('textareaLabel', modelElement.parent)
-                if(textareaLabel) {
-                    arialLabelledBy = textareaLabel.getAttribute('id');
-                }
                 const textarea = writer.createContainerElement( 'textarea', {
                     'data-bz-retained': modelElement.getAttribute('data-bz-retained'),
                     'placeholder': modelElement.getAttribute('placeholder') || '',
-                    'aria-labelledby': arialLabelledBy,
                 } );
                 return toWidget( textarea, writer );
             }
