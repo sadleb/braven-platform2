@@ -354,8 +354,13 @@ class ContentEditor extends Component {
         );
     }
 
-    // Text area and text input have placeholder setting
-    _renderTextPlaceholder() {
+    // Some elements have attributes that can be configured
+    // The inputs to update those attributes are rendered above the CommandButtons
+    // when the appropriate element is selected, for example:
+    //   - Text areas and text inputs have a configurable placeholder
+    //   - Headings have a configurable ID (for creating anchor links within a document)
+    //   - Radio input values are configurable
+    _renderContextualAttributes() {
         return (
             <div id="toolbar-contextual">
                 {this.state.modelPath.map( modelElement => {
@@ -391,6 +396,21 @@ class ContentEditor extends Component {
                                     <li>Copy the <strong>Heading Anchor</strong> above and use it as the link URL.</li>
                                 </ol>
                                 <p><small>Tip: Triple-click the heading anchor to select it all at once.</small></p>
+                            </>
+                        );
+                    } else if ( ['radioDiv' ].includes( modelElement ) ) {
+                        const radioInput = getNamedChildOrSibling( 'radioInput', this.state['selectedElement']);
+                        return (
+                            <>
+                                <h4>Input Value</h4>
+                                <input
+                                    id='input-value'
+                                    value={radioInput.getAttribute('value')}
+                                    onChange={( evt ) => {
+                                        this.editor.execute( 'setAttributes', { 'value': evt.target.value }, radioInput );
+                                    }}
+                                />
+                                <label htmlFor='input-value'>Value</label>
                             </>
                         );
                     }
@@ -522,7 +542,7 @@ class ContentEditor extends Component {
                 <main>
                     <div id="vertical-toolbar">
                         {this._renderCustomContentSettings()}
-                        {this._renderTextPlaceholder()}
+                        {this._renderContextualAttributes()}
                         {this._renderEditorCommands()}
                     </div>
                     {this._renderEditorTabs()}
