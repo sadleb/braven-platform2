@@ -66,7 +66,7 @@ export default class ContentCommonEditing extends Plugin {
         schema.register( 'select', {
             isObject: true,
             allowAttributes: [ 'id', 'name', 'data-bz-retained' ],
-            allowIn: [ 'questionFieldset', 'industrySelectorContainer' ],
+            allowIn: [ '$root', 'industrySelectorContainer' ],
         } );
 
         schema.register( 'selectOption', {

@@ -35,12 +35,11 @@ class SurveySubmissionsController < ApplicationController
     redirect_to @survey_submission
   end
 
-  private
-
+private
   # Get the "name" attributes from all the <input> elements in this survey 
   # version. These are the parameters we permit from the form being submitted.
   def survey_answer_params
     doc = Nokogiri::HTML.parse(@survey_submission.survey_version.body)
-    doc.xpath("//input").map{ |input| input[:name] }
+    doc.xpath("//input|//select|//textarea").map{ |input| input[:name] }
   end
 end
