@@ -64,6 +64,7 @@ const TABS = {
 
 // Plugins to include in the build.
 BalloonEditor.builtinPlugins = [
+    // CKE plugins
     Essentials,
     Autoformat,
     BlockQuote,
@@ -90,6 +91,7 @@ BalloonEditor.builtinPlugins = [
     SimpleUploadAdapter,
     HorizontalLine,
 
+    // Custom plugins
     AttributeEditing,
     UniqueId,
     ElementIdEditing,
@@ -432,6 +434,7 @@ class ContentEditor extends Component {
         	'insertTextArea': 'Text Area',
         	'insertTextInput': 'Text Input',
             'insertIndustrySelector': 'Industry Selector',
+            'insertNumericalSelector': '1 - 10 Dropdown',
         }).map( ([key, name]) => this._renderCommandButton(key, name) );
 
         return (

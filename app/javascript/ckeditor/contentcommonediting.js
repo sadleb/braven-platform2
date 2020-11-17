@@ -4,6 +4,7 @@ import { toWidget, toWidgetEditable } from '@ckeditor/ckeditor5-widget/src/utils
 import Widget from '@ckeditor/ckeditor5-widget/src/widget';
 import List from '@ckeditor/ckeditor5-list/src/list';
 import InsertIndustrySelectorCommand from './insertindustryselectorcommand';
+import InsertNumericalSelectorCommand from './insertnumericalselectorcommand';
 import InsertTextInputCommand from './inserttextinputcommand';
 import InsertFileUploadCommand from './insertfileuploadcommand';
 import InsertTextAreaQuestionCommand from './inserttextareaquestioncommand';
@@ -23,6 +24,7 @@ export default class ContentCommonEditing extends Plugin {
         this.editor.commands.add( 'insertTextInput', new InsertTextInputCommand( this.editor ) );
         this.editor.commands.add( 'insertTextArea', new InsertTextAreaCommand( this.editor ) );
         this.editor.commands.add( 'insertIndustrySelector', new InsertIndustrySelectorCommand( this.editor ) );
+        this.editor.commands.add( 'insertNumericalSelector', new InsertNumericalSelectorCommand( this.editor) );
         // Blocks.
         this.editor.commands.add( 'insertFileUpload', new InsertFileUploadCommand( this.editor ) );
     }
