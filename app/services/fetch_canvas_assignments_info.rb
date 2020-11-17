@@ -7,7 +7,9 @@ require 'canvas_api'
 class FetchCanvasAssignmentsInfo
   FetchCanvasAssignmentsInfoError = Class.new(StandardError)
 
-  attr_reader :canvas_assignment_ids, :canvas_waivers_url, :canvas_waivers_assignment_id, :base_course_project_versions, :base_course_survey_versions
+  attr_reader :canvas_assignment_ids, :canvas_waivers_url, :canvas_waivers_assignment_id,
+              :base_course_project_versions, :base_course_survey_versions,
+              :base_course_custom_content_versions_mapping # Maps the fetched canvas assignment ID to the bcccv.
 
   def initialize(canvas_course_id)
     @canvas_course_id = canvas_course_id
@@ -16,6 +18,7 @@ class FetchCanvasAssignmentsInfo
     @canvas_waivers_assignment_id = nil
     @base_course_project_versions = nil
     @base_course_survey_versions = nil
+    @base_course_custom_content_versions_mapping = nil
 
     # Add the rest of the assignment types we implement as well. E.g. pre/post
     # accelerator surveys, peer evaluations, attendance, etc
@@ -25,8 +28,9 @@ class FetchCanvasAssignmentsInfo
     canvas_assignments = CanvasAPI.client.get_assignments(@canvas_course_id)
 
     @canvas_assignment_ids = []
-    @base_course_project_versions = []
+    @base_course_project_versions= []
     @base_course_survey_versions = []
+    @base_course_custom_content_versions_mapping = {}
 
     canvas_assignments.each do |ca|
       @canvas_assignment_ids << ca['id']
@@ -51,13 +55,13 @@ private
 
   def parse_assignment_info!(lti_launch_url, canvas_assignment)
     bcccv = BaseCourseCustomContentVersion.find_by_lti_launch_url(lti_launch_url) 
-    add_project_or_survey_info!(bcccv) and return if bcccv
+    add_project_or_survey_info!(bcccv, canvas_assignment) and return if bcccv
 
     waivers_launch_path = Rails.application.routes.url_helpers.launch_waivers_path()
     add_waivers_info(canvas_assignment) and return if lti_launch_url =~ /#{waivers_launch_path}/
   end
 
-  def add_project_or_survey_info!(base_course_custom_content_version)
+  def add_project_or_survey_info!(base_course_custom_content_version, canvas_assignment)
     if base_course_custom_content_version.is_a?(BaseCourseProjectVersion)
       @base_course_project_versions << base_course_custom_content_version
     elsif base_course_custom_content_version.is_a?(BaseCourseSurveyVersion)
@@ -65,6 +69,8 @@ private
     else
       raise FetchCanvasAssignmentsInfoError, "BaseCourseCustomContentVersion type not recognized: #{base_course_custom_content_version.inspect}"
     end
+
+    @base_course_custom_content_versions_mapping[canvas_assignment['id']] = base_course_custom_content_version
   end
 
   def add_waivers_info(canvas_assignment)

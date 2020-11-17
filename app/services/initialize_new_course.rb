@@ -45,53 +45,33 @@ private
   # being launched and associate it with the new base_course as well. Then update the Canvas 
   # assignment's launch URL to launch the newly associated resource. 
   def initialize_assignments
-    canvas_assignment_ids = []
-    canvas_assignments = CanvasAPI.client.get_assignments(@new_course.canvas_course_id)
+    canvas_assignment_info = FetchCanvasAssignmentsInfo.new(@new_course.canvas_course_id).run
 
-    canvas_assignments.each do |ca|
-      canvas_assignment_id = ca['id']
-      canvas_assignment_ids << canvas_assignment_id
-
-      lti_launch_url = parse_lti_launch_url(ca)
-      if lti_launch_url
-        initialize_new_base_course_custom_content_version(lti_launch_url, canvas_assignment_id)
-      else
-        Rails.logger.debug("Skipping Canvas Assignment[#{canvas_assignment_id}] - not an LTI linked assignment")
-      end
+    canvas_assignment_info.base_course_custom_content_versions_mapping.each do |canvas_assignment_id, bcccv|
+      initialize_new_base_course_custom_content_version(canvas_assignment_id, bcccv)
     end
 
-    canvas_assignment_ids
+    canvas_assignment_info.canvas_assignment_ids
   end
 
   # When the assignment is loaded in Canvas and does an LTI Launch, it launches a 
   # BaseCourseCustomContentVersion's submission URL. This initializes that both locally
-  # and in Canvas by looking up the old one using the old lti_launch_url and creating a
-  # new one associating this new BaseCourse to that custom_content_version, publishing the
-  # new URL to the new canvas_assignment_id
-  def initialize_new_base_course_custom_content_version(old_lti_launch_url, canvas_assignment_id)
+  # and in Canvas by creating a new one associating this new BaseCourse to the same custom_content_version
+  # as the old one and publishing the new URL to the new canvas_assignment_id
+  def initialize_new_base_course_custom_content_version(canvas_assignment_id, old_base_course_custom_content_version)
     new_launch_url = nil
 
-    # TODO: Instead of going this route of parsing the URL, the plan is to move LTI selection linking to a platform UI 
-    # and do it programatically, linking everything up using a resourceId in the LineItem API.
-    # See: https://app.asana.com/0/1174274412967132/1198900743766613
-    course_template_content_version = BaseCourseCustomContentVersion.find_by_lti_launch_url(old_lti_launch_url) 
-    if course_template_content_version
-      if course_template_content_version.base_course.is_a? CourseTemplate
-        new_launch_url = create_new_base_course_custom_content_version(course_template_content_version, canvas_assignment_id)
-        Rails.logger.debug("Updating Canvas Assignment[#{canvas_assignment_id}] - changing LTI launch URL to: #{new_launch_url}")
-        CanvasAPI.client.update_assignment_lti_launch_url(@new_course.canvas_course_id, canvas_assignment_id, new_launch_url)
-      else
-        raise InitializeNewCourseError, "BaseCourseCustomContentVersion #{course_template_content_version.inspect} is not a CourseTemplate. " \
-                                        "Only initializing from cloned templates is supported"
-      end
-    else 
-      # Keep in mind that there may be LTI assignments for other providers, like Google or something, that we should skip.
-      Rails.logger.debug("Skipping Canvas Assignment[#{canvas_assignment_id}] - it's an LTI linked assignment that doesn't need adjustment")
+    if old_base_course_custom_content_version.base_course.is_a? CourseTemplate
+      new_launch_url = create_new_base_course_custom_content_version!(canvas_assignment_id, old_base_course_custom_content_version)
+      Rails.logger.debug("Updating Canvas Assignment[#{canvas_assignment_id}] - changing LTI launch URL to: #{new_launch_url}")
+      CanvasAPI.client.update_assignment_lti_launch_url(@new_course.canvas_course_id, canvas_assignment_id, new_launch_url)
+    else
+      raise InitializeNewCourseError, "BaseCourseCustomContentVersion #{old_base_course_custom_content_version.inspect} is not for a CourseTemplate. " \
+                                      "Only initializing from cloned templates is supported"
     end
-
   end
 
-  def create_new_base_course_custom_content_version(old_course_custom_content_version, canvas_assignment_id)
+  def create_new_base_course_custom_content_version!(canvas_assignment_id, old_course_custom_content_version)
     if old_course_custom_content_version.base_course_id == @new_course.canvas_course_id
       raise InitializeNewCourseError, "Canvas Assignment[#{canvas_assignment_id}] is already associated with #{@new_course}"
     end
@@ -103,10 +83,6 @@ private
     )
 
     new_launch_url = new_cccv.new_submission_url
-  end
-
-  def parse_lti_launch_url(canvas_assignment)
-    canvas_assignment.dig('external_tool_tag_attributes', 'url')
   end
 
   def create_sections(canvas_assignment_ids)
