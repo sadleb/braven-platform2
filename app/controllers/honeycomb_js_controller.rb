@@ -16,9 +16,6 @@ class HoneycombJsController < ApplicationController
   skip_before_action :verify_authenticity_token
   wrap_parameters false # Disable putting everything inside a "honycomb_j" param. This controller doesn't represent a model.
 
-  # Non-standard controller without normal CRUD methods. Disable the convenience module.
-  def dry_crud_enabled?() false end
-
   # Slightly undocumented header to use to propagate traces in a distributed fashion.
   # I noticed this mentioned in the docs about Faraday doing this: https://docs.honeycomb.io/getting-data-in/ruby/beeline/#faraday
   # and dug into the code to do the same. One example here: 

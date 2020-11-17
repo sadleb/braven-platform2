@@ -10,9 +10,6 @@ class LtiLaunchController < ApplicationController
   skip_before_action :authenticate_user!
   skip_before_action :verify_authenticity_token
 
-  # Non-standard controller without normal CRUD methods. Disable the convenience module.
-  def dry_crud_enabled?() false end
-
   LTI_ISS=Rails.application.secrets.lti_oidc_base_uri
   LTI_AUTH_RESPONSE_URL="#{Rails.application.secrets.lti_oidc_base_uri}/api/lti/authorize_redirect".freeze
 

@@ -1,5 +1,4 @@
 require 'rubycas-server-core/tickets'
-require 'dry_crud'
 require 'canvas_api'
 
 class ApplicationController < ActionController::Base

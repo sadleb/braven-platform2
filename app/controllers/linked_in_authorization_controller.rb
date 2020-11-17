@@ -9,8 +9,6 @@ require 'linked_in_api'
 class LinkedInAuthorizationController < ApplicationController
   layout 'content_editor'
 
-  def dry_crud_enabled?() false end
-
   # iframe-able endpoint that renders a static LinkedIn button
   def login
     authorize :LinkedInAuthorization

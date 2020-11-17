@@ -4,9 +4,6 @@ class LrsXapiProxyController < ApplicationController
   skip_before_action :verify_authenticity_token
   wrap_parameters false # Disable putting everything inside a "lrs_xapi_proxy" param. This controller doesn't represent a model.
 
-  # Non-standard controller without normal CRUD methods. Disable the convenience module.
-  def dry_crud_enabled?() false end
-
   def xAPI
     # TODO: Make sure current_user is allowed to view user_override's stuff.
     # https://app.asana.com/0/1174274412967132/1185569091008475/f

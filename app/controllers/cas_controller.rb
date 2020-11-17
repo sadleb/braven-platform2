@@ -22,11 +22,6 @@ class CasController < ApplicationController
   # PT = Proxy Ticket
   include RubyCAS::Server::Core::Tickets
 
-  # Non-standard controller without normal CRUD methods. Disable the convenience module.
-  def dry_crud_enabled?
-    false
-  end
-
   def login
     # make sure there's no caching
     request.headers['Pragma'] = 'no-cache'
