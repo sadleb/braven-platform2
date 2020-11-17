@@ -1,6 +1,8 @@
 class BaseCoursesController < ApplicationController
   layout 'admin'
 
+  before_action :fetch_canvas_assignment_info, only: [:edit]
+
   # GET /course_management
   def index
     authorize BaseCourse
@@ -46,7 +48,7 @@ class BaseCoursesController < ApplicationController
         format.html { redirect_to base_courses_path, notice: "#{set_type.humanize} was successfully updated." }
         format.json { render :show, status: :ok, location: @base_course }
       else
-        format.html { render :edit }
+        format.html { redirect_to edit_polymorphic_path(@base_course) }
         format.json { render json: @base_course.errors, status: :unprocessable_entity }
       end
     end
@@ -96,6 +98,10 @@ class BaseCoursesController < ApplicationController
   end
 
   private
+
+  def fetch_canvas_assignment_info
+    @canvas_assignment_info = FetchCanvasAssignmentsInfo.new(@base_course.canvas_course_id).run
+  end
 
   # Note to readers - not sure why this is called set_type, if that's a Rails thing or
   # not. More context here https://youtu.be/2fH_V91b0H4?t=416. What this actually does

@@ -43,8 +43,11 @@ RSpec.describe BaseCoursesController, type: :controller do
   # BaseCoursesController. Be sure to keep this updated too.
   let(:valid_session) { {} }
 
+  let(:canvas_client) { double(CanvasAPI) }
+
   describe 'when logged in' do
     before do
+      allow(CanvasAPI).to receive(:client).and_return(canvas_client)
       sign_in user
     end
 
@@ -65,6 +68,7 @@ RSpec.describe BaseCoursesController, type: :controller do
 
       describe "GET #edit" do
         it "raises an error" do
+          allow(canvas_client).to receive(:get_assignments).and_return([])
           expect { get :edit, params: {id: course.to_param, type: 'Course'}, session: valid_session }.to raise_error(BaseCourse::BaseCourseEditError)
         end
       end
@@ -135,7 +139,7 @@ RSpec.describe BaseCoursesController, type: :controller do
           before(:each) { put_update }
 
           it "returns a success response (i.e. to display the 'edit' template)" do
-            expect(response).to be_successful
+            expect(response).to redirect_to(edit_course_path(course))
           end
         end
       end
@@ -184,6 +188,7 @@ RSpec.describe BaseCoursesController, type: :controller do
 
       describe "GET #edit" do
         it "returns a success response" do
+          allow(canvas_client).to receive(:get_assignments).and_return([])
           get :edit, params: {id: course_template.to_param, type: 'CourseTemplate'}, session: valid_session
           expect(response).to be_successful
         end
@@ -255,7 +260,7 @@ RSpec.describe BaseCoursesController, type: :controller do
           before(:each) { put_update }
 
           it "returns a success response (i.e. to display the 'edit' template)" do
-            expect(response).to be_successful
+            expect(response).to redirect_to(edit_course_template_path(course_template))
           end
         end
       end

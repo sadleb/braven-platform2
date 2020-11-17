@@ -43,6 +43,13 @@ Rails.application.routes.draw do
     # a course template, e.g. through the Course Management page.
     resources :base_course_project_versions, controller: 'base_course_custom_content_versions', type: 'BaseCourseProjectVersion', only: [:new]
     resources :base_course_survey_versions, controller: 'base_course_custom_content_versions', type: 'BaseCourseSurveyVersion', only: [:new]
+
+    resources :waivers, only: [] do
+      collection do
+        post :publish
+        delete :unpublish
+      end
+    end
   end
 
   resources :base_course_custom_content_versions, only: [:create, :update, :destroy] 
@@ -75,6 +82,12 @@ Rails.application.routes.draw do
   end
 
   resources :lesson_contents, only: [:new, :show, :create]
+
+  resources :waivers, only: [] do
+    collection do 
+      get :launch
+    end
+  end
 
   resources :access_tokens, except: [:show]
 

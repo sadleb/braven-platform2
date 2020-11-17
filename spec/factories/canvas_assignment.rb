@@ -39,7 +39,7 @@ FactoryBot.define do
       } 
     }
     muted { false }
-    html_url { "https://braven.instructure.com/courses/#{course_id}/#{id}" }
+    html_url { "https://braven.instructure.com/courses/#{course_id}/assignments/#{id}" }
     url { "https://braven.instructure.com/api/v1/courses/#{course_id}/external_tools/sessionless_launch?assignment_id=#{id}&launch_type=assessment" }
     has_overrides { false }
     overrides { nil }

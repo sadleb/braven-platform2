@@ -9,4 +9,16 @@ module BaseCoursesHelper
     end
   end
 
+  def has_waivers?
+    !!@canvas_assignment_info.canvas_waivers_url
+  end
+
+  def canvas_waivers_url
+    @canvas_assignment_info.canvas_waivers_url
+  end
+
+  def canvas_waivers_assignment_id
+    @canvas_assignment_info.canvas_waivers_assignment_id
+  end
+
 end
