@@ -1,6 +1,5 @@
 require 'lti_advantage_api'
 require 'lti_score'
-require 'uri'
 
 class ProjectSubmissionsController < ApplicationController
   include LtiHelper

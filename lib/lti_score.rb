@@ -36,6 +36,19 @@ class LtiScore
     generate(canvas_user_id, SUBMITTED, PENDING_MANUAL, submission_data)
   end
 
+  # Generates an LtiScore that represents a new Impact Survey submission
+  # where no manual grading is needed. The score is for full credit.
+  def self.new_survey_submission(canvas_user_id, submission_url)
+    submission_data = {
+      new_submission: true,
+      submission_type: 'basic_lti_launch',
+      submission_data: submission_url,
+    }
+    # The number 100 is arbitrary. This is just full credit: 100/100.
+    generate(canvas_user_id, SUBMITTED, FULLY_GRADED, submission_data, 100, 100)
+  end
+
+private
   # Params:
   # userId: The lti_user_id or the Canvas user_id
   # scoreGiven: The Current score received in the tool for this line item and user, scaled to

@@ -1,6 +1,7 @@
 <%= form_for [@base_course_survey_version, @survey_submission] do |f| %>
   <div class="bz-assignment">
     <%== @base_course_survey_version.survey_version.body %>
+    <input id="state" name='state' type='hidden' value="<%= params[:state] %>" />
     <div class="actions">
       <%= f.submit "Submit" %>
     </div>

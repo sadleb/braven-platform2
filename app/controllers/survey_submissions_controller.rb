@@ -1,3 +1,5 @@
+require 'lti_advantage_api'
+require 'lti_score'
 require 'nokogiri'
 
 class SurveySubmissionsController < ApplicationController
@@ -7,6 +9,9 @@ class SurveySubmissionsController < ApplicationController
   layout 'projects'
 
   nested_resource_of BaseCourseSurveyVersion
+
+  before_action :set_lti_launch
+  skip_before_action :verify_authenticity_token, only: [:create], if: :is_sessionless_lti_launch?
 
   def show
     authorize @survey_submission
@@ -18,6 +23,13 @@ class SurveySubmissionsController < ApplicationController
       base_course_survey_version: @base_course_survey_version,
     )
     authorize @survey_submission
+
+    # Only one submission per user and impact survey
+    previous_submission = SurveySubmission.where(
+      base_course_survey_version: @base_course_survey_version,
+      user: current_user,
+    ).first
+    redirect_to previous_submission if previous_submission
   end
 
   def create
@@ -27,10 +39,15 @@ class SurveySubmissionsController < ApplicationController
     )
     authorize @survey_submission
 
+    # Record in our DB first, so we have the data even if updating Canvas fails
     @survey_submission.save_answers!(params.permit(survey_answer_params).to_h)
 
-    # TODO: https://app.asana.com/0/1174274412967132/1198971448730205
-    # Update Canvas assignment with line item/submission
+    # Update Canvas
+    lti_score = LtiScore.new_survey_submission(
+      @current_user.canvas_user_id,
+      survey_submission_url(@survey_submission, protocol: 'https'),
+    )
+    LtiAdvantageAPI.new(@lti_launch).create_score(lti_score)
 
     redirect_to @survey_submission
   end

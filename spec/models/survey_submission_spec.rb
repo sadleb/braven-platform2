@@ -1,4 +1,6 @@
 require 'rails_helper'
+require 'lti_advantage_api'
+require 'lti_score'
 
 RSpec.describe SurveySubmission, type: :model do
   
@@ -38,17 +40,32 @@ RSpec.describe SurveySubmission, type: :model do
   end
 
   describe '#save_answers' do
-    let(:input_name) { 'test_input_name' }
-    let(:input_value) { 'This is my test survey response!' }
+    let(:survey_answers) { {
+      'input_name_1' => 'My Input 1',
+      'input_name_2' => 'My input 2',
+    } }
+
     let(:survey_submission) { create :survey_submission }
 
-    it 'adds answers to the submission' do
+    it 'creates new answers' do
       expect {
-        survey_submission.save_answers!({ input_name => input_value })
-      }.to change(SurveySubmissionAnswer, :count).by(1)
+        survey_submission.save_answers!(survey_answers)
+      }.to change(SurveySubmissionAnswer, :count).by(survey_answers.length)
+    end
 
-      expect(survey_submission.answers.first.input_name).to eq(input_name)
-      expect(survey_submission.answers.first.input_value).to eq(input_value)
+    it 'attaches the answers to the submission' do
+      survey_submission.save_answers!(survey_answers)
+      expect(survey_submission.answers.length).to eq(survey_answers.length)
+      survey_answers.each do |name, value|
+          answer_saved = false;
+          survey_submission.answers.each do |answer|
+            if answer.input_name == name && answer.input_value == value
+              answer_saved = true;
+              break;
+            end
+          end
+          expect(answer_saved).to eq(true)
+      end
     end
   end
 end

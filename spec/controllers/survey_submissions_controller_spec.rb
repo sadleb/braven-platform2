@@ -41,9 +41,32 @@ RSpec.describe SurveySubmissionsController, type: :controller do
       )
       expect(response).to be_successful
     end
+
+    it 'redirects to #show if there is a previous submission' do
+      SurveySubmission.create!(
+        user: user,
+        base_course_survey_version: course_survey_version,
+      )
+      get(
+        :new,
+        params: {
+          base_course_survey_version_id: course_survey_version.id,
+          type: 'BaseCourseSurveyVersion'
+        },
+      )
+      expect(response).to redirect_to survey_submission_path(SurveySubmission.last)
+    end
   end
 
   describe 'POST #create' do
+    let(:lti_advantage_api) { double(LtiAdvantageAPI) }
+
+    before(:each) do
+      allow(LtiAdvantageAPI).to receive(:new).and_return(lti_advantage_api)
+      allow(lti_advantage_api).to receive(:create_score)
+      allow(LtiScore).to receive(:new_survey_submission)
+    end
+
     subject {
       post(
         :create,
@@ -65,13 +88,15 @@ RSpec.describe SurveySubmissionsController, type: :controller do
       expect { subject }.to change(SurveySubmission, :count).by(1)
     end
 
-    it 'creates a response' do
+    it 'saves the submitted answer' do
       expect { subject }.to change(SurveySubmissionAnswer, :count).by(1)
     end
 
-    xit 'updates the Canvas assignment' do
-        # TODO: https://app.asana.com/0/1174274412967132/1198971448730205
-      # Update Canvas assignment with line item/submission
+    it 'updates the Canvas assignment' do
+      subject
+      expect(lti_advantage_api)
+        .to have_received(:create_score)
+        .once
     end
   end
 end
