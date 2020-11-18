@@ -6,7 +6,7 @@ const NUM_OPTIONS = 10;
 export default class InsertNumericalSelectorCommand extends Command {
   execute( ) {
     this.editor.model.change( writer => {
-      const inputName = this.editor.plugins.get('UniqueId').getNewId();
+      const inputName = this.editor.plugins.get('UniqueId').getNewName();
       const selector = createSelector( writer, inputName );
       this.editor.model.insertContent( selector );
       writer.setSelection( selector, 'on' );

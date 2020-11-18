@@ -59,7 +59,7 @@ export default class ContentCommonEditing extends Plugin {
 
         schema.register( 'select', {
             isObject: true,
-            allowAttributes: [ 'id', 'aria-label', 'name' ],
+            allowAttributes: [ 'aria-label', 'name' ],
             allowIn: [ '$root' ],
         } );
 
@@ -222,7 +222,6 @@ export default class ContentCommonEditing extends Plugin {
             model: ( viewElement, { writer } ) => {
                 return writer.createElement( 'select', {
                     'name': viewElement.getAttribute('name'),
-                    'id': viewElement.getAttribute('id'),
                     'aria-label': viewElement.getAttribute('aria-label') || '',
                 } );
             }
@@ -232,7 +231,6 @@ export default class ContentCommonEditing extends Plugin {
             view: ( modelElement, { writer } ) => {
                 const select = writer.createContainerElement( 'select', {
                     'name': modelElement.getAttribute('name'),
-                    'id': modelElement.getAttribute('id'),
                     'aria-label': modelElement.getAttribute('aria-label') || '',
                 } );
                 return select;
@@ -244,7 +242,6 @@ export default class ContentCommonEditing extends Plugin {
                 // Note: using a ContainerElement because toWidget can only run on ContainerElements
                 const select = writer.createContainerElement( 'select', {
                     'name': modelElement.getAttribute('name'),
-                    'id': modelElement.getAttribute('id'),
                     'aria-label': modelElement.getAttribute('aria-label') || '',
                 } );
                 return toWidget( select, writer, { 'label': 'dropdown' } );
