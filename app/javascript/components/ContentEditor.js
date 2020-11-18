@@ -370,48 +370,61 @@ class ContentEditor extends Component {
                         return (
                             <>
                                 <h4>Text Input</h4>
-                                <input
-                                    type='text'
-                                    id='input-label'
-                                    value={this.state['selectedElement'].getAttribute('aria-label')}
-                                    onChange={( evt ) => {
-                                        this.editor.execute( 'setAttributes', {
-                                            'aria-label': evt.target.value,
-                                        } );
-                                    }}
-                                />
-                                <label htmlFor='input-label'>Label (for screenreaders)</label>
-                                <br/>
-                                <input
-                                    type='text'
-                                    id='input-placeholder'
-                                    value={this.state['selectedElement'].getAttribute('placeholder')}
-                                    onChange={( evt ) => {
-                                        this.editor.execute( 'setAttributes', {
-                                            'placeholder': evt.target.value,
-                                        } );
-                                    }}
-                                />
-                                <label htmlFor='input-placeholder'>Placeholder</label>
+                                <div className="form-group">
+                                    <label htmlFor='input-label'>Label (for screenreaders)</label>
+                                    <input
+                                        type='text'
+                                        id='input-label'
+                                        value={this.state['selectedElement'].getAttribute('aria-label')}
+                                        onChange={( evt ) => {
+                                            this.editor.execute( 'setAttributes', {
+                                                'aria-label': evt.target.value,
+                                            } );
+                                        }}
+                                        className='form-control'
+                                        aria-describedby='label-help'
+                                    />
+                                    <small id='label-help' className='form-text'>
+                                        <a href="https://www.aditus.io/aria/aria-label/#when-to-use" target="_blank">When to use (opens in new tab)</a>
+                                    </small>
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor='input-placeholder'>Placeholder</label>
+                                    <input
+                                        type='text'
+                                        id='input-placeholder'
+                                        value={this.state['selectedElement'].getAttribute('placeholder')}
+                                        onChange={( evt ) => {
+                                            this.editor.execute( 'setAttributes', {
+                                                'placeholder': evt.target.value,
+                                            } );
+                                        }}
+                                        className='form-control'
+                                    />
+                                </div>
                             </>
                         );
                     } else if ( modelElement.startsWith('heading') ) {
                         return (
                             <>
                                 <h4>Heading</h4>
-                                <input
-                                    type='text'
-                                    id='input-heading-id'
-                                    value={'#' + this.state['selectedElement'].getAttribute('id')}
-                                    disabled={ true }
-                                />
-                                <label htmlFor='input-heading-id'>Heading Anchor</label>
+                                <div className="form-group">
+                                    <label htmlFor='input-heading-id'>Heading Anchor</label>
+                                    <input
+                                        type='text'
+                                        id='input-heading-id'
+                                        value={'#' + this.state['selectedElement'].getAttribute('id')}
+                                        disabled={ true }
+                                        className='form-control'
+                                        aria-describedby='heading-help'
+                                    />
+                                    <small id='heading-help' className='form-text'>Tip: Triple-click the heading anchor to select it all at once.</small>
+                                </div>
                                 <p>To link to this heading:</p>
                                 <ol>
                                     <li>Add a new link (or edit an existing one),</li>
                                     <li>Copy the <strong>Heading Anchor</strong> above and use it as the link URL.</li>
                                 </ol>
-                                <p><small>Tip: Triple-click the heading anchor to select it all at once.</small></p>
                             </>
                         );
                     } else if ( ['radioDiv' ].includes( modelElement ) ) {
@@ -419,14 +432,17 @@ class ContentEditor extends Component {
                         return (
                             <>
                                 <h4>Input Value</h4>
-                                <input
-                                    id='input-value'
-                                    value={radioInput.getAttribute('value')}
-                                    onChange={( evt ) => {
-                                        this.editor.execute( 'setAttributes', { 'value': evt.target.value }, radioInput );
-                                    }}
-                                />
-                                <label htmlFor='input-value'>Value</label>
+                                <div className="form-group">
+                                    <label htmlFor='input-value'>Value</label>
+                                    <input
+                                        id='input-value'
+                                        value={radioInput.getAttribute('value')}
+                                        onChange={( evt ) => {
+                                            this.editor.execute( 'setAttributes', { 'value': evt.target.value }, radioInput );
+                                        }}
+                                        className='form-control'
+                                    />
+                                </div>
                             </>
                         );
                     }
