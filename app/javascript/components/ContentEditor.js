@@ -372,10 +372,24 @@ class ContentEditor extends Component {
                                 <h4>Text Input</h4>
                                 <input
                                     type='text'
+                                    id='input-label'
+                                    value={this.state['selectedElement'].getAttribute('aria-label')}
+                                    onChange={( evt ) => {
+                                        this.editor.execute( 'setAttributes', {
+                                            'aria-label': evt.target.value,
+                                        } );
+                                    }}
+                                />
+                                <label htmlFor='input-label'>Label (for screenreaders)</label>
+                                <br/>
+                                <input
+                                    type='text'
                                     id='input-placeholder'
                                     value={this.state['selectedElement'].getAttribute('placeholder')}
                                     onChange={( evt ) => {
-                                        this.editor.execute( 'setAttributes', { 'placeholder': evt.target.value } );
+                                        this.editor.execute( 'setAttributes', {
+                                            'placeholder': evt.target.value,
+                                        } );
                                     }}
                                 />
                                 <label htmlFor='input-placeholder'>Placeholder</label>

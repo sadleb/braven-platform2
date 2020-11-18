@@ -48,13 +48,13 @@ export default class ContentCommonEditing extends Plugin {
         // Shared inputs.
         schema.register( 'textInput', {
             isObject: true,
-            allowAttributes: [ 'type', 'placeholder', 'name' ],
+            allowAttributes: [ 'type', 'placeholder', 'aria-label', 'name' ],
             allowIn: [ '$root', 'industrySelectorContainer' ],
         } );
 
         schema.register( 'textArea', {
             isObject: true,
-            allowAttributes: [ 'placeholder', 'name' ],
+            allowAttributes: [ 'placeholder', 'aria-label', 'name' ],
             allowIn: [ '$root' ],
         } );
 
@@ -66,7 +66,7 @@ export default class ContentCommonEditing extends Plugin {
 
         schema.register( 'select', {
             isObject: true,
-            allowAttributes: [ 'id', 'name' ],
+            allowAttributes: [ 'id', 'aria-label', 'name' ],
             allowIn: [ '$root', 'industrySelectorContainer' ],
         } );
 
@@ -160,6 +160,7 @@ export default class ContentCommonEditing extends Plugin {
                 return writer.createElement( 'textInput', {
                     'name': viewElement.getAttribute('name'),
                     'placeholder': viewElement.getAttribute('placeholder') || '',
+                    'aria-label': viewElement.getAttribute('aria-label') || '',
                 } );
             }
         } );
@@ -170,6 +171,7 @@ export default class ContentCommonEditing extends Plugin {
                     'type': 'text',
                     'name': modelElement.getAttribute('name'),
                     'placeholder': modelElement.getAttribute('placeholder') || '',
+                    'aria-label': modelElement.getAttribute('aria-label') || '',
                 } );
                 return input;
             }
@@ -182,8 +184,9 @@ export default class ContentCommonEditing extends Plugin {
                     'type': 'text',
                     'name': modelElement.getAttribute('name'),
                     'placeholder': modelElement.getAttribute('placeholder') || '',
+                    'aria-label': modelElement.getAttribute('aria-label') || '',
                 } );
-                return toWidget( input, writer );
+                return toWidget( input, writer, { 'label': 'text input' } );
             }
         } );
 
@@ -196,6 +199,7 @@ export default class ContentCommonEditing extends Plugin {
                 return writer.createElement( 'textArea', {
                     'name': viewElement.getAttribute('name'),
                     'placeholder': viewElement.getAttribute('placeholder') || '',
+                    'aria-label': viewElement.getAttribute('aria-label') || '',
                 } );
             }
         } );
@@ -205,6 +209,7 @@ export default class ContentCommonEditing extends Plugin {
                 const textarea = writer.createEmptyElement( 'textarea', {
                     'name': modelElement.getAttribute('name'),
                     'placeholder': modelElement.getAttribute('placeholder') || '',
+                    'aria-label': modelElement.getAttribute('aria-label') || '',
                 } );
                 return textarea;
             }
@@ -212,11 +217,13 @@ export default class ContentCommonEditing extends Plugin {
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'textArea',
             view: ( modelElement, { writer } ) => {
+                // Note: using a ContainerElement because toWidget can only run on ContainerElements
                 const textarea = writer.createContainerElement( 'textarea', {
                     'name': modelElement.getAttribute('name'),
                     'placeholder': modelElement.getAttribute('placeholder') || '',
+                    'aria-label': modelElement.getAttribute('aria-label') || '',
                 } );
-                return toWidget( textarea, writer );
+                return toWidget( textarea, writer, { 'label': 'textarea' } );
             }
         } );
 
@@ -266,6 +273,7 @@ export default class ContentCommonEditing extends Plugin {
                 return writer.createElement( 'select', {
                     'name': viewElement.getAttribute('name'),
                     'id': viewElement.getAttribute('id'),
+                    'aria-label': viewElement.getAttribute('aria-label') || '',
                 } );
             }
         } );
@@ -275,6 +283,7 @@ export default class ContentCommonEditing extends Plugin {
                 const select = writer.createContainerElement( 'select', {
                     'name': modelElement.getAttribute('name'),
                     'id': modelElement.getAttribute('id'),
+                    'aria-label': modelElement.getAttribute('aria-label') || '',
                 } );
                 return select;
             }
@@ -286,8 +295,9 @@ export default class ContentCommonEditing extends Plugin {
                 const select = writer.createContainerElement( 'select', {
                     'name': modelElement.getAttribute('name'),
                     'id': modelElement.getAttribute('id'),
+                    'aria-label': modelElement.getAttribute('aria-label') || '',
                 } );
-                return toWidget( select, writer );
+                return toWidget( select, writer, { 'label': 'dropdown' } );
             }
         } );
 
@@ -302,22 +312,13 @@ export default class ContentCommonEditing extends Plugin {
                 } );
             }
         } );
-        conversion.for( 'dataDowncast' ).elementToElement( {
+        conversion.for( 'downcast' ).elementToElement( {
             model: 'selectOption',
             view: ( modelElement, { writer } ) => {
                 const option = writer.createContainerElement( 'option', {
                     'value': modelElement.getAttribute('value'),
                 } );
                 return option;
-            }
-        } );
-        conversion.for( 'editingDowncast' ).elementToElement( {
-            model: 'selectOption',
-            view: ( modelElement, { writer } ) => {
-                const option = writer.createContainerElement( 'option', {
-                    'value': modelElement.getAttribute('value'),
-                } );
-                return toWidget( option, writer );
             }
         } );
 
@@ -345,6 +346,6 @@ export default class ContentCommonEditing extends Plugin {
         // See https://github.com/ckeditor/ckeditor5/issues/6308#issuecomment-590243325
         // and https://ckeditor.com/docs/ckeditor5/latest/api/module_engine_conversion_conversion-Conversion.html#function-attributeToAttribute
         conversion.attributeToAttribute( { model: 'placeholder', view: 'placeholder' } );
-        conversion.attributeToAttribute( { model: 'src', view: 'src' } );
+        conversion.attributeToAttribute( { model: 'aria-label', view: 'aria-label' } );
     }
 }

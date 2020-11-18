@@ -23,6 +23,8 @@ function createTextArea( writer ) {
     const uniqueId = new UniqueId();
     const textArea = writer.createElement( 'textArea', {
         'name': uniqueId.getNewName(),
+        'placeholder': '',
+        'aria-label': '',
     } );
     return textArea;
 }

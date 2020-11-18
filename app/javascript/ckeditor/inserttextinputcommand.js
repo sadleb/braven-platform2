@@ -23,6 +23,8 @@ function createTextInput( writer ) {
     const uniqueId = new UniqueId();
     const textInput = writer.createElement( 'textInput', {
         'name': uniqueId.getNewName(),
+        'placeholder': '',
+        'aria-label': '',
     } );
     return textInput;
 }

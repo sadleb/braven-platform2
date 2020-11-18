@@ -3,11 +3,11 @@ import Command from '@ckeditor/ckeditor5-core/src/command';
 // These retained data IDs come from the corresponding industry selectors in the "Design Your Career" project in Portal:
 // https://portal.bebraven.org/courses/1/assignments/704
 // We're using the same IDs so we can support existing Periscope dashboards.
-const SELECTOR_RETAINED_DATA_IDS = [
+const SELECTOR_NAMES = [
   'dyc-industry-1',
   'dyc-industry-2',
 ];
-const TEXTINPUT_RETAINED_DATA_ID = 'dyc-industry-freeform-other';
+const TEXTINPUT_NAME = 'dyc-industry-freeform-other';
 
 export default class InsertIndustrySelectorCommand extends Command {
   execute( ) {
@@ -34,11 +34,11 @@ function createIndustrySelectorContainer( writer ) {
   const textarea_prompt = "If your industry of interest doesn't appear above, please enter it here:";
 
   writer.append( createParagraph( writer, selector_prompt ), container );
-  writer.append( createSelector( writer, SELECTOR_RETAINED_DATA_IDS[0] ), container );
+  writer.append( createSelector( writer, SELECTOR_NAMES[0] ), container );
   writer.append( createParagraph( writer, 'and' ), container );
-  writer.append( createSelector( writer, SELECTOR_RETAINED_DATA_IDS[1] ), container );
+  writer.append( createSelector( writer, SELECTOR_NAMES[1] ), container );
   writer.append( createParagraph( writer, textarea_prompt), container );
-  writer.append( writer.createElement( 'textInput', { 'name': TEXTINPUT_RETAINED_DATA_ID } ), container );
+  writer.append( writer.createElement( 'textInput', { 'name': TEXTINPUT_NAME } ), container );
 
   return container;
 }
@@ -49,8 +49,11 @@ function createParagraph( writer, text ) {
   return paragraph;
 }
 
-function createSelector( writer, retained_data_id ) {
-  const selector = writer.createElement( 'select', { 'name': retained_data_id } );
+function createSelector( writer, name ) {
+  const selector = writer.createElement( 'select', {
+    'name': name,
+    'aria-label': 'Industry',
+  } );
   const options = createOptions( writer );
 
   writer.append( options, selector );
