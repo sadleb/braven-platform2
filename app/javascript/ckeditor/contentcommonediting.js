@@ -22,6 +22,9 @@ export default class ContentCommonEditing extends Plugin {
         this.editor.commands.add( 'insertTextArea', new InsertTextAreaCommand( this.editor ) );
         this.editor.commands.add( 'insertIndustrySelector', new InsertIndustrySelectorCommand( this.editor ) );
         this.editor.commands.add( 'insertNumericalSelector', new InsertNumericalSelectorCommand( this.editor) );
+
+        // Reminder: when adding a new element with unique `name` or `id`, be sure to look at
+        // inputuniqueattributeediting.js too!
     }
 
     _defineSchema() {

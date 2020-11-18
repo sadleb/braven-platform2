@@ -43,6 +43,7 @@ import HorizontalLine from '@ckeditor/ckeditor5-horizontal-line/src/horizontalli
 import AttributeEditing from '../ckeditor/attributeediting';
 import UniqueId from '../ckeditor/uniqueid';
 import ElementIdEditing from '../ckeditor/elementidediting';
+import InputUniqueAttributeEditing from '../ckeditor/inputuniqueattributeediting';
 import ContentCommonEditing from '../ckeditor/contentcommonediting';
 import RadioQuestionEditing from '../ckeditor/radioquestionediting';
 import PortalImageEditing from '../ckeditor/portalimageediting';
@@ -92,6 +93,7 @@ BalloonEditor.builtinPlugins = [
     AttributeEditing,
     UniqueId,
     ElementIdEditing,
+    InputUniqueAttributeEditing,
     ContentCommonEditing,
     RadioQuestionEditing,
     PortalImageEditing,
