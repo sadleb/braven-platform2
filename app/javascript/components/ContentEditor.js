@@ -28,6 +28,7 @@ import ImageResize from '@ckeditor/ckeditor5-image/src/imageresize';
 import Indent from '@ckeditor/ckeditor5-indent/src/indent';
 import Italic from '@ckeditor/ckeditor5-basic-styles/src/italic';
 import Link from '@ckeditor/ckeditor5-link/src/link';
+import LinkImage from '@ckeditor/ckeditor5-link/src/linkimage';
 import List from '@ckeditor/ckeditor5-list/src/list';
 import MediaEmbed from '@ckeditor/ckeditor5-media-embed/src/mediaembed';
 import Paragraph from '@ckeditor/ckeditor5-paragraph/src/paragraph';
@@ -46,9 +47,6 @@ import ContentCommonEditing from '../ckeditor/contentcommonediting';
 import RadioQuestionEditing from '../ckeditor/radioquestionediting';
 import PortalImageEditing from '../ckeditor/portalimageediting';
 import WatchOutBoxEditing from '../ckeditor/watchoutboxediting';
-
-import Tooltip from '../ckeditor/tooltip';
-import ImageLink from '../ckeditor/imagelink';
 
 // React components to render the list of content parts and the content part preview.
 import CommandButton from './CommandButton';
@@ -80,8 +78,7 @@ BalloonEditor.builtinPlugins = [
     Indent,
     Italic,
     Link,
-    Tooltip,
-    ImageLink,
+    LinkImage,
     List,
     MediaEmbed,
     Paragraph,
@@ -127,7 +124,6 @@ BalloonEditor.defaultConfig = {
             'bold',
             'italic',
             'link',
-            'addTooltip',
             'bulletedList',
             'numberedList',
             '|',
@@ -148,6 +144,8 @@ BalloonEditor.defaultConfig = {
             'imageStyle:side',
             '|',
             'imageTextAlternative',
+            '|',
+            'linkImage',
         ]
     },
     heading: {
@@ -513,7 +511,7 @@ class ContentEditor extends Component {
                 key={key}
                 enabled={this.state.enabledCommands.includes(key)}
                 onClick={( id ) => {
-                    this.editor.execute( key, '' );
+                    this.editor.execute( key );
                     this.editor.editing.view.focus();
                 }}
                 onClickDisabled={() => this.editor.editing.view.focus()}

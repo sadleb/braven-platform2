@@ -54,12 +54,12 @@ export default class RadioQuestionEditing extends Plugin {
     /**
      * Example valid structure:
      *
-     * <questionFieldset>
+     * <fieldset>
      *   <radioDiv>
      *     <radioInput/>
      *     <radioLabel>$text</radioLabel>
      *   </radioDiv>
-     * </questionFieldset>
+     * </fieldset>
      */
     _defineSchema() {
         const schema = this.editor.model.schema;
@@ -67,7 +67,7 @@ export default class RadioQuestionEditing extends Plugin {
         schema.register( 'radioDiv', {
             isLimit: true,
             isSelectable: true,
-            allowIn: [ 'questionFieldset' ]
+            allowIn: [ 'fieldset' ]
         } );
 
         schema.register( 'radioInput', {

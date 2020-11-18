@@ -21,14 +21,14 @@ export default class InsertIndustrySelectorCommand extends Command {
   refresh() {
     const model = this.editor.model;
     const selection = model.document.selection;
-    const allowedIn = model.schema.findAllowedParent( selection.getFirstPosition(), 'industrySelectorContainer' );
+    const allowedIn = model.schema.findAllowedParent( selection.getFirstPosition(), 'fieldset' );
 
     this.isEnabled = allowedIn !== null;
   }
 }
 
 function createIndustrySelectorContainer( writer ) {
-  const container = writer.createElement( 'industrySelectorContainer' );
+  const container = writer.createElement( 'fieldset' );
 
   const selector_prompt = 'Which two of these industries best fit your interests and goals:';
   const textarea_prompt = "If your industry of interest doesn't appear above, please enter it here:";

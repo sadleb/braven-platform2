@@ -11,7 +11,7 @@ export default class InsertRadioQuestionCommand extends Command {
     refresh() {
         const model = this.editor.model;
         const selection = model.document.selection;
-        const allowedIn = model.schema.findAllowedParent( selection.getFirstPosition(), 'questionFieldset' );
+        const allowedIn = model.schema.findAllowedParent( selection.getFirstPosition(), 'fieldset' );
 
         this.isEnabled = allowedIn !== null;
     }
@@ -24,7 +24,7 @@ function createRadioQuestion( writer ) {
     const radioFirstValue = uniqueId.getNewValue();
     const radioFirstID = uniqueId.getNewId();
 
-    const questionFieldset = writer.createElement( 'questionFieldset', {'data-radio-group': radioGroup} );
+    const fieldset = writer.createElement( 'fieldset', {'data-radio-group': radioGroup} );
     const radioDiv = writer.createElement( 'radioDiv' );
     const radioInput = writer.createElement( 'radioInput', {
         name: radioGroup,
@@ -33,12 +33,12 @@ function createRadioQuestion( writer ) {
     } );
     const radioLabel = writer.createElement( 'radioLabel', { 'for': radioFirstID } );
 
-    writer.append( radioDiv, questionFieldset );
+    writer.append( radioDiv, fieldset );
     writer.append( radioInput, radioDiv );
     writer.append( radioLabel, radioDiv );
 
     // Add text to empty editables where placeholders don't work.
     writer.insertText( 'Radio label', radioLabel );
 
-    return questionFieldset;
+    return fieldset;
 }

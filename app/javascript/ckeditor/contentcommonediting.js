@@ -6,7 +6,6 @@ import List from '@ckeditor/ckeditor5-list/src/list';
 import InsertIndustrySelectorCommand from './insertindustryselectorcommand';
 import InsertNumericalSelectorCommand from './insertnumericalselectorcommand';
 import InsertTextInputCommand from './inserttextinputcommand';
-import InsertFileUploadCommand from './insertfileuploadcommand';
 import InsertTextAreaCommand from './inserttextareacommand';
 import { getNamedChildOrSibling } from './utils';
 
@@ -19,29 +18,26 @@ export default class ContentCommonEditing extends Plugin {
         this._defineSchema();
         this._defineConverters();
 
-        // Individial elements.
         this.editor.commands.add( 'insertTextInput', new InsertTextInputCommand( this.editor ) );
         this.editor.commands.add( 'insertTextArea', new InsertTextAreaCommand( this.editor ) );
         this.editor.commands.add( 'insertIndustrySelector', new InsertIndustrySelectorCommand( this.editor ) );
         this.editor.commands.add( 'insertNumericalSelector', new InsertNumericalSelectorCommand( this.editor) );
-        // Blocks.
-        this.editor.commands.add( 'insertFileUpload', new InsertFileUploadCommand( this.editor ) );
     }
 
     _defineSchema() {
         const schema = this.editor.model.schema;
 
         // Shared elements.
-        schema.register( 'questionFieldset', {
+        schema.register( 'fieldset', {
             isObject: true,
             allowIn: '$root',
             allowAttributes: [ 'data-radio-group' ],
+            allowContentOf: '$root',
         } );
 
-        // Matrix question table.
         schema.register( 'legend', {
             isLimit: true,
-            allowIn: 'questionFieldset',
+            allowIn: 'fieldset',
             allowContentOf: '$block'
         } );
 
@@ -49,7 +45,7 @@ export default class ContentCommonEditing extends Plugin {
         schema.register( 'textInput', {
             isObject: true,
             allowAttributes: [ 'type', 'placeholder', 'aria-label', 'name' ],
-            allowIn: [ '$root', 'industrySelectorContainer' ],
+            allowIn: [ '$root' ],
         } );
 
         schema.register( 'textArea', {
@@ -58,16 +54,10 @@ export default class ContentCommonEditing extends Plugin {
             allowIn: [ '$root' ],
         } );
 
-        schema.register( 'fileUpload', {
-            isObject: true,
-            allowAttributes: [ 'type' ],
-            allowIn: [ '$root' ],
-        } );
-
         schema.register( 'select', {
             isObject: true,
             allowAttributes: [ 'id', 'aria-label', 'name' ],
-            allowIn: [ '$root', 'industrySelectorContainer' ],
+            allowIn: [ '$root' ],
         } );
 
         schema.register( 'selectOption', {
@@ -76,12 +66,6 @@ export default class ContentCommonEditing extends Plugin {
             allowIn: [ 'select' ],
             allowContentOf: '$block'
         } );
-
-        schema.register( 'industrySelectorContainer', {
-            isObject: true,
-            allowIn: '$root',
-            allowContentOf: [ '$root', 'select', 'textInput' ],
-        });
     }
 
     _defineConverters() {
@@ -89,19 +73,19 @@ export default class ContentCommonEditing extends Plugin {
         const conversion = editor.conversion;
         const { editing, data, model } = editor;
 
-        // <questionFieldset> converters
+        // <fieldset> converters
         conversion.for( 'upcast' ).elementToElement( {
             view: {
                 name: 'fieldset'
             },
             model: ( viewElement, { writer } ) => {
-                return writer.createElement( 'questionFieldset', {
+                return writer.createElement( 'fieldset', {
                     'data-radio-group': viewElement.getAttribute( 'data-radio-group' ),
                 } );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
-            model: 'questionFieldset',
+            model: 'fieldset',
             view: ( modelElement, { writer } ) => {
                 return writer.createEditableElement( 'fieldset', {
                     'data-radio-group': modelElement.getAttribute( 'data-radio-group' ),
@@ -109,12 +93,12 @@ export default class ContentCommonEditing extends Plugin {
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
-            model: 'questionFieldset',
+            model: 'fieldset',
             view: ( modelElement, { writer } ) => {
                 const fieldset = writer.createContainerElement( 'fieldset', {
                     'data-radio-group': modelElement.getAttribute( 'data-radio-group' ),
                 } );
-                return toWidget( fieldset, writer );
+                return toWidget( fieldset, writer, { 'label': 'fieldset' } );
             }
         } );
 
@@ -227,43 +211,6 @@ export default class ContentCommonEditing extends Plugin {
             }
         } );
 
-        // <fileUpload> converters
-        conversion.for( 'upcast' ).elementToElement( {
-            view: {
-                name: 'input',
-                attributes: {
-                    'type': 'file',
-                }
-            },
-            model: ( viewElement, { writer } ) => {
-                return writer.createElement( 'fileUpload', {
-                    'name': viewElement.getAttribute('name'),
-                } );
-            }
-        } );
-        conversion.for( 'dataDowncast' ).elementToElement( {
-            model: 'fileUpload',
-            view: ( modelElement, { writer } ) => {
-                const input = writer.createEmptyElement( 'input', {
-                    'type': 'file',
-                    'name': modelElement.getAttribute('name'),
-                } );
-                return input;
-            }
-        } );
-        conversion.for( 'editingDowncast' ).elementToElement( {
-            model: 'fileUpload',
-            view: ( modelElement, { writer } ) => {
-                // Note: using a ContainerElement because toWidget can only run on ContainerElements
-                const input = writer.createContainerElement( 'input', {
-                    'type': 'file',
-                    'disabled': '',
-                    'name': modelElement.getAttribute('name'),
-                } );
-                return toWidget( input, writer, {'label': 'test'} );
-            }
-        } );
-
         // <select> converters
         conversion.for( 'upcast' ).elementToElement( {
             view: {
@@ -320,22 +267,6 @@ export default class ContentCommonEditing extends Plugin {
                 } );
                 return option;
             }
-        } );
-
-        // <industrySelectorContainer> converters
-        conversion.for( 'upcast' ).elementToElement( {
-            view: {
-                name: 'div',
-                classes: 'industry-selector-container',
-            },
-            model: 'industrySelectorContainer',
-        } );
-        conversion.for( 'downcast' ).elementToElement( {
-            model: 'industrySelectorContainer',
-            view: {
-                name: 'div',
-                classes: 'industry-selector-container',
-            },
         } );
 
         // Shared attribute converters.
