@@ -38,7 +38,7 @@ function createIndustrySelectorContainer( writer ) {
   writer.append( createParagraph( writer, 'and' ), container );
   writer.append( createSelector( writer, SELECTOR_RETAINED_DATA_IDS[1] ), container );
   writer.append( createParagraph( writer, textarea_prompt), container );
-  writer.append( writer.createElement( 'textInput', { 'data-bz-retained': TEXTINPUT_RETAINED_DATA_ID } ), container );
+  writer.append( writer.createElement( 'textInput', { 'name': TEXTINPUT_RETAINED_DATA_ID } ), container );
 
   return container;
 }
@@ -50,7 +50,7 @@ function createParagraph( writer, text ) {
 }
 
 function createSelector( writer, retained_data_id ) {
-  const selector = writer.createElement( 'select', { 'data-bz-retained': retained_data_id } );
+  const selector = writer.createElement( 'select', { 'name': retained_data_id } );
   const options = createOptions( writer );
 
   writer.append( options, selector );

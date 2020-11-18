@@ -8,8 +8,8 @@ beforeEach(() => {
     document.head.innerHTML = '<meta name="state" content="test">';
     document.body.innerHTML =
         '<div id="javascript_variables" data-project-lti-id="1"></div>' +
-        '<input type="text" data-bz-retained="test-id">' +
-        '<textarea data-bz-retained="test-id-2"></textarea>';
+        '<input type="text" name="test-id">' +
+        '<textarea name="test-id-2"></textarea>';
 });
 
 test('set input value to matching statement response', () => {
@@ -48,7 +48,7 @@ test('set input value to matching statement response', () => {
     // Test.
     expect(xapi_assignment.lrs.queryStatements.mock.calls.length).toBe(1);
     expect(xapi_assignment.lrs.moreStatements.mock.calls.length).toBe(0);
-    expect(document.body.querySelector('[data-bz-retained="test-id"]').value).toContain('test value');
+    expect(document.body.querySelector('[name="test-id"]').value).toContain('test value');
 });
 
 test('uses the first (most recent) statement', () => {
@@ -111,7 +111,7 @@ test('uses the first (most recent) statement', () => {
     // Test.
     expect(xapi_assignment.lrs.queryStatements.mock.calls.length).toBe(1);
     expect(xapi_assignment.lrs.moreStatements.mock.calls.length).toBe(0);
-    expect(document.body.querySelector('[data-bz-retained="test-id"]').value).toContain('latest test value');
+    expect(document.body.querySelector('[name="test-id"]').value).toContain('latest test value');
 });
 
 test('uses the correct matching statement when there are multiple inputs', () => {
@@ -186,8 +186,8 @@ test('uses the correct matching statement when there are multiple inputs', () =>
     // Test.
     expect(xapi_assignment.lrs.queryStatements.mock.calls.length).toBe(1);
     expect(xapi_assignment.lrs.moreStatements.mock.calls.length).toBe(0);
-    expect(document.body.querySelector('[data-bz-retained="test-id"]').value).toContain('latest test value');
-    expect(document.body.querySelector('[data-bz-retained="test-id-2"]').value).toContain('latest test value for the textarea');
+    expect(document.body.querySelector('[name="test-id"]').value).toContain('latest test value');
+    expect(document.body.querySelector('[name="test-id-2"]').value).toContain('latest test value for the textarea');
 });
 
 test('fetches more pages if needed', () => {
@@ -282,8 +282,8 @@ test('fetches more pages if needed', () => {
     // Test.
     expect(xapi_assignment.lrs.queryStatements.mock.calls.length).toBe(1);
     expect(xapi_assignment.lrs.moreStatements.mock.calls.length).toBe(2);
-    expect(document.body.querySelector('[data-bz-retained="test-id"]').value).toContain('test value');
-    expect(document.body.querySelector('[data-bz-retained="test-id-2"]').value).toContain('textarea test value third page');
+    expect(document.body.querySelector('[name="test-id"]').value).toContain('test value');
+    expect(document.body.querySelector('[name="test-id-2"]').value).toContain('textarea test value third page');
 });
 
 test('inputs are set to read-only in TA view', () => {
@@ -291,8 +291,8 @@ test('inputs are set to read-only in TA view', () => {
     document.head.innerHTML = '<meta name="state" content="test">';
     document.body.innerHTML =
         '<div id="javascript_variables" data-project-lti-id="1" data-user-override-id="10"></div>' +
-        '<input type="text" data-bz-retained="test-id">' +
-        '<textarea data-bz-retained="test-id-2"></textarea>';
+        '<input type="text" name="test-id">' +
+        '<textarea name="test-id-2"></textarea>';
     // Note: this has side-effects, both from top-level code and from code run during in the
     // ready callback.
     const xapi_assignment = require('packs/xapi_assignment');
@@ -300,8 +300,8 @@ test('inputs are set to read-only in TA view', () => {
     document.dispatchEvent(new Event('DOMContentLoaded'));
 
     // Test.
-    expect(document.body.querySelector('[data-bz-retained="test-id"]').disabled).toBe(true);
-    expect(document.body.querySelector('[data-bz-retained="test-id-2"]').disabled).toBe(true);
+    expect(document.body.querySelector('[name="test-id"]').disabled).toBe(true);
+    expect(document.body.querySelector('[name="test-id-2"]').disabled).toBe(true);
 });
 
 test('uses the overridden student ID if it is passed in', () => {
@@ -309,8 +309,8 @@ test('uses the overridden student ID if it is passed in', () => {
     document.head.innerHTML = '<meta name="state" content="test">';
     document.body.innerHTML =
         '<div id="javascript_variables" data-project-lti-id="1" data-user-override-id="10"></div>' +
-        '<input type="text" data-bz-retained="test-id">' +
-        '<textarea data-bz-retained="test-id-2"></textarea>';
+        '<input type="text" name="test-id">' +
+        '<textarea name="test-id-2"></textarea>';
     // Note: this has side-effects, both from top-level code and from code run during in the
     // ready callback.
     const xapi_assignment = require('packs/xapi_assignment');

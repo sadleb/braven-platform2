@@ -73,7 +73,7 @@ export default class RadioQuestionEditing extends Plugin {
         schema.register( 'radioInput', {
             isInline: true,
             allowIn: [ 'radioDiv' ],
-            allowAttributes: [ 'id', 'name', 'value', 'data-bz-retained' ],
+            allowAttributes: [ 'id', 'name', 'value' ],
         } );
 
         schema.register( 'radioLabel', {
@@ -124,36 +124,31 @@ export default class RadioQuestionEditing extends Plugin {
                 }
             },
             model: ( viewElement, { writer } ) => {
-                const radioGroupName = viewElement.getAttribute('name');
-                const radioValue = viewElement.getAttribute('value');
-                return writer.createElement( 'radioInput', new Map( [
-                    [ 'id', [ radioGroupName, radioValue ].join( '_' ) ],
-                    [ 'value', radioValue ],
-                    [ 'name', radioGroupName ],
-                    [ 'data-bz-retained', radioGroupName ],
-                ] ) );
+                return writer.createElement( 'radioInput', {
+                    'id': viewElement.getAttribute('id'),
+                    'value': viewElement.getAttribute('value'),
+                    'name': viewElement.getAttribute('name'),
+                } );
             }
 
         } );
         conversion.for( 'downcast' ).elementToElement( {
             model: 'radioInput',
             view: ( modelElement, { writer } ) => {
-                const radioGroupName = modelElement.getAttribute('name');
-                const radioValue = modelElement.getAttribute('value');
-                return writer.createEmptyElement( 'input', new Map( [
-                    [ 'type', 'radio' ],
-                    [ 'id', [ radioGroupName, radioValue ].join( '_' ) ],
-                    [ 'value', radioValue ],
-                    [ 'name', radioGroupName ],
-                    [ 'data-bz-retained', radioGroupName ],
-                ] ) );
+                return writer.createEmptyElement( 'input', {
+                    'type': 'radio',
+                    'id': modelElement.getAttribute('id'),
+                    'value': modelElement.getAttribute('value'),
+                    'name': modelElement.getAttribute('name'),
+                } );
             }
         } );
 
         // <radioLabel> converters
         conversion.for( 'upcast' ).elementToElement( {
             view: {
-                name: 'label'
+                name: 'label',
+                classes: ['radio-label'],
             },
             model: ( viewElement, { writer } ) => {
                 return writer.createElement( 'radioLabel', {
@@ -166,9 +161,10 @@ export default class RadioQuestionEditing extends Plugin {
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'radioLabel',
             view: ( modelElement, { writer } ) => {
-                return writer.createEditableElement( 'label', {
+                return writer.createContainerElement( 'label', {
                     // HACK: Get the id of the radio this label corresponds to.
-                    'for': modelElement.parent.getChild(0).getAttribute('id')
+                    'for': modelElement.parent.getChild(0).getAttribute('id'),
+                    'class': 'radio-label',
                 } );
             }
         } );
@@ -178,6 +174,7 @@ export default class RadioQuestionEditing extends Plugin {
                 const label = writer.createEditableElement( 'label', {
                     // NOTE: We don't set the 'for' attribute in the editing view, so that clicking in the label
                     // editable to type doesn't also toggle the radio.
+                    'class': 'radio-label',
                 } );
 
                 enablePlaceholder( {
@@ -186,7 +183,7 @@ export default class RadioQuestionEditing extends Plugin {
                     text: 'Answer text'
                 } );
 
-                return toWidgetEditable( label, writer );
+                return toWidgetEditable( label, writer, { 'label': 'radio label' } );
             }
         } );
     }

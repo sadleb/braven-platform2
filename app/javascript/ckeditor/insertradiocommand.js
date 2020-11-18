@@ -1,6 +1,6 @@
 import Command from '@ckeditor/ckeditor5-core/src/command';
 import { findAllowedParentIgnoreLimit, getNamedAncestor } from './utils';
-import uid from '@ckeditor/ckeditor5-utils/src/uid';
+import UniqueId from './uniqueid';
 
 export default class InsertRadioCommand extends Command {
     execute() {
@@ -45,8 +45,9 @@ export default class InsertRadioCommand extends Command {
 }
 
 function createRadio( writer, name ) {
-    const value = uid();
-    const id = [name, value].join('_');
+    const uniqueId = new UniqueId();
+    const id = uniqueId.getNewId();
+    const value = uniqueId.getNewValue();
 
     const radioDiv = writer.createElement( 'radioDiv' );
     const radioInput = writer.createElement( 'radioInput', {

@@ -10,8 +10,8 @@ FactoryBot.define do
       type { "ProjectVersion" }
       body {
         "<p>Based on these responses, what are your next steps?</p>"\
-        "<textarea id='test-question-id' data-bz-retained=\"h2c2-0600-next-steps\" placeholder=\"\"></textarea>"\
-        "<select id='test-selector-id' data-bz-retained=\"h2c2-0600-next-steps\"><option value='A'>A</option></select>"
+        "<textarea id='test-question-id' name=\"h2c2-0600-next-steps\" placeholder=\"\"></textarea>"\
+        "<select id='test-selector-id' name=\"h2c2-0600-next-steps\"><option value='A'>A</option></select>"
       }
       project
       custom_content { project }

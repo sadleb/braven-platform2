@@ -83,7 +83,7 @@ RSpec.describe ProjectSubmissionsController, type: :feature do
       # Check that data is fetched
       VCR.use_cassette('lrs_xapi_proxy_load_previous', :match_requests_on => [:path, :method], :erb => lrs_variables) do
         visit url
-        expect(page).to have_selector("[data-bz-retained=\"#{question_id}\"]")
+        expect(page).to have_selector("[name=\"#{question_id}\"]")
         expect(page).to have_field('test-question-id')
         expect(page).to have_field('test-question-id', with: unique_string)
       end
@@ -170,7 +170,7 @@ RSpec.describe ProjectSubmissionsController, type: :feature do
         # Check that data is fetched
         VCR.use_cassette('lrs_xapi_proxy_load_previous', :match_requests_on => [:path, :method], :erb => lrs_variables) do
           visit url
-          expect(page).to have_selector("[data-bz-retained=\"#{question_id}\"]")
+          expect(page).to have_selector("[name=\"#{question_id}\"]")
           expect(page).to have_field('test-question-id', disabled: true)
           # We can't test this because the field is disabled and we're not
           # able to actually fill it in with the recording

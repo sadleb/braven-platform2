@@ -1,5 +1,5 @@
 import Command from '@ckeditor/ckeditor5-core/src/command';
-import uid from '@ckeditor/ckeditor5-utils/src/uid';
+import UniqueId from './uniqueid';
 
 export default class InsertRadioQuestionCommand extends Command {
     execute() {
@@ -18,11 +18,11 @@ export default class InsertRadioQuestionCommand extends Command {
 }
 
 function createRadioQuestion( writer ) {
-    const radioGroup = uid();
-    // Value must be unique within each group, but otherwise doesn't matter.
-    // No reason to tie in retained data or anything, we can just use "1".
-    const radioFirstValue = '1';
-    const radioFirstID = [radioGroup, radioFirstValue].join('_');
+    // Get unique IDs for radio group/name, value, and ID.
+    const uniqueId = new UniqueId();
+    const radioGroup = uniqueId.getNewName();
+    const radioFirstValue = uniqueId.getNewValue();
+    const radioFirstID = uniqueId.getNewId();
 
     const questionFieldset = writer.createElement( 'questionFieldset', {'data-radio-group': radioGroup} );
     const radioDiv = writer.createElement( 'radioDiv' );

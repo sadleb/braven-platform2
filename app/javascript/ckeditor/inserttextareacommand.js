@@ -1,9 +1,10 @@
 import Command from '@ckeditor/ckeditor5-core/src/command';
+import UniqueId from './uniqueid';
 
 export default class InsertTextAreaCommand extends Command {
-    execute( placeholder ) {
+    execute( ) {
         this.editor.model.change( writer => {
-            const textArea = createTextArea( writer, placeholder );
+            const textArea = createTextArea( writer );
             this.editor.model.insertContent( textArea );
             writer.setSelection( textArea, 'on' );
         } );
@@ -18,7 +19,10 @@ export default class InsertTextAreaCommand extends Command {
     }
 }
 
-function createTextArea( writer, placeholder ) {
-    const textArea = writer.createElement( 'textArea', {placeholder} );
+function createTextArea( writer ) {
+    const uniqueId = new UniqueId();
+    const textArea = writer.createElement( 'textArea', {
+        'name': uniqueId.getNewName(),
+    } );
     return textArea;
 }

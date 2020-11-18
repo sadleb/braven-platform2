@@ -2,7 +2,7 @@ import tincan from 'tincanjs';
 import { HoneycombXhrSpan } from './honeycomb'
 import { HoneycombSpan } from './honeycomb'
 
-const INPUT_ID_ATTR = 'data-bz-retained';
+const INPUT_ID_ATTR = 'name';
 const USER_OVERRIDE_ID_ATTR = 'data-user-override-id';
 const CREATED_AT_ATTR= 'data-created-at';
 const XAPI_CONTROLLER_HONEYCOMB_NAME = 'xapi.assignment'; // TODO: rename this file and all references to xapi_project.

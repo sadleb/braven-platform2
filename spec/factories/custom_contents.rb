@@ -8,7 +8,7 @@ FactoryBot.define do
       type { "Project" }
       body {
         "<p>Based on these responses, what are your next steps?</p>"\
-        "<textarea id='test-question-id' data-bz-retained=\"h2c2-0600-next-steps\" placeholder=\"\"></textarea>"
+        "<textarea id='test-question-id' name=\"h2c2-0600-next-steps\" placeholder=\"\"></textarea>"
       }
     end
 

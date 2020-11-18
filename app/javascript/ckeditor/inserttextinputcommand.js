@@ -1,9 +1,10 @@
 import Command from '@ckeditor/ckeditor5-core/src/command';
+import UniqueId from './uniqueid';
 
 export default class InsertTextInputCommand extends Command {
-    execute( placeholder ) {
+    execute( ) {
         this.editor.model.change( writer => {
-            const textInput = createTextInput( writer, placeholder );
+            const textInput = createTextInput( writer );
             this.editor.model.insertContent( textInput );
             writer.setSelection( textInput, 'on' );
         } );
@@ -18,7 +19,10 @@ export default class InsertTextInputCommand extends Command {
     }
 }
 
-function createTextInput( writer, placeholder ) {
-    const textInput = writer.createElement( 'textInput', {placeholder} );
+function createTextInput( writer ) {
+    const uniqueId = new UniqueId();
+    const textInput = writer.createElement( 'textInput', {
+        'name': uniqueId.getNewName(),
+    } );
     return textInput;
 }
