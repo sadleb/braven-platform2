@@ -18,7 +18,7 @@
     <% base_courses.each do |base_course| %>
       <tr>
         <td>
-          <%= link_to base_course.name, base_course %>
+          <%= link_to base_course.name, base_course.canvas_url %>
           <% if base_course.type %>
             <span class="badge badge-primary">
               <%= humanized_type(base_course) %>
