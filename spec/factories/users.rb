@@ -21,20 +21,24 @@ FactoryBot.define do
       sequence(:password) { |i| "password#{i}" }
       confirmed_at { DateTime.now }
 
+      # section only used in child factory callbacks.
+      transient do
+        section { build(:section) }
+      end
+
       factory :fellow_user do
-        transient do
-          section { build(:section) }
-        end
         canvas_user_id { '1234' }
         after :create do |user, options|
           user.add_role RoleConstants::STUDENT_ENROLLMENT, options.section
         end
+
+        factory :peer_user do
+          # Different user ID than fellow_user.
+          canvas_user_id { '4321' }
+        end
       end
 
       factory :ta_user do
-        transient do
-          section { build(:section) }
-        end
         canvas_user_id { '1235' }
         after :create do |user, options|
           user.add_role RoleConstants::TA_ENROLLMENT, options.section

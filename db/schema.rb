@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_11_10_170007) do
+ActiveRecord::Schema.define(version: 2020_11_19_223501) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -184,6 +184,27 @@ ActiveRecord::Schema.define(version: 2020_11_10_170007) do
     t.datetime "updated_at", precision: 6, null: false
     t.boolean "sessionless", default: false
     t.index ["state"], name: "index_lti_launches_on_state", unique: true
+  end
+
+  create_table "peer_review_questions", force: :cascade do |t|
+    t.string "text", null: false
+  end
+
+  create_table "peer_review_submission_answers", force: :cascade do |t|
+    t.bigint "peer_review_submission_id", null: false
+    t.bigint "for_user_id", null: false
+    t.string "input_value"
+    t.bigint "peer_review_question_id"
+    t.index ["for_user_id"], name: "index_peer_review_submission_answers_on_for_user_id"
+    t.index ["peer_review_question_id"], name: "index_peer_review_submission_answers_on_peer_review_question_id"
+    t.index ["peer_review_submission_id"], name: "index_peer_review_submission_answers_on_submission_id"
+  end
+
+  create_table "peer_review_submissions", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "base_course_id", null: false
+    t.index ["base_course_id"], name: "index_peer_review_submissions_on_base_course_id"
+    t.index ["user_id"], name: "index_peer_review_submissions_on_user_id"
   end
 
   create_table "project_submissions", force: :cascade do |t|
@@ -382,6 +403,11 @@ ActiveRecord::Schema.define(version: 2020_11_10_170007) do
   add_foreign_key "lesson_submissions", "lessons"
   add_foreign_key "lesson_submissions", "users"
   add_foreign_key "lessons", "grade_categories"
+  add_foreign_key "peer_review_submission_answers", "peer_review_questions"
+  add_foreign_key "peer_review_submission_answers", "peer_review_submissions"
+  add_foreign_key "peer_review_submission_answers", "users", column: "for_user_id"
+  add_foreign_key "peer_review_submissions", "base_courses"
+  add_foreign_key "peer_review_submissions", "users"
   add_foreign_key "project_submissions", "base_course_custom_content_versions"
   add_foreign_key "project_submissions", "users"
   add_foreign_key "rubric_grades", "project_submissions"

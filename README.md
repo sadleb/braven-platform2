@@ -316,6 +316,12 @@ Rails controllers (business logic):
 
     app/controllers/*.rb
 
+Rails [concerns](https://www.sitepoint.com/dry-off-your-rails-code-with-activesupportconcerns/)
+(mixins for models and controllers, respectively):
+
+    app/models/concerns/*.rb
+    app/controllers/concerns/*.rb
+
 Rails routes:
 
     config/routes.rb

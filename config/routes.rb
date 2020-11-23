@@ -35,7 +35,9 @@ Rails.application.routes.draw do
   get 'course_management/launch', to: 'base_courses#launch_new'
   post 'course_management/launch', to: 'base_courses#launch_create'
 
-  resources :courses, controller: 'base_courses', type: 'Course'
+  resources :courses, controller: 'base_courses', type: 'Course' do
+    resources :peer_review_submissions, only: [:new, :create]
+  end
   resources :course_templates, controller: 'base_courses', type: 'CourseTemplate'
 
   resources :base_courses, only: [:index], path: 'course_management' do
@@ -75,6 +77,7 @@ Rails.application.routes.draw do
 
   resources :project_submissions, only: [:show]
   resources :survey_submissions, only: [:show]
+  resources :peer_review_submissions, only: [:show]
 
   resources :lessons, only: [:index, :show] do
     resources :lesson_submissions, only: [:index, :show], :path => 'submissions'

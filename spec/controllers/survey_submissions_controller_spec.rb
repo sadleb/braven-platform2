@@ -64,7 +64,7 @@ RSpec.describe SurveySubmissionsController, type: :controller do
     before(:each) do
       allow(LtiAdvantageAPI).to receive(:new).and_return(lti_advantage_api)
       allow(lti_advantage_api).to receive(:create_score)
-      allow(LtiScore).to receive(:new_survey_submission)
+      allow(LtiScore).to receive(:new_full_credit_submission)
     end
 
     subject {
@@ -73,8 +73,6 @@ RSpec.describe SurveySubmissionsController, type: :controller do
         params: {
           base_course_survey_version_id: course_survey_version.id,
           type: 'BaseCourseSurveyVersion',
-          # This key has to match the ... in <input name="..."> in the 
-          # course_survey_version.survey_version.body being used
           unique_input_name: 'my test input',
         }
       )

@@ -15,4 +15,13 @@ class Section < ApplicationRecord
     all_users.uniq
   end
 
+  # More efficient query if you want a specific role:
+  def users_with_role(role_name)
+    User.with_role(role_name, self)
+  end
+
+  def students
+    users_with_role(RoleConstants::STUDENT_ENROLLMENT)
+  end
+
 end

@@ -16,3 +16,10 @@ if User.count == 0
   bv_admin = User.create! first_name: 'Dev', last_name: 'AdminBV', email: 'admin@bebraven.org', password: "#{ENV['DEV_ENV_USER_PASSWORD']}", confirmed_at: DateTime.now
   bv_admin.add_role :admin
 end
+
+if PeerReviewQuestion.count == 0
+  PeerReviewQuestion.create!(text: "Actively contributed to team success")
+  PeerReviewQuestion.create!(text: "Met deadlines and fulfilled responsibilities in a timely manner")
+  PeerReviewQuestion.create!(text: "Gave feedback to others to help them be more successful and productiver")
+  PeerReviewQuestion.create!(text: "Embraced different perspectives on the team with openness and a sense of possibility")
+end

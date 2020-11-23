@@ -36,9 +36,9 @@ class LtiScore
     generate(canvas_user_id, SUBMITTED, PENDING_MANUAL, submission_data)
   end
 
-  # Generates an LtiScore that represents a new Impact Survey submission
-  # where no manual grading is needed. The score is for full credit.
-  def self.new_survey_submission(canvas_user_id, submission_url)
+  # Generates an LtiScore that represents a new submission where no manual
+  # grading is needed. The score is for full credit.
+  def self.new_full_credit_submission(canvas_user_id, submission_url)
     submission_data = {
       new_submission: true,
       submission_type: 'basic_lti_launch',

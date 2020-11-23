@@ -26,13 +26,13 @@ RSpec.describe LtiScore do
     end
   end
 
-  describe '#new_survey_submission' do
+  describe '#new_full_credit_submission' do
     context 'gives full credit''s the first submission' do
       let(:user_id) { 1235 }
       let(:submission_url) { 'https://platformweb/the/url/to/view/submission' }
       it 'generates a new_submission message for the Canvas score API ' do
         allow(DateTime).to receive(:now).and_return(DateTime.now)
-        expect(JSON.parse(LtiScore.new_survey_submission(user_id, submission_url))).to eq(
+        expect(JSON.parse(LtiScore.new_full_credit_submission(user_id, submission_url))).to eq(
           {
             'userId' => user_id.to_s,
             'timestamp' => DateTime.now.iso8601(3), # 3 decimal precision of milliseconds
