@@ -456,24 +456,18 @@ class ContentEditor extends Component {
 
     // List of CommandButtons for inserting content in editor tabs
     _renderEditorCommands() {
-        const questionComponents = Object.entries({
-            'insertRadioQuestion': 'Radio Question',
-            'insertFileUpload': 'File Upload',
-        }).map( ([key, name]) => this._renderCommandButton(key, name) );
-
         const elementComponents = Object.entries({
-        	'insertWatchOutBox': '"Watch Out" Box',
-        	'insertTextArea': 'Text Area',
-        	'insertTextInput': 'Text Input',
-            'insertIndustrySelector': 'Industry Selector',
+            'insertTextArea': 'Text Area',
+            'insertTextInput': 'Text Input',
+            'insertWatchOutBox': '"Watch Out" Box',
+            'insertRadioQuestion': 'Radio List',
             'insertNumericalSelector': '1 - 10 Dropdown',
+            'insertIndustrySelector': 'Industry Selector',
+
         }).map( ([key, name]) => this._renderCommandButton(key, name) );
         return (
             <div id="toolbar-components">
                 <h4>Insert Component</h4>
-                <ul key="content-part-list-questions" className="widget-list">
-                    {questionComponents}
-                </ul>
                 <ul key="content-part-list-elements" className="widget-list">
                 	{elementComponents}
                     <input
