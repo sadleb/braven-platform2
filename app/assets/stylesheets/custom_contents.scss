@@ -113,6 +113,13 @@
         margin: 0.5em;
         outline: red 2px solid;
     }
+
+    iframe.linked-in-authorization-button {
+        margin-top: 10px;
+        /* This is the size of the button icon */
+        width: 215px;
+        height: 41px;
+    }
 }
 
 html {

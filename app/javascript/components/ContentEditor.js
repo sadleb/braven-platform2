@@ -45,6 +45,7 @@ import UniqueId from '../ckeditor/uniqueid';
 import ElementIdEditing from '../ckeditor/elementidediting';
 import InputUniqueAttributeEditing from '../ckeditor/inputuniqueattributeediting';
 import ContentCommonEditing from '../ckeditor/contentcommonediting';
+import LinkedInAuthorizationEditing from '../ckeditor/linkedinauthorizationediting';
 import RadioQuestionEditing from '../ckeditor/radioquestionediting';
 import PortalImageEditing from '../ckeditor/portalimageediting';
 import WatchOutBoxEditing from '../ckeditor/watchoutboxediting';
@@ -98,6 +99,7 @@ BalloonEditor.builtinPlugins = [
     RadioQuestionEditing,
     PortalImageEditing,
     WatchOutBoxEditing,
+    LinkedInAuthorizationEditing,
 ];
 
 // Editor configuration.
@@ -466,7 +468,6 @@ class ContentEditor extends Component {
             'insertIndustrySelector': 'Industry Selector',
             'insertNumericalSelector': '1 - 10 Dropdown',
         }).map( ([key, name]) => this._renderCommandButton(key, name) );
-
         return (
             <div id="toolbar-components">
                 <h4>Insert Component</h4>
@@ -501,6 +502,16 @@ class ContentEditor extends Component {
                         }}
                         onClickDisabled={() => this.editor.editing.view.focus()}
                         name='Image (URL)'
+                    />
+                    <CommandButton
+                        key="linkedInInsert"
+                        enabled={this.state.enabledCommands.includes('insertLinkedInAuthorization')}
+                        onClick={() => {
+                            this.editor.execute( 'insertLinkedInAuthorization', window.location.hostname);
+                            this.editor.editing.view.focus();
+                        }}
+                        onClickDisabled={() => this.editor.editing.view.focus()}
+                        name='LinkedIn Authorization'
                     />
                 </ul>
             </div>
