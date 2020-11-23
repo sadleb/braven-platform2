@@ -101,7 +101,10 @@ export default class ContentCommonEditing extends Plugin {
                 const fieldset = writer.createContainerElement( 'fieldset', {
                     'data-radio-group': modelElement.getAttribute( 'data-radio-group' ),
                 } );
-                return toWidget( fieldset, writer, { 'label': 'fieldset' } );
+                return toWidget( fieldset, writer, {
+                    'label': 'fieldset',
+                    'hasSelectionHandle': true,
+                } );
             }
         } );
 
