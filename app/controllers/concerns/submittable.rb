@@ -1,5 +1,5 @@
 # "Submittable" behavior for controllers like SurveySubmissionsController
-# and PeerReviewController.
+# and PeerReviewSubmissionsController.
 #
 # This concern heavily depends on DryCrud::Controllers::Nestable, and requires
 # the including controller to be nested under one parent.

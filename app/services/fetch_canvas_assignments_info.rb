@@ -7,7 +7,11 @@ require 'canvas_api'
 class FetchCanvasAssignmentsInfo
   FetchCanvasAssignmentsInfoError = Class.new(StandardError)
 
-  attr_reader :canvas_assignment_ids, :canvas_waivers_url, :canvas_waivers_assignment_id,
+  include Rails.application.routes.url_helpers
+
+  attr_reader :canvas_assignment_ids,
+              :canvas_waivers_url, :canvas_waivers_assignment_id,
+              :canvas_peer_reviews_url, :canvas_peer_reviews_assignment_id,
               :base_course_project_versions, :base_course_survey_versions,
               :base_course_custom_content_versions_mapping # Maps the fetched canvas assignment ID to the bcccv.
 
@@ -16,6 +20,8 @@ class FetchCanvasAssignmentsInfo
     @canvas_assignment_ids = nil
     @canvas_waivers_url  = nil
     @canvas_waivers_assignment_id = nil
+    @canvas_peer_reviews_url = nil
+    @canvas_peer_reviews_assignment_id = nil
     @base_course_project_versions = nil
     @base_course_survey_versions = nil
     @base_course_custom_content_versions_mapping = nil
@@ -59,6 +65,10 @@ private
 
     waivers_launch_path = Rails.application.routes.url_helpers.launch_waiver_submissions_path()
     add_waivers_info(canvas_assignment) and return if lti_launch_url =~ /#{waivers_launch_path}/
+
+    base_course = BaseCourse.find_by(canvas_course_id: @canvas_course_id)
+    peer_review_submission_path = new_course_peer_review_submission_path(base_course)
+    add_peer_review_info(canvas_assignment) and return if lti_launch_url =~ /#{peer_review_submission_path}/
   end
 
   def add_project_or_survey_info!(base_course_custom_content_version, canvas_assignment)
@@ -80,6 +90,16 @@ private
       @canvas_waivers_url = canvas_assignment['html_url']
       @canvas_waivers_assignment_id = canvas_assignment['id']
     end
+  end
+
+  def add_peer_review_info(canvas_assignment)
+    if @canvas_peer_reviews_url
+      raise FetchCanvasAssignmentsInfoError, "Duplicate Peer Reviews assignment found."\
+        "First[#{@canvas_peer_reviews_url}]. "\
+        "Second[#{canvas_assignment['html_url']}]."
+    end
+    @canvas_peer_reviews_url = canvas_assignment['html_url']
+    @canvas_peer_reviews_assignment_id = canvas_assignment['id']
   end
 
 end

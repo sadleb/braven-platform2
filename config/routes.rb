@@ -52,6 +52,13 @@ Rails.application.routes.draw do
         delete :unpublish
       end
     end
+
+    resources :peer_reviews, only: [] do
+      collection do
+        post :publish
+        delete :unpublish
+      end
+    end
   end
 
   resources :base_course_custom_content_versions, only: [:create, :update, :destroy] 
