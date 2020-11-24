@@ -10,12 +10,17 @@ class PeerReviewsController < ApplicationController
 
   nested_resource_of BaseCourse
 
+  # Note: the TODO here is the actual name of the assignment. The convention
+  # for assignment naming is things like: CLASS: Learning Lab2,
+  # MODULE: Lead Authentically, TODO: Submit Peer Reviews
+  PEER_REVIEWS_ASSIGNMENT_NAME = 'TODO: Submit Peer Reviews'
+
   def base_course
     @base_course
   end
 
   def assignment_name
-    @assignment_name = 'Peer Reviews'
+    PEER_REVIEWS_ASSIGNMENT_NAME
   end
 
   def lti_launch_url

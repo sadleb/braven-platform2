@@ -26,7 +26,10 @@ class WaiversController < ApplicationController
 
   nested_resource_of BaseCourse
 
-  WAIVERS_ASSIGNMENT_NAME = 'Complete Waivers'
+  # Note: the TODO here is the actual name of the assignment. The convention
+  # for assignment naming is things like: CLASS: Learning Lab2,
+  # MODULE: Lead Authentically, TODO: Submit Peer Reviews
+  WAIVERS_ASSIGNMENT_NAME = 'TODO: Complete Waivers'
 
   # POST /course_management/:id/waivers/publish
   def publish
