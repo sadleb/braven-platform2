@@ -64,7 +64,7 @@ RSpec.describe PeerReviewSubmissionsController, type: :controller do
           state: lti_launch.state,
         },
       )
-      expect(response).to redirect_to peer_review_submission_path(PeerReviewSubmission.last)
+      expect(response).to redirect_to peer_review_submission_path(PeerReviewSubmission.last, state: lti_launch.state)
     end
   end
 
@@ -96,7 +96,7 @@ RSpec.describe PeerReviewSubmissionsController, type: :controller do
     }
 
     it 'redirects to #show' do
-      expect(subject).to redirect_to peer_review_submission_path(PeerReviewSubmission.last)
+      expect(subject).to redirect_to peer_review_submission_path(PeerReviewSubmission.last, state: lti_launch.state)
     end
 
     it 'creates a peer_review submission' do

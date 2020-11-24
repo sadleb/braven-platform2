@@ -6,11 +6,14 @@ RSpec.describe SurveySubmissionsController, type: :controller do
   let(:course_survey_version) { create(:course_survey_version) }
   let(:section) { create :section, course: course_survey_version.base_course }
   let(:user) { create :fellow_user, section: section }
- 
-  before do
-    sign_in user
-  end
 
+  let(:lti_launch) {
+    create(
+      :lti_launch_assignment,
+      canvas_user_id: user.canvas_user_id,
+    )
+  }
+ 
   describe 'GET #show' do
     # This creates the submission for the Fellow for that survey
     # The survey_submission has to be created here so it doesn't interfere with
@@ -24,7 +27,11 @@ RSpec.describe SurveySubmissionsController, type: :controller do
     it 'returns a success response' do
       get(
         :show,
-        params: { id: survey_submission.id, type: 'BaseCourseSurveyVersion' },
+        params: {
+          id: survey_submission.id,
+          type: 'BaseCourseSurveyVersion',
+          state: lti_launch.state,
+        },
       )
       expect(response).to be_successful
     end
@@ -36,7 +43,8 @@ RSpec.describe SurveySubmissionsController, type: :controller do
         :new,
         params: {
           base_course_survey_version_id: course_survey_version.id,
-          type: 'BaseCourseSurveyVersion'
+          type: 'BaseCourseSurveyVersion',
+          state: lti_launch.state,
         },
       )
       expect(response).to be_successful
@@ -51,10 +59,11 @@ RSpec.describe SurveySubmissionsController, type: :controller do
         :new,
         params: {
           base_course_survey_version_id: course_survey_version.id,
-          type: 'BaseCourseSurveyVersion'
+          type: 'BaseCourseSurveyVersion',
+          state: lti_launch.state,
         },
       )
-      expect(response).to redirect_to survey_submission_path(SurveySubmission.last)
+      expect(response).to redirect_to survey_submission_path(SurveySubmission.last, state: lti_launch.state)
     end
   end
 
@@ -74,12 +83,13 @@ RSpec.describe SurveySubmissionsController, type: :controller do
           base_course_survey_version_id: course_survey_version.id,
           type: 'BaseCourseSurveyVersion',
           unique_input_name: 'my test input',
+          state: lti_launch.state,
         }
       )
     }
 
     it 'redirects to #show' do
-      expect(subject).to redirect_to survey_submission_path(SurveySubmission.last)
+      expect(subject).to redirect_to survey_submission_path(SurveySubmission.last, state: lti_launch.state)
     end
 
     it 'creates a survey submission' do

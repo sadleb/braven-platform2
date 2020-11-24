@@ -51,9 +51,9 @@ module Submittable
     # Only one submission per user and nest-parent.
     previous_submission = model_class.find_by(
       :user => current_user,
-      @parent.class.name.underscore => instance_variable_get("@#{@parent.class.name.underscore}")
+      parent_variable_name => instance_variable_get("@#{parent_variable_name}")
     )
-    return redirect_to previous_submission if previous_submission
+    return redirect_to instance_path(previous_submission) if previous_submission
   end
 
   def create
@@ -62,9 +62,9 @@ module Submittable
     # Only one submission per user and nest-parent.
     previous_submission = model_class.find_by(
       :user => current_user,
-      @parent.class.name.underscore.to_sym => instance_variable_get("@#{@parent.class.name.underscore}")
+      parent_variable_name.to_sym => instance_variable_get("@#{parent_variable_name}")
     )
-    return redirect_to previous_submission if previous_submission
+    return redirect_to instance_path(previous_submission) if previous_submission
 
     # Record in our DB first, so we have the data even if updating Canvas fails.
     instance_variable.save_answers!(answers_params_hash)
@@ -77,12 +77,26 @@ module Submittable
     )
     LtiAdvantageAPI.new(@lti_launch).create_score(lti_score)
 
-    redirect_to instance_variable 
+    redirect_to instance_path(instance_variable)
   end
 
 private
   def instance_variable
     instance_variable_get("@#{instance_variable_name}")
+  end
+
+  # E.g. course.
+  def parent_variable_name
+    @parent.class.name.underscore
+  end
+
+  # E.g. peer_review_submission_path(instance, ...).
+  def instance_path(instance)
+    self.send(
+      "#{instance_variable_name}_path",
+      instance,
+      state: @lti_launch.state,
+    )
   end
 
   def set_new_model_instance
