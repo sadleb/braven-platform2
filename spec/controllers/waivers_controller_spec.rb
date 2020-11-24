@@ -45,7 +45,7 @@ RSpec.describe WaiversController, type: :controller do
           # Hardcoding the path so that if someone changes it they're forced to see this comment
           # and consider that it will break all previously published Waivers assignments.
           expect(canvas_client).to have_received(:create_lti_assignment)
-            .with(course_template.canvas_course_id, assignment_name, /waivers\/launch/).once
+            .with(course_template.canvas_course_id, assignment_name, /waiver_submissions\/launch/).once
         end
 
       end

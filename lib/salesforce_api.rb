@@ -96,6 +96,7 @@ class SalesforceAPI
     RestClient.patch("#{@salesforce_url}#{path}", body, @global_headers.merge(headers))
   end
 
+  # TODO: remove the Qualtrics and Docusign IDs from here. We don't use them anymore.
   def get_program_info(program_id)
     soql_query = 
       "SELECT Id, Name, Highlander_Accelerator_Course_ID__c, Highlander_LCPlaybook_Course_ID__c, School__c, " \
@@ -104,6 +105,20 @@ class SalesforceAPI
         "LC_DocuSign_Template_ID__c " \
       "FROM Program__c WHERE Id = '#{program_id}'"
 
+    response = get("#{DATA_SERVICE_PATH}/query?q=#{CGI.escape(soql_query)}")
+    JSON.parse(response.body)['records'][0]
+  end
+
+  # - The "Id" is the Program.Id.
+  # - Returns nil if not found
+  # - Discards info from other programs if multiple have the same canvas_course_id.
+  #   There is a validation on the Salesforce side that is meant to prevent this.
+  # - There are no LC equivalents to these. e.g. They sign their waivers out-of-band before getting
+  #   Confirmed as an LC.
+  def get_fellow_form_assembly_info(canvas_course_id)
+    soql_query = "SELECT Id, FA_ID_Fellow_PostSurvey__c, FA_ID_Fellow_PreSurvey__c, FA_ID_Fellow_Waivers__c " \
+                 "FROM Program__c " \
+                 "WHERE Highlander_Accelerator_Course_ID__c = '#{canvas_course_id}'"
     response = get("#{DATA_SERVICE_PATH}/query?q=#{CGI.escape(soql_query)}")
     JSON.parse(response.body)['records'][0]
   end
@@ -133,6 +148,13 @@ class SalesforceAPI
     # Defined in BZ_ProgramParticipantInfoService Apex class in Salesforce
     response = get("/services/apexrest/participants/currentandfuture/#{query_params}") 
     JSON.parse(response.body)
+  end
+
+  def get_participant_id(program_id, contact_id)
+    soql_query = "SELECT Id FROM Participant__c " \
+                 "WHERE Program__r.Id = '#{program_id}' AND Contact__r.Id = '#{contact_id}'"
+    response = get("#{DATA_SERVICE_PATH}/query?q=#{CGI.escape(soql_query)}")
+    JSON.parse(response.body)['records'][0]['Id']
   end
 
   # Get information about a Contact record

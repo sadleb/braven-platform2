@@ -86,9 +86,10 @@ Rails.application.routes.draw do
 
   resources :lesson_contents, only: [:new, :show, :create]
 
-  resources :waivers, only: [] do
+  resources :waiver_submissions, only: [:new, :create] do
     collection do 
       get :launch
+      get :completed
     end
   end
 

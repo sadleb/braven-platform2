@@ -13,7 +13,7 @@ RSpec.describe FetchCanvasAssignmentsInfo do
 
   context 'for waivers' do
     # The URL is hardcoded b/c if we ever change it, it will break previously published waivers.
-    let(:waivers_lti_launch_url) { 'https://platformweb/waivers/launch' }
+    let(:waivers_lti_launch_url) { 'https://platformweb/waiver_submissions/launch' }
     let(:waiver_assignment) {
       create(:canvas_assignment,
                 name: WaiversController::WAIVERS_ASSIGNMENT_NAME,

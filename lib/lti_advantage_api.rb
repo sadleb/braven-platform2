@@ -30,6 +30,7 @@ class LtiAdvantageAPI
     @scope = parse_scope(assignment_lti_launch)
     @line_items_url = assignment_lti_launch.request_message.line_items_url
     @line_item_url = assignment_lti_launch.request_message.line_item_url
+    @canvas_user_id = assignment_lti_launch.request_message.canvas_user_id
     @global_headers = JSON_HEADERS # get_access_token below needs this initialized
     @global_headers = @global_headers.merge(:Authorization => "Bearer #{get_access_token}") # Note: these expire about about an hour.
   end
@@ -42,6 +43,15 @@ class LtiAdvantageAPI
   def create_score(lti_score)
     response = post("#{@line_item_url}/scores", lti_score)
     JSON.parse(response.body)
+  end
+
+  # Gets the Result object for a score created using the `create_score` method
+  # or nil if there is no score
+  #
+  # See: https://canvas.instructure.com/doc/api/result.html
+  def get_result()
+    results = get_line_item_for_user(@canvas_user_id)
+    results.first # Only one Result object is returned when you pass a user_id in.
   end
 
   def get_line_item_for_user(canvas_user_id)

@@ -18,6 +18,7 @@ Rails.application.config.assets.precompile += %w( content_editor.css )
 Rails.application.config.assets.precompile += %w( custom_contents.css )
 Rails.application.config.assets.precompile += %w( lti_placement.css )
 Rails.application.config.assets.precompile += %w( projects.css )
+Rails.application.config.assets.precompile += %w( form_assembly.css )
 
 # Add fonts to precompile
 Rails.application.config.assets.precompile << /\.(?:svg|eot|woff|ttf)\z/

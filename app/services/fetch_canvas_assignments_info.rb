@@ -57,7 +57,7 @@ private
     bcccv = BaseCourseCustomContentVersion.find_by_lti_launch_url(lti_launch_url) 
     add_project_or_survey_info!(bcccv, canvas_assignment) and return if bcccv
 
-    waivers_launch_path = Rails.application.routes.url_helpers.launch_waivers_path()
+    waivers_launch_path = Rails.application.routes.url_helpers.launch_waiver_submissions_path()
     add_waivers_info(canvas_assignment) and return if lti_launch_url =~ /#{waivers_launch_path}/
   end
 
