@@ -19,6 +19,7 @@ FactoryBot.define do
     
     factory :registered_user do
       sequence(:password) { |i| "password#{i}" }
+      sequence(:salesforce_id) { |i| "003#{i}100001iyv8IAAQ" }
       confirmed_at { DateTime.now }
 
       # section only used in child factory callbacks.

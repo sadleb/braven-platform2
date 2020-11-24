@@ -8,10 +8,10 @@ FactoryBot.define do
     userId { 50 }
     # The Current score received in the tool for this line item and user, scaled to
     # the scoreMaximum
-    scoreGiven { 50 }
+    scoreGiven { 100.0 }
     # Maximum possible score for this result; it must be present if scoreGiven is
     # present.
-    scoreMaximum { 50 }
+    scoreMaximum { 100.0 }
     # Comment visible to the student about this score.
     comment { "some comment on the grade" }
     # Date and time when the score was modified in the tool. Should use subsecond

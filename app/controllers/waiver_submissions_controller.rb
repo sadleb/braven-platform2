@@ -82,7 +82,7 @@ class WaiverSubmissionsController < ApplicationController
     # access to the rest of the Canvas modules.
     lti_score = LtiScore.new_full_credit_submission(
       current_user.canvas_user_id,
-      completed_waivers_url(protocol: 'https'),
+      completed_waiver_submissions_url(protocol: 'https'),
     )
     lti_advantage_api_client.create_score(lti_score)
   end

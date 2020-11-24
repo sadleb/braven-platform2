@@ -52,6 +52,26 @@ RSpec.describe LtiAdvantageAPI do
     
   end
 
+  describe "#get_result" do
+    let(:score_result) { build :lti_result }
+    let(:canvas_user_id) { assignment_lti_launch.request_message.canvas_user_id }
+    let(:result_service_url) { "#{assignment_lti_launch.request_message.line_item_url}/results?user_id=#{canvas_user_id}" }
+
+    it "gets the previous submission" do
+      stub_request(:get, result_service_url).to_return(body: [score_result].to_json )
+      response = api.get_result()
+      expect(WebMock).to have_requested(:get, result_service_url)
+      expect(response).to eq(score_result)
+    end
+
+    it "returns nil if there is no submission" do
+      stub_request(:get, result_service_url).to_return(body: [].to_json )
+      response = api.get_result()
+      expect(WebMock).to have_requested(:get, result_service_url)
+      expect(response).to eq(nil)
+    end
+  end
+
   describe "#get_line_item_for_user" do
     it "gets the previous submission" do
       canvas_user_id = 1234;

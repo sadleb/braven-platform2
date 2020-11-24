@@ -154,7 +154,8 @@ class SalesforceAPI
     soql_query = "SELECT Id FROM Participant__c " \
                  "WHERE Program__r.Id = '#{program_id}' AND Contact__r.Id = '#{contact_id}'"
     response = get("#{DATA_SERVICE_PATH}/query?q=#{CGI.escape(soql_query)}")
-    JSON.parse(response.body)['records'][0]['Id']
+    participant_record = JSON.parse(response.body)['records'][0]
+    participant_record ? participant_record['Id'] : nil
   end
 
   # Get information about a Contact record
@@ -169,13 +170,13 @@ class SalesforceAPI
   # Gets a list of all CohortSchedule's for a Program. The names returned are what the Canvas section
   # should be called when setting up placeholder sections until the actual cohorts are mapped.
   def get_cohort_schedule_section_names(program_id)
-    initial_api_path = "#{DATA_SERVICE_PATH}/query/?q=SELECT+DayTime__c+FROM+CohortSchedule__c+WHERE+Program__r.Id='#{program_id}'"
+    initial_api_path = "#{DATA_SERVICE_PATH}/query?q=SELECT+DayTime__c+FROM+CohortSchedule__c+WHERE+Program__r.Id='#{program_id}'"
     recursively_map_soql_column_to_array('DayTime__c', [], initial_api_path)
   end
 
   # Gets a list of the names of all Cohorts available for the specified Program.
   def get_cohort_names(program_id)
-    initial_api_path = "#{DATA_SERVICE_PATH}/query/?q=SELECT+Name+FROM+Cohort__c+WHERE+Program__r.Id='#{program_id}'"
+    initial_api_path = "#{DATA_SERVICE_PATH}/query?q=SELECT+Name+FROM+Cohort__c+WHERE+Program__r.Id='#{program_id}'"
     recursively_map_soql_column_to_array('Name', [], initial_api_path)
   end
 

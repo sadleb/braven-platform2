@@ -3,23 +3,21 @@ require 'rails_helper'
 RSpec.describe WaiversController, type: :controller do
   render_views
 
-  let!(:admin_user) { create :admin_user }
-  let(:course_template) { create :course_template_with_canvas_id }
-  let(:assignment_name) { WaiversController::WAIVERS_ASSIGNMENT_NAME }
-  let(:created_canvas_assignment) { build(:canvas_assignment, course_id: course_template.canvas_course_id, name: assignment_name) }
-  let(:canvas_client) { double(CanvasAPI) }
 
   # This should return the minimal set of values that should be in the session
   # in order to pass any filters (e.g. authentication) defined in
   # WaiversController. Be sure to keep this updated too.
   let(:valid_session) { {} }
 
-  before(:each) do
-    allow(CanvasAPI).to receive(:client).and_return(canvas_client)
-  end
-
   context 'when logged in as admin user' do
-    before do
+    let!(:admin_user) { create :admin_user }
+    let(:course_template) { create :course_template_with_canvas_id }
+    let(:assignment_name) { WaiversController::WAIVERS_ASSIGNMENT_NAME }
+    let(:created_canvas_assignment) { build(:canvas_assignment, course_id: course_template.canvas_course_id, name: assignment_name) }
+    let(:canvas_client) { double(CanvasAPI) }
+  
+    before(:each) do
+      allow(CanvasAPI).to receive(:client).and_return(canvas_client)
       sign_in admin_user
     end
 
@@ -80,7 +78,5 @@ RSpec.describe WaiversController, type: :controller do
     end # POST #unpublish
 
   end # logged in as admin user
+
 end
-
-
-

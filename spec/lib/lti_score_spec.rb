@@ -50,5 +50,6 @@ RSpec.describe LtiScore do
       end
     end
   end
+
 end
 
