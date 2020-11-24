@@ -53,7 +53,7 @@ RSpec.describe WaiversController, type: :controller do
     describe 'POST #unpublish' do
 
       context 'with valid params' do
-        let(:valid_unpublish_params) { {base_course_id: course_template.id, canvas_waivers_assignment_id: created_canvas_assignment['id']} }
+        let(:valid_unpublish_params) { {base_course_id: course_template.id, canvas_assignment_id: created_canvas_assignment['id']} }
 
         before(:each) do
           allow(canvas_client).to receive(:delete_assignment).and_return(created_canvas_assignment)

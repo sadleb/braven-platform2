@@ -24,7 +24,7 @@ class PeerReviewsController < ApplicationController
   end
 
   def lti_launch_url
-    new_course_peer_review_submission_url(@base_course)
+    new_course_peer_review_submission_url(@base_course, protocol: 'https')
   end
 
 end

@@ -40,11 +40,11 @@
         <div class="row">
           <% if has_waivers? %>
             <%= link_to 'View Waivers', canvas_waivers_url, class: 'col-sm-10' %>
-            <%= link_to 'Delete', unpublish_base_course_waivers_path(base_course, :canvas_waivers_assignment_id => canvas_waivers_assignment_id),
+            <%= link_to 'Delete', unpublish_base_course_waivers_path(base_course, :canvas_assignment_id => canvas_waivers_assignment_id),
                                   method: :delete, class: 'btn btn-secondary col-sm-2',
                                   data: { confirm: 'Are you sure you want to delete the waivers?' } %>
           <% else %>
-            <span class="col-sm-10"><em>No Waivers Set</em></span>
+            <span class="col-sm-10"><em>No Waivers Assignment</em></span>
             <%= link_to 'Add', publish_base_course_waivers_path(base_course), method: :post, class: 'btn btn-secondary col-sm-2' %>
           <% end %>
         </div>

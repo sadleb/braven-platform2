@@ -39,7 +39,7 @@ class WaiverSubmissionsController < ApplicationController
   #
   # GET /waivers/launch
   def launch
-    authorize :waiver_submissions
+    authorize :waiver_submission
 
     redirect_to completed_waiver_submissions_path if waivers_already_signed?
   end
@@ -48,7 +48,7 @@ class WaiverSubmissionsController < ApplicationController
   #
   # GET /waivers/new
   def new 
-    authorize :waiver_submissions
+    authorize :waiver_submission
 
     # We just show a message about the Waivers only being loaded for a launched Course.
     return if @base_course.is_a?(CourseTemplate)
@@ -75,7 +75,7 @@ class WaiverSubmissionsController < ApplicationController
   #
   # POST /waivers
   def create
-    authorize :waiver_submissions
+    authorize :waiver_submission
 
     # Create a submission for this assignment in Canvas. This is required to to have the 
     # Pre-Requisites module satisfy its completion requirements in order to unlock
@@ -92,7 +92,7 @@ class WaiverSubmissionsController < ApplicationController
   # no id.
   # GET /waivers/completed
   def completed
-    authorize :waiver_submissions
+    authorize :waiver_submission
   end
 
 private

@@ -20,43 +20,29 @@ require 'canvas_api'
 # After publishing the waivers. The actual launch and submission are handled by WaiverSubmissionsController
 class WaiversController < ApplicationController
   include DryCrud::Controllers::Nestable
-  include Rails.application.routes.url_helpers
+
+  # Adds the #publish and #unpublish actions
+  include Publishable
 
   layout 'form_assembly'
 
   nested_resource_of BaseCourse
 
-  # Note: the TODO here is the actual name of the assignment. The convention
+  # Note: this is the actual name of the assignment. The convention
   # for assignment naming is things like: CLASS: Learning Lab2,
-  # MODULE: Lead Authentically, TODO: Submit Peer Reviews
+  # MODULE: Lead Authentically, TODO: Complete Waivers
   WAIVERS_ASSIGNMENT_NAME = 'TODO: Complete Waivers'
 
-  # POST /course_management/:id/waivers/publish
-  def publish
-    authorize :waivers
-
-    canvas_assignment = CanvasAPI.client.create_lti_assignment(
-      @base_course.canvas_course_id,
-      WAIVERS_ASSIGNMENT_NAME,
-      launch_waiver_submissions_url(protocol: 'https')
-    )
-
-    respond_to do |format|
-      format.html { redirect_to edit_polymorphic_path(@base_course), notice: 'Waivers assignment successfully published to Canvas.' }
-      format.json { head :no_content }
-    end
+  def base_course
+    @base_course
   end
 
-  # POST /course_management/:id/waivers/unpublish
-  def unpublish
-    authorize :waivers
+  def assignment_name
+    WAIVERS_ASSIGNMENT_NAME
+  end
 
-    CanvasAPI.client.delete_assignment(@base_course.canvas_course_id, params[:canvas_waivers_assignment_id])
-
-    respond_to do |format|
-      format.html { redirect_to edit_polymorphic_path(@base_course), notice: 'Waivers assignment successfully deleted from Canvas.' }
-      format.json { head :no_content }
-    end
+  def lti_launch_url
+    launch_waiver_submissions_url(protocol: 'https')
   end
 
 end
