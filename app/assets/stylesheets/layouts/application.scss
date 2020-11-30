@@ -1,0 +1,91 @@
+/*
+ * This is a manifest file that'll be compiled into application.css, which will include all the files
+ * listed below.
+ *
+ * Any CSS and SCSS file within this directory, lib/assets/stylesheets, or any plugin's
+ * vendor/assets/stylesheets directory can be referenced here using a relative path.
+ *
+ * You're free to add application-wide styles to this file and they'll appear at the bottom of the
+ * compiled file so the styles you add here take precedence over styles defined in any other CSS/SCSS
+ * files in this directory. Styles in this file should be added after the last require_* statement.
+ * It is generally better to create a new file per style scope.
+ *
+ */
+//*= require fonts
+//*= require shared/style
+
+@import "shared/variables";
+@import "shared/buttons";
+
+/**
+ * Text
+ */
+.align-center {
+  text-align: center;
+}
+
+.align-right {
+  text-align: right;
+}
+
+.align-left {
+  text-align: left;
+}
+
+
+/**
+ * Buttons
+ * --------
+ * Note that input[type=submit]'s are already styled as buttons. These classes
+ * let you style other elements, like links and spans, as buttons.
+ * 
+ * You can override a submit button's style with the secondary style, but if you
+ * try and get fancy, you're probably going to run into this CSS specificity issue:
+ * https://stackoverflow.com/questions/14666581/precedence-in-css-selector-specifity-conflicts-type-vs-class-selector
+ * You shouldn't be deviating from our standard submit button anyway.
+ */
+.btn, .btn-primary, .btn-secondary {
+  @include braven-button-base;
+}
+
+.btn-primary, input.btn-primary {
+  @include braven-button-primary;
+}
+
+.btn-secondary, input.btn-secondary {
+  background-color: $bv-silver-600;
+  border-color: $bv-silver-500;
+  padding: 0.4rem 1rem;
+}
+
+.btn:visited, .btn-primary:visited, .btn-secondary:visited {
+  color: $button-color-base;
+}
+
+.btn-primary:hover, input.btn-primary:hover,
+.btn-secondary:hover, input.btn-secondary:hover {
+  @include braven-button-base-hover;
+}
+
+.btn-primary:focus, input.btn-primary:focus,
+.btn-secondary:focus, input.btn-secondary:focus {
+  @include braven-button-base-focus;
+}
+
+/**
+ * Alerts
+ */
+.show-alert {
+  position: absolute;
+  z-index: 100;
+  width: 100%;
+}
+
+/**
+ * Misc
+ */
+// A place to store data attributes in a hidden div so we can pass
+// information from the controller to the JS.
+#javascript_variables {
+  display: none;
+}

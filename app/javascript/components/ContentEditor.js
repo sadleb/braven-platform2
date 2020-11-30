@@ -322,15 +322,17 @@ class ContentEditor extends Component {
     // Heading with "Save" button
     _renderHeader() {
         return (
-            <header>
-                <h1>Braven Content Editor</h1>
-                <span id="autosave-indicator" className="saved">Saved</span>
-                <span id="autosave-indicator" className="saving">Saving...</span>
-                <ul>
-                    <li onClick={(evt) => this.handleSave(evt)}>
-                        Save
-                    </li>
-                </ul>
+            <header className="container-fluid">
+                <div className="row align-items-center h-100">
+                    <div className="col-sm-4 offset-sm-1">
+                        <h1>Braven Content Editor</h1>
+                    </div>
+                    <div className="col-sm-6">
+                        <span id="autosave-indicator" className="saved">Saved</span>
+                        <span id="autosave-indicator" className="saving">Saving...</span>
+                        <span onClick={(evt) => this.handleSave(evt)} className="btn-secondary">Save</span>
+                    </div>
+                </div>
             </header>
         );
     }
@@ -342,14 +344,14 @@ class ContentEditor extends Component {
         return (
             <div id="toolbar-page-settings">
                 <h4>Details</h4>
-                <h2>
+                <h4>
                     <input type="text"
                         name="custom_content[title]"
                         defaultValue={this.props.custom_content['title']}
                         placeholder="Title"
                     />
-                </h2>
-                <select name="custom_content[type]" defaultValue={type}>
+                </h4>
+                <select name="custom_content[type]" defaultValue={type} className="form-control-sm">
             		<option disabled value=''>Select a Type</option>
             		<option>Project</option>
             		<option>Survey</option>
@@ -530,16 +532,18 @@ class ContentEditor extends Component {
     // The Design (CKE) and Code (HTML) content editor tabs
     _renderEditorTabs() {
         return (
-            <Tabs 
+            <Tabs className="container-fluid"
                 defaultIndex={this.state.tabIndex}
                 onSelect={(evt) => this.handleTabSelect(evt)}>
                 <div id="workspace">
-                    <TabList id="view-mode">
-                        <Tab>Design</Tab>
-                        <Tab>Code</Tab>
+                    <TabList id="view-mode" className="row justify-content-center">
+                        <div className="col-sm-6">
+                            <Tab>Design</Tab>
+                            <Tab>Code</Tab>
+                        </div>
                     </TabList>
-                    <TabPanel>
-                        <div id="wysiwyg-container" className="bz-assignment">
+                    <TabPanel className="row justify-content-center">
+                        <div id="wysiwyg-container" className="container bv-custom-content-container">
                             <CKEditor
                                 editor={BalloonEditor}
                                 data={this.state.editorData}
@@ -555,8 +559,8 @@ class ContentEditor extends Component {
                             />
                         </div>
                     </TabPanel>
-                    <TabPanel>
-                        <div id="raw-html-container">
+                    <TabPanel className="row justify-content-center">
+                        <div id="raw-html-container" className="col-sm-12">
                             <textarea
                                 value={this.state.editorData}
                                 onChange={(evt) => this.handleHTMLEditorDataChange(evt)}
@@ -575,7 +579,7 @@ class ContentEditor extends Component {
         //   editor data are rendered.
         // * in the right column, available <CommandButtons> to choose from.
         return (
-            <div id="container" key="content-editor">
+            <div key="content-editor">
                 {this._renderHeader()}
                 <main>
                     <div id="vertical-toolbar">

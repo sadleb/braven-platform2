@@ -1,0 +1,274 @@
+/*
+ * This is a manifest file that'll be compiled into accounts.css, which will include all the files
+ * listed below.
+ *
+ * Any CSS and SCSS file within this directory, lib/assets/stylesheets, or any plugin's
+ * vendor/assets/stylesheets directory can be referenced here using a relative path.
+ *
+ * You're free to add accounts-wide styles to this file and they'll appear at the bottom of the
+ * compiled file so the styles you add here take precedence over styles defined in any other CSS/SCSS
+ * files in this directory. Styles in this file should be added after the last require_* statement.
+ * It is generally better to create a new file per style scope.
+ *
+ */
+
+@import "shared/variables";
+
+section {
+  border: 0;
+  display: block;
+  margin: 0;
+  padding: 0;
+  vertical-align: baseline;
+}
+
+.plank .section-container {
+  margin-right: auto;
+  margin-left: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  min-height: 520px;
+}
+
+.plank .section-container:before {
+  content: " ";
+  display: table;
+}
+
+.plank .section-container:after {
+  clear: both;
+  content: " ";
+  display: table;
+}
+
+@media (min-width: 768px) {
+  .plank .section-container {
+    width: 750px;
+  }
+}
+
+@media (min-width: 992px) {
+  .plank .section-container {
+    width: 970px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .plank .section-container {
+    width: 1170px;
+  }
+}
+
+section:before {
+  content: " ";
+  display: table;
+}
+
+section:after {
+  clear: both;
+  content: " ";
+  display: table;
+}
+
+// Uncomment to have activerecord validation failures add a red border around the field.
+// Right now, we only have the password creation form which we would want to turn this off
+// for since it's only two fields there and they don't need to be highlighted.
+// See: app/views/devise/registrations/new.html.erb 
+//.field_with_errors input {
+//  border: 2px solid red;
+//}
+
+.form-control {
+  height: 2.75rem;
+}
+
+.form-control:focus {
+  border-color: $bv-oceanblue;
+  outline: 0;
+  -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,0.075),0 0 8px rgba(102,175,233,0.6);
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.075),0 0 8px rgba(102,175,233,0.6);
+}
+
+// Fixes the footer showing the background all the way to the bottom.
+.clear {
+  clear: both;
+  clear: both;
+}
+
+*:target::before {
+  height: 2.5rem;
+  display: block;
+  content: '\a0';
+}
+
+.plank .section-container>section>div:not(.no-pad) {
+  padding: 2.25em 0.938em 1.5em 0.938em;
+}
+
+.plank.plain-md {
+  background-color: $bv-silver-200;
+  padding: 2rem 0;
+}
+
+.plank.plain-md .section-container {
+  background-color: $bv-silver-100;
+}
+
+#error_explanation li {
+  color: $bv-red;
+}
+
+#error_explanation h3 {
+  margin-top: 0;
+}
+
+#footer_menu {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+#footer_bottom.braven_section {
+  background: $bv-black;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  z-index: -1;
+}
+
+#footer_menu .footer_widget {
+  float: left;
+  width: 25%;
+}
+
+.fb_fico a {
+  background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAQAAAD8x0bcAAABQUlEQVQokW2SXyuDYRjGn8lmTWkknDpgTrD4CFtWsoTxDdTKkW8hy58NXwBb42uoCYcspMQRSxOO1c/1svfZ85buk/e97l/X/e8xmFZ0sEKZOxqKW45ZJuTnfGSaC6V2SJFQpCkKr5F0oXne2SBuXb3oo0CTrA9N8cVqAPAjz6fnZohwxWYgFaXb9rOtNsJG7T7SY4GIirxRZ6D1H+eJJcOJ6LbLIHCtyaJWKVExmiLlFFoXVGOOLqvNUDfayqgVhngQ9M0lMaslaAShEJOCTtW4caBXr1zakYYFHQVmzXjlquw60oigagDao2zIaci44/TCgYP08syCIax1bTldxbSrNlTknE7vI6nl5/89yxofTPgHzurABZ3UBfrl32TWP/CfW01zlrS6MUWGfe45Y5zAe/K6yWn4+u+ju+GQxbbrD4aWkJRuvrDpAAAAAElFTkSuQmCC) no-repeat 0 center;
+  opacity: .9;
+  padding-left: 1.5rem;
+}
+
+.tw_fico a {
+  background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAQAAAD8x0bcAAABU0lEQVQokXWSPUsDQRCGN2osJUoarQTBE0Q5tNE6IQEhhNNoY6sQ8B9YiIVFMPgRtbHUGNEfYSUowVKDsVBiZ4r4DXY+zh57lwvEHbjdnXludvedUShjHSxQokpd7J4T5gl5MQ+ZpCyhHWJYYnEKgl9hB6E0r+SI+Fm19ZGnQcqDJvhkuQXwLMuHzqbo5obNtoi2bblGWMl1n+iRbYiwCQyxJNn73XWEGnOKc6GVC+XIyNzJLfDNhvllj1Mlr4j5qX85Yk2+eqSNN0FFiSrDZrtOc7wxaLwW9SA0KiFvXPhXt3jRx8V9xypfLvLDtO9L6uPO2DXbKQ5d5BEnIMI+JSUvqhmtB1gUUR2iAaSXZxwl6pTZ+lfMAtd06YUt4mfbIiu8M+4VOCUFzktJg0BU8jeYCbaKLY1RFXUTjIglOeCBS8Za+0mXJUORitt0dxwz28z6B1ASn4uFLqeWAAAAAElFTkSuQmCC) no-repeat 0 center;
+  opacity: .9;
+  padding-left: 1.5rem;
+}
+
+.blog_fico a {
+  background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAQCAQAAACMnYaxAAAAxklEQVQYlV3QsQpBURjA8SsLE4My0ZVsKBtlUYpMHsAjsJjuAygjyWhQbPIGshGLhZ1ksVtE/Z17z43vOP863c6vTvd8Fg3u/K8jKSwsixMPRvRES8VjjTc67ofRmjk1ci42vYOCOtBlmKq9zUZjjKwo7ONZYxlHlPDxojFPSxQ30aYqiphYZyhKmxhSv/QraGLz+wz5FA+dvxEE2DHTuOfFgoloq8bX15hjpeYrO6pLowxcdEtSNCrR5clBo81BXf42ulL5AOzyS6X+YSCQAAAAAElFTkSuQmCC) no-repeat 0 center;
+  opacity: .9;
+  padding-left: 1.5rem;
+}
+
+.fb_fico a:hover {
+  opacity: 1;
+}
+
+.tw_fico a:hover {
+  opacity: 1;
+}
+
+.blog_fico a:hover {
+  opacity: 1;
+}
+
+.braven-cc {
+  border-top: 0.05rem solid $bv-silver-400;
+  padding: 1.2rem 0 0;
+  text-align: center;
+  color: $bv-silver-400;
+}
+
+.braven-cc a {
+  color: $bv-silver-400;
+}
+
+.braven-cc a:hover {
+  color: white;
+}
+
+.info_footer_link:before {
+  content: 'Contact us:';
+  display: block;
+}
+
+.footer_widget {
+  background-color: none;
+  color: $bv-silver-400;
+  hyphens: auto;
+  margin: 0;
+  padding: 0.2rem 0;
+  word-wrap: break-word;
+}
+
+.footer_widget .footer-title {
+  font-size: 1.2rem;
+  margin: 0 0 0.6rem;
+  color: white;
+}
+
+.footer_widget ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.footer_widget li {
+  padding: 0;
+}
+
+.footer_widget a {
+  color: $bv-silver;
+}
+
+.footer_widget a:visited {
+  color: $bv-silver;
+}
+
+.footer_widget a:hover {
+  color: white;
+  text-decoration: none;
+}
+
+.braven_section {
+  padding: 2rem 1.5rem;
+}
+
+@media only screen and (max-width: 980px) {
+  .footer_widget .footer-title {
+    font-size: 1em;
+  }
+}
+
+@media only screen and (max-width: 650px) {
+  #footer_bottom.braven_section {
+    position: relative;
+    bottom: 0;
+    padding-bottom: 0.25rem;
+    padding-left: 2%;
+    padding-right: 2%;
+    padding-top: 1rem;
+  }
+  #footer_menu {
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  #footer_menu .footer_widget {
+    margin: 0 auto;
+    width: 50%;
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+  .footer_widget li {
+    margin-bottom: 0.25rem;
+  }
+}
+
+#booster-login {
+  font-size: 1.2em;
+}
+
+#booster-login a {
+  color: $bv-black;
+  text-decoration: underline;
+  font-weight: bold;
+}

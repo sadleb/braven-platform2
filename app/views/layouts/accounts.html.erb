@@ -1,19 +1,29 @@
 <% content_for :title, 'Braven Login'  %>
 
 <% content_for :head do %>
-  <%= stylesheet_link_tag 'accounts', media: 'all', 'data-turbolinks-track': 'reload' %>
+  <%= stylesheet_link_tag 'layouts/accounts', media: 'all', 'data-turbolinks-track': 'reload' %>
   <%= javascript_pack_tag 'accounts' %>
 <% end %>
 
 <% content_for :content do %>
-  <%= render :partial => 'shared/header' %>
-  <div class="plank plain-md" style="padding-top: 32px; padding-bottom: 32px;">
-    <div class="section-container" style="min-height: 540px;">
-      <section>
-      <%= yield %>
-      </section>
-    </div>
-  </div>  <%= render :partial => 'shared/footer' %>
+  <div class="container-fluid px-0">
+
+    <%= render :partial => 'shared/header' %>
+
+    <main>
+      <div class="plank plain-md">
+        <div class="section-container">
+          <section>
+          <%= yield %>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <%= render :partial => 'shared/footer' %>
+
+  </div>
+   
 <% end %>
 
 <%= render template: "layouts/application" %>
