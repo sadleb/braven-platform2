@@ -23,30 +23,17 @@ module ApplicationHelper
     "#{request.base_url}#{request.path}?page=#{collection.next_page}"
   end
   
-  def success notice
-    return '' if notice.nil?
-    
-    %Q(
-      <div class="alert alert-success alert-dismissable fade show" role="alert">
-        <strong>Success!</strong> #{notice}
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-    ).html_safe
+  # Converts Rails flash message types to Bootstrap CSS classes found here:
+  # https://getbootstrap.com/docs/4.0/components/alerts/
+  def alert_css_class(flash_message_type)
+    case flash_message_type.to_sym
+    when :notice
+      'alert-success'
+    when :alert
+      'alert-danger'
+    else
+      Rails.logger.warn("Undefined Rails flash message type converted to alert-primary CSS style: '#{flash_message_type}'")
+      'alert-primary'
+    end
   end
-
-  def failure notice
-    return '' if notice.nil?
-    
-    %Q(
-      <div class="alert alert-danger alert-dismissable fade show" role="alert">
-        <strong>Woops!</strong> #{notice}
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-    ).html_safe
-  end
-
 end

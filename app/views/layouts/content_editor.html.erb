@@ -9,20 +9,7 @@
 <% end %>
 
 <% content_for :content do %>
-
-  <% flash.each do |key, value| %>
-    <div class="alert alert-info alert-dismissible fade show show-alert" role="alert">
-      <a href="#" class="close" data-dismiss="alert">×</a>
-      <ul class="messages">
-        <li>
-          <%= value %>
-        </li>
-      </ul>
-    </div>
-  <% end %>
-
   <%= yield %>
-
 <% end %>
 
 <%= render template: "layouts/application" %>
