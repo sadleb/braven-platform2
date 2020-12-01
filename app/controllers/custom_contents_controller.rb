@@ -33,7 +33,7 @@ class CustomContentsController < ApplicationController
 
     respond_to do |format|
       if @custom_content.save
-        format.html { redirect_to edit_custom_content_path(@custom_content), notice: 'CustomContent was successfully created.' }
+        format.html { redirect_to edit_polymorphic_path(@custom_content), notice: 'CustomContent was successfully created.' }
         format.json { render :show, status: :created, location: @custom_content }
       else
         format.html { render :new }
@@ -49,7 +49,7 @@ class CustomContentsController < ApplicationController
 
     respond_to do |format|
       if @custom_content.update(update_custom_content_params)
-        format.html { redirect_to edit_custom_content_path(@custom_content), notice: 'CustomContent was successfully updated.' }
+        format.html { redirect_to edit_polymorphic_path(@custom_content), notice: 'CustomContent was successfully updated.' }
         format.json { render :show, status: :ok, location: @custom_content }
       else
         format.html { render :edit }
