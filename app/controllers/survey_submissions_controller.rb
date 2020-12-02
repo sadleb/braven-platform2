@@ -5,7 +5,7 @@ class SurveySubmissionsController < ApplicationController
   
   layout 'lti_canvas'
 
-  nested_resource_of BaseCourseSurveyVersion
+  nested_resource_of CourseSurveyVersion
 
 private
 
@@ -14,7 +14,7 @@ private
     # Since this controller accepts arbitrary params to #create, explicitly remove
     # the params we know we don't want.
     params.except(
-      :base_course_survey_version_id,
+      :course_survey_version_id,
       :type,
       :controller,
       :action,

@@ -393,7 +393,7 @@ This will call `NewThingPolicy.index?` with the `NewThing` class as the scoped r
 check the Pundit README and API docs.
 
 For an example policy for anonymous (no login) access, see `KeypairPolicy`. For an example controller
-with no authorization, see `CasController`. For an example admin-only policy, see `BaseCoursePolicy`.
+with no authorization, see `CasController`. For an example admin-only policy, see `CoursePolicy`.
 For an example policy allowing any logged-in user, see `HoneycombJsPolicy`.
 
 There is a global `after_action` callback in `ApplicationPolicy`, `verify_authorized` thats only purpose is

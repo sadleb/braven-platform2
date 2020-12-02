@@ -63,6 +63,8 @@ class CasController < ApplicationController
           logger.debug("Valid ticket granting ticket detected.")
           st = ST.create! @service, tgt.username, tgt, @request_client
           logger.info("User '#{tgt.username}' authenticated based on ticket granting cookie. Redirecting to service '#{@service}'.")
+          # Devise tends to flash a "You need to sign in or sign up before continuing." alert.
+          flash.delete(:alert)
           redirect_to Utils.build_ticketed_url(@service, st) and return
         elsif @gateway
           logger.info("Redirecting unauthenticated gateway request to service '#{@service}'.")
@@ -177,6 +179,8 @@ class CasController < ApplicationController
 
           begin
             logger.info("Redirecting authenticated user '#{@username}' at '#{@st.client_hostname}' to service '#{@service}'")
+            # Devise tends to flash a "You need to sign in or sign up before continuing." alert.
+            flash.delete(:alert)
             redirect_to Utils.build_ticketed_url(@service, @st) and return
           rescue URI::InvalidURIError
             logger.error("The service '#{@service}' is not a valid URI!")

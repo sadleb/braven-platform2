@@ -308,7 +308,7 @@ class CanvasAPI
 
     if filter_out_already_associated
 
-      # TODO: a better way to do this will be to store rubric_ids on the base_course_custom_content_versions
+      # TODO: a better way to do this will be to store rubric_ids on the course_custom_content_versions
       # join  model, but that's more work and we need to handle course clone, and this happens rarely (only when
       # designers are publishing new Projects/Survey), so this is a hack for now.
       # Task to do this properly: 
@@ -428,7 +428,7 @@ class CanvasAPI
   # Note this uses the content_migration API, not the deprecated course copy API.
   # Example usage:
   #   course_data = create_course('Course Name')
-  #   migration_data = copy_course(course_template.canvas_course_id, course_data['id'])
+  #   migration_data = copy_course(unlaunched_course.canvas_course_id, course_data['id'])
   def copy_course(source_course_id, destination_course_id)
     content_migration('courses', destination_course_id, {
       'migration_type': 'course_copy_importer',

@@ -12,8 +12,8 @@ class FetchCanvasAssignmentsInfo
   attr_reader :canvas_assignment_ids,
               :canvas_waivers_url, :canvas_waivers_assignment_id,
               :canvas_peer_reviews_url, :canvas_peer_reviews_assignment_id,
-              :base_course_project_versions, :base_course_survey_versions,
-              :base_course_custom_content_versions_mapping # Maps the fetched canvas assignment ID to the bcccv.
+              :course_project_versions, :course_survey_versions,
+              :course_custom_content_versions_mapping # Maps the fetched canvas assignment ID to the cccv.
 
   def initialize(canvas_course_id)
     @canvas_course_id = canvas_course_id
@@ -22,9 +22,9 @@ class FetchCanvasAssignmentsInfo
     @canvas_waivers_assignment_id = nil
     @canvas_peer_reviews_url = nil
     @canvas_peer_reviews_assignment_id = nil
-    @base_course_project_versions = nil
-    @base_course_survey_versions = nil
-    @base_course_custom_content_versions_mapping = nil
+    @course_project_versions = nil
+    @course_survey_versions = nil
+    @course_custom_content_versions_mapping = nil
 
     # Add the rest of the assignment types we implement as well. E.g. pre/post
     # accelerator surveys, peer evaluations, attendance, etc
@@ -34,9 +34,9 @@ class FetchCanvasAssignmentsInfo
     canvas_assignments = CanvasAPI.client.get_assignments(@canvas_course_id)
 
     @canvas_assignment_ids = []
-    @base_course_project_versions= []
-    @base_course_survey_versions = []
-    @base_course_custom_content_versions_mapping = {}
+    @course_project_versions= []
+    @course_survey_versions = []
+    @course_custom_content_versions_mapping = {}
 
     canvas_assignments.each do |ca|
       @canvas_assignment_ids << ca['id']
@@ -60,27 +60,27 @@ private
   end
 
   def parse_assignment_info!(lti_launch_url, canvas_assignment)
-    bcccv = BaseCourseCustomContentVersion.find_by_lti_launch_url(lti_launch_url) 
-    add_project_or_survey_info!(bcccv, canvas_assignment) and return if bcccv
+    cccv = CourseCustomContentVersion.find_by_lti_launch_url(lti_launch_url) 
+    add_project_or_survey_info!(cccv, canvas_assignment) and return if cccv
 
     waivers_launch_path = Rails.application.routes.url_helpers.launch_waiver_submissions_path()
     add_waivers_info(canvas_assignment) and return if lti_launch_url =~ /#{waivers_launch_path}/
 
-    base_course = BaseCourse.find_by(canvas_course_id: @canvas_course_id)
-    peer_review_submission_path = new_course_peer_review_submission_path(base_course)
+    course = Course.find_by(canvas_course_id: @canvas_course_id)
+    peer_review_submission_path = new_course_peer_review_submission_path(course)
     add_peer_review_info(canvas_assignment) and return if lti_launch_url =~ /#{peer_review_submission_path}/
   end
 
-  def add_project_or_survey_info!(base_course_custom_content_version, canvas_assignment)
-    if base_course_custom_content_version.is_a?(BaseCourseProjectVersion)
-      @base_course_project_versions << base_course_custom_content_version
-    elsif base_course_custom_content_version.is_a?(BaseCourseSurveyVersion)
-      @base_course_survey_versions << base_course_custom_content_version
+  def add_project_or_survey_info!(course_custom_content_version, canvas_assignment)
+    if course_custom_content_version.is_a?(CourseProjectVersion)
+      @course_project_versions << course_custom_content_version
+    elsif course_custom_content_version.is_a?(CourseSurveyVersion)
+      @course_survey_versions << course_custom_content_version
     else
-      raise FetchCanvasAssignmentsInfoError, "BaseCourseCustomContentVersion type not recognized: #{base_course_custom_content_version.inspect}"
+      raise FetchCanvasAssignmentsInfoError, "CourseCustomContentVersion type not recognized: #{course_custom_content_version.inspect}"
     end
 
-    @base_course_custom_content_versions_mapping[canvas_assignment['id']] = base_course_custom_content_version
+    @course_custom_content_versions_mapping[canvas_assignment['id']] = course_custom_content_version
   end
 
   def add_waivers_info(canvas_assignment)

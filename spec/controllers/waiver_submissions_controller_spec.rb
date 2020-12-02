@@ -10,7 +10,7 @@ RSpec.describe WaiverSubmissionsController, type: :controller do
   let(:valid_session) { {} }
 
   context 'when logged in as fellow' do
-    let(:course) { create :course_with_canvas_id }
+    let(:course) { create :course }
     let(:section) { create(:section, course: course) }
     let!(:fellow_user) { create(:fellow_user, section: section) }
     let(:lti_launch) {
@@ -105,20 +105,6 @@ RSpec.describe WaiverSubmissionsController, type: :controller do
           script_csp = response.request.content_security_policy.script_src
           expect(script_csp[0]).to eq(Rails.application.secrets.form_assembly_url + ":*")
           expect(script_csp[1]).to eq("'unsafe-eval'")
-        end
-
-        context 'when in a CourseTemplate' do
-          let(:course_template) { create :course_template_with_canvas_id }
-          let(:lti_launch) {
-            create( :lti_launch_assignment,
-              canvas_user_id: fellow_user.canvas_user_id,
-              course_id: course_template.canvas_course_id
-            )
-          }
-
-          it 'shows instructions' do
-            expect(response.body).to match /Waiver Instructions/
-          end
         end
 
       end # 'for initial form'

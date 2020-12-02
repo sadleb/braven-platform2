@@ -1,0 +1,22 @@
+<%= render(
+  'list',
+  title: 'Course Management',
+  button_label: 'Launch New Program',
+  button_url: launch_courses_path,
+  courses: [],
+) %>
+
+<%= render(
+  'list',
+  title: 'Course Templates',
+  button_label: 'Add Course Template',
+  button_url: new_course_path,
+  courses: @courses.unlaunched_courses,
+) %>
+
+<%= render(
+  'list',
+  title: 'Launched Courses',
+  courses: @courses.launched_courses,
+  button_label: nil,
+) %>

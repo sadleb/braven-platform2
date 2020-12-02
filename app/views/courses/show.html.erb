@@ -1,0 +1,46 @@
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><%= link_to 'Course Management', courses_path %></li>
+    <li class="breadcrumb-item active" aria-current="page">Editing Course</li>
+  </ol>
+</nav>
+
+<div class="container">
+
+  <% if @course.can_edit? %>
+    <p><%= link_to 'Edit', edit_course_path(@course), class: 'btn btn-secondary' %></p>
+  <% else %>
+    <p><em>Note: Launched Courses aren't editable at the moment.</em></p>
+  <% end %>
+
+  <h3>Settings</h3>
+  <div class="row">
+    <div class="col-sm-6">
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Canvas Course ID</th>
+            <th>Course Resources</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><%= link_to @course.name, @course.canvas_url %></td>
+            <td><%= @course.canvas_course_id %></td>
+            <td><%= @course.course_resource&.name %></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <br/>
+
+  <h3>Projects</h3>
+  <%= render :partial => 'course_custom_content_versions/list', locals: {read_only: true, course_custom_content_versions: @course.course_project_versions} %>
+
+  <h3>Impact Surveys</h3>
+  <%= render :partial => 'course_custom_content_versions/list', locals: {read_only: true, course_custom_content_versions: @course.course_survey_versions} %>
+
+</div>

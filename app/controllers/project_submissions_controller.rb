@@ -7,7 +7,7 @@ class ProjectSubmissionsController < ApplicationController
   
   layout 'lti_canvas'
 
-  nested_resource_of BaseCourseProjectVersion
+  nested_resource_of CourseProjectVersion
 
   before_action :set_lti_launch
   skip_before_action :verify_authenticity_token, only: [:create], if: :is_sessionless_lti_launch?
@@ -15,7 +15,7 @@ class ProjectSubmissionsController < ApplicationController
   def show
     authorize @project_submission
     # Setting this here b/c we use the root path instead of a nested path for viewing project submissions.
-    @base_course_project_version = @project_submission.base_course_project_version
+    @course_project_version = @project_submission.course_project_version
     @user_override_id = @project_submission.user.id
     @project_lti_id = @lti_launch.activity_id
   end
@@ -23,12 +23,12 @@ class ProjectSubmissionsController < ApplicationController
   def new
     @project_submission = ProjectSubmission.new(
       user: current_user,
-      base_course_project_version: @base_course_project_version,
+      course_project_version: @course_project_version,
     )
     authorize @project_submission
 
     @has_previous_submission = ProjectSubmission.where(
-      base_course_project_version: @base_course_project_version,
+      course_project_version: @course_project_version,
       user: @project_submission.user,
     ).exists?
 
@@ -45,7 +45,7 @@ class ProjectSubmissionsController < ApplicationController
     # Create a submission for this user and project
     @project_submission = ProjectSubmission.new(
       user: current_user,
-      base_course_project_version: @base_course_project_version,
+      course_project_version: @course_project_version,
     )
     authorize @project_submission
     @project_submission.save!

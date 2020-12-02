@@ -4,7 +4,7 @@ RSpec.describe SurveySubmissionsController, type: :controller do
   render_views
 
   let(:course_survey_version) { create(:course_survey_version) }
-  let(:section) { create :section, course: course_survey_version.base_course }
+  let(:section) { create :section, course: course_survey_version.course }
   let(:user) { create :fellow_user, section: section }
 
   let(:lti_launch) {
@@ -21,7 +21,7 @@ RSpec.describe SurveySubmissionsController, type: :controller do
     let(:survey_submission) { create(
       :survey_submission,
       user: user,
-      base_course_survey_version: course_survey_version,
+      course_survey_version: course_survey_version,
     )}
 
     it 'returns a success response' do
@@ -29,7 +29,7 @@ RSpec.describe SurveySubmissionsController, type: :controller do
         :show,
         params: {
           id: survey_submission.id,
-          type: 'BaseCourseSurveyVersion',
+          type: 'CourseSurveyVersion',
           state: lti_launch.state,
         },
       )
@@ -42,8 +42,8 @@ RSpec.describe SurveySubmissionsController, type: :controller do
       get(
         :new,
         params: {
-          base_course_survey_version_id: course_survey_version.id,
-          type: 'BaseCourseSurveyVersion',
+          course_survey_version_id: course_survey_version.id,
+          type: 'CourseSurveyVersion',
           state: lti_launch.state,
         },
       )
@@ -53,13 +53,13 @@ RSpec.describe SurveySubmissionsController, type: :controller do
     it 'redirects to #show if there is a previous submission' do
       SurveySubmission.create!(
         user: user,
-        base_course_survey_version: course_survey_version,
+        course_survey_version: course_survey_version,
       )
       get(
         :new,
         params: {
-          base_course_survey_version_id: course_survey_version.id,
-          type: 'BaseCourseSurveyVersion',
+          course_survey_version_id: course_survey_version.id,
+          type: 'CourseSurveyVersion',
           state: lti_launch.state,
         },
       )
@@ -80,8 +80,8 @@ RSpec.describe SurveySubmissionsController, type: :controller do
       post(
         :create,
         params: {
-          base_course_survey_version_id: course_survey_version.id,
-          type: 'BaseCourseSurveyVersion',
+          course_survey_version_id: course_survey_version.id,
+          type: 'CourseSurveyVersion',
           unique_input_name: 'my test input',
           state: lti_launch.state,
         }

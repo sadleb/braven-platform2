@@ -5,15 +5,15 @@ require 'rails_helper'
 RSpec.describe LaunchProgram do
   let(:sf_program_id) { 'TestSalesforceProgramID' }
   let(:fellow_course_name) { 'Test Fellow Course Name' }
-  let(:fellow_course_template) { create(:course_template, attributes_for(:course_template_with_resource)) }
-  let(:lc_course_template) { create(:course_template_with_canvas_id) }
+  let(:fellow_source_course) { create(:course, attributes_for(:course_with_resource)) }
+  let(:lc_source_course) { create(:course) }
   let(:lc_course_name) { 'Test LC Course Name' }
   let(:new_fellow_canvas_course_id) { 93487 }
   let(:new_lc_canvas_course_id) { 93488 }
   let(:canvas_create_fellow_course) { build(:canvas_course, id: new_fellow_canvas_course_id) }
   let(:canvas_create_lc_course) { build(:canvas_course, id: new_lc_canvas_course_id) }
-  let(:canvas_copy_fellow_course) { build(:canvas_content_migration, source_course_id: fellow_course_template.canvas_course_id) }
-  let(:canvas_copy_lc_course) { build(:canvas_content_migration, source_course_id: lc_course_template.canvas_course_id) }
+  let(:canvas_copy_fellow_course) { build(:canvas_content_migration, source_course_id: fellow_source_course.canvas_course_id) }
+  let(:canvas_copy_lc_course) { build(:canvas_content_migration, source_course_id: lc_source_course.canvas_course_id) }
   let(:canvas_client) { double(CanvasAPI) }
   let(:salesforce_program) { build(:salesforce_program_record) }
   let(:fellow_section_names) { [] }
@@ -23,9 +23,9 @@ RSpec.describe LaunchProgram do
     allow(LaunchProgram).to receive(:sleep).and_return(nil)
     allow(CanvasAPI).to receive(:client).and_return(canvas_client)
     allow(canvas_client).to receive(:create_course).with(fellow_course_name).and_return(canvas_create_fellow_course)
-    allow(canvas_client).to receive(:copy_course).with(fellow_course_template.canvas_course_id, new_fellow_canvas_course_id).and_return(canvas_copy_fellow_course)
+    allow(canvas_client).to receive(:copy_course).with(fellow_source_course.canvas_course_id, new_fellow_canvas_course_id).and_return(canvas_copy_fellow_course)
     allow(canvas_client).to receive(:create_course).with(lc_course_name).and_return(canvas_create_lc_course)
-    allow(canvas_client).to receive(:copy_course).with(lc_course_template.canvas_course_id, new_lc_canvas_course_id).and_return(canvas_copy_lc_course)
+    allow(canvas_client).to receive(:copy_course).with(lc_source_course.canvas_course_id, new_lc_canvas_course_id).and_return(canvas_copy_lc_course)
     allow(sf_api_client).to receive(:get_program_info).and_return(salesforce_program)
     allow(sf_api_client).to receive(:get_cohort_schedule_section_names).and_return(fellow_section_names)
     allow(sf_api_client).to receive(:set_canvas_course_ids)
@@ -33,7 +33,7 @@ RSpec.describe LaunchProgram do
   end
 
   subject(:launch_program) do
-    LaunchProgram.new(sf_program_id, fellow_course_template.id, fellow_course_name, lc_course_template.id, lc_course_name)
+    LaunchProgram.new(sf_program_id, fellow_source_course.id, fellow_course_name, lc_source_course.id, lc_course_name)
   end
 
   describe '#initialize' do
@@ -63,15 +63,15 @@ RSpec.describe LaunchProgram do
     end
   end
 
-  shared_examples 'template assignment is copied to course assignment' do
+  shared_examples 'source course assignment is copied to destination course assignment' do
     scenario 'it updates the LTI launch/submission URL' do
-      template_url = course_template_custom_content_version.new_submission_url
+      source_assignment_url = source_course_custom_content_version.new_submission_url
 
-      # This mimics an assignment that was cloned to the new course with the old launch URL for the template
+      # This mimics an assignment that was cloned to the new course with the old launch URL for the source course 
       canvas_course_assignment = build(
         :canvas_assignment,
         course_id: new_fellow_canvas_course_id,
-        lti_launch_url: template_url,
+        lti_launch_url: source_assignment_url,
       )
 
       allow(canvas_client)
@@ -80,21 +80,21 @@ RSpec.describe LaunchProgram do
 
       launch_program.run
 
-      course_custom_content_version = BaseCourseCustomContentVersion.find_by(
+      course_custom_content_version = CourseCustomContentVersion.find_by(
         canvas_assignment_id: canvas_course_assignment['id'],
       )
-      course_url = course_custom_content_version.new_submission_url
+      destination_course_url = course_custom_content_version.new_submission_url
 
       expect(canvas_client)
         .to have_received(:update_assignment_lti_launch_url)
         .with(
           new_fellow_canvas_course_id,
           canvas_course_assignment['id'],
-          course_url,
+          destination_course_url,
         )
         .once
 
-      expect(template_url).not_to eq(course_url)
+      expect(source_assignment_url).not_to eq(destination_course_url)
     end
   end
 
@@ -126,8 +126,8 @@ RSpec.describe LaunchProgram do
       it "calls canvas API to copy both fellow and LC courses" do
         expect(canvas_client).to receive(:create_course).with(fellow_course_name).once
         expect(canvas_client).to receive(:create_course).with(lc_course_name).once
-        expect(canvas_client).to receive(:copy_course).with(fellow_course_template.canvas_course_id, canvas_create_fellow_course['id']).once
-        expect(canvas_client).to receive(:copy_course).with(lc_course_template.canvas_course_id, canvas_create_lc_course['id']).once
+        expect(canvas_client).to receive(:copy_course).with(fellow_source_course.canvas_course_id, canvas_create_fellow_course['id']).once
+        expect(canvas_client).to receive(:copy_course).with(lc_source_course.canvas_course_id, canvas_create_lc_course['id']).once
         launch_program.run
       end
 
@@ -135,10 +135,10 @@ RSpec.describe LaunchProgram do
         expect { launch_program.run }.to change(Course, :count).by(2)
         fellow_course = Course.find_by(name: fellow_course_name)
         expect(fellow_course.canvas_course_id).to eq canvas_create_fellow_course['id']
-        expect(fellow_course.course_resource_id).to eq fellow_course_template.course_resource_id
+        expect(fellow_course.course_resource_id).to eq fellow_source_course.course_resource_id
         lc_course = Course.find_by(name: lc_course_name)
         expect(lc_course.canvas_course_id).to eq canvas_create_lc_course['id']
-        expect(lc_course.course_resource_id).to eq lc_course_template.course_resource_id
+        expect(lc_course.course_resource_id).to eq lc_source_course.course_resource_id
       end
 
       it "waits for the Canvas course copy to finish before getting assignments" do
@@ -162,21 +162,21 @@ RSpec.describe LaunchProgram do
       end
 
       context 'impact surveys' do
-        let(:course_template_custom_content_version) { create(
-          :course_template_survey_version,
-          base_course: fellow_course_template,
+        let(:source_course_custom_content_version) { create(
+          :course_survey_version,
+          course: fellow_source_course,
         ) }
 
-        it_behaves_like 'template assignment is copied to course assignment'
+        it_behaves_like 'source course assignment is copied to destination course assignment'
       end
 
       context 'projects' do
-        let(:course_template_custom_content_version) { create(
-          :course_template_project_version,
-          base_course: fellow_course_template,
+        let(:source_course_custom_content_version) { create(
+          :course_project_version,
+          course: fellow_source_course,
         ) }
 
-        it_behaves_like 'template assignment is copied to course assignment'
+        it_behaves_like 'source course assignment is copied to destination course assignment'
       end
     end
 

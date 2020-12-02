@@ -5,7 +5,7 @@ require 'canvas_api'
 # 1. creates the initial Canvas Sections based on the information in Salesforce
 # 2. creates local projects, modules, etc for those found in the Canvas course
 #
-# This is mostly used after the New Program Launch creates a fresh Canvas course
+# This is mostly used after the New Program Launch creates a fresh Launched Canvas course
 # from a Course Template, but it may be used to point at a new course that we've manually
 # setup in Canvas that is intended to be used as a new Course Template.
 #
@@ -42,42 +42,35 @@ private
 
   # Grab the list of assignments from the new launched course. Look through them and for LTI assignments,
   # parse out the existing LTI launch URL, look up the resource (e.g. Project/Module/Survey/etc) that is 
-  # being launched and associate it with the new base_course as well. Then update the Canvas 
+  # being launched and associate it with the new course as well. Then update the Canvas 
   # assignment's launch URL to launch the newly associated resource. 
   def initialize_assignments
     canvas_assignment_info = FetchCanvasAssignmentsInfo.new(@new_course.canvas_course_id).run
 
-    canvas_assignment_info.base_course_custom_content_versions_mapping.each do |canvas_assignment_id, bcccv|
-      initialize_new_base_course_custom_content_version(canvas_assignment_id, bcccv)
+    canvas_assignment_info.course_custom_content_versions_mapping.each do |canvas_assignment_id, cccv|
+      initialize_new_course_custom_content_version(canvas_assignment_id, cccv)
     end
 
     canvas_assignment_info.canvas_assignment_ids
   end
 
   # When the assignment is loaded in Canvas and does an LTI Launch, it launches a 
-  # BaseCourseCustomContentVersion's submission URL. This initializes that both locally
-  # and in Canvas by creating a new one associating this new BaseCourse to the same custom_content_version
+  # CourseCustomContentVersion's submission URL. This initializes that both locally
+  # and in Canvas by creating a new one associating this new Course to the same custom_content_version
   # as the old one and publishing the new URL to the new canvas_assignment_id
-  def initialize_new_base_course_custom_content_version(canvas_assignment_id, old_base_course_custom_content_version)
-    new_launch_url = nil
-
-    if old_base_course_custom_content_version.base_course.is_a? CourseTemplate
-      new_launch_url = create_new_base_course_custom_content_version!(canvas_assignment_id, old_base_course_custom_content_version)
-      Rails.logger.debug("Updating Canvas Assignment[#{canvas_assignment_id}] - changing LTI launch URL to: #{new_launch_url}")
-      CanvasAPI.client.update_assignment_lti_launch_url(@new_course.canvas_course_id, canvas_assignment_id, new_launch_url)
-    else
-      raise InitializeNewCourseError, "BaseCourseCustomContentVersion #{old_base_course_custom_content_version.inspect} is not for a CourseTemplate. " \
-                                      "Only initializing from cloned templates is supported"
-    end
+  def initialize_new_course_custom_content_version(canvas_assignment_id, old_course_custom_content_version)
+    new_launch_url = create_new_course_custom_content_version!(canvas_assignment_id, old_course_custom_content_version)
+    Rails.logger.debug("Updating Canvas Assignment[#{canvas_assignment_id}] - changing LTI launch URL to: #{new_launch_url}")
+    CanvasAPI.client.update_assignment_lti_launch_url(@new_course.canvas_course_id, canvas_assignment_id, new_launch_url)
   end
 
-  def create_new_base_course_custom_content_version!(canvas_assignment_id, old_course_custom_content_version)
-    if old_course_custom_content_version.base_course_id == @new_course.canvas_course_id
+  def create_new_course_custom_content_version!(canvas_assignment_id, old_course_custom_content_version)
+    if old_course_custom_content_version.course_id == @new_course.canvas_course_id
       raise InitializeNewCourseError, "Canvas Assignment[#{canvas_assignment_id}] is already associated with #{@new_course}"
     end
 
     new_cccv = old_course_custom_content_version.class.create!(
-      base_course: @new_course,
+      course: @new_course,
       custom_content_version: old_course_custom_content_version.custom_content_version,
       canvas_assignment_id: canvas_assignment_id,
     )
@@ -90,7 +83,7 @@ private
     @section_names.each do |sname|
       cs = CanvasAPI.client.create_lms_section(course_id: @new_course.canvas_course_id, name: sname) 
       canvas_section_ids << cs.id
-      ps = Section.create!(name: cs.name, base_course_id: @new_course.id, canvas_section_id: cs.id)      
+      ps = Section.create!(name: cs.name, course_id: @new_course.id, canvas_section_id: cs.id)      
     end
     canvas_section_ids
   end

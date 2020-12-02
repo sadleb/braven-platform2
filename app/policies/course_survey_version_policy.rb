@@ -1,0 +1,2 @@
+class CourseSurveyVersionPolicy < CourseCustomContentVersionPolicy
+end

@@ -7,16 +7,12 @@ class CustomContent < ApplicationRecord
   scope :projects, -> { where type: 'Project' }
   scope :surveys, -> { where type: 'Survey' }
 
-  def base_courses
-    custom_content_versions.map { |v| v.base_courses or [] }.reduce(:+) or []
+  def courses
+    custom_content_versions.map { |v| v.courses or [] }.reduce(:+) or []
   end
 
   def courses
     custom_content_versions.map { |v| v.courses }.reduce(:+) or []
-  end
-
-  def course_templates
-    custom_content_versions.map { |v| v.course_templates }.reduce(:+) or []
   end
 
   def last_version

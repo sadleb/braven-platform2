@@ -26,15 +26,15 @@ class WaiversController < ApplicationController
 
   layout 'admin'
 
-  nested_resource_of BaseCourse
+  nested_resource_of Course
 
   # Note: this is the actual name of the assignment. The convention
   # for assignment naming is things like: CLASS: Learning Lab2,
   # MODULE: Lead Authentically, TODO: Complete Waivers
   WAIVERS_ASSIGNMENT_NAME = 'TODO: Complete Waivers'
 
-  def base_course
-    @base_course
+  def course
+    @course
   end
 
   def assignment_name

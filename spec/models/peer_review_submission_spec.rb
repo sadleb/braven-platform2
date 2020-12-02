@@ -10,7 +10,7 @@ RSpec.describe PeerReviewSubmission, type: :model do
 
   # Validations
   it { should validate_presence_of :user_id }
-  it { should validate_presence_of :base_course_id }
+  it { should validate_presence_of :course_id }
   
   context 'valid peer_review_submission' do
     let!(:user) { create(:fellow_user) }

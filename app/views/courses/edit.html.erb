@@ -1,0 +1,97 @@
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><%= link_to 'Course Management', courses_path %></li>
+    <li class="breadcrumb-item active" aria-current="page">Editing Course</li>
+  </ol>
+</nav>
+
+<div class="container">
+<%= form_with(model: @course, local: true) do |form| %>
+  <% if @course.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@course.errors.count, "error") %> prohibited this Course from being saved:</h2>
+
+      <ul>
+      <% @course.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <h3>Settings</h3>
+  <div class="row">
+    <div class="col-md-6">
+      <div class="form-group">
+        <%= form.label :name %>
+        <%= form.text_field :name, class: 'form-control' %>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :canvas_course_id, 'Canvas Course ID' %>
+        <%= form.number_field :canvas_course_id, class: 'form-control col-md-8' %>
+      </div>
+
+      <div class="form-group">
+        <div class="row">
+          <%= form.label :course_resource_id, 'Course Resources', class: 'col' %>
+        </div>
+        <div class="row justify-content-between ml-0">
+          <%= form.collection_select :course_resource_id, CourseResource.all, :id, :name, {include_blank: true}, class: 'form-control col-md-8' %>
+          <%= link_to 'Add new', :new_course_resource, class: 'btn btn-secondary col-md-2 my-0 px-2' %>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="row">
+          <span class="col-md-3"><p>Waivers</p></span>
+          <span class="col-md-9 align-right"><small><em>Note: which waivers are shown is controlled by Salesforce</em></small></span>
+        </div>
+        <div class="row">
+          <% if has_waivers? %>
+            <%= link_to 'View Waivers', canvas_waivers_url, class: 'col-md-10' %>
+            <%= link_to 'Delete', unpublish_course_waivers_path(@course, :canvas_assignment_id => canvas_waivers_assignment_id),
+                                  method: :delete, class: 'btn btn-secondary col-md-2 my-0',
+                                  data: { confirm: 'Are you sure you want to delete the waivers?' } %>
+          <% else %>
+            <span class="col-md-10"><em>No Waivers Assignment</em></span>
+            <%= link_to 'Add', publish_course_waivers_path(@course), method: :post, class: 'btn btn-secondary col-md-2 my-0' %>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="row">
+          <span class="col-md-4"><p>Peer Reviews</p></span>
+        </div>
+        <div class="row">
+          <% if has_peer_reviews_assignment? %>
+            <%= link_to 'View Peer Reviews', canvas_peer_reviews_url, class: 'col-md-10' %>
+            <%= link_to 'Delete', unpublish_course_peer_reviews_path(@course, canvas_assignment_id: canvas_peer_reviews_assignment_id),
+                                  method: :delete, class: 'btn btn-secondary col-md-2 my-0',
+                                  data: { confirm: 'Are you sure you want to delete the Peer Reviews assignment?' } %>
+          <% else %>
+            <span class="col-md-10"><em>No Peer Reviews Assignment</em></span>
+            <%= link_to 'Add', publish_course_peer_reviews_path(@course), method: :post, class: 'btn btn-secondary col-md-2 my-0' %>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="actions">
+        <%= form.submit 'Update Settings', class: 'btn btn-secondary' %>
+        <%= link_to 'Cancel', courses_path, class: 'btn btn-secondary'%>
+      </div>
+    </div>
+  </div>
+
+  <br/>
+  <h3>Edit Projects</h3>
+  <%= link_to 'Add Project', new_course_course_project_version_path(@course), class: 'btn btn-sm btn-secondary' %>
+  <%= render :partial => 'course_custom_content_versions/list', locals: {course_custom_content_versions: @course.course_project_versions} %>
+
+  <h3>Edit Impact Surveys</h3>
+  <%= link_to 'Add Impact Survey', new_course_course_survey_version_path(@course), class: 'btn btn-sm btn-secondary' %>
+  <%= render :partial => 'course_custom_content_versions/list', locals: {course_custom_content_versions: @course.course_survey_versions} %>
+<% end %>
+
+</div>

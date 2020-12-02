@@ -4,11 +4,12 @@ require 'rails_helper'
 
 RSpec.describe SyncPortalEnrollmentForAccount do
   describe '#run' do
+    let(:fellow_canvas_course_id) { 11 }
     let(:portal_user) { CanvasAPI::LMSUser.new }
     let(:sf_participant) { SalesforceAPI::SFParticipant.new('first', 'last', 'test1@example.com') }
-    let(:sf_program) { SalesforceAPI::SFProgram.new }
+    let(:sf_program) { SalesforceAPI::SFProgram.new(432, 'Some Program', 'Some School', fellow_canvas_course_id) }
     let(:lms_section) { CanvasAPI::LMSSection.new(10, "test section") }
-    let(:lms_enrollment) { CanvasAPI::LMSEnrollment.new(55, 11, RoleConstants::STUDENT_ENROLLMENT, lms_section.id) }
+    let(:lms_enrollment) { CanvasAPI::LMSEnrollment.new(55, fellow_canvas_course_id, RoleConstants::STUDENT_ENROLLMENT, lms_section.id) }
     let(:lms_client) { double('CanvasAPI', find_enrollment: lms_enrollment, find_section_by: lms_section, enroll_user_in_course: nil, create_lms_section: lms_section, delete_enrollment: nil) }
     # Create local models, with the assumption that a user that exists on Canvas must already exist locally too.
     # This all falls apart if that assumption is untrue (the tests will pass, but the code won't work), so be careful
@@ -17,7 +18,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
     # (https://app.asana.com/0/1174274412967132/1197893935338145/f)
     let!(:user) { create(:registered_user, email: sf_participant.email) }
     let!(:course) { create(:course, canvas_course_id: lms_enrollment.course_id) }
-    let!(:section) { create(:section, base_course_id: course.id, canvas_section_id: lms_section.id) }
+    let!(:section) { create(:section, course_id: course.id, canvas_section_id: lms_section.id) }
 
     before(:each) do
       allow(CanvasAPI).to receive(:client).and_return(lms_client)
@@ -50,7 +51,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
           .run
         expect(lms_client)
           .to have_received(:create_lms_section)
-          .with(course_id: nil, name: SyncPortalEnrollmentForAccount::DEFAULT_SECTION)
+          .with(course_id: fellow_canvas_course_id, name: SyncPortalEnrollmentForAccount::DEFAULT_SECTION)
       end
 
       # Add tests for other sections when implemented

@@ -9,9 +9,9 @@ RSpec.describe LaunchProgramJob, type: :job do
     let(:mailer) { double('DummyMailerInstance', success_email: delivery, failure_email: delivery) }
     let(:salesforce_program_id) { 'TestSalesforceProgramId' }
     let(:notification_email) { 'fake_notify@email.com' }
-    let(:fellow_course_template_id) { '123123' }
+    let(:fellow_source_course_id) { '123123' }
     let(:fellow_course_name) { 'Test Fellow Course Name1' }
-    let(:lc_course_template_id) { '423423' }
+    let(:lc_source_course_id) { '423423' }
     let(:lc_course_name) { 'Test LC Course Name1' }
 
     before(:each) do
@@ -20,7 +20,7 @@ RSpec.describe LaunchProgramJob, type: :job do
     end
 
     subject(:launch_program_job) do
-      LaunchProgramJob.perform_now(salesforce_program_id, notification_email, fellow_course_template_id, fellow_course_name, lc_course_template_id, lc_course_name)
+      LaunchProgramJob.perform_now(salesforce_program_id, notification_email, fellow_source_course_id, fellow_course_name, lc_source_course_id, lc_course_name)
     end
 
     it 'starts the program launch' do

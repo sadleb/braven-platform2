@@ -20,7 +20,7 @@ RSpec.describe ProjectSubmission, type: :model do
 
     context 'when no associated project' do
       it 'disallows saving' do
-        project_submission.base_course_project_version = nil
+        project_submission.course_project_version = nil
         expect { project_submission.save! }.to raise_error(ActiveRecord::RecordInvalid)
       end
     end

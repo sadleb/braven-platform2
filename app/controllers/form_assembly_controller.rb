@@ -8,7 +8,7 @@
 #
 # Usage:
 # class MyController < FormAssemblyController
-#  attr_reader :base_course, :lti_launch
+#  attr_reader :course, :lti_launch
 # end
 class FormAssemblyController < ApplicationController
   include LtiHelper
@@ -63,6 +63,6 @@ protected
   end
 
   def form_assembly_info
-    @form_assembly_info ||= FetchSalesforceFormAssemblyInfo.new(base_course.canvas_course_id, current_user).run
+    @form_assembly_info ||= FetchSalesforceFormAssemblyInfo.new(course.canvas_course_id, current_user).run
   end
 end

@@ -1,8 +1,8 @@
 <% content_for :title, 'Impact Survey' %>
 
-<%= form_for [@base_course_survey_version, @survey_submission] do |f| %>
+<%= form_for [@course_survey_version, @survey_submission] do |f| %>
   <div class="bv-custom-content-container">
-    <%== @base_course_survey_version.survey_version.body %>
+    <%== @course_survey_version.survey_version.body %>
     <input id="state" name='state' type='hidden' value="<%= params[:state] %>" />
     <div class="actions">
       <%= f.submit "Submit" %>

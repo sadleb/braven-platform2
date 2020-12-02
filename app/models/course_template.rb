@@ -1,2 +1,0 @@
-class CourseTemplate < BaseCourse
-end

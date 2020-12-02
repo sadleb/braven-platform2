@@ -37,12 +37,12 @@ RSpec.describe CourseResourcesController, type: :controller do
       context "with valid params" do
         let(:create_course_resource) { post :create, params: {name: 'test', course_resource_zipfile: file_upload} }
 
-        it "redirects to base_courses_path" do
+        it "redirects to courses_path" do
           launch_path = '/lessons/somekey/index.html'
           allow(Rise360Util).to receive(:launch_path).and_return(launch_path)
           allow(Rise360Util).to receive(:publish).and_return(launch_path)
 
-          expect(create_course_resource).to redirect_to base_courses_path
+          expect(create_course_resource).to redirect_to courses_path
         end
 
         it 'attaches uploaded zipfile' do
@@ -89,12 +89,12 @@ RSpec.describe CourseResourcesController, type: :controller do
 
         context 'for course resource' do
           it 'redirects to public url' do
-            course_template = create(:course_template_with_resource, canvas_course_id: canvas_course_id)
+            course = create(:course_with_resource, canvas_course_id: canvas_course_id)
   
-            get :lti_show, params: {:id => course_template.course_resource.id, :state => state}
+            get :lti_show, params: {:id => course.course_resource.id, :state => state}
   
             redirect_url = Addressable::URI.parse(response.location)
-            expected_url =  Addressable::URI.parse(course_template.course_resource.launch_url)
+            expected_url =  Addressable::URI.parse(course.course_resource.launch_url)
             expect(redirect_url.path).to eq(expected_url.path)
           end
         end 

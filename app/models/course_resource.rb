@@ -1,11 +1,10 @@
 require 'rise360_util'
 
 # A CourseResource is a Rise 360 package that can be associated with one
-# or more BaseCourse objects. Once associated with a course in Canvas, it will
+# or more Course objects. Once associated with a course in Canvas, it will
 # be used in the "Course Navigation" LTI placement as a "Resources" link.
 class CourseResource < ApplicationRecord
   has_many :courses
-  has_many :course_templates
 
   after_create_commit :publish
 

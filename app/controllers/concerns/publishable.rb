@@ -4,8 +4,7 @@
 # and WaiversController.
 # 
 # This concern handles creating (#publish) and deleting (#unpublish) content 
-# like waivers, peer reviews, LC reviews as a Canvas assignment to a course
-# or course template.
+# like waivers, peer reviews, LC reviews as a Canvas assignment to a course.
 # 
 # When using this concern, you must add the following methods on the controller:
 #
@@ -13,7 +12,7 @@
 # class MyController
 #   include Publishable
 #
-#   def base_course
+#   def course
 #     <the_course>
 #   end
 #
@@ -35,14 +34,14 @@ module Publishable
     authorize controller_path.classify.to_sym
 
     CanvasAPI.client.create_lti_assignment(
-      base_course.canvas_course_id,
+      course.canvas_course_id,
       assignment_name,
       lti_launch_url,
     )
 
     respond_to do |format|
       format.html { redirect_to(
-        edit_polymorphic_path(base_course),
+        edit_course_path(course),
         notice: message % { subject: assignment_name, verb: 'published to' }
       ) }
       format.json { head :no_content }
@@ -54,13 +53,13 @@ module Publishable
     authorize controller_path.classify.to_sym
 
     CanvasAPI.client.delete_assignment(
-      base_course.canvas_course_id,
+      course.canvas_course_id,
       params[:canvas_assignment_id],
     )
 
     respond_to do |format|
       format.html { redirect_to(
-        edit_polymorphic_path(base_course),
+        edit_course_path(course),
         notice: message % { subject: assignment_name, verb: 'deleted from' }
       ) }
       format.json { head :no_content }
@@ -73,7 +72,7 @@ private
   end
 
   def method_missing(name, *args, &block)
-    raise NoMethodError, method_missing_error_msg(name) if name == :base_course
+    raise NoMethodError, method_missing_error_msg(name) if name == :course
     raise NoMethodError, method_missing_error_msg(name) if name == :assignment_name
     raise NoMethodError, method_missing_error_msg(name) if name == :lti_launch_url
     super

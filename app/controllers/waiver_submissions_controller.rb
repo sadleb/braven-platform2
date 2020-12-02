@@ -10,16 +10,16 @@ require 'lti_advantage_api'
 class WaiverSubmissionsController < FormAssemblyController
   include Rails.application.routes.url_helpers
 
-  attr_reader :base_course, :lti_launch
+  attr_reader :course, :lti_launch
 
   before_action :set_lti_launch, only: [:new, :create, :launch]
-  before_action :set_base_course, only: [:new, :create, :launch]
+  before_action :set_course, only: [:new, :create, :launch]
   before_action :set_new_waivers_url, only: [:launch]
 
   # Presents a page to launch the Waivers form in its own window (aka this window) instead of inside an iFrame where
   # the Waivers assignment is shown in Canvas.
   #
-  # Note: ideally this would be nested under base_course similar to the rest of the routes, but it
+  # Note: ideally this would be nested under course similar to the rest of the routes, but it
   # means that we'd need to adjust the LtiLaunch URLs when we launch a new Program and the course id changes.
   # This way, it's just a static endpoint for any course to launch the waivers for that course pulling the
   # course info out of the LtiLaunch context.
@@ -36,9 +36,6 @@ class WaiverSubmissionsController < FormAssemblyController
   # GET /waivers/new
   def new 
     authorize :waiver_submission
-
-    # We just show a message about the Waivers only being loaded for a launched Course.
-    render :new_for_course_template and return if @base_course.is_a?(CourseTemplate)
 
     if params[:tfa_next].present?
       @form_head, @form_body = FormAssemblyAPI.client
@@ -84,8 +81,8 @@ class WaiverSubmissionsController < FormAssemblyController
 
 private
 
-  def set_base_course
-    @base_course = BaseCourse.find_by_canvas_course_id!(@lti_launch.request_message.canvas_course_id)
+  def set_course
+    @course = Course.find_by_canvas_course_id!(@lti_launch.request_message.canvas_course_id)
   end
 
   def set_new_waivers_url

@@ -1,11 +1,11 @@
 class PeerReviewSubmission < ApplicationRecord
   belongs_to :user
-  belongs_to :course, foreign_key: :base_course_id, class_name: "Course"
+  belongs_to :course, foreign_key: :course_id, class_name: "Course"
 
   has_many :peer_review_submission_answers
   alias_attribute :answers, :peer_review_submission_answers
 
-  validates :user_id, :base_course_id, presence: true
+  validates :user_id, :course_id, presence: true
 
   # Takes a nested hash like:
   #   { for_user_id => { peer_review_question_id: input_value (string) } }

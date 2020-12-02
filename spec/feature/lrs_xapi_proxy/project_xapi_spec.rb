@@ -8,10 +8,10 @@ include Rack::Utils
 unless ENV['BZ_AUTH_SERVER'] # Only run these specs if on a server with local database authentication enabled
 
 RSpec.describe ProjectSubmissionsController, type: :feature do
-  let(:base_course_project_version) { create :course_project_version }
-  let(:section) { create :section, course: base_course_project_version.base_course }
+  let(:course_project_version) { create :course_project_version }
+  let(:section) { create :section, course: course_project_version.course }
   let(:user) { create :fellow_user, section: section }
-  let(:project_submission) { create :project_submission, user: user, base_course_project_version: base_course_project_version }
+  let(:project_submission) { create :project_submission, user: user, course_project_version: course_project_version }
   let!(:lti_launch) {
     create(
       :lti_launch_assignment,
@@ -53,8 +53,8 @@ RSpec.describe ProjectSubmissionsController, type: :feature do
     :match_requests_on => [:path, :method],
   } do
     let(:url) {
-      uri = Addressable::URI.parse(new_base_course_project_version_project_submission_path(
-        project_submission.base_course_project_version,
+      uri = Addressable::URI.parse(new_course_project_version_project_submission_path(
+        project_submission.course_project_version,
       ))
       uri.query = { state: lti_launch.state }.to_query
       uri.to_s

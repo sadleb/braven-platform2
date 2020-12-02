@@ -70,7 +70,7 @@ RSpec.describe CustomContentVersionsController, type: :controller do
     let(:course_project_version) { create :course_project_version }
     let(:section) { create(
       :section,
-      course: course_project_version.base_course,
+      course: course_project_version.course,
     ) }
     let(:user) { create :fellow_user, section: section }
 

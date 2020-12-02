@@ -108,9 +108,9 @@ class SyncPortalEnrollmentForAccount
       canvas_section = canvas_client.create_lms_section(course_id: canvas_course_id, name: section_name)
     end
 
-    base_course = BaseCourse.find_by!(canvas_course_id: canvas_course_id)
+    course = Course.find_by!(canvas_course_id: canvas_course_id)
     Section.find_or_create_by!(
-      base_course_id: base_course.id,
+      course_id: course.id,
       name: section_name,
       canvas_section_id: canvas_section.id
     )

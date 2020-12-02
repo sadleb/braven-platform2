@@ -11,9 +11,9 @@ RSpec.describe WaiversController, type: :controller do
 
   context 'when logged in as admin user' do
     let!(:admin_user) { create :admin_user }
-    let(:course_template) { create :course_template_with_canvas_id }
+    let(:course) { create :course }
     let(:assignment_name) { WaiversController::WAIVERS_ASSIGNMENT_NAME }
-    let(:created_canvas_assignment) { build(:canvas_assignment, course_id: course_template.canvas_course_id, name: assignment_name) }
+    let(:created_canvas_assignment) { build(:canvas_assignment, course_id: course.canvas_course_id, name: assignment_name) }
     let(:canvas_client) { double(CanvasAPI) }
   
     before(:each) do
@@ -24,7 +24,7 @@ RSpec.describe WaiversController, type: :controller do
     describe 'POST #publish' do
 
       context 'with valid params' do
-        let(:valid_publish_params) { {base_course_id: course_template.id} }
+        let(:valid_publish_params) { {course_id: course.id} }
 
         before(:each) do
           allow(canvas_client).to receive(:create_lti_assignment).and_return(created_canvas_assignment)
@@ -36,14 +36,14 @@ RSpec.describe WaiversController, type: :controller do
         end
 
         it 'redirects to edit page' do
-          expect(response).to redirect_to(edit_course_template_path(course_template))
+          expect(response).to redirect_to(edit_course_path(course))
         end
 
         it 'calls the API correctly' do
           # Hardcoding the path so that if someone changes it they're forced to see this comment
           # and consider that it will break all previously published Waivers assignments.
           expect(canvas_client).to have_received(:create_lti_assignment)
-            .with(course_template.canvas_course_id, assignment_name, /waiver_submissions\/launch/).once
+            .with(course.canvas_course_id, assignment_name, /waiver_submissions\/launch/).once
         end
 
       end
@@ -53,7 +53,7 @@ RSpec.describe WaiversController, type: :controller do
     describe 'POST #unpublish' do
 
       context 'with valid params' do
-        let(:valid_unpublish_params) { {base_course_id: course_template.id, canvas_assignment_id: created_canvas_assignment['id']} }
+        let(:valid_unpublish_params) { {course_id: course.id, canvas_assignment_id: created_canvas_assignment['id']} }
 
         before(:each) do
           allow(canvas_client).to receive(:delete_assignment).and_return(created_canvas_assignment)
@@ -65,12 +65,12 @@ RSpec.describe WaiversController, type: :controller do
         end
 
         it 'redirects to edit page' do
-          expect(response).to redirect_to(edit_course_template_path(course_template))
+          expect(response).to redirect_to(edit_course_path(course))
         end
 
         it 'calls the API correctly' do
           expect(canvas_client).to have_received(:delete_assignment)
-            .with(course_template.canvas_course_id, created_canvas_assignment['id'].to_s).once
+            .with(course.canvas_course_id, created_canvas_assignment['id'].to_s).once
         end
 
       end

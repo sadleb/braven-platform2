@@ -1,7 +1,7 @@
 class Section < ApplicationRecord
   resourcify
 
-  belongs_to :course, -> { courses }, foreign_key: :base_course_id
+  belongs_to :course
 
   before_validation { name.try(:strip!) }
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_11_19_223501) do
+ActiveRecord::Schema.define(version: 2020_12_02_004112) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -45,31 +45,31 @@ ActiveRecord::Schema.define(version: 2020_11_19_223501) do
     t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
   end
 
-  create_table "base_course_custom_content_versions", force: :cascade do |t|
-    t.bigint "base_course_id", null: false
+  create_table "course_custom_content_versions", force: :cascade do |t|
+    t.bigint "course_id", null: false
     t.bigint "custom_content_version_id", null: false
     t.integer "canvas_assignment_id", null: false
     t.string "type"
-    t.index ["base_course_id", "custom_content_version_id"], name: "index_bcccv_unique_version_ids", unique: true
-    t.index ["base_course_id"], name: "index_base_course_custom_content_versions_on_base_course_id"
-    t.index ["custom_content_version_id"], name: "index_base_course_custom_content_versions_on_version_id"
-  end
-
-  create_table "base_courses", force: :cascade do |t|
-    t.string "name", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "type"
-    t.integer "canvas_course_id"
-    t.bigint "course_resource_id"
-    t.index ["course_resource_id"], name: "index_base_courses_on_course_resource_id"
-    t.index ["name"], name: "index_base_courses_on_name", unique: true
+    t.index ["course_id", "custom_content_version_id"], name: "index_course_custom_content_version_unique_version_ids", unique: true
+    t.index ["course_id"], name: "index_course_custom_content_versions_on_course_id"
+    t.index ["custom_content_version_id"], name: "index_course_custom_content_versions_on_version_id"
   end
 
   create_table "course_resources", force: :cascade do |t|
     t.string "name"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "courses", force: :cascade do |t|
+    t.string "name", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "canvas_course_id"
+    t.bigint "course_resource_id"
+    t.boolean "is_launched", default: false
+    t.index ["course_resource_id"], name: "index_courses_on_course_resource_id"
+    t.index ["name"], name: "index_courses_on_name", unique: true
   end
 
   create_table "custom_content_versions", force: :cascade do |t|
@@ -94,12 +94,12 @@ ActiveRecord::Schema.define(version: 2020_11_19_223501) do
   end
 
   create_table "grade_categories", force: :cascade do |t|
-    t.bigint "base_course_id", null: false
+    t.bigint "course_id", null: false
     t.string "name", null: false
     t.float "percent_of_grade"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["base_course_id"], name: "index_grade_categories_on_base_course_id"
+    t.index ["course_id"], name: "index_grade_categories_on_course_id"
   end
 
   create_table "keypairs", force: :cascade do |t|
@@ -202,8 +202,8 @@ ActiveRecord::Schema.define(version: 2020_11_19_223501) do
 
   create_table "peer_review_submissions", force: :cascade do |t|
     t.bigint "user_id", null: false
-    t.bigint "base_course_id", null: false
-    t.index ["base_course_id"], name: "index_peer_review_submissions_on_base_course_id"
+    t.bigint "course_id", null: false
+    t.index ["course_id"], name: "index_peer_review_submissions_on_course_id"
     t.index ["user_id"], name: "index_peer_review_submissions_on_user_id"
   end
 
@@ -214,8 +214,8 @@ ActiveRecord::Schema.define(version: 2020_11_19_223501) do
     t.datetime "graded_at"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.bigint "base_course_custom_content_version_id", null: false
-    t.index ["base_course_custom_content_version_id"], name: "index_submissions_on_base_course_custom_content_version_id"
+    t.bigint "course_custom_content_version_id", null: false
+    t.index ["course_custom_content_version_id"], name: "index_project_submissions_on_course_project_version_id"
     t.index ["user_id"], name: "index_project_submissions_on_user_id"
   end
 
@@ -295,11 +295,11 @@ ActiveRecord::Schema.define(version: 2020_11_19_223501) do
 
   create_table "sections", force: :cascade do |t|
     t.string "name", null: false
-    t.integer "base_course_id", null: false
+    t.integer "course_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.integer "canvas_section_id"
-    t.index ["name", "base_course_id"], name: "index_sections_on_name_and_base_course_id", unique: true
+    t.index ["name", "course_id"], name: "index_sections_on_name_and_course_id", unique: true
   end
 
   create_table "service_tickets", force: :cascade do |t|
@@ -325,10 +325,10 @@ ActiveRecord::Schema.define(version: 2020_11_19_223501) do
 
   create_table "survey_submissions", force: :cascade do |t|
     t.bigint "user_id", null: false
-    t.bigint "base_course_custom_content_version_id", null: false
+    t.bigint "course_custom_content_version_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["base_course_custom_content_version_id"], name: "index_survey_submissions_on_course_survey_version_id"
+    t.index ["course_custom_content_version_id"], name: "index_survey_submissions_on_course_survey_version_id"
     t.index ["user_id"], name: "index_survey_submissions_on_user_id"
   end
 
@@ -393,12 +393,12 @@ ActiveRecord::Schema.define(version: 2020_11_19_223501) do
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "base_course_custom_content_versions", "base_courses"
-  add_foreign_key "base_course_custom_content_versions", "custom_content_versions"
-  add_foreign_key "base_courses", "course_resources"
+  add_foreign_key "course_custom_content_versions", "courses"
+  add_foreign_key "course_custom_content_versions", "custom_content_versions"
+  add_foreign_key "courses", "course_resources"
   add_foreign_key "custom_content_versions", "custom_contents"
   add_foreign_key "custom_content_versions", "users"
-  add_foreign_key "grade_categories", "base_courses"
+  add_foreign_key "grade_categories", "courses"
   add_foreign_key "lesson_interactions", "users"
   add_foreign_key "lesson_submissions", "lessons"
   add_foreign_key "lesson_submissions", "users"
@@ -406,9 +406,9 @@ ActiveRecord::Schema.define(version: 2020_11_19_223501) do
   add_foreign_key "peer_review_submission_answers", "peer_review_questions"
   add_foreign_key "peer_review_submission_answers", "peer_review_submissions"
   add_foreign_key "peer_review_submission_answers", "users", column: "for_user_id"
-  add_foreign_key "peer_review_submissions", "base_courses"
+  add_foreign_key "peer_review_submissions", "courses"
   add_foreign_key "peer_review_submissions", "users"
-  add_foreign_key "project_submissions", "base_course_custom_content_versions"
+  add_foreign_key "project_submissions", "course_custom_content_versions"
   add_foreign_key "project_submissions", "users"
   add_foreign_key "rubric_grades", "project_submissions"
   add_foreign_key "rubric_grades", "rubrics"
@@ -417,9 +417,9 @@ ActiveRecord::Schema.define(version: 2020_11_19_223501) do
   add_foreign_key "rubric_row_grades", "rubric_rows"
   add_foreign_key "rubric_row_ratings", "rubric_rows"
   add_foreign_key "rubric_rows", "rubric_row_categories"
-  add_foreign_key "sections", "base_courses"
+  add_foreign_key "sections", "courses"
   add_foreign_key "survey_submission_answers", "survey_submissions"
-  add_foreign_key "survey_submissions", "base_course_custom_content_versions"
+  add_foreign_key "survey_submissions", "course_custom_content_versions"
   add_foreign_key "survey_submissions", "users"
   add_foreign_key "user_sections", "sections"
   add_foreign_key "user_sections", "users"

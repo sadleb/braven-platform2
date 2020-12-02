@@ -5,7 +5,7 @@ RSpec.describe CustomContent, type: :model do
   # Project with version in a course
   let(:project) { create :project }
   let!(:project_version) { create :project_version, project: project }
-  let!(:base_course_project_version) { create :course_project_version, base_course: course, project_version: project_version }
+  let!(:course_project_version) { create :course_project_version, course: course, project_version: project_version }
   # Survey with no versions, in no courses
   let(:survey) { create :survey }
 
@@ -33,8 +33,8 @@ RSpec.describe CustomContent, type: :model do
     it { should eq(survey) }
   end
 
-  describe '#base_courses' do
-    subject { project.base_courses.first }
+  describe '#courses' do
+    subject { project.courses.first }
 
     it { should eq(course) }
   end
@@ -43,12 +43,6 @@ RSpec.describe CustomContent, type: :model do
     subject { project.courses.first }
 
     it { should eq(course) }
-  end
-
-  describe '#course_templates' do
-    subject { project.course_templates.first }
-
-    it { should eq(nil) }
   end
 
   describe '#serializable_hash' do

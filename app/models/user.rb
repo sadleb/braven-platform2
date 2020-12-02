@@ -69,8 +69,8 @@ class User < ApplicationRecord
     false
   end
 
-  def total_grade(base_course)
-    ::GradeCalculator.total_grade(self, base_course)
+  def total_grade(course)
+    ::GradeCalculator.total_grade(self, course)
   end
 
   def self.search(query)

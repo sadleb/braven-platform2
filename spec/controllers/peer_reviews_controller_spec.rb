@@ -4,7 +4,7 @@ RSpec.describe PeerReviewsController, type: :controller do
   render_views
 
   let(:canvas_client) { double(CanvasAPI) }
-  let(:course_template) { create :course_template }
+  let(:course) { create :course }
   let(:user) { create :admin_user }
 
   before(:each) do
@@ -25,7 +25,7 @@ RSpec.describe PeerReviewsController, type: :controller do
     end
 
     scenario 'redirects to the edit page' do
-      expect(response).to redirect_to(edit_course_template_path(course_template))
+      expect(response).to redirect_to(edit_course_path(course))
     end
   end
 
@@ -33,7 +33,7 @@ RSpec.describe PeerReviewsController, type: :controller do
     let(:canvas_api_call) { :create_lti_assignment }
 
     before(:each) do
-      post :publish, params: { base_course_id: course_template.id }
+      post :publish, params: { course_id: course.id }
     end
 
     it_behaves_like 'updates Peer Review assignment for the template'
@@ -43,7 +43,7 @@ RSpec.describe PeerReviewsController, type: :controller do
     let(:canvas_api_call) { :delete_assignment }
 
     before(:each) do
-      delete :unpublish, params: { base_course_id: course_template.id, canvas_assignment_id: 123 }
+      delete :unpublish, params: { course_id: course.id, canvas_assignment_id: 123 }
     end
 
     it_behaves_like 'updates Peer Review assignment for the template'

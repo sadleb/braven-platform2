@@ -1,2 +1,0 @@
-class BaseCourseSurveyVersionPolicy < BaseCourseCustomContentVersionPolicy
-end
