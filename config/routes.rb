@@ -33,12 +33,6 @@ Rails.application.routes.draw do
   # http://weblog.jamisbuck.org/2007/2/5/nesting-resources
 
   resources :courses do
-    resources :peer_review_submissions, only: [:new, :create]
-  end
-
-  # We only support adding assignments to Canvas in the context of
-  # the Course Management page.
-  resources :courses, only: [:index] do
 
     collection do
       get :launch, to: 'courses#launch_new'
@@ -47,6 +41,8 @@ Rails.application.routes.draw do
 
     resources :course_project_versions, controller: 'course_custom_content_versions', type: 'CourseProjectVersion', only: [:new]
     resources :course_survey_versions, controller: 'course_custom_content_versions', type: 'CourseSurveyVersion', only: [:new]
+
+    resources :peer_review_submissions, only: [:new, :create]
 
     resources :waivers, only: [] do
       collection do
