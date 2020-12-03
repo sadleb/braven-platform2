@@ -1,21 +1,26 @@
-<h1>One More Step</h1>
-<div class="no-pad">
-<p>Please check your email for instructions on how to finish creating your account.</p>
+<div class="row">
+  <div class="col-md-6 offset-md-3">
+    <h1>One More Step</h1>
+    <p>Please check your email for instructions on how to finish creating your account.</p>
+  </div>
 </div>
+<div class="row mt-5">
+  <div class="col-md-6 offset-md-3" >
+    <%= form_for(resource, as: resource_name, url: confirmation_path(resource_name), html: { method: :post}) do |f| %>
+      <%= render "devise/shared/error_messages", resource: resource %>
 
-<div class="col-md-6" >
-<%= form_for(resource, as: resource_name, url: confirmation_path(resource_name), html: { method: :post}) do |f| %>
-  <%= render "devise/shared/error_messages", resource: resource %>
+      <div class="field">
+        <%= f.hidden_field :salesforce_id, value: params[:u] %>
+      </div>
 
-  <p><small>Didn't receive email instructions and it's been a few minutes? Check your spam folder and search for an email from <strong><%= ENV['MAILER_FROM_EMAIL'] %></strong>. Still can't find it? </small></p>
+      <div class="actions">
+        <p><small>
+         Didn't receive email instructions and it's been a few minutes?
+         Check your spam folder and search for an email from <strong><%= ENV['MAILER_FROM_EMAIL'] %></strong>.
+         Still can't find it? <%= f.submit "Resend instructions", class: 'btn btn-sm btn-secondary m-0 py-0' %>
+        </small></p>
+      </div>
 
-  <div class="field">
-    <%= f.hidden_field :salesforce_id, value: params[:u] %>
+    <% end %>
   </div>
-
-  <div class="actions">
-    <%= f.submit "Resend instructions", class: 'btn-secondary' %>
-  </div>
-
-<% end %>
 </div>
