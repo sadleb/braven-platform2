@@ -1,34 +1,48 @@
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item active" aria-current="page">
-      <%= title %>
-    </li>
-  </ol>
-</nav>
-
-<div class="container">
-  <% if button_label %>
-    <div class="d-flex justify-content-end">
-      <%= link_to button_label, button_url, class: "btn btn-primary", role: "button" %>
-    </div>
-  <% end %>
-
-  <table class="table mt-2">
-    <tbody>
-    <% courses.each do |course| %>
-      <tr>
-        <td>
-          <%= link_to course.name, course.canvas_url %>
-          <span class="badge badge-primary">Course</span>
-        </td>
-        <td class="text-right">
-          <%# Eventually we may want to support editing or deleting a launched course, but we don't currently %>
-          <% unless course.is_launched %>
-            <%= link_to 'Edit', edit_course_path(course) %> |
-            <%= link_to 'Delete', course, method: :delete, data: { confirm: 'Are you sure you want to delete this item?' } %>
-          <% end %>
-        </td>
-      </tr>
+<div class="row mt-4">
+  <nav aria-label="breadcrumb" class="breadcrumb col mt-2">
+    <ol class="my-auto">
+      <li class="breadcrumb-item active" aria-current="page">
+        <%= name.pluralize %>
+      </li>
+    </ol>
+    <% if button_label %>
+      <div class="col d-flex justify-content-end">
+        <%= link_to "Add #{name}", new_course_path, class: "btn btn-lg btn-secondary m-0", role: "button" %>
+      </div>
     <% end %>
-  </table>
+  </nav>
 </div>
+
+<div class="row">
+  <div class="col-8">
+    <table class="table mt-2">
+      <tbody>
+      <% courses.each do |course| %>
+        <tr>
+          <td>
+            <%= link_to course.name, course.canvas_url %>
+            <!-- Add the badge / tags back if we make a way to categorize the templates, like test vs official ones:
+                 <span class="badge badge-primary">Course</span>-->
+          </td>
+          <td class="text-right align-middle p-0">
+            <%# Eventually we may want to support editing or deleting a launched course, but we don't currently %>
+            <% unless course.is_launched %>
+              <%= link_to 'Edit', edit_course_path(course), class: 'btn btn-secondary m-0' %> |
+              <%= link_to 'Delete', course, method: :delete, data: { confirm: 'Are you sure you want to delete this item?' } %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </table>
+  </div>
+</div>
+
+<% if button_label %>
+<div class="row mt-2">
+    <div class="col">
+      <%= link_to button_label, button_url, class: "btn btn-lg btn-primary", role: "button" %>
+    </div>
+</div>
+<% end %>
+
+
