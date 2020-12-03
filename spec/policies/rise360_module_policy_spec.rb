@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe LessonContentPolicy, type: :policy do
+RSpec.describe Rise360ModulePolicy, type: :policy do
   let(:user) { create(:registered_user) }
 
   subject { described_class }

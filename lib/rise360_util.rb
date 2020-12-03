@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 require 'nokogiri'
 
-# Provides helper methods to unzip, publish, and launch LessonContent
+# Provides helper methods to unzip, publish, and launch Rise360Module
 # and CourseResource on AWS S3
 class Rise360Util
 
@@ -53,26 +53,26 @@ class Rise360Util
   end
 
   # Pulls down the tincan.xml from S3 and updates the record with extra context.
-  def self.update_metadata!(lesson_content, bucket = nil)
+  def self.update_metadata!(rise360_module, bucket = nil)
     # TODO: in a future iteration we'll want to generate pre-signed URLs with expirations on
     # them so that our content doesn't get leaked for anyone to access. Right now the bucket is public
     # but we'll want to lock it down.
     bucket = AwsS3Bucket.new unless bucket
-    tincan_xml = bucket.object(s3_object_key(lesson_content.lesson_content_zipfile.key, TINCAN_XML_FILE)).get()['body'].read()
+    tincan_xml = bucket.object(s3_object_key(rise360_module.lesson_content_zipfile.key, TINCAN_XML_FILE)).get()['body'].read()
 
     # Parse tincan.xml and extract what we need.
     tincan_data = Nokogiri::XML(tincan_xml)
     # See https://stackoverflow.com/questions/4690737/nokogiri-xpath-namespace-query.
     tincan_data.remove_namespaces!
-    lesson_content.quiz_questions = tincan_data.xpath(QUIZ_QUESTION_XPATH).count
-    lesson_content.activity_id = tincan_data.xpath(COURSE_XPATH).first['id']
+    rise360_module.quiz_questions = tincan_data.xpath(QUIZ_QUESTION_XPATH).count
+    rise360_module.activity_id = tincan_data.xpath(COURSE_XPATH).first['id']
 
-    lesson_content.save!
+    rise360_module.save!
   rescue Exception => e
-    Rails.logger.error("Could not update LessonContent metadata: #{lesson_content}")
+    Rails.logger.error("Could not update Rise360Module metadata: #{rise360_module}")
     Rails.logger.error("  Error: #{e}")
     Honeycomb.add_field('error', e)
-    Honeycomb.add_field('lesson_content', lesson_content)
+    Honeycomb.add_field('rise360_module', rise360_module)
   end
 
   class << self

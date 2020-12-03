@@ -1,4 +1,4 @@
-<%= form_tag lesson_contents_path, method: :post, multipart: true do %>
+<%= form_tag rise360_modules_path, method: :post, multipart: true do %>
   <%= label_tag :lesson_content_zipfile, 'Rise 360 zipfile' %>
   <%= file_field_tag :lesson_content_zipfile, :accept => "application/zip" %>
   <input id="state" name='state' type='hidden' value="<%= params[:state] %>" />

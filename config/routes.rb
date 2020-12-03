@@ -86,10 +86,10 @@ Rails.application.routes.draw do
 
   resources :lessons, only: [:index, :show] do
     resources :lesson_submissions, only: [:index, :show], :path => 'submissions'
-    resources :lesson_contents, only: [:new, :show, :create], :path => 'contents'
+    resources :rise360_modules, only: [:new, :show, :create], :path => 'contents'
   end
 
-  resources :lesson_contents, only: [:new, :show, :create]
+  resources :rise360_modules, only: [:new, :show, :create]
 
   resources :waiver_submissions, only: [:new, :create] do
     collection do 
@@ -142,8 +142,8 @@ Rails.application.routes.draw do
 
   get '/lti/assignment_selection/new', to: 'lti_assignment_selection#new'     # https://canvas.instructure.com/doc/api/file.assignment_selection_placement.html
 
-  get '/lti/link_selection/new', to: 'lesson_contents#new' # https://canvas.instructure.com/doc/api/file.link_selection_placement.html
-  post '/lti/link_selection', to: 'lesson_contents#create' # https://canvas.instructure.com/doc/api/file.link_selection_placement.html
+  get '/lti/link_selection/new', to: 'rise360_modules#new' # https://canvas.instructure.com/doc/api/file.link_selection_placement.html
+  post '/lti/link_selection', to: 'rise360_modules#create' # https://canvas.instructure.com/doc/api/file.link_selection_placement.html
 
   get '/lti/course_resources', to: 'course_resources#lti_show'
 

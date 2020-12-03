@@ -1,7 +1,7 @@
 require 'rise360_util'
 
 # Represents the contents of a Canvas module, e.g. a Rise 360 course
-class LessonContent < ApplicationRecord
+class Rise360Module < ApplicationRecord
   # Note: Callbacks are executed in reverse order.
   after_create_commit :update_metadata!, :publish
 
@@ -12,7 +12,7 @@ class LessonContent < ApplicationRecord
    "#{LtiRise360Proxy.proxy_url}#{Rise360Util.launch_path(lesson_content_zipfile.key)}"
   end
    
-  private
+private
  
   def publish
     # TODO: Extract this asynchronously, and ensure update_metadata runs *after*.

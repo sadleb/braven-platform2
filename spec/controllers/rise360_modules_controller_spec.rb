@@ -1,7 +1,7 @@
 require 'rails_helper'
 require 'rise360_util'
 
-RSpec.describe LessonContentsController, type: :controller do
+RSpec.describe Rise360ModulesController, type: :controller do
   render_views
 
   let(:state) { LtiLaunchController.generate_state }
@@ -23,7 +23,7 @@ RSpec.describe LessonContentsController, type: :controller do
 
   describe "GET #show" do
     let!(:user) { create :registered_user, canvas_user_id: lti_launch.request_message.canvas_user_id }
-    let(:lesson_content_with_zipfile) { create(:lesson_content_with_zipfile) }
+    let(:rise360_module_with_zipfile) { create(:rise360_module_with_zipfile) }
 
     context 'existing lesson content' do
       it 'redirects to public url with LRS query parameters' do
@@ -31,13 +31,13 @@ RSpec.describe LessonContentsController, type: :controller do
         allow(Rise360Util).to receive(:launch_path).and_return(launch_path)
         allow(Rise360Util).to receive(:publish).and_return(launch_path)
 
-        get :show, params: {:id => lesson_content_with_zipfile.id, :state => state}
+        get :show, params: {:id => rise360_module_with_zipfile.id, :state => state}
 
         redirect_url = Addressable::URI.parse(response.location)
-        expected_url =  Addressable::URI.parse(lesson_content_with_zipfile.launch_url)
+        expected_url =  Addressable::URI.parse(rise360_module_with_zipfile.launch_url)
         expect(redirect_url.path).to eq(expected_url.path)
 
-        # Specific LRS query parameters are tested in LessonContentsHelper
+        # Specific LRS query parameters are tested in LtiHelper
         expect(redirect_url.query_values).not_to be_empty
       end
     end
@@ -71,9 +71,9 @@ RSpec.describe LessonContentsController, type: :controller do
         expected_url = LtiDeepLinkingRequestMessage.new(lti_launch.id_token_payload).deep_link_return_url
         expect(response.body).to match /<form action="#{Regexp.escape(expected_url)}"/
 
-        lesson_content_url = lesson_content_url(LessonContent.last)
-        preview_url = "#{lesson_content_url}?state=#{state}"
-        expect(response.body).to match /<iframe id="lesson-content-preview" src="#{Regexp.escape(preview_url)}"/
+        rise360_module_url = rise360_module_url(Rise360Module.last)
+        preview_url = "#{rise360_module_url}?state=#{state}"
+        expect(response.body).to match /<iframe id="rise360-module-preview" src="#{Regexp.escape(preview_url)}"/
       end
 
       it 'attaches uploaded zipfile' do
@@ -84,7 +84,7 @@ RSpec.describe LessonContentsController, type: :controller do
         expect {
           post :create, params: {state: state, lesson_content_zipfile: file_upload}
         }.to change(ActiveStorage::Attachment, :count).by(1)
-        expect(LessonContent.last.lesson_content_zipfile).to be_attached
+        expect(Rise360Module.last.lesson_content_zipfile).to be_attached
       end
     end
   end

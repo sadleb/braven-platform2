@@ -112,14 +112,6 @@ ActiveRecord::Schema.define(version: 2020_12_03_193836) do
     t.index ["jwk_kid"], name: "index_keypairs_on_jwk_kid"
   end
 
-  create_table "lesson_contents", force: :cascade do |t|
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.string "activity_id"
-    t.integer "quiz_questions"
-    t.index ["activity_id"], name: "index_lesson_contents_on_activity_id"
-  end
-
   create_table "lesson_submissions", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.bigint "lesson_id", null: false
@@ -238,6 +230,14 @@ ActiveRecord::Schema.define(version: 2020_12_03_193836) do
     t.text "value"
     t.index ["canvas_course_id", "canvas_assignment_id", "activity_id", "user_id", "state_id"], name: "module_states_unique_index_1", unique: true
     t.index ["user_id"], name: "index_rise360_module_states_on_user_id"
+  end
+
+  create_table "rise360_modules", force: :cascade do |t|
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.string "activity_id"
+    t.integer "quiz_questions"
+    t.index ["activity_id"], name: "index_rise360_modules_on_activity_id"
   end
 
   create_table "roles", force: :cascade do |t|

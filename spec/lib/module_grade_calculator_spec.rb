@@ -7,14 +7,14 @@ RSpec.describe ModuleGradeCalculator do
 
     let(:activity_id) { 'someactivityid' }
     let(:user) { build(:fellow_user) }
-    let(:lesson_content) { build(:lesson_content) }
+    let(:rise360_module) { build(:rise360_module) }
 
     before(:each) do 
-      allow(LessonContent)
+      allow(Rise360Module)
         .to receive(:find_by)
-        .and_return(lesson_content)
+        .and_return(rise360_module)
 
-      allow_any_instance_of(LessonContent)
+      allow_any_instance_of(Rise360Module)
         .to receive(:quiz_questions)
         .and_return(2)
     end
