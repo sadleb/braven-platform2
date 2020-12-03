@@ -141,7 +141,7 @@ RSpec.describe LrsXapiProxy do
         let(:query_parameters) {{ 'statementId': 'test' }}
         let(:post_body) {{
           'actor': 'TEST_REPLACED',
-          'verb': { 'id': LessonInteraction::PROGRESSED },
+          'verb': { 'id': Rise360ModuleInteraction::PROGRESSED },
           'object': { 'id': 'http://example_activity_id' },
           'result': { 'extensions': {
             'http://w3id.org/xapi/cmi5/result/extensions/progress': 30,
@@ -150,11 +150,11 @@ RSpec.describe LrsXapiProxy do
         let(:method) { 'PUT' }
 
         it 'saves an interaction record' do
-          expect(LessonInteraction.count).to eq(1)
-          expect(LessonInteraction.last.verb).to eq(LessonInteraction::PROGRESSED)
-          expect(LessonInteraction.last.progress).to eq(30)
-          expect(LessonInteraction.last.user).to eq(user)
-          expect(LessonInteraction.last.activity_id).to eq('http://example_activity_id')
+          expect(Rise360ModuleInteraction.count).to eq(1)
+          expect(Rise360ModuleInteraction.last.verb).to eq(Rise360ModuleInteraction::PROGRESSED)
+          expect(Rise360ModuleInteraction.last.progress).to eq(30)
+          expect(Rise360ModuleInteraction.last.user).to eq(user)
+          expect(Rise360ModuleInteraction.last.activity_id).to eq('http://example_activity_id')
         end
       end
 
@@ -162,18 +162,18 @@ RSpec.describe LrsXapiProxy do
         let(:query_parameters) {{ 'statementId': 'test' }}
         let(:post_body) {{
           'actor': 'TEST_REPLACED',
-          'verb': { 'id': LessonInteraction::ANSWERED },
+          'verb': { 'id': Rise360ModuleInteraction::ANSWERED },
           'object': { 'id': 'http://example_activity_id' },
           'result': { 'success': true },
         }.to_json}
         let(:method) { 'PUT' }
 
         it 'saves an interaction record' do
-          expect(LessonInteraction.count).to eq(1)
-          expect(LessonInteraction.last.verb).to eq(LessonInteraction::ANSWERED)
-          expect(LessonInteraction.last.success).to eq(true)
-          expect(LessonInteraction.last.user).to eq(user)
-          expect(LessonInteraction.last.activity_id).to eq('http://example_activity_id')
+          expect(Rise360ModuleInteraction.count).to eq(1)
+          expect(Rise360ModuleInteraction.last.verb).to eq(Rise360ModuleInteraction::ANSWERED)
+          expect(Rise360ModuleInteraction.last.success).to eq(true)
+          expect(Rise360ModuleInteraction.last.user).to eq(user)
+          expect(Rise360ModuleInteraction.last.activity_id).to eq('http://example_activity_id')
         end
       end
 
@@ -188,7 +188,7 @@ RSpec.describe LrsXapiProxy do
         let(:method) { 'PUT' }
 
         it 'saves an interaction record' do
-          expect(LessonInteraction.count).to eq(0)
+          expect(Rise360ModuleInteraction.count).to eq(0)
         end
       end
 

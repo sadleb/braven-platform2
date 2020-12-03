@@ -1,9 +1,9 @@
 require 'rails_helper'
-require 'lesson_grade_calculator'
+require 'module_grade_calculator'
 
-RSpec.describe LessonGradeCalculator do
+RSpec.describe ModuleGradeCalculator do
 
-  describe "computes grade for lesson" do 
+  describe "computes grade for module" do 
 
     let(:activity_id) { 'someactivityid' }
     let(:user) { build(:fellow_user) }
@@ -22,22 +22,22 @@ RSpec.describe LessonGradeCalculator do
     context "grade weighting" do 
       it "sums up to 1" do
         total = 0.0
-        LessonGradeCalculator.grade_weights.each do |key, weight|
+        ModuleGradeCalculator.grade_weights.each do |key, weight|
           total += weight
         end
         expect(total).to eq(1.0)
       end
     end
 
-    context "empty LessonInteraction table" do
+    context "empty Rise360ModuleInteraction table" do
       it "returns 0" do
-        interactions = LessonInteraction.for_user_and_activity(
+        interactions = Rise360ModuleInteraction.for_user_and_activity(
           user.id,
           activity_id,
         )
         expect(interactions).to be_empty
 
-        grade = LessonGradeCalculator.compute_grade(user.id, activity_id)
+        grade = ModuleGradeCalculator.compute_grade(user.id, activity_id)
         expect(grade).to be(0.0)
       end
     end
@@ -45,8 +45,8 @@ RSpec.describe LessonGradeCalculator do
     context "total grade" do
       it "grades engagement and quiz" do
         # Need a new interaction to trigger computation
-        interaction = LessonInteraction.create!(
-          verb: LessonInteraction::PROGRESSED,
+        interaction = Rise360ModuleInteraction.create!(
+          verb: Rise360ModuleInteraction::PROGRESSED,
           user: user,
           canvas_course_id: 333,
           canvas_assignment_id: 222,
@@ -56,31 +56,31 @@ RSpec.describe LessonGradeCalculator do
         )
 
         # Stub out grade computation
-        allow(LessonGradeCalculator)
+        allow(ModuleGradeCalculator)
           .to receive(:grade_mastery_quiz)
           .and_return(100)
-        allow(LessonGradeCalculator)
-          .to receive(:grade_lesson_engagement)
+        allow(ModuleGradeCalculator)
+          .to receive(:grade_module_engagement)
           .and_return(interaction.progress)
-        allow(LessonGradeCalculator)
+        allow(ModuleGradeCalculator)
           .to receive(:grade_weights)
           .and_return({
-            lesson_engagement: 0.5,
+            module_engagement: 0.5,
             mastery_quiz: 0.5,
           })
 
-        grade = LessonGradeCalculator.compute_grade(user.id, activity_id)
+        grade = ModuleGradeCalculator.compute_grade(user.id, activity_id)
 
         # Called each grading method
-        expect(LessonGradeCalculator)
-          .to have_received(:grade_lesson_engagement)
+        expect(ModuleGradeCalculator)
+          .to have_received(:grade_module_engagement)
           .once
-        expect(LessonGradeCalculator)
+        expect(ModuleGradeCalculator)
           .to have_received(:grade_mastery_quiz)
           .once
 
         # Weighted grades
-        expect(LessonGradeCalculator)
+        expect(ModuleGradeCalculator)
           .to have_received(:grade_weights)
           .at_least(:once)
 
@@ -88,20 +88,20 @@ RSpec.describe LessonGradeCalculator do
       end
     end
 
-    context "lesson engagement grade" do
+    context "module engagement grade" do
       it "returns 0 for no interactions" do
-        interactions = LessonInteraction
+        interactions = Rise360ModuleInteraction
           .for_user_and_activity(user.id, activity_id)
-          .where(verb: LessonInteraction::PROGRESSED)
+          .where(verb: Rise360ModuleInteraction::PROGRESSED)
         expect(interactions).to be_empty
 
-        grade = LessonGradeCalculator.grade_lesson_engagement(interactions)
+        grade = ModuleGradeCalculator.grade_module_engagement(interactions)
         expect(grade).to eq(0)
       end
 
       it "returns progress" do
-        interaction = LessonInteraction.create!(
-          verb: LessonInteraction::PROGRESSED,
+        interaction = Rise360ModuleInteraction.create!(
+          verb: Rise360ModuleInteraction::PROGRESSED,
           user: user,
           canvas_course_id: 333,
           canvas_assignment_id: 222,
@@ -110,11 +110,11 @@ RSpec.describe LessonGradeCalculator do
           new: true,
         )
 
-        interactions = LessonInteraction
+        interactions = Rise360ModuleInteraction
           .for_user_and_activity(user.id, activity_id)
-          .where(verb: LessonInteraction::PROGRESSED)
+          .where(verb: Rise360ModuleInteraction::PROGRESSED)
 
-        grade = LessonGradeCalculator.grade_lesson_engagement(interactions)
+        grade = ModuleGradeCalculator.grade_module_engagement(interactions)
         expect(grade).to eq(interaction.progress)
       end
 
@@ -124,8 +124,8 @@ RSpec.describe LessonGradeCalculator do
         maximum = progress.max
 
         progress.each do |value|
-          LessonInteraction.create!(
-            verb: LessonInteraction::PROGRESSED,
+          Rise360ModuleInteraction.create!(
+            verb: Rise360ModuleInteraction::PROGRESSED,
             user: user,
             canvas_course_id: 333,
             canvas_assignment_id: 222,
@@ -135,11 +135,11 @@ RSpec.describe LessonGradeCalculator do
           )
         end
 
-        interactions = LessonInteraction
+        interactions = Rise360ModuleInteraction
           .for_user_and_activity(user.id, activity_id)
-          .where(verb: LessonInteraction::PROGRESSED)
+          .where(verb: Rise360ModuleInteraction::PROGRESSED)
 
-        grade = LessonGradeCalculator.grade_lesson_engagement(interactions)
+        grade = ModuleGradeCalculator.grade_module_engagement(interactions)
         expect(grade).to eq(maximum)
       end
     end
@@ -149,14 +149,14 @@ RSpec.describe LessonGradeCalculator do
         # Use denominator that generates remainder to test division
         quiz_questions = 3
 
-        interactions = LessonInteraction
+        interactions = Rise360ModuleInteraction
           .for_user_and_activity(user.id, activity_id)
-          .where(verb: LessonInteraction::ANSWERED)
-        grade = LessonGradeCalculator.grade_mastery_quiz(interactions, quiz_questions)
+          .where(verb: Rise360ModuleInteraction::ANSWERED)
+        grade = ModuleGradeCalculator.grade_mastery_quiz(interactions, quiz_questions)
         expect(grade).to eq(0)
 
-        LessonInteraction.create!(
-          verb: LessonInteraction::ANSWERED,
+        Rise360ModuleInteraction.create!(
+          verb: Rise360ModuleInteraction::ANSWERED,
           user: user,
           canvas_course_id: 333,
           canvas_assignment_id: 222,
@@ -164,14 +164,14 @@ RSpec.describe LessonGradeCalculator do
           success: true,
           new: true,
         )
-        interactions = LessonInteraction
+        interactions = Rise360ModuleInteraction
           .for_user_and_activity(user.id, activity_id)
-          .where(verb: LessonInteraction::ANSWERED)
-        grade = LessonGradeCalculator.grade_mastery_quiz(interactions, quiz_questions)
+          .where(verb: Rise360ModuleInteraction::ANSWERED)
+        grade = ModuleGradeCalculator.grade_mastery_quiz(interactions, quiz_questions)
         expect(grade).to eq(1.0/quiz_questions * 100)
 
-        LessonInteraction.create!(
-          verb: LessonInteraction::ANSWERED,
+        Rise360ModuleInteraction.create!(
+          verb: Rise360ModuleInteraction::ANSWERED,
           user: user,
           canvas_course_id: 333,
           canvas_assignment_id: 222,
@@ -179,10 +179,10 @@ RSpec.describe LessonGradeCalculator do
           success: true,
           new: true,
         )
-        interactions = LessonInteraction
+        interactions = Rise360ModuleInteraction
           .for_user_and_activity(user.id, activity_id)
-          .where(verb: LessonInteraction::ANSWERED)
-        grade = LessonGradeCalculator.grade_mastery_quiz(interactions, quiz_questions)
+          .where(verb: Rise360ModuleInteraction::ANSWERED)
+        grade = ModuleGradeCalculator.grade_mastery_quiz(interactions, quiz_questions)
         expect(grade).to eq(2.0/quiz_questions * 100)
       end
 
@@ -191,8 +191,8 @@ RSpec.describe LessonGradeCalculator do
         timestamp = Time.now.to_i
 
         # Initially a correct answer
-        LessonInteraction.create!(
-          verb: LessonInteraction::ANSWERED,
+        Rise360ModuleInteraction.create!(
+          verb: Rise360ModuleInteraction::ANSWERED,
           user: user,
           canvas_course_id: 333,
           canvas_assignment_id: 222,
@@ -202,8 +202,8 @@ RSpec.describe LessonGradeCalculator do
         )
 
         # Wrong answer later
-        LessonInteraction.create!(
-          verb: LessonInteraction::ANSWERED,
+        Rise360ModuleInteraction.create!(
+          verb: Rise360ModuleInteraction::ANSWERED,
           user: user,
           canvas_course_id: 333,
           canvas_assignment_id: 222,
@@ -212,11 +212,11 @@ RSpec.describe LessonGradeCalculator do
           new: true,
         )
 
-        interactions = LessonInteraction
+        interactions = Rise360ModuleInteraction
           .for_user_and_activity(user.id, activity_id)
-          .where(verb: LessonInteraction::ANSWERED)
+          .where(verb: Rise360ModuleInteraction::ANSWERED)
 
-        grade = LessonGradeCalculator.grade_mastery_quiz(interactions, 2)
+        grade = ModuleGradeCalculator.grade_mastery_quiz(interactions, 2)
         expect(grade).to eq(0)
       end
     end

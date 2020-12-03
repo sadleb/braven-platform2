@@ -33,7 +33,7 @@ class LrsXapiProxy
       #   stateId=cumulative_time:    123456 or NaN
       #   stateId=bookmark:           #/lessons/xQvXXBKjohmGHnPUlyck9VqMlQ0hgcgy
       #   stateId=suspend_data:       {"v":1,"d":[123,34]]}
-      content_type = (endpoint == XAPI_STATE_API_ENDPOINT ? OCTET_STREAM_MIME_TYPE : JSON_MIME_TYPE )
+      content_type = ( endpoint == XAPI_STATE_API_ENDPOINT ? OCTET_STREAM_MIME_TYPE : JSON_MIME_TYPE )
 
       # Rewrite query string
       #
@@ -115,8 +115,8 @@ private
 
     # Exit early if it's not a supported verb.
     return unless (
-      verb == LessonInteraction::PROGRESSED or
-      verb == LessonInteraction::ANSWERED
+      verb == Rise360ModuleInteraction::PROGRESSED or
+      verb == Rise360ModuleInteraction::ANSWERED
     )
 
     # Get course and assignment IDs from the auth header.
@@ -128,8 +128,8 @@ private
     # Save to the db, raise an exception if any part of this fails.
     # We want this to 500 out if there's anything unexpected.
     case verb
-    when LessonInteraction::PROGRESSED
-      LessonInteraction.create!(
+    when Rise360ModuleInteraction::PROGRESSED
+      Rise360ModuleInteraction.create!(
         verb: verb,
         user: user,
         canvas_course_id: parsed[:course],
@@ -138,8 +138,8 @@ private
         progress: payload.dig('result', 'extensions',
             'http://w3id.org/xapi/cmi5/result/extensions/progress')
         )
-    when LessonInteraction::ANSWERED
-      LessonInteraction.create!(
+    when Rise360ModuleInteraction::ANSWERED
+      Rise360ModuleInteraction.create!(
         verb: verb,
         user: user,
         canvas_course_id: parsed[:course],

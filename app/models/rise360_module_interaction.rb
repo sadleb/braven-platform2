@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-class LessonInteraction < ApplicationRecord
+class Rise360ModuleInteraction < ApplicationRecord
   PROGRESSED = 'http://adlnet.gov/expapi/verbs/progressed'
   ANSWERED = 'http://adlnet.gov/expapi/verbs/answered'
 

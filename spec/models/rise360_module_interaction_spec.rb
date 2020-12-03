@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe LessonInteraction, type: :model do
+RSpec.describe Rise360ModuleInteraction, type: :model do
 
   # Associations
   it { should belong_to :user }
