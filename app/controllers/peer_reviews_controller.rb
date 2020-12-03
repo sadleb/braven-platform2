@@ -10,10 +10,12 @@ class PeerReviewsController < ApplicationController
 
   nested_resource_of Course
 
-  # Note: the TODO here is the actual name of the assignment. The convention
-  # for assignment naming is things like: CLASS: Learning Lab2,
-  # MODULE: Lead Authentically, TODO: Submit Peer Reviews
-  PEER_REVIEWS_ASSIGNMENT_NAME = 'TODO: Submit Peer Reviews'
+  # Note: make sure this matches the naming conventions we have for the Canvas
+  # assignments. For the Capstone project we have:
+  #  - GROUP PROJECT: Capstone Challenge
+  #  - GROUP PROJECT: Capstone Challenge: Teamwork
+  #  - GROUP PROJECT: Complete Peer Evaluations
+  PEER_REVIEWS_ASSIGNMENT_NAME = 'GROUP PROJECT: Complete Peer Evaluations'
 
   def course
     @course
