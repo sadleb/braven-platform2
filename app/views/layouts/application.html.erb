@@ -29,10 +29,12 @@
 
   <body>
     <% flash.each do |type, message| %>
-      <div class="alert <%= alert_css_class(type) %> alert-dismissible fade show show-alert" role="alert">
-        <%= message %>
-        <a href="#" class="close" data-dismiss="alert" aria-label="Close">×</a>
-      </div>
+      <% unless message.blank? %>
+        <div class="alert <%= alert_css_class(type) %> alert-dismissible fade show show-alert" role="alert">
+          <%= message %>
+          <a href="#" class="close" data-dismiss="alert" aria-label="Close">×</a>
+        </div>
+      <% end %>
     <% end %>
 
     <%= content_for?(:content) ? yield(:content) : yield %>
