@@ -29,7 +29,7 @@ RSpec.describe Rise360Util do
       it 'returns launch URL' do
         allow(Rise360Util).to receive(:publish).and_return("https://S3-bucket-path/lessons/somekey/index.html")
         expect(aws_object).to receive(:public_url).and_return("https://S3-bucket-path/lessons/somekey/index.html")
-        expect(Rise360Util.launch_path(rise360_module.lesson_content_zipfile.key)).to eq('/lessons/somekey/index.html')
+        expect(Rise360Util.launch_path(rise360_module.rise360_zipfile.key)).to eq('/lessons/somekey/index.html')
       end
 
     end

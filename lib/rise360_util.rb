@@ -58,7 +58,7 @@ class Rise360Util
     # them so that our content doesn't get leaked for anyone to access. Right now the bucket is public
     # but we'll want to lock it down.
     bucket = AwsS3Bucket.new unless bucket
-    tincan_xml = bucket.object(s3_object_key(rise360_module.lesson_content_zipfile.key, TINCAN_XML_FILE)).get()['body'].read()
+    tincan_xml = bucket.object(s3_object_key(rise360_module.rise360_zipfile.key, TINCAN_XML_FILE)).get()['body'].read()
 
     # Parse tincan.xml and extract what we need.
     tincan_data = Nokogiri::XML(tincan_xml)

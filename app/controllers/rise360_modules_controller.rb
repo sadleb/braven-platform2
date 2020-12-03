@@ -13,7 +13,7 @@ class Rise360ModulesController < ApplicationController
 
   def create
     authorize Rise360Module
-    @rise360_module = Rise360Module.create!(lesson_content_zipfile: create_params[:lesson_content_zipfile])
+    @rise360_module = Rise360Module.create!(rise360_zipfile: create_params[:rise360_zipfile])
     @deep_link_return_url, @jwt_response = helpers.lti_deep_link_response_message(@lti_launch, rise360_module_url(@rise360_module))
   end
 
@@ -29,8 +29,8 @@ class Rise360ModulesController < ApplicationController
 
 private
   def create_params
-    params.require([:state, :lesson_content_zipfile])
-    params.permit(:lesson_content_zipfile, :state, :commit, :authenticity_token)
+    params.require([:state, :rise360_zipfile])
+    params.permit(:rise360_zipfile, :state, :commit, :authenticity_token)
   end
 
 end

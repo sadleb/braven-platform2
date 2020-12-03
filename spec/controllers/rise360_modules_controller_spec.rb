@@ -17,7 +17,7 @@ RSpec.describe Rise360ModulesController, type: :controller do
 
     it "includes a file input" do
       get :new, params: {state: state}
-      expect(response.body).to match /<input type="file" name="lesson_content_zipfile" id="lesson_content_zipfile"/
+      expect(response.body).to match /<input type="file" name="rise360_zipfile" id="rise360_zipfile"/
     end
   end
 
@@ -49,7 +49,7 @@ RSpec.describe Rise360ModulesController, type: :controller do
 
     context "with invalid params" do
       it "redirects to login when state param is missing" do
-        post :create, params: {lesson_content_zipfile: file_upload}
+        post :create, params: {rise360_zipfile: file_upload}
         expect(response).to redirect_to(new_user_session_path)
       end
 
@@ -66,7 +66,7 @@ RSpec.describe Rise360ModulesController, type: :controller do
         allow(Rise360Util).to receive(:launch_path).and_return(launch_path)
         allow(Rise360Util).to receive(:publish).and_return(launch_path)
 
-        post :create, params: {state: state, lesson_content_zipfile: file_upload}
+        post :create, params: {state: state, rise360_zipfile: file_upload}
 
         expected_url = LtiDeepLinkingRequestMessage.new(lti_launch.id_token_payload).deep_link_return_url
         expect(response.body).to match /<form action="#{Regexp.escape(expected_url)}"/
@@ -82,9 +82,9 @@ RSpec.describe Rise360ModulesController, type: :controller do
         allow(Rise360Util).to receive(:publish).and_return(launch_path)
 
         expect {
-          post :create, params: {state: state, lesson_content_zipfile: file_upload}
+          post :create, params: {state: state, rise360_zipfile: file_upload}
         }.to change(ActiveStorage::Attachment, :count).by(1)
-        expect(Rise360Module.last.lesson_content_zipfile).to be_attached
+        expect(Rise360Module.last.rise360_zipfile).to be_attached
       end
     end
   end
