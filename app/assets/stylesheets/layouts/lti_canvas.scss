@@ -15,6 +15,7 @@
 //*= require custom_contents
 //*= require form_assembly
 //*= require linked_in_authorization
+//*= require peer_review_submissions
 
 @import "shared/variables";
 
@@ -24,8 +25,9 @@
 // mobile device. If you decide to change the max-width for a certain view,
 // make sure you write your content responsively!
 .bv-lti-container {
+  height: 100vh; // Height of iframe viewport layout, not the actual screen
   max-width: $container-max-width-md;
   margin: 0 auto;
-  height: 100vh; // Height of iframe viewport layout, not the actual screen
+  padding: 0;
 }
 

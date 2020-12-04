@@ -1,0 +1,59 @@
+// Place all the styles related to the peer_review_submissions controller here.
+// They will automatically be included in lti_canvas.css.
+// You can use Sass (SCSS) here: http://sass-lang.com/
+
+@import "shared/variables";
+
+div.peer-review-container {
+
+  // This was chosen b/c 1366px is a common size for smaller sized laptops
+  // which (empirically) give us about 752px of real-estate to work with
+  // when embedded in a Canvas iframe. So if we get it to fit horizontally
+  // when we have 752px to work with, then setting a max width here slightly
+  // above (b/c it happens to be a standard breakpoint) means it will look more
+  // or less the same for all laptops.
+  // Everyone on a smaller device will get a vertical layout.
+  max-width: $grid-breakpoint-md;
+
+  // Switch to vertical layout
+  @media (max-width: 752px){ 
+    .peer-review-radios {
+      display: block; 
+    }
+  }
+
+  fieldset.single-peer-review-wrapper {
+    border: 1px solid $bv-black;
+    border-radius: 0.2rem;
+    padding: 1.25rem 1rem 1.25rem;
+    margin-top: 2rem;
+  }
+
+  legend {
+    width: initial;
+    padding: 0 0.5rem;
+  }
+
+  .peer-review-question-wrapper {
+    padding: 0 0.5rem 1rem 0.5rem;
+  }
+
+  .peer-review-question-wrapper input {
+    margin-left: 0.5rem;
+    margin-right: 0.25rem;
+  }
+
+  .peer-review-full-name {
+    color: $bv-skyblue-800;
+    font-family: $headings-font-family;
+    font-size: 2rem;
+  }
+
+  .peer-review-question {
+    font-family: $headings-font-family;
+    font-size: 1.4rem;
+    font-weight: normal;
+    margin-bottom: 0.5rem;
+  }
+
+}

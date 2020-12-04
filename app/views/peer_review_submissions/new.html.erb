@@ -1,43 +1,71 @@
 <% content_for :title, 'Peer Reviews' %>
 
-<div class="peer-review">
-  <h2 id="cohort-teamwork-evaluation">Cohort Teamwork Evaluation</h2>
-  <p>As you know, as part of your Capstone Challenge Project grade, you will be evaluated by your peers and your
-  Leadership Coach for your contributions to your team throughout the Challenge. This means you'll need to spend a few
-  minutes right now reflecting on your teammates and evaluating them. Your evaluation will be averaged with all the
-  others, resulting in a final Teamwork score for each Fellow in your cohort.</p>
+<% content_for :additional_container_css, 'peer-review-container' %>
 
-  <%= form_with(url: course_peer_review_submissions_path, method: "post", local: true) do |form| %>
-    <% @peer_users.each do |user| %>
-      <h3><%= user.full_name %></h3>
+<h2 id="cohort-teamwork-evaluation">Cohort Teamwork Evaluation</h2>
+<p>As you know, as part of your Capstone Challenge Project grade, you will be evaluated by your peers and your
+Leadership Coach for your contributions to your team throughout the Challenge. This means you'll need to spend a few
+minutes right now reflecting on your teammates and evaluating them. Your evaluation will be averaged with all the
+others, resulting in a final Teamwork score for each Fellow in your cohort.</p>
+
+<%= form_with(url: course_peer_review_submissions_path, method: "post", local: true) do |form| %>
+
+  <% @peer_users.each do |user| %>
+
+    <fieldset class="single-peer-review-wrapper">
+      <legend class="peer-review-full-name">
+        <%= user.full_name %>
+      </legend>
 
       <% @questions.each do |question| %>
-        <fieldset>
-          <legend><%= question.text %></legend>
+        <% input_name = "peer_review[#{user.id}][#{question.id}]" %>
+        <% input_id_prefix = "radio-#{user.id}-#{question.id}" %>
 
-          <input id="radio-<%= user.id %>-<%= question.id %>-10" type="radio" value="10"
-                 name="peer_review[<%= user.id %>][<%= question.id %>]" required>
-          <label for="radio-<%= user.id %>-<%= question.id %>-10">10 - Always</label>
+        <fieldset class="peer-review-question-wrapper">
+          <legend class="peer-review-question">
+            <%= question.text %>
+          </legend>
 
-          <input id="radio-<%= user.id %>-<%= question.id %>-8" type="radio" value="8"
-                 name="peer_review[<%= user.id %>][<%= question.id %>]" required>
-          <label for="radio-<%= user.id %>-<%= question.id %>-8">8 - Most of the time</label>
+          <div class="container-fluid p-0">
+            <div class="row peer-review-radios">
+              <div class="col-sm pr-0">
+                <input id="<%= input_id_prefix %>-10" type="radio" value="10"
+                       name="<%= input_name %>" required>
+                <label for="<%= input_id_prefix %>-10">10 - Always</label>
+              </div>
 
-          <input id="radio-<%= user.id %>-<%= question.id %>-6" type="radio" value="6"
-                 name="peer_review[<%= user.id %>][<%= question.id %>]" required>
-          <label for="radio-<%= user.id %>-<%= question.id %>-6">6 - Sometimes</label>
+              <div class="col-sm pr-0">
+                <input id="<%= input_id_prefix %>-8" type="radio" value="8"
+                       name="<%= input_name %>" required>
+                <label for="<%= input_id_prefix %>-8">8 - Mostly</label>
+              </div>
 
-          <input id="radio-<%= user.id %>-<%= question.id %>-4" type="radio" value="4"
-                 name="peer_review[<%= user.id %>][<%= question.id %>]" required>
-          <label for="radio-<%= user.id %>-<%= question.id %>-4">4 - Rarely</label>
+              <div class="col-sm pr-0">
+                <input id="<%= input_id_prefix %>-6" type="radio" value="6"
+                       name="<%= input_name %>" required>
+                <label for="<%= input_id_prefix %>-6">6 - Sometimes</label>
+              </div>
 
-          <input id="radio-<%= user.id %>-<%= question.id %>-0" type="radio" value="0"
-                 name="peer_review[<%= user.id %>][<%= question.id %>]" required>
-          <label for="radio-<%= user.id %>-<%= question.id %>-0">0 - Never</label>
+              <div class="col-sm pr-0">
+                <input id="<%= input_id_prefix %>-4" type="radio" value="4"
+                       name="<%= input_name %>" required>
+                <label for="<%= input_id_prefix %>-4">4 - Rarely</label>
+              </div>
+
+              <div class="col-sm pr-0">
+                <input id="<%= input_id_prefix %>-0" type="radio" value="0"
+                       name="<%= input_name %>" required>
+                <label for="<%= input_id_prefix %>-0">0 - Never</label>
+              </div>
+            </div>
+          </div>
+
         </fieldset>
       <% end %>
-    <% end %>
-    <input type="hidden" name="state" value="<%= @lti_launch.state %>">
-    <%= form.submit %>
+
+    </fieldset>
   <% end %>
-</div>
+
+  <input type="hidden" name="state" value="<%= @lti_launch.state %>">
+  <%= form.submit %>
+<% end %>
