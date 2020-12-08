@@ -1,6 +1,6 @@
 require 'lti_deep_linking_response_message'
 require 'lti_deep_linking_request_message'
-require 'lrs_xapi_proxy'
+require 'lrs_xapi_mock'
 
 module LtiHelper
 
@@ -27,11 +27,11 @@ module LtiHelper
     (@lti_launch ? @lti_launch.sessionless? : false )
   end
 
-  # Helps configure xApi enabled content to be able to send xApi statements to
-  # a Learners Record Store (LRS).
+  # Helps configure Rise 360 module to be able to send xAPI statements to
+  # our mock Learning Record Store (LRS).
   #
-  # Note: The endpoint for the LRS is set to a the LRS_PATH on this server and
-  # requests are proxied through to the actual LRS using LrsXapiProxy
+  # Note: The endpoint for the LRS is set to the LRS_PATH on this server and
+  # requests are mocked as though we are an actual LRS using LrsXapiMock.
   #
   # See:
   # - https://articulate.com/support/article/Implementing-Tin-Can-API-to-Support-Articulate-Content#launching-public-content
@@ -43,27 +43,15 @@ module LtiHelper
   # registration for the course to get all statements for a user for a particular course (in case they take multiple or drop and try again).
   # However, will we need a finer grained level to group statements than just project / lesson?
   def launch_query
-    lrs_proxy_url = URI(root_url)
-    lrs_proxy_url.path = LrsXapiProxy.lrs_path
+    lrs_mock_url = URI(root_url)
+    lrs_mock_url.path = LrsXapiMock::LRS_PATH
     {
-      :endpoint => lrs_proxy_url.to_s,
+      :endpoint => lrs_mock_url.to_s,
       :auth => "#{LtiAuthentication::LTI_AUTH_HEADER_PREFIX} #{params[:state]}",
-      # Our LRS proxy will supply the correct values for these
-      # Send empty values to get the Rise 360 Tincan code won't error out on missing keys
+      # Our LRS mock will ignore these, but Rise 360 modules complain if they're not set.
+      # Send empty values to get the Rise 360 Tincan code won't error out on missing keys.
       :actor => '{"name":"'"#{USERNAME_PLACEHOLDER}"'", "mbox":["mailto:'"#{PASSWORD_PLACEHOLDER}"'"]}',
-      # Note: has to be a UUID. I tried putting the URL of the course and that failed with an error saying it's gotta be UUID.
-      # But with this, we get this in the XAPI statement:
-      #   "registrations": [
-      #     "760e3480-ba55-4991-94b0-01820dbd23a2"
-      #   ]
-      # TODO: We need to create a registration UUID for each course and set it appropriately for the current
-      # course that the LTI launch is happening in. Or maybe just use the value of the "context" in the LTI launch. It's the
-      # same concept. An LTI context ID is just the course. Also see if the value of registration can just be an integer or URI,
-      # then we could use the canvas course ID or URL and not have to store it
-      # Task: https://app.asana.com/0/1174274412967132/1187332632826993
-      # :registration => '760e3480-ba55-4991-94b0-01820dbd23a2'
-
-      # Note: in case you try to set the activity_id through the launch params, it doesn't work. Rise359 packages
+      # Note: in case you try to set the activity_id through the launch params, it doesn't work. Rise360 packages
       # set it to whatever was specified when you exported the package. We should use their IDs but we need to coordinate
       # with designers on what to do here b/c we have the potential to be inconsistent making the data hard to gather.
       # Actually, this means a single export that is imported into different courses needs the registration set so we can
