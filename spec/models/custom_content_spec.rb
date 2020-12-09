@@ -9,18 +9,6 @@ RSpec.describe CustomContent, type: :model do
   # Survey with no versions, in no courses
   let(:survey) { create :survey }
 
-  describe '#last_version' do
-    subject { project.last_version }
-
-    it { should eq(project_version) }
-  end
-
-  describe '#last_version' do
-    subject { survey.last_version }
-
-    it { should eq(nil) }
-  end
-
   describe '#projects' do
     subject { CustomContent.projects.first }
 
@@ -33,22 +21,68 @@ RSpec.describe CustomContent, type: :model do
     it { should eq(survey) }
   end
 
-  describe '#courses' do
-    subject { project.courses.first }
-
-    it { should eq(course) }
+  shared_examples 'serializable' do
+    scenario 'hash includes type' do
+      expect(custom_content.serializable_hash).to include('type')
+    end
   end
 
-  describe '#courses' do
-    subject { project.courses.first }
-
-    it { should eq(course) }
+  shared_examples 'belongs to Courses' do
+    scenario 'returns a list of courses' do
+      expect(custom_content.courses.first).to eq(in_course)
+    end
   end
 
-  describe '#serializable_hash' do
-    subject { project.serializable_hash }
+  shared_examples 'a Versionable' do
+    scenario '#versions' do
+      expect(custom_content.versions.count).to eq(custom_content_version_class.count)
+    end
 
-    it { should include("type")  }
+    scenario '#last_version' do
+      expect(custom_content.last_version).to eq(custom_content_version_class.last)
+    end
+
+    scenario '#new_version' do
+      version = nil
+      expect {
+        version = custom_content.new_version(user)
+      }.to change(custom_content_version_class, :count).by(0)
+      expect(version).to be_a custom_content_version_class
+      expect(version.title).to eq(custom_content.title)
+      expect(version.body).to eq(custom_content.body)
+    end
+
+    scenario '#save_version!' do
+      version = nil
+      expect {
+        version = custom_content.create_version!(user)
+      }.to change(custom_content_version_class, :count).by(1)
+      expect(version).to be_a custom_content_version_class
+      expect(version.title).to eq(custom_content.title)
+      expect(version.body).to eq(custom_content.body)
+    end
+  end
+
+  context 'project' do
+    let(:user) { create :admin_user}
+    let(:custom_content) { project }
+    let(:custom_content_version_class) { ProjectVersion }
+    let(:in_course) { course }
+
+    it_behaves_like 'belongs to Courses'
+    it_behaves_like 'serializable'
+    it_behaves_like 'a Versionable'
+  end
+
+  context 'survey' do
+    let(:user) { create :admin_user}
+    let(:custom_content) { survey }
+    let(:custom_content_version_class) { SurveyVersion }
+    let(:in_course) { nil }
+
+    it_behaves_like 'belongs to Courses'
+    it_behaves_like 'serializable'
+    it_behaves_like 'a Versionable'
   end
 
 end

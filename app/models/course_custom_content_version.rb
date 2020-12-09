@@ -23,7 +23,7 @@ class CourseCustomContentVersion < ApplicationRecord
 
     begin
       transaction do
-        custom_content_version = custom_content.save_version!(user)
+        custom_content_version = custom_content.create_version!(user)
   
         # Create the LTI assignment and get the Canvas assignment ID
         canvas_assignment = CanvasAPI.client.create_lti_assignment(
@@ -76,7 +76,7 @@ class CourseCustomContentVersion < ApplicationRecord
         course.canvas_course_id,
         canvas_assignment_id,
       )
-      update!(custom_content_version: custom_content_version.custom_content.save_version!(user))
+      update!(custom_content_version: custom_content_version.custom_content.create_version!(user))
     end
   end
 
