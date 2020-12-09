@@ -1,0 +1,45 @@
+<h4>New Enrollment Settings</h4>
+<%# We're purposfully only allowing this on unlaunched courses b/c we don't want this admin tool
+    to be a crutch for problems with the normal Salesforce provisioning flow. This is intended
+    for Designers and Developers to create and edit test accounts on course's they're working on.
+    Any tools we add for managing enrollments on a live course need to be handling with a lot of
+    thought and care to make sure that things are streamlined and match up without having to rely
+    on the tech team to manually adjust IDs and whatnot.
+ %>
+<h5>Enrollment Type</h5>
+<div class="row">
+  <div class="form-group col-5">
+    <%= form.select :role_name, RoleConstants::SECTION_ROLES, {}, required: true, class: 'form-control col-md-10' %>
+  </div>
+  <div class="col">
+    <small>Leave <code>Leadership Coach Course Settings</code> blank for <code>StudentEnrollment</code>'s</small>
+  </div>
+</div>
+
+<h5>Fellow Course Settings</h5>
+<div class="row">
+  <div class="form-group col-5">
+    <%= form.label :fellow_course_id, 'Course' %>
+    <%= form.collection_select :fellow_course_id, Course.unlaunched_courses, :canvas_course_id, :name, {include_blank: true},
+                                                  required: true, class: 'form-control col-md-10' %>
+  </div>
+  <div class="form-group col-5">
+    <%= form.label :cohort, 'Section' %>
+    <%= form.text_field :cohort, placeholder: 'Section Name', data: { lpignore: true },
+                                 required: true, class: 'form-control col-md-10' %>
+  </div>
+</div>
+
+<h5>Leadership Coach Course Settings</h5>
+<div class="row">
+  <div class="form-group col-5">
+    <%= form.label :leadership_coach_course_id, 'Course' %>
+    <%= form.collection_select :leadership_coach_course_id, Course.unlaunched_courses, :canvas_course_id, :name,
+                                                            {include_blank: true}, class: 'form-control col-md-10' %>
+  </div>
+  <div class="form-group col-5">
+    <%= form.label :leadership_coach_course_section_name, 'Section' %>
+    <%= form.text_field :leadership_coach_course_section_name, placeholder: 'Section Name',
+                                                               data: { lpignore: true }, class: 'form-control col-md-10' %>
+  </div>
+</div>

@@ -9,7 +9,7 @@ class RoleConstants
   # Add all section-level roles to this list.
   # I.e. anything that can be used like `user.add_role XXX_ENROLLMENT, section`.
   SECTION_ROLES = [
-    TA_ENROLLMENT,
     STUDENT_ENROLLMENT,
+    TA_ENROLLMENT,
   ]
 end

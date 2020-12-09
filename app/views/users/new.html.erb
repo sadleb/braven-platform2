@@ -14,7 +14,7 @@
         and post to our intended endpoint, UsersControllers#create.
         See routes.rb for how this is configured.
       %>
-      <%= render partial: "form", locals: {path: admin_users_path, legend: 'Add user to platform', password_required: true} %>
+      <%= render partial: "form", locals: {path: admin_users_path, legend: 'Add user to platform', is_new_user: true} %>
     </div>
     <div class="col-sm text-danger mt-5">
       <%= render partial: "errors" %>

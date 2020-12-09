@@ -1,0 +1,33 @@
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><%= link_to 'Edit User', edit_user_path(@user) %></li>
+    <li class="breadcrumb-item active" aria-current="page">New Enrollment</li>
+  </ol>
+</nav>
+
+<div class="container">
+  <div class="col-10">
+    <%= form_with(url: user_users_roles_path, method: "post", local: true) do |form| %>
+    
+      <h5>Existing Enrollments</h5>
+      <%= render :partial => 'list', locals: {user: @user, edit_mode: true} %>
+      <%= render :partial => 'new', locals: {form: form} %>
+   
+      <div class="actions">
+        <%= form.submit 'Save', class: 'btn btn-primary' %>
+        <%= link_to 'Cancel', edit_user_path(@user), class: 'btn btn-secondary'%>
+      </div>
+    <% end %>
+    <p><small><em>Notes:</em>
+      <ul>
+        <li>This tool only works on unlaunched courses (aka Templates). Enrollments for launched
+            courses must be managed through Salesforce.</li>
+        <li>A user can only be in one Section per course. If you change the Section for a course,
+            it will move them from the old section to the new one.</li>
+        <li>If choose a <code>TaEnrollment</code> (aka Leadership Coach) you must still set the
+            <code>Fellow Course Settings</code>. LC's are enrolled in both courses as different roles.</li>
+      </ul>
+      </small>
+    </p>
+  </div>
+</div>

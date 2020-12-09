@@ -109,6 +109,8 @@ Rails.application.routes.draw do
     member do
       post 'confirm' => 'users#confirm'
     end
+
+    resources :users_roles, only: [:new, :create, :destroy]
   end
 
   # Sync to LMS

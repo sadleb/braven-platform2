@@ -47,6 +47,11 @@ class User < ApplicationRecord
     Section.with_roles(role_name, self).distinct
   end
 
+  # List of roles for Sections (aka roles excluding admin)
+  def section_roles
+    roles.where(resource_type: 'Section')
+  end
+
   # The section with a student role in a given course.
   def student_section_by_course(course)
     sections_with_role(RoleConstants::STUDENT_ENROLLMENT).find_by(course: course)

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_12_04_015959) do
+ActiveRecord::Schema.define(version: 2020_12_07_185957) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -364,17 +364,6 @@ ActiveRecord::Schema.define(version: 2020_12_04_015959) do
     t.string "extra_attributes", null: false
   end
 
-  create_table "user_sections", force: :cascade do |t|
-    t.integer "user_id", null: false
-    t.integer "section_id", null: false
-    t.string "type", null: false
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.index ["section_id"], name: "index_user_sections_on_section_id"
-    t.index ["user_id", "section_id"], name: "index_user_sections_on_user_id_and_section_id", unique: true
-    t.index ["user_id"], name: "index_user_sections_on_user_id"
-  end
-
   create_table "users", force: :cascade do |t|
     t.string "email"
     t.datetime "created_at", null: false
@@ -446,6 +435,4 @@ ActiveRecord::Schema.define(version: 2020_12_04_015959) do
   add_foreign_key "survey_submission_answers", "survey_submissions"
   add_foreign_key "survey_submissions", "course_custom_content_versions"
   add_foreign_key "survey_submissions", "users"
-  add_foreign_key "user_sections", "sections"
-  add_foreign_key "user_sections", "users"
 end
