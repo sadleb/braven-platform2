@@ -5,6 +5,8 @@ Rails.application.routes.draw do
 
   resources :course_resources
 
+  resources :rise360_modules, only: [:show, :new, :create]
+
   resources :custom_contents do
     resources :custom_content_versions, path: 'versions', only: [:index, :show]
   end
@@ -86,10 +88,7 @@ Rails.application.routes.draw do
 
   resources :lessons, only: [:index, :show] do
     resources :lesson_submissions, only: [:index, :show], :path => 'submissions'
-    resources :rise360_modules, only: [:new, :show, :create], :path => 'contents'
   end
-
-  resources :rise360_modules, only: [:new, :show, :create]
 
   resources :waiver_submissions, only: [:new, :create] do
     collection do 

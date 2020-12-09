@@ -1,8 +1,0 @@
-<div id="rise360-module-create">
-  <h2>Insert the module below?</h2>
-  <form action="<%= @deep_link_return_url %>" method="post" id="deep-link-form">
-    <input id="JWT" name='JWT' type='hidden' value="<%= @jwt_response %>" />
-    <input type='submit' value='Yes' />
-  </form>
-  <iframe id="rise360-module-preview" src="<%= rise360_module_url(@rise360_module, state: params[:state]) %>"></iframe>
-</div>

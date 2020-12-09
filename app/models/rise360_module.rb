@@ -5,13 +5,14 @@ class Rise360Module < ApplicationRecord
   # Note: Callbacks are executed in reverse order.
   after_create_commit :update_metadata!, :publish
 
-  # Rise 360 lesson zipfile
   has_one_attached :rise360_zipfile
+
+  validates :name, presence: true
 
   def launch_url
    "#{LtiRise360Proxy.proxy_url}#{Rise360Util.launch_path(rise360_zipfile.key)}"
   end
-   
+
 private
 
   def publish

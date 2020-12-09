@@ -6,17 +6,20 @@ RSpec.describe Rise360ModulesController, type: :controller do
 
   let(:state) { LtiLaunchController.generate_state }
   let!(:lti_launch) { create(:lti_launch_assignment_selection, target_link_uri: 'https://target/link', state: state) }
+  let(:user) { create :admin_user }
+
+  before do
+    sign_in user
+  end
 
   describe "GET #new" do
-    let!(:user) { create :admin_user, canvas_user_id: lti_launch.request_message.canvas_user_id }
-
     it "returns a success response" do
-      get :new, params: {state: state}
+      get :new
       expect(response).to be_successful
     end
 
     it "includes a file input" do
-      get :new, params: {state: state}
+      get :new
       expect(response.body).to match /<input type="file" name="rise360_zipfile" id="rise360_zipfile"/
     end
   end
@@ -44,45 +47,24 @@ RSpec.describe Rise360ModulesController, type: :controller do
   end
 
   describe "POST #create" do
-    let!(:user) { create :admin_user, canvas_user_id: lti_launch.request_message.canvas_user_id }
     let(:file_upload) { fixture_file_upload(Rails.root.join('spec/fixtures', 'example_rise360_package.zip'), 'application/zip') }
 
     context "with invalid params" do
-      it "redirects to login when state param is missing" do
-        post :create, params: {rise360_zipfile: file_upload}
-        expect(response).to redirect_to(new_user_session_path)
-      end
-
       it "raises an error when zipfile param is missing" do
         expect {
-          post :create, params: {state: state}
+          post :create
         }.to raise_error ActionController::ParameterMissing
       end
     end
 
     context "with valid params" do
-      it "shows the confirmation form and preview iframe" do
-        launch_path = '/lessons/somekey/index.html'
-        allow(Rise360Util).to receive(:launch_path).and_return(launch_path)
-        allow(Rise360Util).to receive(:publish).and_return(launch_path)
-
-        post :create, params: {state: state, rise360_zipfile: file_upload}
-
-        expected_url = LtiDeepLinkingRequestMessage.new(lti_launch.id_token_payload).deep_link_return_url
-        expect(response.body).to match /<form action="#{Regexp.escape(expected_url)}"/
-
-        rise360_module_url = rise360_module_url(Rise360Module.last)
-        preview_url = "#{rise360_module_url}?state=#{state}"
-        expect(response.body).to match /<iframe id="rise360-module-preview" src="#{Regexp.escape(preview_url)}"/
-      end
-
       it 'attaches uploaded zipfile' do
         launch_path = '/lessons/somekey/index.html'
         allow(Rise360Util).to receive(:launch_path).and_return(launch_path)
         allow(Rise360Util).to receive(:publish).and_return(launch_path)
 
         expect {
-          post :create, params: {state: state, rise360_zipfile: file_upload}
+          post :create, params: {name: 'test module', rise360_zipfile: file_upload}
         }.to change(ActiveStorage::Attachment, :count).by(1)
         expect(Rise360Module.last.rise360_zipfile).to be_attached
       end

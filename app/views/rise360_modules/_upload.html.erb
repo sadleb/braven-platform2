@@ -1,6 +1,0 @@
-<%= form_tag rise360_modules_path, method: :post, multipart: true do %>
-  <%= label_tag :rise360_zipfile, 'Rise 360 zipfile' %>
-  <%= file_field_tag :rise360_zipfile, :accept => "application/zip" %>
-  <input id="state" name='state' type='hidden' value="<%= params[:state] %>" />
-  <%= submit_tag "Upload" %>
-<% end %>

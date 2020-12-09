@@ -8,20 +8,18 @@ class CourseResource < ApplicationRecord
 
   after_create_commit :publish
 
-  # Rise 360 resource zipfile
-  has_one_attached :course_resource_zipfile
+  has_one_attached :rise360_zipfile
 
   validates :name, presence: true
 
   def launch_url
-   "#{LtiRise360Proxy.proxy_url}#{Rise360Util.launch_path(course_resource_zipfile.key)}"
+   "#{LtiRise360Proxy.proxy_url}#{Rise360Util.launch_path(rise360_zipfile.key)}"
   end
    
-  private
-
+private
   def publish
     # TODO: Extract this asynchronously, and ensure update_metadata runs *after*.
     # https://app.asana.com/0/1174274412967132/1184800386160057
-    Rise360Util.publish(course_resource_zipfile)
+    Rise360Util.publish(rise360_zipfile)
   end
 end

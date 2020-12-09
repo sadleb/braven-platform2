@@ -1,18 +1,13 @@
 class CourseResourcesController < ApplicationController
 
+  # Add the #new and #create actions
+  include Attachable
+
   include LtiHelper
 
+  layout 'admin'
+
   before_action :set_lti_launch, only: [:lti_show]
-
-  def new
-    authorize @course_resource
-  end
-
-  def create
-    authorize CourseResource
-    @course_resource = CourseResource.create!(name: create_params[:name], course_resource_zipfile: create_params[:course_resource_zipfile])
-    redirect_to courses_path, notice: 'Course resource was successfully created.'
-  end
 
   def lti_show
     authorize CourseResource
@@ -25,12 +20,6 @@ class CourseResourcesController < ApplicationController
     else
       render plain: "Course resources not configured!", status: 404
     end
-  end
-
-  private
-  def create_params
-    params.require([:course_resource_zipfile])
-    params.permit(:name, :course_resource_zipfile, :commit, :authenticity_token)
   end
 
 end
