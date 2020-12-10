@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe Course, type: :model do
 
   let(:course_name) { 'Course Name' }
-  let(:course) { build :course, name: course_name}
+  let(:course) { build :course, name: course_name }
   
   describe '#valid?' do
     subject { course }
@@ -33,9 +33,17 @@ RSpec.describe Course, type: :model do
 
   context 'with associations' do
     let(:course) { create :course, name: course_name}
+    # Project
     let(:project) { create :project }
     let(:project_version) { create :project_version, project: project }
     let!(:course_project_version) { create :course_project_version, course: course, project_version: project_version }
+    # Module
+    let(:rise360_module_version) { create :rise360_module_version }
+    let!(:course_rise360_module_version) { create(
+      :course_rise360_module_version,
+      course: course,
+      rise360_module_version: rise360_module_version,
+    ) }
 
     describe '#custom_contents' do
       subject { course.custom_contents.first }
@@ -47,6 +55,11 @@ RSpec.describe Course, type: :model do
       subject { course.projects.first }
 
       it { should eq(project) }
+    end
+
+    describe '#rise360_modules' do
+      subject { course.rise360_modules.first }
+      it { should eq(rise360_module_version.rise360_module) }
     end
   end
 end

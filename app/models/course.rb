@@ -7,6 +7,9 @@ class Course < ApplicationRecord
 
   has_many :sections
 
+  has_many :course_rise360_module_versions
+  has_many :rise360_module_versions, :through => :course_rise360_module_versions
+
   has_many :course_custom_content_versions
   has_many :custom_content_versions, :through => :course_custom_content_versions
 
@@ -38,6 +41,10 @@ class Course < ApplicationRecord
 
   def to_show
     attributes.slice('name')
+  end
+
+  def rise360_modules
+    rise360_module_versions.map { |m| m.rise360_module }
   end
 
   def custom_contents

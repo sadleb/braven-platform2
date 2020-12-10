@@ -5,7 +5,9 @@ Rails.application.routes.draw do
 
   resources :course_resources
 
-  resources :rise360_modules, only: [:show, :new, :create]
+  resources :rise360_modules, only: [:new, :create]
+
+  resources :rise360_module_versions, only: [:show]
 
   resources :custom_contents do
     resources :custom_content_versions, path: 'versions', only: [:index, :show]
@@ -43,6 +45,11 @@ Rails.application.routes.draw do
 
     resources :course_project_versions, controller: 'course_custom_content_versions', type: 'CourseProjectVersion', only: [:new]
     resources :course_survey_versions, controller: 'course_custom_content_versions', type: 'CourseSurveyVersion', only: [:new]
+
+    resources :course_rise360_module_versions, only: [:new, :update] do
+      post :publish, on: :collection
+      delete :unpublish, on: :member
+    end
 
     resources :peer_review_submissions, only: [:new, :create]
 

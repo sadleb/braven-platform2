@@ -45,10 +45,6 @@ module Attachable
   end
 
 private
-  def instance_variable
-    instance_variable_get("@#{instance_variable_name}")
-  end
-
   def set_new_model_instance
     instance_variable_set("@#{instance_variable_name}", model_class.new)
   end

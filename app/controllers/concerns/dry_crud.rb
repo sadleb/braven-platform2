@@ -61,6 +61,10 @@ module DryCrud
       model_class.model_name.param_key
     end
 
+    def instance_variable
+      instance_variable_get("@#{instance_variable_name}")
+    end
+
     # This is meant to be overridden by Nestable controllers in order to
     # filter down the list to only the models for the parent resource
     def models_list

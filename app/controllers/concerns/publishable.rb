@@ -33,11 +33,15 @@ module Publishable
     # We can't use `model_class` here because we don't have a PeerReview model
     authorize controller_path.classify.to_sym
 
-    CanvasAPI.client.create_lti_assignment(
+    assignment = CanvasAPI.client.create_lti_assignment(
       course.canvas_course_id,
       assignment_name,
       lti_launch_url,
     )
+
+    instance_variable.update!(
+      canvas_assignment_id: assignment['id'],
+    ) if model_class && instance_variable.respond_to?(:canvas_assignment_id)
 
     respond_to do |format|
       format.html { redirect_to(

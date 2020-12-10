@@ -11,7 +11,6 @@
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema.define(version: 2020_12_07_185957) do
-
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -59,6 +58,14 @@ ActiveRecord::Schema.define(version: 2020_12_07_185957) do
     t.string "name"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "course_rise360_module_versions", force: :cascade do |t|
+    t.bigint "course_id", null: false
+    t.bigint "rise360_module_version_id", null: false
+    t.integer "canvas_assignment_id"
+    t.index ["course_id"], name: "index_course_rise360_module_versions_on_course_id"
+    t.index ["rise360_module_version_id"], name: "index_course_module_versions_on_module_version_id "
   end
 
   create_table "courses", force: :cascade do |t|
@@ -406,6 +413,8 @@ ActiveRecord::Schema.define(version: 2020_12_07_185957) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "course_custom_content_versions", "courses"
   add_foreign_key "course_custom_content_versions", "custom_content_versions"
+  add_foreign_key "course_rise360_module_versions", "courses"
+  add_foreign_key "course_rise360_module_versions", "rise360_module_versions"
   add_foreign_key "courses", "course_resources"
   add_foreign_key "custom_content_versions", "custom_contents"
   add_foreign_key "custom_content_versions", "users"

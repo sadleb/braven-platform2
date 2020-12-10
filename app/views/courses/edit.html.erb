@@ -88,6 +88,8 @@
 
   <h3>Edit Modules</h3>
   <%= link_to 'Add new', new_rise360_module_path, class: 'btn btn-sm btn-secondary' %>
+  <%= link_to 'Add Module', new_course_course_rise360_module_version_path(@course), class: 'btn btn-sm btn-secondary' %>
+  <%= render :partial => 'course_rise360_module_versions/list', locals: {course_rise360_module_versions: @course.course_rise360_module_versions} %>
 
   <h3>Edit Projects</h3>
   <%= link_to 'Add Project', new_course_course_project_version_path(@course), class: 'btn btn-sm btn-secondary' %>
