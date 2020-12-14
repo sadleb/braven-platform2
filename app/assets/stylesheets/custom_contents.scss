@@ -30,8 +30,22 @@
     outline: $bv-red 0.3rem solid;
   }
 
-  .highlighted-user-input {
+  input[disabled], select[disabled], textarea[disabled] {
     background-color: $bv-skyblue-500;
+    color: $bv-black;
+  }
+
+  input[type=radio][disabled]:checked::after {
+    display: block;
+    width: 1rem;
+    height: 1rem;
+    margin: auto;
+    background: transparent;
+    content: '';
+    border: .4rem solid $bv-black;
+    box-sizing: border-box;
+    box-shadow: 0px 0px .2rem .4rem $bv-skyblue-500;
+    border-radius: 1rem;
   }
 
   iframe.linked-in-authorization-button {

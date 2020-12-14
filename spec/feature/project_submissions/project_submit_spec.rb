@@ -37,7 +37,7 @@ RSpec.feature 'Submit a project', :type => :feature do
 
     VCR.configure do |c|
       c.ignore_localhost = true
-      # Ignore AJAX requests to platformweb, xapi_assignment, Canvas LTI
+      # Ignore AJAX requests to platformweb, project_answers, Canvas LTI
       c.ignore_hosts Capybara.server_host, lti.host
     end
 

@@ -53,6 +53,7 @@ module Submittable
       :user => current_user,
       parent_variable_name => instance_variable_get("@#{parent_variable_name}")
     )
+
     return redirect_to instance_path(previous_submission) if previous_submission
   end
 

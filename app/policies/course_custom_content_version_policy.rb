@@ -1,2 +1,2 @@
-class CourseCustomContentVersionPolicy < ApplicationPolicy
+class CourseCustomContentVersionPolicy < CustomContentVersionPolicy
 end

@@ -1,34 +1,57 @@
 # This policy always checks to see whether the user is logged-in.
-# Authentication is deligated to LrsXApiProxyPolicy and ProjectVersionPolicy.
+# This policy also determines whether you can see all ProjectSubmissionAnswers
+# attached to the ProjectSubmission.
 class ProjectSubmissionPolicy < ApplicationPolicy
-  attr_reader :user, :record
+  attr_reader :user, :project_submission
 
-  def initialize(user, record)
+  def initialize(user, project_submission)
     raise Pundit::NotAuthorizedError, "must be logged in" unless user
-    raise Pundit::NotAuthorizedError, "no project submission specified" unless record
+    raise Pundit::NotAuthorizedError, "no project submission specified" unless project_submission
     @user = user
-    @record = record
+    @project_submission = project_submission
   end
 
-  # Access to responses submitted is handled by LrsXApiProxyPolicy.xAPI_read?.
-  # If you aren't authorized, you will see a blank project form.
-  # When showing a submission, you also must have permission to show the
-  # associated ProjectVersion, so we check that too.
+  # Permission to view a submission depends on two things:
+  # 1. Can you view the ProjectVersion?
+  # 2. Can you view the answers?
   def show?
-    ProjectVersionPolicy.new(user, record.project_version).show?
+    # 1. Can you view the ProjectVersion?
+    return false unless ProjectVersionPolicy.new(user, project_submission.project_version).show?
+
+    # 2. a.) Did you create this submission?
+    return true if user == project_submission.user
+
+    # 2. b.) Are you a TA for the person who created this submission?
+    return true if user.ta_for?(project_submission.user)
+
+    # 2. c.) Are you an admin?
+    return true if user.admin?
+
+    false
   end
 
-  # Access to previous responses is handled by LrsXApiProxyPolicy.xAPI_read?,
-  # whether you can change edit answers by LrsXApiProxyPolicy.xAPI_write?.
-  # When viewing the submission create form, you also must have permission to
-  # show the associated ProjectVersion, so we check that too.
+  # The `new` action doesn't do much, so all you need is permission
+  # to view the ProjectVersion.
   def new?
-    ProjectVersionPolicy.new(user, record.project_version).show?
+    ProjectVersionPolicy.new(user, project_submission.project_version).show?
   end
 
-  # It doesn't really make sense to allow people to submit answers to projects
-  # they aren't allowed to see, so we check the ProjectVersion show policy too.
+  # Permission to create/update a submission depends on two things:
+  # 1. Can you view the ProjectVersion?
+  # 2. Is this your submission?
   def create?
-    ProjectVersionPolicy.new(user, record.project_version).show?
+    return false unless ProjectVersionPolicy.new(user, project_submission.project_version).show?
+
+    return true if user == project_submission.user
+
+    false
+  end
+
+  def update?
+    create?
+  end
+
+  def edit?
+    create?
   end
 end

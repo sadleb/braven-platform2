@@ -76,6 +76,9 @@ group :test do
 
   # Stores mocks in reusable file
   gem 'vcr'
+
+  # Allows accessing instance variables passed to your views
+  gem 'rails-controller-testing'
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem

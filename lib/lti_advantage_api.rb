@@ -45,6 +45,12 @@ class LtiAdvantageAPI
     JSON.parse(response.body)
   end
 
+  # Deletes a score (aka grade) created using the above create_score() method.
+  def delete_score()
+    raise NotImplementedError, 'Dont think there is a way to do this. Just consider ' \
+      'a submission there forever even if something went wrong. Re-submit if necessary.'
+  end
+
   # Gets the Result object for a score created using the `create_score` method
   # or nil if there is no score
   #
@@ -117,6 +123,12 @@ private
 
   def post(target_url, body, headers={})
     RestClient.post(target_url, body, @global_headers.merge(headers))
+  end
+
+  def delete(target_url, body={}, headers={})
+    # Delete helper method doesn't accept a payload. Have to drop down lower level.
+    RestClient::Request.execute(method: :delete,
+      url: target_url, payload: body, headers: @global_headers.merge(headers))
   end
 
 end

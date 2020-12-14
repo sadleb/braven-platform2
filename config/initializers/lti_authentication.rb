@@ -7,7 +7,7 @@ require 'lti_launch'
 # set by the browser causing authentication to fallback to this.
 module LtiAuthentication
 
-  # Note: if you change this, keep it in sync with: app/javascript/packs/xapi_assignment.js
+  # Note: if you change this, keep it in sync with: app/javascript/packs/project_answers.js
   LTI_AUTH_HEADER_PREFIX='LtiState'
 
   class WardenStrategy < Warden::Strategies::Base
@@ -74,8 +74,8 @@ private
     # params[:state] is there for routes hit using LtiLaunchController
     # params[:auth] is there when Rise360 packages load index.html. We piggyback off the "auth" query param that Rise 
     #               packages can be configured with and store it there when launching them.
-    # request.headers[:authorization] is there for Ajax requests from both Rise360 and Project's that send xAPI statements.
-    #                                 This is the result of configurign Tincan.js with the "auth" option.
+    # request.headers[:authorization] is there for Ajax requests from both Rise360 and Projects. For Rise360 this
+    #                                 is the result of configuring Tincan.js with the "auth" option in the launch.
     def fetch_state
      lti_state = params[:state] || params[:auth]
      unless lti_state

@@ -35,6 +35,12 @@ module RestClientInstrumentation
         # Note: can't use error_detail field name. It's overwritten somewhere with the exception 
         # message detail, not the actual response.
         span.add_field('error_response', error_response) 
+
+        if e.is_a?(RestClient::BadRequest) and error_response =~ /JWS signature invalid/
+          Rails.logger.error('TROUBLESHOOTING HINT: Copy/pasta the "Public JWK URL" from the Developer Key ' \
+                             'in Canvas into the browser and make sure it returns a valid list of keys.')
+        end
+
         raise
       end
     end
