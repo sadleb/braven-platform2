@@ -106,7 +106,7 @@ will be emailed to that user in an email titled "Your new Salesforce security to
 
 ### Canvas
 
-#### Create A Portal Course
+#### Create a course
 Create a course in Canvas as your sandbox/development environment. Call it `Playground - <insert your name>`. Publish it. 
 
 #### Create test users
@@ -137,8 +137,33 @@ Edit the **email** and **canvas_id** in the following to match those of your tes
 User.create email: 'some_email', canvas_id: canvas_id, admin: false, first_name: 'Test', last_name: 'Student', password: 'some_password', confirmed_at: DateTime.now
 ```
 
-#### LTI extension
+#### Configure Canvas API access token
+We use the [Canvas API](https://canvas.instructure.com/doc/api/) to update Canvas Cloud, e.g. add assignments, sections, etc. This is implemented in our `CanvasAPI` library. In order to use this, you need to configure that following in your `.env` file:
+
+```
+CANVAS_URL=https://braven.instructure.com
+CANVAS_TOKEN=<your user-generated access token>
+```
+
+To generate a Canvas access token, go to your [Canvas Account Settings](https://braven.instructure.com/profile/settings). In **Approved Integrations**, click **+ New Access Token**, fill out the form, then **Generate Token**.
+
+Copy the token shown in the follow-up dialog and paste it into `CANVAS_TOKEN` in your `.env` file. You can always re-generate the token and update the environment variable if you lose it.
+
+Restart your `platformweb` Docker container to pick up these changes.
+
+At this point, you should be able to make modifications to your Canvas course using the `CanvasAPI`.
+
+#### Configure and Deploy Your Personal LTI Extension
 We add functionality to our [online Portal](https://braven.instructure.com) (aka Canvas) by implementing an LTI Extension. Details of what an LTI Extension is can be [found here](https://docs.google.com/document/d/1sLFnqo8-lr556EwyIUHy_jLWOwzGEkub6nFKDWPO58Y/edit?usp=sharing). In order to work on things are added to the Portal through LTI, you'll need to do the following:
+
+[Configure and deploy an LTI extension](https://docs.google.com/document/d/1sLFnqo8-lr556EwyIUHy_jLWOwzGEkub6nFKDWPO58Y/edit#heading=h.pce3b8uoohrj) that will only work on your computer and hit your local development environment as follows (screenshots in the link):
+1. Navigate to [Admin -> Developer Keys](https://braven.instructure.com/accounts/1/developer_keys) in the Portal.
+1. Click `+ Developer Key -> + LTI Key` 
+1. Open one of the other developer's keys in a new tab and copy all the setting's from theirs, except adjust the names to your own and in the `Public JWK URL` field, enter your own ngrok URL. E.g. `https://<insertyourname>platform.ngrok.io/public_jwk`
+1. Grab the Client ID, e.g. `160050000000000012`
+1. Deploy the LTI extension only to your Playground course by navigating to `Playground Course -> Settings -> Apps -> View App Configurations` OR just use the URL: `https://braven.instructure.com/courses/[YOUR_COURSE_ID]/settings/configurations
+1. Click `+ App`, change the `Configuration Type` dropdown to `By Client Id`, enter yours and submit.
+
 
 #### Make Sure Your Dev Env Is Setup For SSL Support
 Make sure you setup the nginx-dev container for [SSL Support](https://github.com/beyond-z/nginx-dev#ssl-support) and that https://platformweb works.
@@ -150,24 +175,14 @@ Setup [ngrok.io](https://dashboard.ngrok.com/) in order to expose your local dev
 1. Start an ngrok tunnel with the command: `ngrok http https://platformweb -subdomain=<insertyourname>platform`
 1. Check that you can hit your local dev env from the public internet at: `https://<insertyourname>platform.ngrok.io`
 
-#### Configure and Deploy Your Personal LTI Extension
-[Configure and deploy an LTI extension](https://docs.google.com/document/d/1sLFnqo8-lr556EwyIUHy_jLWOwzGEkub6nFKDWPO58Y/edit#heading=h.pce3b8uoohrj) that will only work on your computer and hit your local development environment as follows (screenshots in the link):
-1. Navigate to [Admin -> Developer Keys](https://braven.instructure.com/accounts/1/developer_keys) in the Portal.
-1. Click `+ Developer Key -> + LTI Key` 
-1. Open one of the other developer's keys in a new tab and copy all the setting's from theirs, except adjust the names to your own and in the `Public JWK URL` field, enter your own ngrok URL. E.g. `https://<insertyourname>platform.ngrok.io/public_jwk`
-1. Grab the Client ID, e.g. `160050000000000012`
-1. Deploy the LTI extension only to your Playground course by navigating to `Playground Course -> Settings -> Apps -> View App Configurations` OR just use the URL: `https://braven.instructure.com/courses/[YOUR_COURSE_ID]/settings/configurations
-1. Click `+ App`, change the `Configuration Type` dropdown to `By Client Id`, enter yours and submit.
-
-#### Configure The LRS
-An Learner Record Store is where data about lesson engagement and quiz answers is stored using [xApi](https://xapi.com/overview/)
-
-**TODO: We haven't discussed how we'll setup and configure and LRS in the dev env. Update me once we decide. For now, we have a production LRS. Talk to the team for credentials.**
-
 #### Does It Work?
-1. Check that it's working by adding a new Module to your course and adding an item to your module by selecting `External Tool` as the thing to add and choosing your LTI extension in the list.
-1. It should successfully launch a page where you can upload and/or choose a module item to add!
-1. When a module is added and launched as a student, data should start flowing to the LRS.
+At this point, you should be able to use the [Course Management page](`https://platformweb/courses`) to add update your Canvas course.
+
+1. **Add Course Template** to add your Canvas course, using its ID (the ID can be found in the URL when you go to your Playground course, e.g. `https://braven.instructure.com/courses/43`). **For now, you need to do this manually in your Rails console**.
+1. Find your course in the list [here](`https://platformweb/courses`) and **Edit**.
+1. You should be able to **Add** Waivers, Peer Reviews, Modules, Projects, and Impact Surveys in the UI.
+1. Click the link on the content's title and you should see it in Canvas as an Assignment.
+
 
 ### Dummy Data
 

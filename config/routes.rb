@@ -151,12 +151,6 @@ Rails.application.routes.draw do
   # LTI Extension Routes
   post '/lti/login', to: 'lti_launch#login'
   post '/lti/launch', to: 'lti_launch#launch'
-
-  get '/lti/assignment_selection/new', to: 'lti_assignment_selection#new'     # https://canvas.instructure.com/doc/api/file.assignment_selection_placement.html
-
-  get '/lti/link_selection/new', to: 'rise360_modules#new' # https://canvas.instructure.com/doc/api/file.link_selection_placement.html
-  post '/lti/link_selection', to: 'rise360_modules#create' # https://canvas.instructure.com/doc/api/file.link_selection_placement.html
-
   get '/lti/course_resources', to: 'course_resources#lti_show'
 
   # Send xAPI messages to our mock LRS.
