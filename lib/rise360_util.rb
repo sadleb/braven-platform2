@@ -64,10 +64,10 @@ class Rise360Util
     tincan_data = Nokogiri::XML(tincan_xml)
     # See https://stackoverflow.com/questions/4690737/nokogiri-xpath-namespace-query.
     tincan_data.remove_namespaces!
-    rise360_module.quiz_questions = tincan_data.xpath(QUIZ_QUESTION_XPATH).count
-    rise360_module.activity_id = tincan_data.xpath(COURSE_XPATH).first['id']
-
-    rise360_module.save!
+    rise360_module.update!(
+      quiz_questions: tincan_data.xpath(QUIZ_QUESTION_XPATH).count,
+      activity_id: tincan_data.xpath(COURSE_XPATH).first['id'],
+    )
   rescue Exception => e
     Rails.logger.error("Could not update Rise360Module metadata: #{rise360_module}")
     Rails.logger.error("  Error: #{e}")

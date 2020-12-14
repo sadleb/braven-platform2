@@ -266,6 +266,9 @@ ActiveRecord::Schema.define(version: 2020_12_11_180112) do
     t.string "name", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.string "activity_id"
+    t.integer "quiz_questions"
+    t.index ["activity_id"], name: "index_rise360_module_versions_on_activity_id"
     t.index ["rise360_module_id"], name: "index_rise360_module_versions_on_rise360_module_id"
     t.index ["user_id"], name: "index_rise360_module_versions_on_user_id"
   end

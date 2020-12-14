@@ -7,7 +7,7 @@ RSpec.describe Rise360ModuleVersionsController, type: :controller do
   let(:state) { LtiLaunchController.generate_state }
   let(:lti_launch) { create(:lti_launch_assignment_selection, target_link_uri: 'https://target/link', state: state) }
   let(:user) { create :registered_user, canvas_user_id: lti_launch.request_message.canvas_user_id }
-  let(:rise360_module_version) { create :rise360_module_version }
+  let(:rise360_module_version) { create :rise360_module_version_with_zipfile }
 
   before do
     sign_in user
