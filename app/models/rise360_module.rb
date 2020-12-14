@@ -6,6 +6,7 @@ class Rise360Module < ApplicationRecord
 
   after_save :set_rise360_zipfile_changed, if: :saved_change_to_rise360_zipfile?
   after_commit :publish, if: :rise360_zipfile_changed?
+  before_destroy :purge
 
   has_one_attached :rise360_zipfile
 
@@ -75,5 +76,9 @@ private
     else
       self.rise360_zipfile_changed = false
     end
+  end
+
+  def purge
+    rise360_zipfile.purge if rise360_zipfile.attached?
   end
 end

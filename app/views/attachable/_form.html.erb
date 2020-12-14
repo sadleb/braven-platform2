@@ -1,16 +1,21 @@
-<%= form_tag path, method: :post, multipart: true do %>
-  <div class="form-group">
-    <%= label_tag :name %>
-    <%= text_field_tag :name, '', class: 'form-control' %>
+<%= form_for(@attachable, url: path) do |f| %>
+  <div class="form-group w-50">
+    <%= f.label :name %><br />
+    <%= f.text_field :name, autofocus: true, class: "form-control", required: true %>
   </div>
 
-  <div class="form-group">
-    <%= label_tag :rise360_zipfile, 'Rise 360 zipfile' %>
-    <%= file_field_tag :rise360_zipfile, :accept => "application/zip" %>
+  <div class="form-group w-50">
+    <%= f.label :rise360_zipfile %>
+    <% if @attachable.rise360_zipfile.attached? %>
+      | <%= @attachable.rise360_zipfile.blob.filename %> |
+      <%= link_to "Preview", @attachable.launch_url %> |
+      <%= link_to "Download", url_for(@attachable.rise360_zipfile) %>
+      <br />
+    <% end %>
+    <%= f.file_field :rise360_zipfile, class: "form-control", required: !@attachable.rise360_zipfile.attached?, accept: 'application/zip' %>
   </div>
 
-  <div class="actions">
-    <%= submit_tag 'Save' %>
-    <%= link_to 'Cancel', courses_path, class: 'btn btn-secondary'%>
+  <div class="actions mb-5">
+    <%= f.submit "Save" %>
   </div>
 <% end %>

@@ -22,4 +22,9 @@ class CourseResourcesController < ApplicationController
     end
   end
 
+private
+  # For attachable
+  def redirect_path
+    courses_path
+  end
 end

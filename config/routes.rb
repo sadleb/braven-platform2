@@ -5,7 +5,7 @@ Rails.application.routes.draw do
 
   resources :course_resources
 
-  resources :rise360_modules, only: [:new, :create]
+  resources :rise360_modules, only: [:index, :new, :create, :edit, :update, :destroy]
 
   resources :rise360_module_versions, only: [:show]
 

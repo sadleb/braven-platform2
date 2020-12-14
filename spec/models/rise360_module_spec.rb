@@ -96,4 +96,27 @@ RSpec.describe Rise360Module, type: :model do
       }.to change(Rise360ModuleVersion, :count).by(1)
     end
   end
+
+  describe '#destroy' do
+    let(:rise360_module) { create :rise360_module_with_zipfile }
+
+    subject { rise360_module.destroy! }
+
+    before(:each) do
+      allow(Rise360Util).to receive(:publish)
+      allow(Rise360Util).to receive(:update_metadata!)
+      rise360_module
+    end
+
+    it 'destroys the record' do
+      expect { subject }.to change(Rise360Module, :count).by(-1)
+    end
+
+    it 'purges the attachment' do
+      allow(rise360_module).to receive(:purge)
+      expect(rise360_module).to receive(:purge)
+      subject
+    end
+
+  end
 end

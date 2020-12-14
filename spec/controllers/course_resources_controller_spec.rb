@@ -17,10 +17,11 @@ RSpec.describe CourseResourcesController, type: :controller do
         expect(response).to be_successful
       end
 
-      it "includes a file input" do
-        get :new
-        expect(response.body).to match /<input type="file" name="rise360_zipfile" id="rise360_zipfile"/
-      end
+    it "includes a file input" do
+      get :new
+      html = '<input class="form-control" required="required" accept="application/zip" type="file" name="course_resource[rise360_zipfile]" id="course_resource_rise360_zipfile"'
+      expect(response.body).to match Regexp.new(Regexp.quote(html))
+    end
     end
 
     describe "POST #create" do
@@ -35,7 +36,12 @@ RSpec.describe CourseResourcesController, type: :controller do
       end
 
       context "with valid params" do
-        let(:create_course_resource) { post :create, params: {name: 'test', rise360_zipfile: file_upload} }
+        let(:create_course_resource) { post :create, params: {
+          course_resource: {
+            name: 'test',
+            rise360_zipfile: file_upload,
+          }
+        } }
 
         it "redirects to courses_path" do
           launch_path = '/lessons/somekey/index.html'
@@ -51,7 +57,7 @@ RSpec.describe CourseResourcesController, type: :controller do
           allow(Rise360Util).to receive(:publish).and_return(launch_path)
 
           expect {
-            post :create, params: {name: 'test', rise360_zipfile: file_upload}
+            create_course_resource
           }.to change(ActiveStorage::Attachment, :count).by(1)
           expect(CourseResource.last.rise360_zipfile).to be_attached
         end

@@ -1,14 +1,14 @@
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
     <li class="breadcrumb-item ml-3"><%= link_to "Modules", rise360_modules_path %></li>
-    <li class="breadcrumb-item active" aria-current="page">Add Module</li>
+    <li class="breadcrumb-item active" aria-current="page">Edit Module </li>
   </ol>
 </nav>
 
 <div class="container">
   <div class="row">
     <div class="col-sm">
-      <%= render partial: "attachable/form", locals: { path: rise360_modules_path } %>
+      <%= render partial: "attachable/form", locals: { path: rise360_module_path(@rise360_module) } %>
     </div>
   </div>
 </div>
