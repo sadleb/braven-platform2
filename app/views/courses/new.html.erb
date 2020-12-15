@@ -1,6 +1,38 @@
-<% content_for :headline do %>
-  New Course
-<% end %>
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><%= link_to 'Course Management', courses_path %></li>
+    <li class="breadcrumb-item active" aria-current="page">Initialize New Template</li>
+  </ol>
+</nav>
 
-<p>Not Yet Implemented.</p>
-<p>See <a href="https://app.asana.com/0/1174274412967132/1198935151567022">https://app.asana.com/0/1174274412967132/1198935151567022</a></p>
+<div class="container">
+<%= form_with(model: @course, local: true) do |form| %>
+  <% if @course.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@course.errors.count, "error") %> prohibited this Course from being saved:</h2>
+
+      <ul>
+      <% @course.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="form-group">
+        <%= form.label :name, 'New Course Template Name' %>
+        <%= form.text_field :name, required: true, class: 'form-control' %>
+      </div>
+
+      <div class="actions">
+        <input type='hidden' id='create_from_course_id' name='create_from_course_id' value='<%= params[:create_from_course_id] %>' />
+        <%= form.submit 'Initialize New Course Template', class: 'btn btn-primary',
+              data: { confirm: 'Are you sure you want to initialize a new Template from this Course?' } %>
+        <%= link_to 'Cancel', course_path(params[:create_from_course_id]), class: 'btn btn-secondary'%>
+      </div>
+    </div>
+  </div>
+<% end %>
+</div>

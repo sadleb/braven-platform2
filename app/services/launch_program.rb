@@ -8,22 +8,20 @@ class LaunchProgram
     set_salesforce_vars(salesforce_program_id)
 
     @fellow_source_course = Course.find(fellow_source_course_id)
-    @fellow_destination_course = Course.create!(
-      name: fellow_course_name,
-      course_resource: @fellow_source_course.course_resource
-    )
-
+    @fellow_course_name = fellow_course_name
     @lc_source_course = Course.find(lc_source_course_id)
-    @lc_destination_course = Course.create!(
-      name: lc_course_name,
-    )
+    @lc_course_name = lc_course_name
   end
 
   def run
-    # Kick off both launches before we start waiting on them.
-    fellow_launch_response = LaunchProgram.canvas_launch!(@fellow_destination_course, @fellow_source_course)
-    lc_launch_response = LaunchProgram.canvas_launch!(@lc_destination_course, @lc_source_course)
+    # Kick off both canvas clones before we start waiting on them.
+    fellow_clone_service = CloneCourse.new(@fellow_source_course, @fellow_course_name, @fellow_destination_course_section_names).run
+    lc_clone_service = CloneCourse.new(@lc_source_course, @lc_course_name, @lc_destination_course_section_names).run
 
+   # Wait till they are cloned and initialized before updating Salesforce
+   @fellow_destination_course = fellow_clone_service.wait_and_initialize
+   @lc_destination_course = lc_clone_service.wait_and_initialize
+ 
     # Update Salesforce program with the new Canvas course IDs.
     sf_client.set_canvas_course_ids(
       @salesforce_program.id,
@@ -31,36 +29,9 @@ class LaunchProgram
       @lc_destination_course.canvas_course_id
     )
 
-    LaunchProgram.after_canvas_launch_completes!(fellow_launch_response) do
-      InitializeNewCourse.new(@fellow_destination_course, @fellow_destination_course_section_names).run
-    end
-
-    LaunchProgram.after_canvas_launch_completes!(lc_launch_response) do
-      InitializeNewCourse.new(@lc_destination_course, @lc_destination_course_section_names).run
-    end
-  end
-
-  def self.canvas_launch!(destination_course, source_course)
-    # Be reasonably sure copy_course is going to work before calling create_course, otherwise
-    # you'll end up with a bunch of empty courses in Canvas.
-    canvas_course_data = CanvasAPI.client.create_course(destination_course.name)
-    destination_course.update!(canvas_course_id: canvas_course_data['id'])
-    CanvasAPI.client.copy_course(source_course.canvas_course_id, destination_course.canvas_course_id)
-  end
-
-  def self.after_canvas_launch_completes!(launch_response, &block)
-    response = launch_response
-    progress_url = response['progress_url']
-    start_time = Time.now
-    while (response['workflow_state'] != 'completed' && response['workflow_state'] != 'failed')
-      raise LaunchProgramError, "Canvas course copy failed. See: #{response['migration_issues_url']}" if response['workflow_state'] == 'failed'
-      raise LaunchProgramError, 'Canvas course copy timed out after 3 minutes' if (Time.now - start_time) > 3.minutes # Fail safe so this doesn't poll forever.
-
-      sleep 5.seconds
-
-      response = CanvasAPI.client.get_copy_course_status(progress_url)
-    end
-    block.call
+    # We're all set and everything worked. Mark the courses as launched.
+    @fellow_destination_course.update!(is_launched: true)
+    @lc_destination_course.update!(is_launched: true)
   end
 
 private

@@ -4,17 +4,23 @@ FactoryBot.define do
 
   factory :salesforce_program, class: Hash do
     skip_create # This isn't stored in the DB.
+    transient do
+      sequence(:program_id) { |i| "a2Y1700000#{i}WLxqEAG" }
+    end
     done { true }
-    records { [ build(:salesforce_program_record) ] }
+    records { [ build(:salesforce_program_record, program_id: program_id) ] }
     totalSize { records.count }
     initialize_with { attributes.stringify_keys }
   end
 
   factory :salesforce_program_record, class: Hash do
     skip_create # This isn't stored in the DB.
+    transient do
+      sequence(:program_id) { |i| "a2Y1700000#{i}WLxqEAG" }
+    end
     Default_Timezone__c { 'America/Los_Angeles' }
     sequence(:Docusign_Template_ID__c) { |i| "TestDocusignTemplate#{i}" }
-    sequence(:Id) { |i| "a2Y1700000#{i}WLxqEAG" }
+    sequence(:Id) { program_id }
     sequence(:Highlander_LCPlaybook_Course_ID__c)
     sequence(:Name) { |i| "TEST: Program#{i}" }
     sequence(:Preaccelerator_Qualtrics_Survey_ID__c) { |i| "TestQualtricsSurvey#{i}" }

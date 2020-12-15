@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CoursesController < ApplicationController
   layout 'admin'
 
@@ -13,10 +15,14 @@ class CoursesController < ApplicationController
     authorize @course
   end
 
+  # Used to create and initialize a new Course Template
+  # (aka a Course that is not launched). New launched courses
+  # can only be created using the Launch New Program service.
+  #
   # GET /courses/new
   def new
-    @course = Course.new(new_params)
-    authorize @course
+    authorize Course
+    params.require(:create_from_course_id)
   end
 
   # GET /courses/1/edit
@@ -25,27 +31,27 @@ class CoursesController < ApplicationController
     @course.verify_can_edit!
   end
 
+  # Creates a new Course Template from an existing Course (launched or not).
+  # Course Templates are those that have `is_launched` set to false. Use
+  # Launch New Program to turn a Course Template into a launched Course.
   # POST /courses
   def create
-    @course = Course.new(course_params)
-    authorize @course
-    respond_to do |format|
-      if @course.save
-        format.html { redirect_to courses_path, notice: "Course was successfully created." }
-        format.json { render :show, status: :created, location: @course }
-      else
-        format.html { render :new }
-        format.json { render json: @course.errors, status: :unprocessable_entity }
-      end
-    end
+    authorize Course
+    params.require(:create_from_course_id)
+
+    @source_course = Course.find(params[:create_from_course_id])
+
+    CloneCourseJob.perform_later(current_user.email, @source_course, create_params[:name])
+
+    redirect_to courses_path, notice: 'Course Template initialization started. Watch out for an email.'
   end
 
   # PATCH/PUT /courses/1
   def update
     authorize @course
     respond_to do |format|
-      if @course.update(course_params)
-        format.html { redirect_to courses_path, notice: "Course was successfully updated." }
+      if @course.update(update_params)
+        format.html { redirect_to courses_path, notice: 'Course was successfully updated.' }
         format.json { render :show, status: :ok, location: @course }
       else
         format.html { redirect_to edit_course_path(@course) }
@@ -60,7 +66,7 @@ class CoursesController < ApplicationController
     @course.verify_can_edit!
     @course.destroy
     respond_to do |format|
-      format.html { redirect_to courses_url, notice: "Course was successfully deleted." }
+      format.html { redirect_to courses_url, notice: 'Course was successfully deleted.' }
       format.json { head :no_content }
     end
   end
@@ -95,7 +101,7 @@ class CoursesController < ApplicationController
     # Start the program launch job
     LaunchProgramJob.perform_later(salesforce_program_id, notification_email, fellow_source_course_id, fellow_course_name, lc_source_course_id, lc_course_name)
 
-    redirect_to courses_path, notice: "Program launch started. Watch out for an email."
+    redirect_to courses_path, notice: 'Program launch started. Watch out for an email.'
   end
 
   private
@@ -104,12 +110,12 @@ class CoursesController < ApplicationController
     @canvas_assignment_info = FetchCanvasAssignmentsInfo.new(@course.canvas_course_id).run
   end
 
-  def course_params
+  def update_params
     params.require('course').permit(:name, :is_launched, :course_resource_id, :canvas_course_id)
   end
 
-  def new_params
-    params.permit()
+  def create_params
+    params.require('course').permit(:name)
   end
 
 end

@@ -2,8 +2,7 @@
 <%= render(
   'list',
   name: 'Course Template',
-  button_label: 'Launch New Program',
-  button_url: launch_courses_path,
+  button_label: nil,
   courses: @courses.unlaunched_courses,
 ) %>
 
@@ -13,5 +12,7 @@
   courses: @courses.launched_courses,
   button_label: nil,
 ) %>
+
+<p><small><em><b>Hint:</b> Cmd-Click "View On Canvas" to open in new tab</em></small></p>
 
 </div>

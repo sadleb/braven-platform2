@@ -5,27 +5,14 @@ require 'rails_helper'
 RSpec.describe LaunchProgram do
   let(:sf_program_id) { 'TestSalesforceProgramID' }
   let(:fellow_course_name) { 'Test Fellow Course Name' }
-  let(:fellow_source_course) { create(:course, attributes_for(:course_with_resource)) }
-  let(:lc_source_course) { create(:course) }
+  let(:fellow_source_course) { create(:course, is_launched: false, canvas_course_id: 67675) }
+  let(:lc_source_course) { create(:course, is_launched: false, canvas_course_id: 87566) }
   let(:lc_course_name) { 'Test LC Course Name' }
-  let(:new_fellow_canvas_course_id) { 93487 }
-  let(:new_lc_canvas_course_id) { 93488 }
-  let(:canvas_create_fellow_course) { build(:canvas_course, id: new_fellow_canvas_course_id) }
-  let(:canvas_create_lc_course) { build(:canvas_course, id: new_lc_canvas_course_id) }
-  let(:canvas_copy_fellow_course) { build(:canvas_content_migration, source_course_id: fellow_source_course.canvas_course_id) }
-  let(:canvas_copy_lc_course) { build(:canvas_content_migration, source_course_id: lc_source_course.canvas_course_id) }
-  let(:canvas_client) { double(CanvasAPI) }
-  let(:salesforce_program) { build(:salesforce_program_record) }
+  let(:salesforce_program) { build(:salesforce_program_record, program_id: sf_program_id) }
   let(:fellow_section_names) { [] }
   let(:sf_api_client) { SalesforceAPI.new }
 
   before(:each) do
-    allow(LaunchProgram).to receive(:sleep).and_return(nil)
-    allow(CanvasAPI).to receive(:client).and_return(canvas_client)
-    allow(canvas_client).to receive(:create_course).with(fellow_course_name).and_return(canvas_create_fellow_course)
-    allow(canvas_client).to receive(:copy_course).with(fellow_source_course.canvas_course_id, new_fellow_canvas_course_id).and_return(canvas_copy_fellow_course)
-    allow(canvas_client).to receive(:create_course).with(lc_course_name).and_return(canvas_create_lc_course)
-    allow(canvas_client).to receive(:copy_course).with(lc_source_course.canvas_course_id, new_lc_canvas_course_id).and_return(canvas_copy_lc_course)
     allow(sf_api_client).to receive(:get_program_info).and_return(salesforce_program)
     allow(sf_api_client).to receive(:get_cohort_schedule_section_names).and_return(fellow_section_names)
     allow(sf_api_client).to receive(:set_canvas_course_ids)
@@ -63,129 +50,63 @@ RSpec.describe LaunchProgram do
     end
   end
 
-  shared_examples 'source course assignment is copied to destination course assignment' do
-    scenario 'it updates the LTI launch/submission URL' do
-      source_assignment_url = source_course_custom_content_version.new_submission_url
-
-      # This mimics an assignment that was cloned to the new course with the old launch URL for the source course 
-      canvas_course_assignment = build(
-        :canvas_assignment,
-        course_id: new_fellow_canvas_course_id,
-        lti_launch_url: source_assignment_url,
-      )
-
-      allow(canvas_client)
-        .to receive(:get_assignments)
-        .and_return([canvas_course_assignment])
-
-      launch_program.run
-
-      course_custom_content_version = CourseCustomContentVersion.find_by(
-        canvas_assignment_id: canvas_course_assignment['id'],
-      )
-      destination_course_url = course_custom_content_version.new_submission_url
-
-      expect(canvas_client)
-        .to have_received(:update_assignment_lti_launch_url)
-        .with(
-          new_fellow_canvas_course_id,
-          canvas_course_assignment['id'],
-          destination_course_url,
-        )
-        .once
-
-      expect(source_assignment_url).not_to eq(destination_course_url)
-    end
-  end
-
   describe '#run' do
     let(:fellow_section_names) { [ 'Test CohortSchedule 1', 'Test CohortSchedule 2' ] }
-    let(:canvas_sections) { [] }
-
-    # TODO: the LC course shouldn't return these.
-    let(:assignment1) { build(:canvas_assignment, course_id: new_fellow_canvas_course_id) }
-    let(:assignment2) { build(:canvas_assignment, course_id: new_fellow_canvas_course_id) }
-    let(:assignments) { [assignment1, assignment2] }
-    let(:copy_progress_running) { build(:canvas_progress, workflow_state: 'running') }
-    let(:copy_progress_complete) { build(:canvas_progress, workflow_state: 'completed') }
+    let(:new_fellow_canvas_course_id) { 782374 }
+    let(:new_lc_canvas_course_id) { 893576 }
+    let(:new_fellow_course) { 
+      newc = fellow_source_course.dup
+      newc.name = fellow_course_name
+      newc.canvas_course_id = new_fellow_canvas_course_id
+      newc.save!
+      newc
+    }
+    let(:new_lc_course) { 
+      newc = lc_source_course.dup
+      newc.name = lc_course_name
+      newc.canvas_course_id = new_lc_canvas_course_id
+      newc.save!
+      newc
+    }
+    let(:fellow_clone_course_service) { double(CloneCourse) }
+    let(:lc_clone_course_service) { double(CloneCourse) }
 
     before(:each) do
-      allow(canvas_client).to receive(:get_copy_course_status)
-        .and_return(copy_progress_running, copy_progress_complete, copy_progress_running, copy_progress_complete)
-      allow(canvas_client).to receive(:create_lms_section) { |course_id:, name:| 
-        new_section = build(:canvas_section)
-        canvas_sections << new_section
-        CanvasAPI::LMSSection.new(new_section['id'], name)
-      }
-      allow(canvas_client).to receive(:get_assignments).and_return(assignments) 
-      allow(canvas_client).to receive(:update_assignment_lti_launch_url)
-      allow(canvas_client).to receive(:create_assignment_overrides)
+      allow(CloneCourse).to receive(:new)
+        .with(fellow_source_course, fellow_course_name, fellow_section_names)
+        .and_return(fellow_clone_course_service)
+      allow(CloneCourse).to receive(:new)
+        .with(lc_source_course, lc_course_name, [salesforce_program['Section_Name_in_LMS_Coach_Course__c']])
+        .and_return(lc_clone_course_service)
+      allow(fellow_clone_course_service).to receive(:run).and_return(fellow_clone_course_service)
+      allow(lc_clone_course_service).to receive(:run).and_return(lc_clone_course_service)
+      allow(fellow_clone_course_service).to receive(:wait_and_initialize).and_return(new_fellow_course)
+      allow(lc_clone_course_service).to receive(:wait_and_initialize).and_return(new_lc_course)
     end
 
-    context "with Canvas API success" do
-      it "calls canvas API to copy both fellow and LC courses" do
-        expect(canvas_client).to receive(:create_course).with(fellow_course_name).once
-        expect(canvas_client).to receive(:create_course).with(lc_course_name).once
-        expect(canvas_client).to receive(:copy_course).with(fellow_source_course.canvas_course_id, canvas_create_fellow_course['id']).once
-        expect(canvas_client).to receive(:copy_course).with(lc_source_course.canvas_course_id, canvas_create_lc_course['id']).once
+    context "with Canvas clone success" do
+      it "initilizes the new course" do
+        expect(fellow_clone_course_service).to receive(:run).once
+        expect(fellow_clone_course_service).to receive(:wait_and_initialize).once
+        expect(lc_clone_course_service).to receive(:run).once
+        expect(lc_clone_course_service).to receive(:wait_and_initialize).once
         launch_program.run
       end
 
-      it "creates new Courses in local database" do
-        expect { launch_program.run }.to change(Course, :count).by(2)
-        fellow_course = Course.find_by(name: fellow_course_name)
-        expect(fellow_course.canvas_course_id).to eq canvas_create_fellow_course['id']
-        expect(fellow_course.course_resource_id).to eq fellow_source_course.course_resource_id
-        lc_course = Course.find_by(name: lc_course_name)
-        expect(lc_course.canvas_course_id).to eq canvas_create_lc_course['id']
-        expect(lc_course.course_resource_id).to eq lc_source_course.course_resource_id
-      end
-
-      it "waits for the Canvas course copy to finish before getting assignments" do
-        # twice for the Fellow course and twice for LC course
-        expect(canvas_client).to receive(:get_copy_course_status).with(canvas_copy_fellow_course['progress_url']).exactly(2).times
-        expect(canvas_client).to receive(:get_copy_course_status).with(canvas_copy_lc_course['progress_url']).exactly(2).times
+      it "updates Salesforce" do
+        expect(sf_api_client).to receive(:set_canvas_course_ids)
+          .with(sf_program_id, new_fellow_canvas_course_id, new_lc_canvas_course_id).once
         launch_program.run
       end
 
-      it "creates the Canvas sections" do
-        expect(canvas_client).to receive(:create_lms_section).with(course_id: new_fellow_canvas_course_id, name: fellow_section_names[0]).once
-        expect(canvas_client).to receive(:create_lms_section).with(course_id: new_fellow_canvas_course_id, name: fellow_section_names[1]).once
-        expect(canvas_client).to receive(:create_lms_section).with(course_id: new_lc_canvas_course_id, name: salesforce_program['Section_Name_in_LMS_Coach_Course__c']).once
+      it "marks the courses as launched" do
         launch_program.run
+        expect(new_fellow_course.is_launched).to eq(true)
+        expect(new_lc_course.is_launched).to eq(true)
       end
 
-      it "sets the AssignmentOverrides" do
-        launch_program.run
-        expect(canvas_client).to have_received(:create_assignment_overrides)
-          .with(new_fellow_canvas_course_id, [assignment1['id'], assignment2['id']], [canvas_sections[0]['id'], canvas_sections[1]['id']]).once
-      end
-
-      context 'impact surveys' do
-        let(:source_course_custom_content_version) { create(
-          :course_survey_version,
-          course: fellow_source_course,
-        ) }
-
-        it_behaves_like 'source course assignment is copied to destination course assignment'
-      end
-
-      context 'projects' do
-        let(:source_course_custom_content_version) { create(
-          :course_project_version,
-          course: fellow_source_course,
-        ) }
-
-        it_behaves_like 'source course assignment is copied to destination course assignment'
-      end
     end
 
-    context "with Canvas API failure" do
-      it "raises an exception" do
-        allow(canvas_client).to receive(:copy_course).and_raise(RestClient::NotFound)
-        expect { launch_program.run }.to raise_error(RestClient::NotFound)
-      end
-    end
-  end
+  end # '#run'
 
 end

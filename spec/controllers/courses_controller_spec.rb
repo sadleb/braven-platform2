@@ -52,40 +52,53 @@ RSpec.describe CoursesController, type: :controller do
 
     describe "GET #new" do
       it "returns a success response" do
-        get :new, params: {}, session: valid_session
+        get :new, params: { create_from_course_id: 1 }, session: valid_session
         expect(response).to be_successful
       end
     end
 
     describe "POST #create" do
-      subject(:post_create) do
-        post(
-          :create,
-          params: {
-            course: valid_attributes,
+
+      shared_examples 'clones as a new Course Template' do
+        let(:new_course_name) { 'Template From Cloned Course' }
+
+        scenario 'starts the clone job' do
+          expect(CloneCourseJob).to receive(:perform_later).with(user.email, source_course, new_course_name).once
+          post(:create,
+            params: {
+              course: { name: new_course_name },
+              create_from_course_id: source_course.id 
+            },
             session: valid_session
-          }
-        )
-      end
-
-      context "with valid params" do
-        it "creates a new Course" do
-          expect { post_create }.to change(Course, :count).by(1)
+          )
         end
 
-        it "redirects to the course list" do
-          post_create
+        scenario 'redirects to the courses list' do
+          allow(CloneCourseJob).to receive(:perform_later).and_return(nil)
+          post(:create,
+            params: {
+              course: { name: new_course_name },
+              create_from_course_id: source_course.id
+            },
+            session: valid_session
+          )
           expect(response).to redirect_to(courses_path)
+          expect(flash[:notice]).to match /Template initialization started/
         end
       end
 
-      context "with invalid params" do
-        let(:valid_attributes) { invalid_attributes }
-        it "returns a success response (i.e. to display the 'new' course)" do
-          post_create
-          expect(response).to be_successful
-        end
+      context 'from unlaunched course' do
+        let(:source_course) { create :course_unlaunched }
+
+        it_behaves_like 'clones as a new Course Template'
       end
+
+      context 'from a launched course' do
+        let(:source_course) { create :course_launched }
+
+        it_behaves_like 'clones as a new Course Template'
+      end
+
     end
 
     describe "PUT #update" do

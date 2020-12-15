@@ -11,11 +11,14 @@
       <tbody>
         <% course_rise360_module_versions.each do |crmv| %>
           <tr>
-            <td><%= link_to crmv.rise360_module_version.name, crmv.canvas_url %></td>
+            <td><%= link_to crmv.rise360_module_version.name, edit_rise360_module_path(crmv.rise360_module_version) %></td>
             <td class="text-right smaller">
-              <%= link_to 'Publish Latest', course_course_rise360_module_version_path(@course, crmv.id), method: :put %> |
-              <%= link_to 'Delete', unpublish_course_course_rise360_module_version_path(@course, id: crmv.id), method: :delete,
-                                    data: { confirm: 'Are you sure you want to remove this module?' } %> 
+              <%= link_to 'View On Canvas', crmv.canvas_url %>
+              <% unless local_assigns[:read_only]  %>
+                | <%= link_to 'Publish Latest', course_course_rise360_module_version_path(@course, crmv.id), method: :put %> |
+                <%= link_to 'Delete', unpublish_course_course_rise360_module_version_path(@course, id: crmv.id), method: :delete,
+                                      data: { confirm: 'Are you sure you want to remove this module?' } %> 
+              <% end %>
             </td>
           </tr>
         <% end %>
