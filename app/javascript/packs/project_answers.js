@@ -20,7 +20,7 @@ const SUPPORTED_INPUT_ELEMENTS = [
  'textarea',
 ];
 
-document.addEventListener('DOMContentLoaded', () => {
+async function main() {
     const wrapperDiv = document.getElementById(WRAPPER_DIV_ID);
     const isReadOnly = wrapperDiv.attributes[READ_ONLY_ATTR].value;
     const projectSubmissionId = wrapperDiv.attributes[SUBMISSION_DATA_ATTR].value;
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }    
     
-        fetch(
+        return fetch(
           api_url,
           {
             method: 'GET',
@@ -125,7 +125,6 @@ document.addEventListener('DOMContentLoaded', () => {
           },
          )
         .then((response) => {
-            console.log(response);
             honey_span.addField('response.status', response.status);
         })
         .catch((error) => {
@@ -141,12 +140,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // If no answers have been saved in the past, there won't be a submission or anything to pre-fill.
     if (projectSubmissionId) {
-        prefillAnswers();
+        await prefillAnswers();
     }
 
     // If write-enabled, attach listeners to save intermediate responses
     if (isReadOnly === "false") {
         attachInputListeners();
     }
+}
 
-});
+document.addEventListener('DOMContentLoaded', main);
+
+exports.main = main;

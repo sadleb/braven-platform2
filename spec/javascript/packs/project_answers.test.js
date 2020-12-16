@@ -45,310 +45,112 @@ test('prefills text input answers', async () => {
     const inputValue = 'fellow typed something';
     setupHtml(projectSubmissionId, false, `<input type="text" name="${inputName}">`);
 
-    // TODO: Define a mock implementation properly
-    // https://www.leighhalliday.com/mock-fetch-jest
+    // Mock the `fetch` response.
     fetch.mockResponseOnce(JSON.stringify([
         {id: answerId, project_submission_id: projectSubmissionId, input_name: inputName, input_value: inputValue}
     ]));
 
     const project_answers = require('packs/project_answers');
-    document.dispatchEvent(new Event('DOMContentLoaded'));
-
-    // TODO: tmp for testing
-    console.log(document.body.innerHTML);
+    await project_answers.main();
 
     expect(fetch).toHaveBeenCalledTimes(1);
+    expect(document.querySelector(`input[name='${inputName}']`).value).toBe(inputValue);
 });
 
-/* TODO: everything is commented out. Need to re-implement without tincan.js XAPI logic. */
+test('prefills textarea answers', async () => {
+    const projectSubmissionId = 33;
+    const answerId = 44;
+    const inputName = 'content-name-1234';
+    const inputValue = 'fellow typed something';
+    setupHtml(projectSubmissionId, false, `<textarea name="${inputName}"></textarea>`);
 
-/*
-test('set input value to matching statement response', () => {
-    // Note: this has side-effects, both from top-level code and from code run during in the
-    // ready callback.
+    // Mock the `fetch` response.
+    fetch.mockResponseOnce(JSON.stringify([
+        {id: answerId, project_submission_id: projectSubmissionId, input_name: inputName, input_value: inputValue}
+    ]));
+
     const project_answers = require('packs/project_answers');
+    await project_answers.main();
 
-    // Define a mock implementation.
-    // https://www.leighhalliday.com/mock-fetch-jest
-
-    // Then fire the event again, as if the document has just loaded.
-    document.dispatchEvent(new Event('DOMContentLoaded'));
-
-    // Test.
-    expect(project_answers.lrs.queryStatements.mock.calls.length).toBe(1);
-    expect(project_answers.lrs.moreStatements.mock.calls.length).toBe(0);
-    expect(document.body.querySelector('[name="test-id"]').value).toContain('test value');
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(document.querySelector(`textarea[name='${inputName}']`).value).toBe(inputValue);
 });
 
-test('uses the first (most recent) statement', () => {
-    // Note: this has side-effects, both from top-level code and from code run during in the
-    // ready callback.
+test('prefills radio answers', async () => {
+    const projectSubmissionId = 33;
+    const answerId = 44;
+    const inputName = 'content-name-1234';
+    const inputValue = 'radio-value-2';
+    setupHtml(projectSubmissionId, false, `
+        <fieldset>
+          <div class="custom-content-radio-div">
+            <input type="radio" value="radio-value-1" name="${inputName}">
+          </div>
+          <div class="custom-content-radio-div">
+            <input type="radio" value="radio-value-2" name="${inputName}">
+          </div>
+        </fieldset>
+    `);
+
+    // Mock the `fetch` response.
+    fetch.mockResponseOnce(JSON.stringify([
+        {id: answerId, project_submission_id: projectSubmissionId, input_name: inputName, input_value: inputValue}
+    ]));
+
     const project_answers = require('packs/project_answers');
+    await project_answers.main();
 
-    // Define a mock implementation.
-    project_answers.lrs.queryStatements.mockImplementation((cfg) => {
-        const sr = real_tincan.StatementsResult.fromJSON(
-            JSON.stringify({
-                statements: [
-                    {
-                        result: {
-                            response: 'latest test value'
-                        },
-                        target: {
-                            definition: {
-                                name: {
-                                    und: 'test-id'
-                                }
-                            }
-                        }
-                    },
-                    {
-                        result: {
-                            response: 'middle test value'
-                        },
-                        target: {
-                            definition: {
-                                name: {
-                                    und: 'test-id'
-                                }
-                            }
-                        }
-                    },
-                    {
-                        result: {
-                            response: 'oldest test value'
-                        },
-                        target: {
-                            definition: {
-                                name: {
-                                    und: 'test-id'
-                                }
-                            }
-                        }
-                    }
-                ]
-            })
-        );
-        cfg.callback(null, sr);
-    });
-
-    // Clear the mock, so the side-effects from the ready event callback go away.
-    project_answers.lrs.queryStatements.mockClear()
-    // Then fire the event again, as if the document has just loaded.
-    document.dispatchEvent(new Event('DOMContentLoaded'));
-
-    // Test.
-    expect(project_answers.lrs.queryStatements.mock.calls.length).toBe(1);
-    expect(project_answers.lrs.moreStatements.mock.calls.length).toBe(0);
-    expect(document.body.querySelector('[name="test-id"]').value).toContain('latest test value');
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(document.querySelector(`input[value='radio-value-1']`).checked).toBe(false);
+    expect(document.querySelector(`input[value='radio-value-2']`).checked).toBe(true);
 });
 
-test('uses the correct matching statement when there are multiple inputs', () => {
-    // Note: this has side-effects, both from top-level code and from code run during in the
-    // ready callback.
+test('prefills dropdown answers', async () => {
+    const projectSubmissionId = 33;
+    const answerId = 44;
+    const inputName = 'content-name-1234';
+    const inputValue = '2';
+    setupHtml(projectSubmissionId, false, `
+        <select name="${inputName}">
+          <option value="">&nbsp;</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+        </select>
+    `);
+
+    // Mock the `fetch` response.
+    fetch.mockResponseOnce(JSON.stringify([
+        {id: answerId, project_submission_id: projectSubmissionId, input_name: inputName, input_value: inputValue}
+    ]));
+
     const project_answers = require('packs/project_answers');
+    await project_answers.main();
 
-    // Define a mock implementation.
-    project_answers.lrs.queryStatements.mockImplementation((cfg) => {
-        const sr = real_tincan.StatementsResult.fromJSON(
-            JSON.stringify({
-                statements: [
-                    {
-                        result: {
-                            response: 'latest test value'
-                        },
-                        target: {
-                            definition: {
-                                name: {
-                                    und: 'test-id'
-                                }
-                            }
-                        }
-                    },
-                    {
-                        result: {
-                            response: 'another test value'
-                        },
-                        target: {
-                            definition: {
-                                name: {
-                                    und: 'test-id'
-                                }
-                            }
-                        }
-                    },
-                    {
-                        result: {
-                            response: 'latest test value for the textarea'
-                        },
-                        target: {
-                            definition: {
-                                name: {
-                                    und: 'test-id-2'
-                                }
-                            }
-                        }
-                    },
-                    {
-                        result: {
-                            response: 'oldest test value'
-                        },
-                        target: {
-                            definition: {
-                                name: {
-                                    und: 'test-id-2'
-                                }
-                            }
-                        }
-                    }
-                ]
-            })
-        );
-        cfg.callback(null, sr);
-    });
-
-    // Clear the mock, so the side-effects from the ready event callback go away.
-    project_answers.lrs.queryStatements.mockClear()
-    // Then fire the event again, as if the document has just loaded.
-    document.dispatchEvent(new Event('DOMContentLoaded'));
-
-    // Test.
-    expect(project_answers.lrs.queryStatements.mock.calls.length).toBe(1);
-    expect(project_answers.lrs.moreStatements.mock.calls.length).toBe(0);
-    expect(document.body.querySelector('[name="test-id"]').value).toContain('latest test value');
-    expect(document.body.querySelector('[name="test-id-2"]').value).toContain('latest test value for the textarea');
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(document.querySelector(`select[name='${inputName}']`).value).toBe(inputValue);
 });
 
-test('fetches more pages if needed', () => {
-    // Note: this has side-effects, both from top-level code and from code run during in the
-    // ready callback.
-    const project_answers = require('packs/project_answers');
-
-    // Define a mock implementation.
-    project_answers.lrs.queryStatements.mockImplementation((cfg) => {
-        const sr = real_tincan.StatementsResult.fromJSON(
-            JSON.stringify({
-                statements: [
-                    {
-                        result: {
-                            response: 'test value'
-                        },
-                        target: {
-                            definition: {
-                                name: {
-                                    und: 'test-id'
-                                }
-                            }
-                        }
-                    }
-                ],
-                more: "https://example.com/more"
-            })
-        );
-        cfg.callback(null, sr);
-    });
-    project_answers.lrs.moreStatements.mockImplementationOnce((cfg) => {
-        const sr = real_tincan.StatementsResult.fromJSON(
-            JSON.stringify({
-                statements: [
-                    {
-                        result: {
-                            response: 'test value second page'
-                        },
-                        target: {
-                            definition: {
-                                name: {
-                                    und: 'test-id-no-match'
-                                }
-                            }
-                        }
-                    }
-                ],
-                more: "https://example.com/more/2"
-            })
-        );
-        cfg.callback(null, sr);
-    });
-    project_answers.lrs.moreStatements.mockImplementation((cfg) => {
-        const sr = real_tincan.StatementsResult.fromJSON(
-            JSON.stringify({
-                statements: [
-                    {
-                        result: {
-                            response: 'test value third page'
-                        },
-                        target: {
-                            definition: {
-                                name: {
-                                    und: 'test-id'
-                                }
-                            }
-                        }
-                    },
-                    {
-                        result: {
-                            response: 'textarea test value third page'
-                        },
-                        target: {
-                            definition: {
-                                name: {
-                                    und: 'test-id-2'
-                                }
-                            }
-                        }
-                    }
-                ]
-            })
-        );
-        cfg.callback(null, sr);
-    });
-
-    // Clear the mock, so the side-effects from the ready event callback go away.
-    project_answers.lrs.queryStatements.mockClear()
-    // Then fire the event again, as if the document has just loaded.
-    document.dispatchEvent(new Event('DOMContentLoaded'));
-
-    // Test.
-    expect(project_answers.lrs.queryStatements.mock.calls.length).toBe(1);
-    expect(project_answers.lrs.moreStatements.mock.calls.length).toBe(2);
-    expect(document.body.querySelector('[name="test-id"]').value).toContain('test value');
-    expect(document.body.querySelector('[name="test-id-2"]').value).toContain('textarea test value third page');
-});
-
-test('inputs are set to read-only in TA view', () => {
+test('inputs are set to read-only in TA view', async () => {
+    const projectSubmissionId = 33;
+    const answerId = 44;
+    const inputName = 'test-id';
+    const inputValue = '2';
     // Set up our document for TA view.
-    document.head.innerHTML = '<meta name="state" content="test">';
-    document.body.innerHTML =
-        '<div id="javascript_variables" data-project-lti-id="1" data-user-override-id="10"></div>' +
-        '<input type="text" name="test-id">' +
-        '<textarea name="test-id-2"></textarea>';
-    // Note: this has side-effects, both from top-level code and from code run during in the
-    // ready callback.
-    const project_answers = require('packs/project_answers');
-    // Make sure the ready event fires.
-    document.dispatchEvent(new Event('DOMContentLoaded'));
+    setupHtml(projectSubmissionId, true, `
+        <input type="text" name="${inputName}">
+        <textarea name="test-id-2"></textarea>
+    `);
 
-    // Test.
-    expect(document.body.querySelector('[name="test-id"]').disabled).toBe(true);
+    // Mock the `fetch` response.
+    fetch.mockResponseOnce(JSON.stringify([
+        {id: answerId, project_submission_id: projectSubmissionId, input_name: inputName, input_value: inputValue}
+    ]));
+
+    const project_answers = require('packs/project_answers');
+    await project_answers.main();
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(document.body.querySelector(`[name="${inputName}"]`).disabled).toBe(true);
     expect(document.body.querySelector('[name="test-id-2"]').disabled).toBe(true);
 });
-
-test('uses the overridden student ID if it is passed in', () => {
-    // Set up our document for TA view.
-    document.head.innerHTML = '<meta name="state" content="test">';
-    document.body.innerHTML =
-        '<div id="javascript_variables" data-project-lti-id="1" data-user-override-id="10"></div>' +
-        '<input type="text" name="test-id">' +
-        '<textarea name="test-id-2"></textarea>';
-    // Note: this has side-effects, both from top-level code and from code run during in the
-    // ready callback.
-    const project_answers = require('packs/project_answers');
-    // Make sure the ready event fires.
-    document.dispatchEvent(new Event('DOMContentLoaded'));
-
-    // Test.
-    expect(document.body.querySelector('#javascript_variables').attributes['data-user-override-id'].value).toBe("10");
-    expect(project_answers.lrs.extended).toStrictEqual({user_override_id: "10"});
-});
-
-*/

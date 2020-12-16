@@ -21,11 +21,9 @@ RSpec.feature 'Submit a project', :type => :feature do
     path = Addressable::URI.parse(
       new_course_project_version_project_submission_path(
         project_submission.course_project_version,
+        state: lti_launch.state
       ),
     )
-    # To let us bypass login using the state query parameter
-    path.query = { state: lti_launch.state }.to_query
-    path.to_s
   }
   let(:lti_advantage_access_token) { 
     FactoryBot.json(:lti_advantage_access_token)
@@ -51,20 +49,20 @@ RSpec.feature 'Submit a project', :type => :feature do
   end
 
   describe "creating a project submission" do
-    xit "shows a submit button", js: true do
-      # TODO: all tests commented out until https://github.com/bebraven/platform/pull/482 is merged.
+    it "shows a submit button", js: true do
       visit uri
       expect(page).to have_button('project-submit-button')
       expect(page).to have_button('Submit')
     end
 
-    xit "shows a re-submit button", js: true do
+    it "shows a re-submit button", js: true do
+      project_submission.save_answers!
       visit uri
       expect(page).to have_button('project-submit-button')
       expect(page).to have_button('Re-Submit')
     end
 
-    xit "creates a new submission", js: true do
+    it "creates a new submission", js: true do
       visit uri
       click_button 'project-submit-button'
 
@@ -72,12 +70,12 @@ RSpec.feature 'Submit a project', :type => :feature do
       expect(page).to have_selector('.alert-success')
     end
 
-    xit "updates button text after submission", js: true do
+    it "updates button text after submission", js: true do
       visit uri
       click_button 'project-submit-button'
 
       # Wait for and close the alert
-      expect(page).to have_selector('.alert')
+      expect(page).to have_selector('.alert', wait: 10)
       expect(page).to have_selector('.alert-success')
       find('button.close').click
 
@@ -88,7 +86,8 @@ RSpec.feature 'Submit a project', :type => :feature do
 
   describe "invalid project submission" do
     context "with previous submission" do
-      xit "still shows re-submit button text", js: true do
+      it "still shows re-submit button text", js: true do
+        project_submission.save_answers!
 
         # Generate an error when we're trying to create the submission
         allow_any_instance_of(LtiAdvantageAPI)
@@ -100,7 +99,7 @@ RSpec.feature 'Submit a project', :type => :feature do
 
         visit uri
 
-        expect(page).to have_button('Re-Submit')
+        expect(page).to have_button('Re-Submit', wait: 10)
         click_button 'project-submit-button'
 
         expect(page).to have_selector('.alert-warning')
@@ -112,7 +111,7 @@ RSpec.feature 'Submit a project', :type => :feature do
     end
 
     context "no LTI state" do
-      xit "shows an error", js: true do
+      it "shows an error", js: true do
         # Suppress these so we can verify that the UI handles errors
         page.config.raise_server_errors = false
 
