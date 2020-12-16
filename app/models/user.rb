@@ -1,7 +1,6 @@
 require 'grade_calculator'
 require 'salesforce_api'
 require 'canvas_api'
-require 'sync_to_lms'
 
 class User < ApplicationRecord
   rolify
@@ -95,39 +94,4 @@ class User < ApplicationRecord
     end
   end
 
-  private
-  
-  # Handles anything that should happen when a new account is being registered
-  # using the new_user_registration route
-  def do_account_registration
-    Rails.logger.info('Starting account registration')
-    if sync_salesforce_info # They can't register for Canvas access if they aren't Enrolled in Salesforce
-      setup_canvas_access
-      Rails.logger.info('Done setting up canvas access')
-      store_canvas_user_id_in_salesforce
-    end
-  end
-
-  # Grabs the values from Salesforce and sets them on this User since SF is the source of truth
-  def sync_salesforce_info
-    return false unless salesforce_id
-    sf_info = SalesforceAPI.client.get_contact_info(salesforce_id)
-    self.first_name = sf_info['FirstName']
-    self.last_name = sf_info['LastName']
-    self.email = sf_info['Email']
-    raise SalesforceAPI::SalesforceDataError.new("Contact info sent from Salesforce missing data: #{sf_info}") unless first_name && last_name && email
-    true
-  end
-
-  # Looks up their Canvas account and sets the Id so that on login we can redirect them there.
-  def setup_canvas_access
-    return if canvas_user_id
-
-    Rails.logger.info("Setting up Canvas account and enrollments for user: #{inspect}")
-    self.canvas_user_id = SyncToLMS.new.for_contact(salesforce_id)
-  end
-
-  def store_canvas_user_id_in_salesforce
-    SalesforceAPI.client.set_canvas_user_id(salesforce_id, canvas_user_id)
-  end
 end

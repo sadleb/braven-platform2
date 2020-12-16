@@ -5,8 +5,8 @@ namespace :salesforce do
   task :sync_to_lms, [:program_id] => :environment do |_, args|
     program_id = args[:program_id]
     puts("### Running Sync To LMS for Program: #{program_id} - #{Time.now.strftime("%Y-%m-%d %H:%M:%S %Z")}")
-    require 'sync_to_lms'
-    SyncToLMS.new.for_program(program_id)
+    require 'sync_portal_enrollments_for_program'
+    SyncPortalEnrollmentsForProgram.new(salesforce_program_id: program_id).run
     puts("    Done running Sync To LMS for Program: #{program_id} - #{Time.now.strftime("%Y-%m-%d %H:%M:%S %Z")}")
   end
 

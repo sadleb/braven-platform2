@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# A helper service to perform the logic that takes folks who are confirmed as participants in the
+# program in Salesforce and creates their Canvas accounts. Also, moves/drops/completes their
+# enrollment when things change.
 class SyncPortalEnrollmentForAccount
   DEFAULT_SECTION = 'Default Section'
 
@@ -10,6 +13,10 @@ class SyncPortalEnrollmentForAccount
     @user = User.find_by!(email: sf_participant.email)
   end
 
+  # Syncs the Canvas enrollments for the given user in the given course, by unenrolling
+  # from existing courses, if necessary, and enrolling them in the new course+section.
+  #
+  # Note: canvas_role = [:StudentEnrollment, :TaEnrollment, :DesignerEnrollment, :TeacherEnrollment]
   def run
     logger.info("Started sync enrollment for #{sf_participant.email}")
     case sf_participant.status
@@ -28,6 +35,12 @@ class SyncPortalEnrollmentForAccount
 
   attr_reader :portal_user, :sf_participant, :sf_program, :user
 
+  # The logic for who get's sync'd is anyone with a ParticipantStatus == 'Enrolled'. If they have a CohortName
+  # set, they are put in a Canvas Section with that name. If it's not set, they are put in a placeholder cohort
+  # that corresponds to the day and time that their Learning Lab meets.
+  #
+  # Assumptions: there are no duplicate Participant objects and if they opt out or drop as a Candidate, the ParticipantStatus is
+  # updated accordingly.
   def add_enrollment!
     case sf_participant.role
     when SalesforceAPI::LEADERSHIP_COACH
@@ -44,11 +57,11 @@ class SyncPortalEnrollmentForAccount
     end
   end
 
+  # If the CohortName isn't set, get their LL day/time schedule and use a placeholder section 
+  # that we setup before they are mapped to their real cohort in the 2nd or 3rd week.
   def course_section_name
-    # We want either SJSU Brian (Tues) or Monday, 7:00
-    # This first is the cohort while the later is the cohort schedule
-    # PS We usually set cohort schedules before cohorts in SF
-    sf_participant.cohort || sf_participant.cohort_schedule
+    sf_participant.cohort || # E.g. SJSU Brian (Tues)
+      sf_participant.cohort_schedule # E.g. 'Monday, 7:00'
   end
 
   def drop_enrollment!
@@ -79,6 +92,7 @@ class SyncPortalEnrollmentForAccount
     user.remove_role enrollment.type, section
   end
 
+  # Enroll or update their enrollment in the proper course and section
   def sync_enrollment(canvas_course_id, role, section_name)
     section_name = section_name.blank? ? DEFAULT_SECTION : section_name
     section = find_or_create_section(canvas_course_id, section_name)

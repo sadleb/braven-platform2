@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Syncs all folks from the specific Salesforce Program to Canvas.
 class SyncPortalEnrollmentsForProgram
   def initialize(salesforce_program_id:)
     @sf_program_id = salesforce_program_id
@@ -46,6 +47,9 @@ class SyncPortalEnrollmentsForProgram
   end
 
   def program_participants
+    # TODO: store the last time this was run for this course and in subsequent calls, pass that
+    # in to the final SalesforceAPI.get_participants() method as the last_modified_since parameter
+    # so that we only process modified ones and don't hit the CanvasAPI like crazy
     sf_client.find_participants_by(program_id: sf_program.id)
   end
 
