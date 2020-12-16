@@ -19,10 +19,8 @@ class SalesforceAPI
   SFProgram = Struct.new(:id, :name, :school_id, :fellow_course_id,
                          :leadership_coach_course_id,
                          :leadership_coach_course_section_name, :timezone,
-                         :docusign_template_id,
                          :pre_accelerator_qualtrics_survey_id,
-                         :post_accelerator_qualtrics_survey_id,
-                         :lc_docusign_template_id)
+                         :post_accelerator_qualtrics_survey_id)
 
   ENROLLED = 'Enrolled' 
   DROPPED = 'Dropped'
@@ -96,13 +94,12 @@ class SalesforceAPI
     RestClient.patch("#{@salesforce_url}#{path}", body, @global_headers.merge(headers))
   end
 
-  # TODO: remove the Qualtrics and Docusign IDs from here. We don't use them anymore.
+  # TODO: remove the Qualtrics IDs from here. We don't use them anymore.
   def get_program_info(program_id)
     soql_query = 
       "SELECT Id, Name, Highlander_Accelerator_Course_ID__c, Highlander_LCPlaybook_Course_ID__c, School__c, " \
-        "Section_Name_in_LMS_Coach_Course__c, Default_Timezone__c, Docusign_Template_ID__c, " \
-        "Preaccelerator_Qualtrics_Survey_ID__c, Postaccelerator_Qualtrics_Survey_ID__c, " \
-        "LC_DocuSign_Template_ID__c " \
+        "Section_Name_in_LMS_Coach_Course__c, Default_Timezone__c, " \
+        "Preaccelerator_Qualtrics_Survey_ID__c, Postaccelerator_Qualtrics_Survey_ID__c " \
       "FROM Program__c WHERE Id = '#{program_id}'"
 
     response = get("#{DATA_SERVICE_PATH}/query?q=#{CGI.escape(soql_query)}")
@@ -204,10 +201,9 @@ class SalesforceAPI
               program['Highlander_LCPlaybook_Course_ID__c'].to_i,
               program['Section_Name_in_LMS_Coach_Course__c'],
               program['Default_Timezone__c'].to_sym,
-              program['Docusign_Template_ID__c'],
               program['Preaccelerator_Qualtrics_Survey_ID__c'],
               program['Postaccelerator_Qualtrics_Survey_ID__c'],
-              program['LC_DocuSign_Template_ID__c'])
+    )
   end
 
   def find_contact(id:)
@@ -242,18 +238,8 @@ class SalesforceAPI
                       participant['CohortName'], participant['CohortScheduleDayTime'])
   end
 
-  def update_contact(id, canvas_user_id:, is_booster_instance:)
-    set_canvas_user_id(id, canvas_user_id,
-                       is_booster_instance: is_booster_instance)
-    true
-  end
-
-  def set_canvas_user_id(contact_id, canvas_user_id, is_booster_instance: false)
-    body = if is_booster_instance
-             { 'Canvas_User_ID_Booster__c' => canvas_user_id }
-           else
-             { 'Canvas_User_ID__c' => canvas_user_id }
-           end
+  def set_canvas_user_id(contact_id, canvas_user_id)
+    body = { 'Canvas_User_ID__c' => canvas_user_id }
     response = patch("#{DATA_SERVICE_PATH}/sobjects/Contact/#{contact_id}", body.to_json, JSON_HEADERS)
   end
 

@@ -35,7 +35,7 @@ class Course < ApplicationRecord
   # Salesforce values since that's the source of truth.
   # Note tht if/when we start storing these in teh database, we can remove this explicitly since ActiveRecord sets it up for columns
   attr_accessor :salesforce_id, :salesforce_school_id, :fellow_course_id, :leadership_coach_course_id, :leadership_coach_course_section_name,
-                :timezone, :docusign_template_id, :pre_accelerator_qualtrics_survey_id, :post_accelerator_qualtrics_survey_id, :lc_docusign_template_id
+                :timezone, :pre_accelerator_qualtrics_survey_id, :post_accelerator_qualtrics_survey_id
 
   validates :name, presence: true
 

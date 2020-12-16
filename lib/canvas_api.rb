@@ -86,20 +86,13 @@ class CanvasAPI
     JSON.parse(response.body)
   end
 
-  def create_account(first_name:, last_name:, user_name:, email:, contact_id:, student_id:, timezone:, docusign_template_id:)
-    user = create_user(first_name, last_name, user_name, email, contact_id, student_id, timezone, docusign_template_id)
-
-    LMSUser.new(user['id'])
-  end
-
-  def create_user(first_name, last_name, username, email, salesforce_id, student_id, timezone, docusign_template_id=nil)
+  def create_user(first_name, last_name, username, email, salesforce_id, student_id, timezone)
     body = {
         'user[name]' => "#{first_name} #{last_name}",
         'user[short_name]' => first_name,
         'user[sortable_name]' => "#{last_name}, #{first_name}",
         'user[skip_registration]' => true,
         'user[time_zone]' => timezone,
-        'user[docusign_template_id]' => docusign_template_id,
         'pseudonym[unique_id]' => username,
         'pseudonym[send_confirmation]' => false,
         'communication_channel[type]' => 'email',

@@ -40,15 +40,14 @@ RSpec.describe CanvasAPI do
     let(:salesforce_id) { 'a2b17000000ijNRAAY' }
     let(:student_id) { '123456' }
     let(:timezone) { 'America/Los_Angeles' }
-    let(:docusign_template_id) { 'abcdedfghijklmnop' }
     it 'hits the Canvas API correctly' do
       request_url = "#{CANVAS_API_URL}/accounts/1/users"
       stub_request(:post, request_url).to_return( body: FactoryBot.json(:canvas_user) )
 
-      canvas.create_user(first_name, last_name, username, email, salesforce_id, student_id, timezone, docusign_template_id)
+      canvas.create_user(first_name, last_name, username, email, salesforce_id, student_id, timezone)
 
       expect(WebMock).to have_requested(:post, request_url)
-        .with(body: "user%5Bname%5D=#{first_name}+#{last_name}&user%5Bshort_name%5D=#{first_name}&user%5Bsortable_name%5D=#{last_name}%2C+#{first_name}&user%5Bskip_registration%5D=true&user%5Btime_zone%5D=America%2FLos_Angeles&user%5Bdocusign_template_id%5D=#{docusign_template_id}&pseudonym%5Bunique_id%5D=#{username}&pseudonym%5Bsend_confirmation%5D=false&communication_channel%5Btype%5D=email&communication_channel%5Baddress%5D=test%2Bemail%40bebraven.org&communication_channel%5Bskip_confirmation%5D=true&communication_channel%5Bconfirmation_url%5D=true&pseudonym%5Bsis_user_id%5D=BVSFID#{salesforce_id}-SISID#{student_id}&enable_sis_reactivation=true").once
+        .with(body: "user%5Bname%5D=#{first_name}+#{last_name}&user%5Bshort_name%5D=#{first_name}&user%5Bsortable_name%5D=#{last_name}%2C+#{first_name}&user%5Bskip_registration%5D=true&user%5Btime_zone%5D=America%2FLos_Angeles&pseudonym%5Bunique_id%5D=#{username}&pseudonym%5Bsend_confirmation%5D=false&communication_channel%5Btype%5D=email&communication_channel%5Baddress%5D=test%2Bemail%40bebraven.org&communication_channel%5Bskip_confirmation%5D=true&communication_channel%5Bconfirmation_url%5D=true&pseudonym%5Bsis_user_id%5D=BVSFID#{salesforce_id}-SISID#{student_id}&enable_sis_reactivation=true").once
     end
   end
 
