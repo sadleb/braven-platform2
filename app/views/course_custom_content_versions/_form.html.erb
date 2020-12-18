@@ -1,0 +1,26 @@
+<div>
+  <div class="row">
+    <div class="col-sm-4">
+      <h4><%="Select a #{type} to create in Canvas"%></h4>
+      <%= form_with(url: polymorphic_path([@course, @course_custom_content], action: :publish), local: true) do |form| %>
+        <div class="form-group">
+          <div class="row">
+            <%= form.label :name, class: 'col-sm-3' %>
+            <%= form.collection_select :custom_content_id, @custom_contents, :id, :title, {}, class: 'form-control col-sm-8' %> 
+          </div>
+        </div>   
+
+        <% if @rubrics %>
+          <div class="form-group">
+            <div class="row">
+              <%= form.label :rubric, class: 'col-sm-3' %>
+              <%= form.collection_select :rubric_id, @rubrics, :id, :title, {include_blank: true}, class: 'form-control col-sm-8' %> 
+            </div>
+          </div>
+        <% end %>
+
+        <input type='submit' value='Create' />
+      <% end %>
+    </div>
+  </div>
+</div>

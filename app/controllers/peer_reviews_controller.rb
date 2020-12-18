@@ -17,10 +17,6 @@ class PeerReviewsController < ApplicationController
   #  - GROUP PROJECT: Complete Peer Evaluations
   PEER_REVIEWS_ASSIGNMENT_NAME = 'GROUP PROJECT: Complete Peer Evaluations'
 
-  def course
-    @course
-  end
-
   def assignment_name
     PEER_REVIEWS_ASSIGNMENT_NAME
   end

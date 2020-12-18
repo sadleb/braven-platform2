@@ -6,6 +6,7 @@ require 'uri'
 RSpec.describe CourseRise360ModuleVersionsController, type: :controller do
   render_views
 
+  let(:canvas_client) { double(CanvasAPI) }
   let!(:admin_user) { create :admin_user }
   let(:course) { create :course }
   let(:rise360_module_version) { create :rise360_module_version }
@@ -33,30 +34,87 @@ RSpec.describe CourseRise360ModuleVersionsController, type: :controller do
     end
   end
 
-  describe 'PUT #update' do
+  describe 'PUT #publish_latest' do
+    let(:new_rise360_module_name) { 'UPDATED! Rise360 Module Name' }
+
     subject {
-      put :update, params: {
+      # Update the Rise360Module first
+      rise360_module_version.rise360_module.update!(name: new_rise360_module_name)
+      put :publish_latest, params: {
         course_id: course.id,
         id: course_rise360_module_version.id,
       }
     }
-    it 'redirects to course edit page' do
-      subject
-      expect(response).to redirect_to edit_course_path(course)
+
+    context 'Canvas API exception' do
+      before(:each) do
+        allow(CanvasAPI).to receive(:client).and_return(canvas_client)
+        allow(canvas_client)
+          .to receive(:update_assignment_name)
+          .and_raise(RestClient::BadRequest)
+        allow(canvas_client)
+          .to receive(:update_assignment_lti_launch_url)
+          .and_raise(RestClient::BadRequest)
+      end
+
+      it 'does not change the join table entry' do
+        existing_module_version = course_rise360_module_version
+        expect { subject rescue nil }.not_to change(CourseRise360ModuleVersion, :count)
+        expect(CourseRise360ModuleVersion.last).to eq(existing_module_version)
+      end
     end
 
-    it 'creates a new module version' do
-      expect { subject }.to change(Rise360ModuleVersion, :count).by(1)
-    end
+    context 'Canvas assignment found' do
+      before(:each) do
+        allow(CanvasAPI).to receive(:client).and_return(canvas_client)
+        allow(canvas_client).to receive(:update_assignment_name)
+        allow(canvas_client).to receive(:update_assignment_lti_launch_url)
+      end
 
-    it 'updates the existing join table entry' do
-      expect { subject }.not_to change { CourseRise360ModuleVersion.count }
-      expect(course_rise360_module_version.reload.rise360_module_version).to eq(Rise360ModuleVersion.last)
+      it 'creates a new module version' do
+        expect { subject }.to change(Rise360ModuleVersion, :count).by(1)
+      end
+
+      it 'updates the existing join table entry' do
+        expect { subject }.not_to change { CourseRise360ModuleVersion.count }
+        expect(course_rise360_module_version.reload.rise360_module_version).to eq(Rise360ModuleVersion.last)
+      end
+
+      it 'updates the Canvas assignment name' do
+        subject
+        expect(canvas_client)
+          .to have_received(:update_assignment_name)
+          .with(
+            course.canvas_course_id,
+            course_rise360_module_version.canvas_assignment_id,
+            new_rise360_module_name,
+          )
+          .once
+      end
+
+      it 'updates the Canvas assignment LTI launch URL' do
+        subject
+        expect(canvas_client)
+          .to have_received(:update_assignment_lti_launch_url)
+          .with(
+            course.canvas_course_id,
+            course_rise360_module_version.canvas_assignment_id,
+            rise360_module_version_url(
+              Rise360ModuleVersion.last,
+              protocol: 'https',
+            ),
+          )
+          .once
+      end
+
+      it 'redirects to course edit page' do
+        subject
+        expect(response).to redirect_to edit_course_path(course)
+      end
     end
   end
 
   describe 'POST #publish' do
-    let(:canvas_client) { double(CanvasAPI) }
     let(:canvas_assignment_id) { 1234 }
     let(:launch_path) { '/lessons/somekey/index.html' }
     let(:rise360_module) { create :rise360_module_with_zipfile }
@@ -77,6 +135,7 @@ RSpec.describe CourseRise360ModuleVersionsController, type: :controller do
       allow(canvas_client)
         .to receive(:create_lti_assignment)
         .and_return({ 'id' => canvas_assignment_id })
+      allow(canvas_client).to receive(:update_assignment_lti_launch_url)
     end
 
     it 'adds a new join table entry' do
@@ -104,7 +163,11 @@ RSpec.describe CourseRise360ModuleVersionsController, type: :controller do
       )
       expect(canvas_client)
         .to have_received(:create_lti_assignment)
-        .with(course.canvas_course_id, rise360_module.name, launch_url)
+        .with(course.canvas_course_id, rise360_module.name)
+        .once
+      expect(canvas_client)
+        .to have_received(:update_assignment_lti_launch_url)
+        .with(course.canvas_course_id, canvas_assignment_id, launch_url)
         .once
     end
 
@@ -115,12 +178,12 @@ RSpec.describe CourseRise360ModuleVersionsController, type: :controller do
   end
 
   describe 'DELETE #unpublish' do
-    let(:canvas_client) { double(CanvasAPI) }
     before(:each) do
       allow(CanvasAPI).to receive(:client).and_return(canvas_client)
       allow(canvas_client)
         .to receive(:delete_assignment)
     end
+
     subject {
       delete :unpublish, params: {
         course_id: course.id,

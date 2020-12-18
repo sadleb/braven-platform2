@@ -43,11 +43,21 @@ Rails.application.routes.draw do
       post :launch, to: 'courses#launch_create'
     end
 
-    resources :course_project_versions, controller: 'course_custom_content_versions', type: 'CourseProjectVersion', only: [:new]
-    resources :course_survey_versions, controller: 'course_custom_content_versions', type: 'CourseSurveyVersion', only: [:new]
-
-    resources :course_rise360_module_versions, only: [:new, :update] do
+    resources :course_project_versions, only: [:new] do
       post :publish, on: :collection
+      put :publish_latest, on: :member
+      delete :unpublish, on: :member
+    end
+
+    resources :course_survey_versions, only: [:new] do
+      post :publish, on: :collection
+      put :publish_latest, on: :member
+      delete :unpublish, on: :member
+    end
+
+    resources :course_rise360_module_versions, only: [:new] do
+      post :publish, on: :collection
+      put :publish_latest, on: :member
       delete :unpublish, on: :member
     end
 
@@ -70,7 +80,7 @@ Rails.application.routes.draw do
 
   resources :course_custom_content_versions, only: [:create, :update, :destroy] 
 
-  resources :course_project_versions, controller: 'course_custom_content_versions', type: 'CourseProjectVersion', only: [] do
+  resources :course_project_versions, only: [] do
     resources :project_submissions, only: [:new, :edit, :show]
     post 'project_submissions/submit', to: 'project_submissions#submit'
   end
@@ -79,7 +89,7 @@ Rails.application.routes.draw do
     resources :project_submission_answers, only: [:index, :create]
   end
 
-  resources :course_survey_versions, controller: 'course_custom_content_versions', type: 'CourseSurveyVersion', only: [] do
+  resources :course_survey_versions, only: [] do
     resources :survey_submissions, only: [:new, :create]
   end
 

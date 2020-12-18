@@ -55,6 +55,10 @@ class Course < ApplicationRecord
     project_versions.map { |v| v.project }
   end
 
+  def surveys
+    survey_versions.map { |v| v.survey }
+  end
+
   def canvas_url
     "#{Rails.application.secrets.canvas_url}/courses/#{canvas_course_id}"
   end

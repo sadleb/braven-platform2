@@ -10,7 +10,6 @@ RSpec.describe PeerReviewsController, type: :controller do
   before(:each) do
     sign_in user
     allow(CanvasAPI).to receive(:client).and_return(canvas_client)
-    allow(canvas_client).to receive(canvas_api_call)
   end
 
   shared_examples 'updates Peer Review assignment for the template' do
@@ -30,9 +29,13 @@ RSpec.describe PeerReviewsController, type: :controller do
   end
 
   describe 'POST #publish' do
+    let(:canvas_assignment_id) { 1234 }
     let(:canvas_api_call) { :create_lti_assignment }
-
     before(:each) do
+      allow(canvas_client)
+        .to receive(:create_lti_assignment)
+        .and_return({ 'id' => canvas_assignment_id })
+      allow(canvas_client).to receive(:update_assignment_lti_launch_url)
       post :publish, params: { course_id: course.id }
     end
 
@@ -41,8 +44,8 @@ RSpec.describe PeerReviewsController, type: :controller do
 
   describe 'DELETE #unpublish' do
     let(:canvas_api_call) { :delete_assignment }
-
     before(:each) do
+      allow(canvas_client).to receive(:delete_assignment)
       delete :unpublish, params: { course_id: course.id, canvas_assignment_id: 123 }
     end
 

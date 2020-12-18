@@ -33,10 +33,6 @@ class WaiversController < ApplicationController
   # MODULE: Lead Authentically, TODO: Complete Waivers
   WAIVERS_ASSIGNMENT_NAME = 'TODO: Complete Waivers'
 
-  def course
-    @course
-  end
-
   def assignment_name
     WAIVERS_ASSIGNMENT_NAME
   end

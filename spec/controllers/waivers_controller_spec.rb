@@ -28,6 +28,7 @@ RSpec.describe WaiversController, type: :controller do
 
         before(:each) do
           allow(canvas_client).to receive(:create_lti_assignment).and_return(created_canvas_assignment)
+          allow(canvas_client).to receive(:update_assignment_lti_launch_url)
           post :publish, params: valid_publish_params, session: valid_session
         end
 
@@ -43,7 +44,13 @@ RSpec.describe WaiversController, type: :controller do
           # Hardcoding the path so that if someone changes it they're forced to see this comment
           # and consider that it will break all previously published Waivers assignments.
           expect(canvas_client).to have_received(:create_lti_assignment)
-            .with(course.canvas_course_id, assignment_name, /waiver_submissions\/launch/).once
+            .with(course.canvas_course_id, assignment_name).once
+          expect(canvas_client).to have_received(:update_assignment_lti_launch_url)
+            .with(
+              course.canvas_course_id,
+              created_canvas_assignment['id'],
+              /waiver_submissions\/launch/,
+            ).once
         end
 
       end
