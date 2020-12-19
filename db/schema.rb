@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_12_11_180112) do
+ActiveRecord::Schema.define(version: 2020_12_18_214148) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -48,7 +48,7 @@ ActiveRecord::Schema.define(version: 2020_12_11_180112) do
   create_table "course_custom_content_versions", force: :cascade do |t|
     t.bigint "course_id", null: false
     t.bigint "custom_content_version_id", null: false
-    t.integer "canvas_assignment_id", null: false
+    t.bigint "canvas_assignment_id", null: false
     t.string "type"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
@@ -66,7 +66,7 @@ ActiveRecord::Schema.define(version: 2020_12_11_180112) do
   create_table "course_rise360_module_versions", force: :cascade do |t|
     t.bigint "course_id", null: false
     t.bigint "rise360_module_version_id", null: false
-    t.integer "canvas_assignment_id"
+    t.bigint "canvas_assignment_id"
     t.index ["course_id"], name: "index_course_rise360_module_versions_on_course_id"
     t.index ["rise360_module_version_id"], name: "index_course_module_versions_on_module_version_id "
   end
@@ -75,7 +75,7 @@ ActiveRecord::Schema.define(version: 2020_12_11_180112) do
     t.string "name", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "canvas_course_id"
+    t.bigint "canvas_course_id"
     t.bigint "course_resource_id"
     t.boolean "is_launched", default: false
     t.index ["course_resource_id"], name: "index_courses_on_course_resource_id"
@@ -238,8 +238,8 @@ ActiveRecord::Schema.define(version: 2020_12_11_180112) do
     t.boolean "success"
     t.integer "progress"
     t.string "verb", null: false
-    t.integer "canvas_course_id", null: false
-    t.integer "canvas_assignment_id", null: false
+    t.bigint "canvas_course_id", null: false
+    t.bigint "canvas_assignment_id", null: false
     t.boolean "new", default: true, null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
@@ -351,7 +351,7 @@ ActiveRecord::Schema.define(version: 2020_12_11_180112) do
     t.integer "course_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.integer "canvas_section_id"
+    t.bigint "canvas_section_id"
     t.index ["name", "course_id"], name: "index_sections_on_name_and_course_id", unique: true
   end
 
@@ -416,7 +416,7 @@ ActiveRecord::Schema.define(version: 2020_12_11_180112) do
     t.datetime "confirmation_sent_at"
     t.string "unconfirmed_email"
     t.string "salesforce_id"
-    t.integer "canvas_user_id"
+    t.bigint "canvas_user_id"
     t.integer "join_user_id"
     t.string "linked_in_access_token"
     t.string "linked_in_state"
