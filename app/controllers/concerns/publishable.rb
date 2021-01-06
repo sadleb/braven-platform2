@@ -192,7 +192,7 @@ private
     if model_class && instance_variable.respond_to?(:canvas_assignment_id)
       return instance_variable.canvas_assignment_id
     end
-    params[:canvas_assignment_id]
+    params.require(:canvas_assignment_id)
   end
 
   def method_missing(name, *args, &block)

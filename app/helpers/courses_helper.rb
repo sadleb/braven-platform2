@@ -23,4 +23,28 @@ module CoursesHelper
   def canvas_peer_reviews_assignment_id
     @canvas_assignment_info.canvas_peer_reviews_assignment_id
   end
+
+  def has_preaccelerator_survey?
+    !!canvas_preaccelerator_survey_url
+  end
+
+  def canvas_preaccelerator_survey_url
+    @canvas_assignment_info.canvas_preaccelerator_survey_url
+  end
+
+  def canvas_preaccelerator_survey_assignment_id
+    @canvas_assignment_info.canvas_preaccelerator_survey_assignment_id
+  end
+
+  def has_postaccelerator_survey?
+    !!canvas_postaccelerator_survey_url
+  end
+
+  def canvas_postaccelerator_survey_url
+    @canvas_assignment_info.canvas_postaccelerator_survey_url
+  end
+
+  def canvas_postaccelerator_survey_assignment_id
+    @canvas_assignment_info.canvas_postaccelerator_survey_assignment_id
+  end
 end

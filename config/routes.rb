@@ -76,6 +76,20 @@ Rails.application.routes.draw do
         delete :unpublish
       end
     end
+
+    resources :preaccelerator_surveys, controller: 'accelerator_surveys', type: 'Pre', only: [] do
+      collection do
+        post :publish
+        delete :unpublish
+      end
+    end
+
+    resources :postaccelerator_surveys, controller: 'accelerator_surveys', type: 'Post', only: [] do
+      collection do
+        post :publish
+        delete :unpublish
+      end
+    end
   end
 
   resources :course_custom_content_versions, only: [:create, :update, :destroy] 
@@ -93,22 +107,19 @@ Rails.application.routes.draw do
     resources :survey_submissions, only: [:new, :create]
   end
 
-  resources :courses, only: [:index, :show] do
-    resources :grade_categories, only: [:index, :show]
-    resources :projects, only: [:index, :show]
-    resources :lessons, only: [:index, :show]
-  end
-
-  resources :grade_categories, only: [:index, :show] do
-    resources :projects, only: [:index, :show]
-    resources :lessons, only: [:index, :show]
-  end
-
   resources :survey_submissions, only: [:show]
   resources :peer_review_submissions, only: [:show]
 
-  resources :lessons, only: [:index, :show] do
-    resources :lesson_submissions, only: [:index, :show], :path => 'submissions'
+  resources :preaccelerator_survey_submissions, controller: 'accelerator_survey_submissions', type: 'Pre', only: [:new, :create] do
+    collection do
+      get :completed
+    end
+  end
+
+  resources :postaccelerator_survey_submissions, controller: 'accelerator_survey_submissions', type: 'Post', only: [:new, :create] do
+    collection do
+      get :completed
+    end
   end
 
   resources :waiver_submissions, only: [:new, :create] do

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # "Submittable" behavior for controllers like SurveySubmissionsController
 # and PeerReviewSubmissionsController.
 #
@@ -49,11 +51,6 @@ module Submittable
     authorize instance_variable
 
     # Only one submission per user and nest-parent.
-    previous_submission = model_class.find_by(
-      :user => current_user,
-      parent_variable_name => instance_variable_get("@#{parent_variable_name}")
-    )
-
     return redirect_to instance_path(previous_submission) if previous_submission
   end
 
@@ -61,10 +58,6 @@ module Submittable
     authorize instance_variable
 
     # Only one submission per user and nest-parent.
-    previous_submission = model_class.find_by(
-      :user => current_user,
-      parent_variable_name.to_sym => instance_variable_get("@#{parent_variable_name}")
-    )
     return redirect_to instance_path(previous_submission) if previous_submission
 
     # Record in our DB first, so we have the data even if updating Canvas fails.
@@ -73,8 +66,7 @@ module Submittable
     # Update Canvas
     lti_score = LtiScore.new_full_credit_submission(
       @current_user.canvas_user_id,
-      # E.g. survey_submission_url(@survey_submission, protocol: 'https').
-      self.send("#{instance_variable_name}_url", instance_variable, protocol: 'https'),
+      submission_url(instance_variable),
     )
     LtiAdvantageAPI.new(@lti_launch).create_score(lti_score)
 
@@ -82,13 +74,26 @@ module Submittable
   end
 
 private
-  def instance_variable
-    instance_variable_get("@#{instance_variable_name}")
+  def set_new_model_instance
+    instance_variable_set("@#{instance_variable_name}", model_class.new(
+      :user => current_user,
+      parent_variable_name => parent_variable,
+    ))
   end
 
-  # E.g. course.
+  def previous_submission
+    model_class.find_by(
+      :user => current_user,
+      parent_variable_name => parent_variable,
+    )
+  end
+
   def parent_variable_name
     @parent.class.name.underscore
+  end
+
+  def parent_variable
+    instance_variable_get("@#{parent_variable_name}")
   end
 
   # E.g. peer_review_submission_path(instance, ...).
@@ -100,10 +105,12 @@ private
     )
   end
 
-  def set_new_model_instance
-    instance_variable_set("@#{instance_variable_name}", model_class.new(
-      :user => current_user,
-      @parent.class.name.underscore.to_sym => instance_variable_get("@#{@parent.class.name.underscore}")
-    ))
+  # E.g. survey_submission_url(@survey_submission, protocol: 'https').
+  def submission_url(instance)
+    self.send(
+      "#{instance_variable_name}_url",
+      instance,
+      protocol: 'https',
+    )
   end
 end
