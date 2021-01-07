@@ -74,12 +74,14 @@ private
     cccv = CourseCustomContentVersion.find_by_lti_launch_url(lti_launch_url) 
     add_project_or_survey_info!(cccv, canvas_assignment) and return if cccv
 
-    waivers_launch_path = Rails.application.routes.url_helpers.launch_waiver_submissions_path()
-    add_waivers_info(canvas_assignment) and return if lti_launch_url =~ /#{waivers_launch_path}/
-
-    course = Course.find_by(canvas_course_id: @canvas_course_id)
-    peer_review_submission_path = new_course_peer_review_submission_path(course)
+    # We don't use new_**course**_peer_review_submission_path here because
+    # InitializeNewCourse needs to be able to detect the LTI launch URL that
+    # was copied containing the old course ID
+    peer_review_submission_path = 'peer_review_submissions/new'
     add_peer_review_info(canvas_assignment) and return if lti_launch_url =~ /#{peer_review_submission_path}/
+
+    waivers_launch_path = launch_waiver_submissions_path
+    add_waivers_info(canvas_assignment) and return if lti_launch_url =~ /#{waivers_launch_path}/
 
     preaccelerator_survey_submission_path = new_preaccelerator_survey_submission_path
     add_preaccelerator_survey_info(canvas_assignment) and return if lti_launch_url =~ /#{preaccelerator_survey_submission_path}/

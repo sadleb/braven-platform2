@@ -18,6 +18,8 @@ require 'canvas_api'
 # moving towards is having this be able to both setup and sync the local database information from
 # the Canvas course information.
 class InitializeNewCourse
+  include Rails.application.routes.url_helpers
+
   InitializeNewCourseError = Class.new(StandardError)
 
   def initialize(new_course, section_names)
@@ -46,9 +48,21 @@ private
   def initialize_assignments
     canvas_assignment_info = FetchCanvasAssignmentsInfo.new(@new_course.canvas_course_id).run
 
+    # Projects and impact surveys
     canvas_assignment_info.course_custom_content_versions_mapping.each do |canvas_assignment_id, cccv|
       initialize_new_course_custom_content_version(canvas_assignment_id, cccv)
     end
+
+    # Peer review
+    initialize_new_peer_review(canvas_assignment_info.canvas_peer_reviews_assignment_id)
+
+    # Waivers, Modules, Pre-, and Post-Accelerator assignments don't need their
+    # LTI launch URLs updated for a new course because they use course-agnostic
+    # endpoints.
+
+    # TODO: Adjusting the LTI launch URLs above goes away once we switch to
+    # using static endpoints for the Canvas assignments.
+    # https://app.asana.com/0/1174274412967132/1199352155608256
 
     canvas_assignment_info.canvas_assignment_ids
   end
@@ -77,8 +91,13 @@ private
     new_launch_url = new_cccv.new_submission_url
   end
 
-  # TODO: peer reviews and modules aren't handled. Fix that as part of:
-  # https://app.asana.com/0/1174274412967132/1199352155608256
+  def initialize_new_peer_review(canvas_assignment_id)
+    CanvasAPI.client.update_assignment_lti_launch_url(
+      @new_course.canvas_course_id,
+      canvas_assignment_id,
+      new_course_peer_review_submission_url(@new_course, protocol: 'https'),
+    )
+  end
 
   def create_sections(canvas_assignment_ids)
     canvas_section_ids = []

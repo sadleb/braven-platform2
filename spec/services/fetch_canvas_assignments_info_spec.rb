@@ -2,13 +2,32 @@ require 'rails_helper'
 
 RSpec.describe FetchCanvasAssignmentsInfo do
 
+  include Rails.application.routes.url_helpers
+
   let(:course) { create :course }
   let(:canvas_client) { double(CanvasAPI) }
-  let(:assignments) { [] }
+
 
   before(:each) do
     allow(CanvasAPI).to receive(:client).and_return(canvas_client)
     allow(canvas_client).to receive(:get_assignments).and_return(assignments)
+  end
+
+  context 'for peer reviews' do
+    let(:peer_reviews_lti_launch_url) { new_course_peer_review_submission_path(course) }
+    let(:peer_reviews_assignment) { create(
+      :canvas_assignment,
+      name: PeerReviewsController::PEER_REVIEWS_ASSIGNMENT_NAME,
+      course_id: course.canvas_course_id,
+      lti_launch_url: peer_reviews_lti_launch_url,
+    ) }
+    let(:assignments) { [ peer_reviews_assignment ] }
+    
+    it 'detects a peer review assignment' do
+      assignments_info = FetchCanvasAssignmentsInfo.new(course.canvas_course_id).run
+      expect(assignments_info.canvas_peer_reviews_url).to match(/\/courses\/#{course.canvas_course_id}\/assignments\/#{peer_reviews_assignment['id']}/)
+      expect(assignments_info.canvas_peer_reviews_assignment_id).to eq(peer_reviews_assignment['id'])
+    end
   end
 
   context 'for waivers' do
