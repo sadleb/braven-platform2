@@ -33,7 +33,7 @@ protected
   # the fullpath to not be sent in the Referer header when the Submit button is clicked.
   # This leads to Form Assembly not knowing where to re-direct back to for forms with multiple
   # pages (e.g. for one with an e-signature). Loosen the policy so the whole referrer is sent.
-  def setup_head
+  def set_up_head
     @form_head.insert(0, '<meta name="referrer" content="no-referrer-when-downgrade">')
   end
 
@@ -48,7 +48,7 @@ protected
   # TODO: if you try to go Back in the browser after submitting the final e-signature review
   # form, the call to the FormAssembly API with that tfa_next param returns an empty body and this 
   # throws an exception. Do something more graceful: https://app.asana.com/0/1174274412967132/1199231117515065
-  def setup_body
+  def set_up_body
     doc = Nokogiri::HTML::DocumentFragment.parse(@form_body)
     form_node = doc.at_css('form')
     form_node.add_child('<input type="hidden" value="' + html_safe_state + '" name="state" id="state">')

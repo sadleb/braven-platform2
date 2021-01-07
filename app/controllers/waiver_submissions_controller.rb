@@ -45,8 +45,8 @@ class WaiverSubmissionsController < FormAssemblyController
         .get_form_head_and_body(form_assembly_info.waivers_form_id, participantId: form_assembly_info.participant_id)
     end
 
-    setup_head()
-    setup_body()
+    set_up_head()
+    set_up_body()
   end
 
   # Handle the submission of the FormAssembly waivers. This is configured in FormAssembly by

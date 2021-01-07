@@ -52,7 +52,7 @@ class AcceleratorSurveySubmissionsController < FormAssemblyController
   # for the controller because it's an active model and not stored in the DB.
   before_action :set_new_model_instance
   before_action :set_type!
-  before_action :setup_formassembly, only: [:new]
+  before_action :set_up_formassembly, only: [:new]
 
   def completed
     authorize @accelerator_survey_submission
@@ -60,7 +60,7 @@ class AcceleratorSurveySubmissionsController < FormAssemblyController
 
 private
   # For #new, embed the FormAssembly form in the view
-  def setup_formassembly
+  def set_up_formassembly
     form_id = form_assembly_info.send("#{@type}_accelerator_survey_form_id")
     if params[:tfa_next].present?
       @form_head, @form_body = FormAssemblyAPI.client
@@ -69,8 +69,8 @@ private
       @form_head, @form_body = FormAssemblyAPI.client
         .get_form_head_and_body(form_id, participantId: form_assembly_info.participant_id)
     end
-    setup_head()
-    setup_body()
+    set_up_head()
+    set_up_body()
   end
 
   # For Submittable
