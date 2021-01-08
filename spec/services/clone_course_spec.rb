@@ -122,7 +122,7 @@ RSpec.describe CloneCourse do
               canvas_sections << new_section
               CanvasAPI::LMSSection.new(new_section['id'], name)
             }
-            allow(canvas_client).to receive(:create_assignment_overrides)
+            allow(canvas_client).to receive(:create_assignment_override_placeholders)
           end
  
           it "creates the Canvas sections" do
@@ -133,7 +133,7 @@ RSpec.describe CloneCourse do
   
           it "sets the AssignmentOverrides" do
             clone_course_service.run.wait_and_initialize
-            expect(canvas_client).to have_received(:create_assignment_overrides)
+            expect(canvas_client).to have_received(:create_assignment_override_placeholders)
               .with(destination_canvas_course_id, [assignment1['id'], assignment2['id']], [canvas_sections[0]['id'], canvas_sections[1]['id']]).once
           end
         end
@@ -142,7 +142,7 @@ RSpec.describe CloneCourse do
           let(:section_names) { [] }
           it "does not create Canvas sections or AssignmentOverrides" do
             expect(canvas_client).not_to receive(:create_lms_section)
-            expect(canvas_client).not_to receive(:create_assignment_overrides)
+            expect(canvas_client).not_to receive(:create_assignment_override_placeholders)
             clone_course_service.run.wait_and_initialize
           end
         end

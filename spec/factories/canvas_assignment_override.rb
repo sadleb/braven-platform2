@@ -14,6 +14,7 @@ FactoryBot.define do
 
     factory :canvas_assignment_override_section do
       sequence(:title) { |i| "Test - Section#{i}" }
+      # Despite its name, the course_section_id is a Canvas section_id.
       sequence(:course_section_id)
     end
 

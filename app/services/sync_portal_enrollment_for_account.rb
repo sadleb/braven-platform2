@@ -59,6 +59,7 @@ class SyncPortalEnrollmentForAccount
 
   # If the CohortName isn't set, get their LL day/time schedule and use a placeholder section 
   # that we setup before they are mapped to their real cohort in the 2nd or 3rd week.
+  # This function controlls a lot of the behavior in this service!
   def course_section_name
     sf_participant.cohort || # E.g. SJSU Brian (Tues)
       sf_participant.cohort_schedule # E.g. 'Monday, 7:00'
@@ -94,12 +95,15 @@ class SyncPortalEnrollmentForAccount
 
   # Enroll or update their enrollment in the proper course and section
   def sync_enrollment(canvas_course_id, role, section_name)
+
     section_name = section_name.blank? ? DEFAULT_SECTION : section_name
     section = find_or_create_section(canvas_course_id, section_name)
     enrollment = find_user_enrollment(canvas_course_id)
     if enrollment.nil?
       enroll_user(canvas_course_id, role, section)
-    elsif !enrollment.section_id.eql?(section.id) || !enrollment.type.eql?(role)
+    elsif !enrollment.section_id.eql?(section.canvas_section_id) || !enrollment.type.eql?(role)
+      # Section or role has changed.
+      # Remove the old enrollment and add the new one.
       drop_course_enrollment(canvas_course_id)
       enroll_user(canvas_course_id, role, section)
     else
@@ -116,12 +120,49 @@ class SyncPortalEnrollmentForAccount
   end
 
   # Creates a local DB Section and a Canvas section, but only returns the local one.
+  # Also handles copying Canvas assignment overrides when appropriate.
   def find_or_create_section(canvas_course_id, section_name)
+    # This section may be a cohort section or a cohort-schedule section, depending on course_section_name.
     canvas_section = find_canvas_course_section(canvas_course_id, section_name)
     if canvas_section.nil?
+      # If the Canvas section didn't already exist, create it now.
       canvas_section = canvas_client.create_lms_section(course_id: canvas_course_id, name: section_name)
+
+      if sf_participant.cohort
+        # The user has been added to a cohort without an existing section.
+        # Copy the due dates from the cohort-schedule section to the new section.
+        # Note: This also means canvas_section is guaranteed to be a cohort section.
+        cohort_schedule_section = find_canvas_course_section(canvas_course_id, sf_participant.cohort_schedule)
+        # In the edge case where the cohort-schedule section doesn't already
+        # exist in Canvas, we just skip all this assignment-override stuff.
+        if cohort_schedule_section
+          cohort_schedule_overrides = []
+          # Unfortunately, the only way to get a list of overrides from Canvas is to
+          # check each assignment in the course. One API call per assignment.
+          assignment_ids = canvas_client.get_assignments(canvas_course_id).map { |a| a['id'] }
+          assignment_ids.each do |assignment_id|
+            overrides = canvas_client.get_assignment_overrides(canvas_course_id, assignment_id)
+            # Exit early if there aren't any overrides for this assignment.
+            next unless overrides
+
+            # For assignment overrides in the cohort-schedule section, update the override
+            # config to point to the new section, remove the override ID, and add the
+            # override to a big list of all overrides to copy to the new section.
+            overrides.each do |override|
+              if override['course_section_id'] == cohort_schedule_section.id
+                override['course_section_id'] = canvas_section.id
+                override.delete('id')
+                cohort_schedule_overrides << override
+              end
+            end
+          end
+          # Copy all the overrides at once, to reduce the number of API calls.
+          canvas_client.create_assignment_overrides(canvas_course_id, cohort_schedule_overrides)
+        end
+      end
     end
 
+    # Now that all the Canvas stuff is done, create a local section and return that.
     course = Course.find_by!(canvas_course_id: canvas_course_id)
     Section.find_or_create_by!(
       course_id: course.id,

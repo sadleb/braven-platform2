@@ -271,18 +271,32 @@ class CanvasAPI
     JSON.parse(response.body)
   end
 
+  # https://canvas.instructure.com/doc/api/assignments.html#method.assignment_overrides.index
+  def get_assignment_overrides(course_id, assignment_id)
+    response = get("/courses/#{course_id}/assignments/#{assignment_id}/overrides")
+    get_all_from_pagination(response)
+  end
+
   # Associates an AssignmentOverride for each section to each assignment. This causes the
   # Edit Assignment Dates UI to show all the sections so that you can bulk edit the due dates for
   # each section in the UI.
   #
   # See: https://canvas.instructure.com/doc/api/assignments.html#method.assignments_api.index
-  def create_assignment_overrides(course_id, assignment_ids, section_ids)
+  def create_assignment_override_placeholders(course_id, assignment_ids, section_ids)
     overrides = []
     assignment_ids.each { |aid|
       section_ids.each { |sid|
         overrides << { :due_at => nil, :assignment_id => aid, :course_section_id => sid }
       }
     }
+    body = { :assignment_overrides => overrides }
+
+    response = post("/courses/#{course_id}/assignments/overrides", body)
+    JSON.parse(response.body)
+  end
+
+  # Create assignment overrides directly from passed-in hashes.
+  def create_assignment_overrides(course_id, overrides)
     body = { :assignment_overrides => overrides }
 
     response = post("/courses/#{course_id}/assignments/overrides", body)

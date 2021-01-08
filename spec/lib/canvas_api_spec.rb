@@ -249,7 +249,7 @@ RSpec.describe CanvasAPI do
     end
   end
 
-  describe '#create_assignment_overrides' do
+  describe '#create_assignment_override_placeholders' do
     let(:course_id) { 123457 }
     let(:assignemnt_id1) { 1 }
     let(:assignemnt_id2) { 2 }
@@ -264,7 +264,7 @@ RSpec.describe CanvasAPI do
       request_url = "#{CANVAS_API_URL}/courses/#{course_id}/assignments/overrides"
       stub_request(:post, request_url).to_return( body: [override1, override2, override3, override4].to_json )
 
-      overrides = canvas.create_assignment_overrides(course_id, [assignemnt_id1, assignemnt_id2], [section_id1, section_id2])
+      overrides = canvas.create_assignment_override_placeholders(course_id, [assignemnt_id1, assignemnt_id2], [section_id1, section_id2])
 
       expect(WebMock).to have_requested(:post, request_url).once
       expect(WebMock).to have_requested(:post, request_url).with(body: "assignment_overrides[][due_at]&assignment_overrides[][assignment_id]=1&assignment_overrides[][course_section_id]=3&assignment_overrides[][due_at]&assignment_overrides[][assignment_id]=1&assignment_overrides[][course_section_id]=4&assignment_overrides[][due_at]&assignment_overrides[][assignment_id]=2&assignment_overrides[][course_section_id]=3&assignment_overrides[][due_at]&assignment_overrides[][assignment_id]=2&assignment_overrides[][course_section_id]=4")
@@ -272,6 +272,50 @@ RSpec.describe CanvasAPI do
       expect(overrides.count).to eq(4)
     end
   end
+
+  describe '#get_assignment_overrides' do
+    let(:course_id) { 123456 }
+    let(:assignment_id) { 2345 }
+    let(:override1) { FactoryBot.json(:canvas_assignment_override_section, assignment_id: assignment_id) }
+    let(:override2) { FactoryBot.json(:canvas_assignment_override_section, assignment_id: assignment_id) }
+
+    it 'hits the Canvas API correctly' do
+      request_url = "#{CANVAS_API_URL}/courses/#{course_id}/assignments/#{assignment_id}/overrides"
+      stub_request(:get, request_url).to_return( body: [override1, override2].to_json )
+
+      overrides = canvas.get_assignment_overrides(course_id, assignment_id)
+
+      expect(WebMock).to have_requested(:get, request_url).once
+      expect(overrides.count).to eq(2)
+    end
+  end
+
+
+  describe '#create_assignment_overrides' do
+    let(:course_id) { 123457 }
+    let(:assignemnt_id) { 1 }
+    let(:section_id1) { 3 }
+    let(:section_id2) { 4 }
+    let(:override1) { create(:canvas_assignment_override_section, assignment_id: assignemnt_id, course_section_id: section_id1) }
+    let(:override2) { create(:canvas_assignment_override_section, assignment_id: assignemnt_id, course_section_id: section_id2) }
+
+    before :each do
+      override1.delete('id')
+      override2.delete('id')
+    end
+
+    it 'hits the Canvas API correctly' do
+      overrides = [override1, override2]
+      request_url = "#{CANVAS_API_URL}/courses/#{course_id}/assignments/overrides"
+      stub_request(:post, request_url).to_return( body: '{}' )
+
+      canvas.create_assignment_overrides(course_id, overrides)
+
+      expect(WebMock).to have_requested(:post, request_url).once
+      expect(WebMock).to have_requested(:post, request_url).with(body: "assignment_overrides[][assignment_id]=1&assignment_overrides[][due_at]&assignment_overrides[][all_day]=false&assignment_overrides[][all_day_date]&assignment_overrides[][title]=Test+-+Section7&assignment_overrides[][course_section_id]=3&assignment_overrides[][assignment_id]=1&assignment_overrides[][due_at]&assignment_overrides[][all_day]=false&assignment_overrides[][all_day_date]&assignment_overrides[][title]=Test+-+Section8&assignment_overrides[][course_section_id]=4")
+    end
+  end
+
 
   describe '#delete_assignment' do
     let(:course_id) { 123456 }
