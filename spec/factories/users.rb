@@ -55,6 +55,13 @@ FactoryBot.define do
       factory :linked_in_user do
         linked_in_state { '' }
       end
+
+      factory :lc_playbook_user do
+        canvas_user_id { '1236' }
+        after :create do |user, options|
+          user.add_role RoleConstants::STUDENT_ENROLLMENT, options.section
+        end
+      end
     end
 
   end

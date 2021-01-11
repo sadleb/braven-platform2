@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_12_18_214148) do
+ActiveRecord::Schema.define(version: 2021_01_08_002002) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -101,6 +101,13 @@ ActiveRecord::Schema.define(version: 2020_12_18_214148) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.string "type"
+  end
+
+  create_table "fellow_evaluation_submissions", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "course_id", null: false
+    t.index ["course_id"], name: "index_fellow_evaluation_submissions_on_course_id"
+    t.index ["user_id"], name: "index_fellow_evaluation_submissions_on_user_id"
   end
 
   create_table "grade_categories", force: :cascade do |t|
@@ -442,6 +449,8 @@ ActiveRecord::Schema.define(version: 2020_12_18_214148) do
   add_foreign_key "courses", "course_resources"
   add_foreign_key "custom_content_versions", "custom_contents"
   add_foreign_key "custom_content_versions", "users"
+  add_foreign_key "fellow_evaluation_submissions", "courses"
+  add_foreign_key "fellow_evaluation_submissions", "users"
   add_foreign_key "grade_categories", "courses"
   add_foreign_key "lesson_submissions", "lessons"
   add_foreign_key "lesson_submissions", "users"
