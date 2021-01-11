@@ -91,6 +91,13 @@ Rails.application.routes.draw do
         delete :unpublish
       end
     end
+
+    resources :fellow_evaluations, only: [] do
+      collection do
+        post :publish
+        delete :unpublish
+      end
+    end
   end
 
   resources :course_custom_content_versions, only: [:create, :update, :destroy] 

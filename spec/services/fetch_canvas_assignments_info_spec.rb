@@ -7,10 +7,26 @@ RSpec.describe FetchCanvasAssignmentsInfo do
   let(:course) { create :course }
   let(:canvas_client) { double(CanvasAPI) }
 
-
   before(:each) do
     allow(CanvasAPI).to receive(:client).and_return(canvas_client)
     allow(canvas_client).to receive(:get_assignments).and_return(assignments)
+  end
+
+  context 'for fellow evaluation' do
+    let(:lti_launch_url) { new_course_fellow_evaluation_submission_path(course) }
+    let(:assignment) { create(
+      :canvas_assignment,
+      course_id: course.canvas_course_id,
+      name: 'Fellow Assessment',
+      lti_launch_url: lti_launch_url,
+    ) }
+    let(:assignments) { [ assignment ] }
+    
+    it 'detects a fellow evaluation assignment' do
+      assignments_info = FetchCanvasAssignmentsInfo.new(course.canvas_course_id).run
+      expect(assignments_info.canvas_fellow_evaluation_url).to match(/\/courses\/#{course.canvas_course_id}\/assignments\/#{assignment['id']}/)
+      expect(assignments_info.canvas_fellow_evaluation_assignment_id).to eq(assignment['id'])
+    end
   end
 
   context 'for peer reviews' do

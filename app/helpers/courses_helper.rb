@@ -47,4 +47,16 @@ module CoursesHelper
   def canvas_postaccelerator_survey_assignment_id
     @canvas_assignment_info.canvas_postaccelerator_survey_assignment_id
   end
+
+  def has_fellow_evaluation?
+    !!canvas_fellow_evaluation_url
+  end
+
+  def canvas_fellow_evaluation_url
+    @canvas_assignment_info.canvas_fellow_evaluation_url
+  end
+
+  def canvas_fellow_evaluation_assignment_id
+    @canvas_assignment_info.canvas_fellow_evaluation_assignment_id
+  end
 end
