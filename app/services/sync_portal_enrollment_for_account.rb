@@ -4,7 +4,6 @@
 # program in Salesforce and creates their Canvas accounts. Also, moves/drops/completes their
 # enrollment when things change.
 class SyncPortalEnrollmentForAccount
-  DEFAULT_SECTION = 'Default Section'
 
   def initialize(portal_user:, salesforce_participant:, salesforce_program:)
     @portal_user = portal_user
@@ -48,7 +47,7 @@ class SyncPortalEnrollmentForAccount
                       course_section_name)
       sync_enrollment(sf_program.leadership_coach_course_id,
                       RoleConstants::STUDENT_ENROLLMENT,
-                      sf_program.leadership_coach_course_section_name)
+                      SectionConstants::DEFAULT_SECTION)
     when SalesforceAPI::FELLOW
       sync_enrollment(sf_program.fellow_course_id, RoleConstants::STUDENT_ENROLLMENT,
                       course_section_name)
@@ -96,7 +95,7 @@ class SyncPortalEnrollmentForAccount
   # Enroll or update their enrollment in the proper course and section
   def sync_enrollment(canvas_course_id, role, section_name)
 
-    section_name = section_name.blank? ? DEFAULT_SECTION : section_name
+    section_name = section_name.blank? ? SectionConstants::DEFAULT_SECTION : section_name
     section = find_or_create_section(canvas_course_id, section_name)
     enrollment = find_user_enrollment(canvas_course_id)
     if enrollment.nil?

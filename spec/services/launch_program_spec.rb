@@ -39,11 +39,6 @@ RSpec.describe LaunchProgram do
         expect { launch_program }.to raise_error(RestClient::BadRequest)
       end
 
-      it "raises an error when missing 'Section Name in LMS Coach Course' field" do
-        salesforce_program['Section_Name_in_LMS_Coach_Course__c'] = nil
-        expect { launch_program }.to raise_error(LaunchProgram::LaunchProgramError).with_message(/Section Name in LMS/)
-      end
-
       it "raises an error when missing Cohort Schedules" do
         expect { launch_program }.to raise_error(LaunchProgram::LaunchProgramError).with_message(/No Cohort Schedules/)
       end
@@ -76,7 +71,7 @@ RSpec.describe LaunchProgram do
         .with(fellow_source_course, fellow_course_name, fellow_section_names)
         .and_return(fellow_clone_course_service)
       allow(CloneCourse).to receive(:new)
-        .with(lc_source_course, lc_course_name, [salesforce_program['Section_Name_in_LMS_Coach_Course__c']])
+        .with(lc_source_course, lc_course_name, [SectionConstants::DEFAULT_SECTION])
         .and_return(lc_clone_course_service)
       allow(fellow_clone_course_service).to receive(:run).and_return(fellow_clone_course_service)
       allow(lc_clone_course_service).to receive(:run).and_return(lc_clone_course_service)

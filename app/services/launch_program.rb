@@ -18,9 +18,9 @@ class LaunchProgram
     fellow_clone_service = CloneCourse.new(@fellow_source_course, @fellow_course_name, @fellow_destination_course_section_names).run
     lc_clone_service = CloneCourse.new(@lc_source_course, @lc_course_name, @lc_destination_course_section_names).run
 
-   # Wait till they are cloned and initialized before updating Salesforce
-   @fellow_destination_course = fellow_clone_service.wait_and_initialize
-   @lc_destination_course = lc_clone_service.wait_and_initialize
+    # Wait till they are cloned and initialized before updating Salesforce
+    @fellow_destination_course = fellow_clone_service.wait_and_initialize
+    @lc_destination_course = lc_clone_service.wait_and_initialize
  
     # Update Salesforce program with the new Canvas course IDs.
     sf_client.set_canvas_course_ids(
@@ -51,11 +51,8 @@ private
     # Task to track: https://app.asana.com/0/1174274412967132/1198877695027085
 
     @salesforce_program = sf_client.find_program(id: salesforce_program_id)
-    if @salesforce_program.leadership_coach_course_section_name.blank?
-      raise LaunchProgramError, '''Section Name in LMS Coach Course'' Salesforce field not set on Program'
-    end
 
-    @lc_destination_course_section_names = [ @salesforce_program.leadership_coach_course_section_name ]
+    @lc_destination_course_section_names = [ SectionConstants::DEFAULT_SECTION ]
     @fellow_destination_course_section_names = sf_client.get_cohort_schedule_section_names(salesforce_program_id)
 
     if @fellow_destination_course_section_names.blank?

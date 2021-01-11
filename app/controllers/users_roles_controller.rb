@@ -66,7 +66,7 @@ class UsersRolesController < ApplicationController
       sf_program = Mocks::SalesforceProgram.new(
         params[:fellow_course_id],
         params[:leadership_coach_course_id],
-        params[:leadership_coach_course_section_name].strip)
+      )
     end
 
     SyncPortalEnrollmentForAccount
@@ -96,7 +96,7 @@ class UsersRolesController < ApplicationController
     # try again on the same course. Not worth implementing a UI to require specifying both
     # in order to delete LCs
     canvas_course_id = @role.resource.course.canvas_course_id
-    sf_program = Mocks::SalesforceProgram.new(canvas_course_id, canvas_course_id, :ignored_section_name)
+    sf_program = Mocks::SalesforceProgram.new(canvas_course_id, canvas_course_id)
 
     SyncPortalEnrollmentForAccount
       .new(portal_user: portal_user,
@@ -130,10 +130,10 @@ private
       end
     end
 
-    SalesforceProgram = Struct.new(:fellow_course_id,
-                                   :leadership_coach_course_id,
-                                   :leadership_coach_course_section_name)
-
+    SalesforceProgram = Struct.new(
+      :fellow_course_id,
+      :leadership_coach_course_id,
+    )
   end
 
 end

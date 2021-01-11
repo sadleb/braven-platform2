@@ -71,7 +71,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
           .run
         expect(lms_client)
           .to have_received(:create_lms_section)
-          .with(course_id: fellow_canvas_course_id, name: SyncPortalEnrollmentForAccount::DEFAULT_SECTION)
+          .with(course_id: fellow_canvas_course_id, name: SectionConstants::DEFAULT_SECTION)
       end
 
       # Add tests for other sections when implemented

@@ -13,3 +13,8 @@ class RoleConstants
     TA_ENROLLMENT,
   ]
 end
+
+# Sections
+class SectionConstants
+  DEFAULT_SECTION = 'Default Section'
+end

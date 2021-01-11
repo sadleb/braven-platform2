@@ -37,9 +37,4 @@
     <%= form.collection_select :leadership_coach_course_id, Course.unlaunched_courses, :canvas_course_id, :name,
                                                             {include_blank: true}, class: 'form-control col-md-10' %>
   </div>
-  <div class="form-group col-5">
-    <%= form.label :leadership_coach_course_section_name, 'Section' %>
-    <%= form.text_field :leadership_coach_course_section_name, placeholder: 'Section Name',
-                                                               data: { lpignore: true }, class: 'form-control col-md-10' %>
-  </div>
 </div>
