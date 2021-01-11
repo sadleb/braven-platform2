@@ -62,6 +62,7 @@ Rails.application.routes.draw do
     end
 
     resources :peer_review_submissions, only: [:new, :create]
+    resources :fellow_evaluation_submissions, only: [:new, :create]
 
     resources :waivers, only: [] do
       collection do
@@ -128,6 +129,8 @@ Rails.application.routes.draw do
       get :completed
     end
   end
+
+  resources :fellow_evaluation_submissions, only: [:show]
 
   resources :access_tokens, except: [:show]
 

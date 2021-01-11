@@ -1,0 +1,80 @@
+<% content_for :title, 'Fellow Evaluations' %>
+
+<% content_for :additional_container_css, 'peer-review-container' %>
+
+<h2 id="cohort-teamwork-evaluation">Accelerator Fellow Evaluation</h2>
+<p>Thank you for being a Leadership Coach this semester! We really appreciate all the work and time you’ve dedicated to helping and teaching our Fellows. As we continue to grow as an organization, we've found that feedback from Coaches (who know their Fellows better than we do), has been crucial in helping us tailor post-course programming to meet Fellows' needs. So, we'd like to get some feedback on the Fellows in your cohort. Your responses will be used by Braven staff only (to better understand strengths and growth areas for Fellows and our program overall) and will not be reported back to your cohort members.</p>
+<p>Please reach out to ayodele@bebraven.org with any questions. Thanks for your responses!</p>
+
+<% unless @fellow_users.present? %>
+  <p>You have no fellows to review.</p>
+  <p>If you think this is wrong, please reach out to support@bebraven.org.</p>
+<% else %>
+  <%= form_with(url: course_fellow_evaluation_submissions_path, method: "post", local: true) do |form| %>
+
+    <% @fellow_users.each do |user| %>
+      <fieldset class="single-peer-review-wrapper">
+        <legend class="peer-review-full-name">
+          <%= user.full_name %>
+        </legend>
+        <%= render partial: "radio_question", locals: {
+          user: user,
+          question: "If you had an entry-level role available, how likely would you be to hire this Fellow?",
+          question_name: 'would-hire-entry-level-role',
+          radios: {
+            'Very Likely' => '10',
+            'Likely' => '8',
+            'Somewhat Likely' => '6',
+            'Somewhat Unlikely' => '4',
+            'Unlikely' => '2',
+            'Very Unlikely' => '0',
+          },
+        } %>
+        <%= render partial: "radio_question", locals: {
+          user: user,
+          question: "How ready is this Fellow to be an effective team member in the workplace (e.g., listens/supports teammates, maintains positive attitude, stays focused on task, contributes to team goals)?",
+          question_name: 'how-ready-to-be-team',
+          radios: {
+            'Completely Ready' => '10',
+            'Mostly Ready' => '8',
+            'Moderately Ready' => '6',
+            'Slightly Ready' => '4',
+            'Not Ready At All' => '2',
+          },
+        } %>
+        <%= render partial: "radio_question", locals: {
+          user: user,
+          question: "How ready is this Fellow to conduct themselves professionally in the workplace (e.g., be reliable, respectful, honest, punctual)?",
+          question_name: 'how-ready-to-be-professional',
+          radios: {
+            'Completely Ready' => '10',
+            'Mostly Ready' => '8',
+            'Moderately Ready' => '6',
+            'Slightly Ready' => '4',
+            'Not Ready At All' => '2',
+          },
+        } %>
+        <%= render partial: "checkbox_question", locals: {
+          user: user,
+          question: "What are the 2-3 top strengths for this student? [select up to three]",
+          question_name: 'strength',
+        } %>
+        <%= render partial: "checkbox_question", locals: {
+          user: user,
+          question: "What are the 2-3 areas of development for this student? [select up to three]",
+          question_name: 'weakness',
+        } %>
+
+        <fieldset class="peer-review-question-wrapper">
+          <legend class="peer-review-question">
+            Is there anything additional about this Fellow’s readiness for the workplace, or any general comments about this Fellow, you’d like to share with us?
+          </legend>
+          <input name="<%= "fellow_evaluation[#{user.id}][other-fellow-comments-from-lc]" %>" type="text" />
+        </fieldset>
+      </fieldset>
+    <% end %>
+
+    <input type="hidden" name="state" value="<%= @lti_launch.state %>">
+  <%= form.submit %>
+  <% end %>
+<% end %>
