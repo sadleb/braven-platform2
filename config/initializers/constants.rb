@@ -17,4 +17,5 @@ end
 # Sections
 class SectionConstants
   DEFAULT_SECTION = 'Default Section'
+  TA_SECTION = 'Teaching Assistants'
 end

@@ -171,12 +171,12 @@ class CanvasAPI
   end
 
   # Enrolls the user in the new course, without modifying any existing data
-  def enroll_user_in_course(canvas_user_id, course_id, canvas_role, section_id)
+  def enroll_user_in_course(canvas_user_id, course_id, canvas_role, section_id, limit_privileges_to_course_section=true)
     body = {
       'enrollment[user_id]' => canvas_user_id,
       'enrollment[type]' => canvas_role,
       'enrollment[enrollment_state]' => 'active',
-      'enrollment[limit_privileges_to_course_section]' => true,
+      'enrollment[limit_privileges_to_course_section]' => limit_privileges_to_course_section,
       'enrollment[notify]' => false,
       'enrollment[course_section_id]' => section_id
     }

@@ -51,6 +51,9 @@ class SyncPortalEnrollmentForAccount
     when SalesforceAPI::FELLOW
       sync_enrollment(sf_program.fellow_course_id, RoleConstants::STUDENT_ENROLLMENT,
                       course_section_name)
+    when SalesforceAPI::TEACHING_ASSISTANT
+      sync_enrollment(sf_program.fellow_course_id, RoleConstants::TA_ENROLLMENT,
+                      SectionConstants::TA_SECTION, limit_privileges_to_course_section=false)
     else
       logger.warn("Got unknown role #{sf_participant.role} from SF")
     end
@@ -70,6 +73,8 @@ class SyncPortalEnrollmentForAccount
       drop_course_enrollment(sf_program.leadership_coach_course_id)
       drop_course_enrollment(sf_program.fellow_course_id)
     when SalesforceAPI::FELLOW
+      drop_course_enrollment(sf_program.fellow_course_id)
+    when SalesforceAPI::TEACHING_ASSISTANT
       drop_course_enrollment(sf_program.fellow_course_id)
     else
       logger.warn("Got unknown role #{sf_participant.role} from SF")
@@ -93,28 +98,29 @@ class SyncPortalEnrollmentForAccount
   end
 
   # Enroll or update their enrollment in the proper course and section
-  def sync_enrollment(canvas_course_id, role, section_name)
+  def sync_enrollment(canvas_course_id, role, section_name, limit_privileges_to_course_section=true)
 
     section_name = section_name.blank? ? SectionConstants::DEFAULT_SECTION : section_name
     section = find_or_create_section(canvas_course_id, section_name)
     enrollment = find_user_enrollment(canvas_course_id)
     if enrollment.nil?
-      enroll_user(canvas_course_id, role, section)
+      enroll_user(canvas_course_id, role, section, limit_privileges_to_course_section)
     elsif !enrollment.section_id.eql?(section.canvas_section_id) || !enrollment.type.eql?(role)
       # Section or role has changed.
       # Remove the old enrollment and add the new one.
       drop_course_enrollment(canvas_course_id)
-      enroll_user(canvas_course_id, role, section)
+      enroll_user(canvas_course_id, role, section, limit_privileges_to_course_section)
     else
       logger.warn('Skipping as user enrollment looks fine')
     end
   end
 
   # Pass in a local db section.
-  def enroll_user(canvas_course_id, role, section)
+  def enroll_user(canvas_course_id, role, section, limit_privileges_to_course_section)
     user.add_role role, section
     canvas_client.enroll_user_in_course(
-      portal_user.id, canvas_course_id, role, section.canvas_section_id
+      portal_user.id, canvas_course_id, role, section.canvas_section_id,
+      limit_privileges_to_course_section
     )
   end
 

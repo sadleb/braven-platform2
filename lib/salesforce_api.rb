@@ -27,6 +27,7 @@ class SalesforceAPI
   COMPLETED = 'Completed'
   LEADERSHIP_COACH = :'Leadership Coach'
   FELLOW = :Fellow
+  TEACHING_ASSISTANT = :'Teaching Assistant'
 
   class SalesforceDataError < StandardError; end
   ParticipantNotOnSalesForceError = Class.new(StandardError)

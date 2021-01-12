@@ -75,9 +75,9 @@ RSpec.describe UsersRolesController, type: :controller do
           expect(test_user.has_role?(enrollment_type, platform_section)).to be(true)
         end
 
-        it 'calls the Canvas API to enroll the user' do
+        it 'calls the Canvas API to enroll the user, access limited to their section' do
           expect(canvas_client).to have_received(:enroll_user_in_course)
-            .with(canvas_user_id, course.canvas_course_id.to_s, enrollment_type, canvas_section.id).once
+            .with(canvas_user_id, course.canvas_course_id.to_s, enrollment_type, canvas_section.id, true).once
         end
 
       end
