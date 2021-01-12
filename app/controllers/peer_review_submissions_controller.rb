@@ -11,10 +11,17 @@ class PeerReviewSubmissionsController < ApplicationController
   before_action :set_questions, only: [:new, :create]
 
 private
-
   def set_peer_users
-    section = current_user.student_section_by_course(@course)
-    @peer_users = section.students.where.not(id: current_user.id)
+    # Get the section in this course that the user is enrolled in as a student
+    student_section = current_user.student_section_by_course(@course)
+    if student_section&.students
+      # You're enrolled as a student and there are other students in this course
+      @peer_users = student_section.students.where.not(id: current_user.id)
+    else
+      # You're not enrolled as a student e.g., you're a TA or admin, or there
+      # are no other students in this course
+      @peer_users = []
+    end
   end
 
   def set_questions

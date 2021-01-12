@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# TODO: refactor and use EnrolledPolicy here
-# https://app.asana.com/0/1174274412967132/1199344732354185
 class AcceleratorSurveySubmissionPolicy < ApplicationPolicy
   def new?
     # Admins can see the form
@@ -42,6 +40,8 @@ class AcceleratorSurveySubmissionPolicy < ApplicationPolicy
   end
 
 private
+  # TODO: refactor and use EnrolledPolicy here
+  # https://app.asana.com/0/1174274412967132/1199344732354185
   # Returns true iff user has any type of enrollment in any section of course
   def is_enrolled?
     record.course.sections.each do |section|

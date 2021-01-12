@@ -32,18 +32,23 @@ RSpec.describe PeerReviewSubmissionPolicy, type: :policy do
   end
 
   permissions :create? do
-    it "allows admins" do
-      user.add_role :admin
-      expect(subject).to permit(user, peer_review_submission)
-    end
-
     it "allows students who are enrolled in the course" do
       peer_review_submission.update!(user: user)
       user.add_role RoleConstants::STUDENT_ENROLLMENT, section
       expect(subject).to permit(user, peer_review_submission)
     end
 
-    it "disallows users who aren't in the course" do
+    it 'disallows non-students (admins)' do
+      user.add_role :admin
+      expect(subject).not_to permit(user, peer_review_submission)
+    end
+
+    it 'disallows non-students (TAs)' do
+      user.add_role RoleConstants::TA_ENROLLMENT, section
+      expect(subject).not_to permit(user, peer_review_submission)
+    end
+
+    it 'diallows non-students (non-enrolled)' do
       expect(subject).not_to permit(user, peer_review_submission)
     end
   end
@@ -51,6 +56,11 @@ RSpec.describe PeerReviewSubmissionPolicy, type: :policy do
   permissions :new? do
     it "allows admins" do
       user.add_role :admin
+      expect(subject).to permit(user, peer_review_submission)
+    end
+
+    it "allows TAs" do
+      user.add_role RoleConstants::TA_ENROLLMENT, section
       expect(subject).to permit(user, peer_review_submission)
     end
 

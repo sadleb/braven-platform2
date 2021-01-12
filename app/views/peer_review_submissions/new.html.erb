@@ -8,64 +8,69 @@ Leadership Coach for your contributions to your team throughout the Challenge. T
 minutes right now reflecting on your teammates and evaluating them. Your evaluation will be averaged with all the
 others, resulting in a final Teamwork score for each Fellow in your cohort.</p>
 
-<%= form_with(url: course_peer_review_submissions_path, method: "post", local: true) do |form| %>
+<% unless @peer_users.present? %>
+  <p>You have no peers to review.</p>
+  <p>If you think this is wrong, please reach out to support@bebraven.org.</p>
+<% else %>
+  <%= form_with(url: course_peer_review_submissions_path, method: "post", local: true) do |form| %>
 
-  <% @peer_users.each do |user| %>
+    <% @peer_users.each do |user| %>
 
-    <fieldset class="single-peer-review-wrapper">
-      <legend class="peer-review-full-name">
-        <%= user.full_name %>
-      </legend>
+      <fieldset class="single-peer-review-wrapper">
+        <legend class="peer-review-full-name">
+          <%= user.full_name %>
+        </legend>
 
-      <% @questions.each do |question| %>
-        <% input_name = "peer_review[#{user.id}][#{question.id}]" %>
-        <% input_id_prefix = "radio-#{user.id}-#{question.id}" %>
+        <% @questions.each do |question| %>
+          <% input_name = "peer_review[#{user.id}][#{question.id}]" %>
+          <% input_id_prefix = "radio-#{user.id}-#{question.id}" %>
 
-        <fieldset class="peer-review-question-wrapper">
-          <legend class="peer-review-question">
-            <%= question.text %>
-          </legend>
+          <fieldset class="peer-review-question-wrapper">
+            <legend class="peer-review-question">
+              <%= question.text %>
+            </legend>
 
-          <div class="container-fluid p-0">
-            <div class="row peer-review-radios">
-              <div class="col-sm pr-0">
-                <input id="<%= input_id_prefix %>-10" type="radio" value="10"
-                       name="<%= input_name %>" required>
-                <label for="<%= input_id_prefix %>-10">10 - Always</label>
-              </div>
+            <div class="container-fluid p-0">
+              <div class="row peer-review-radios">
+                <div class="col-sm pr-0">
+                  <input id="<%= input_id_prefix %>-10" type="radio" value="10"
+                         name="<%= input_name %>" required>
+                  <label for="<%= input_id_prefix %>-10">10 - Always</label>
+                </div>
 
-              <div class="col-sm pr-0">
-                <input id="<%= input_id_prefix %>-8" type="radio" value="8"
-                       name="<%= input_name %>" required>
-                <label for="<%= input_id_prefix %>-8">8 - Mostly</label>
-              </div>
+                <div class="col-sm pr-0">
+                  <input id="<%= input_id_prefix %>-8" type="radio" value="8"
+                         name="<%= input_name %>" required>
+                  <label for="<%= input_id_prefix %>-8">8 - Mostly</label>
+                </div>
 
-              <div class="col-sm pr-0">
-                <input id="<%= input_id_prefix %>-6" type="radio" value="6"
-                       name="<%= input_name %>" required>
-                <label for="<%= input_id_prefix %>-6">6 - Sometimes</label>
-              </div>
+                <div class="col-sm pr-0">
+                  <input id="<%= input_id_prefix %>-6" type="radio" value="6"
+                         name="<%= input_name %>" required>
+                  <label for="<%= input_id_prefix %>-6">6 - Sometimes</label>
+                </div>
 
-              <div class="col-sm pr-0">
-                <input id="<%= input_id_prefix %>-4" type="radio" value="4"
-                       name="<%= input_name %>" required>
-                <label for="<%= input_id_prefix %>-4">4 - Rarely</label>
-              </div>
+                <div class="col-sm pr-0">
+                  <input id="<%= input_id_prefix %>-4" type="radio" value="4"
+                         name="<%= input_name %>" required>
+                  <label for="<%= input_id_prefix %>-4">4 - Rarely</label>
+                </div>
 
-              <div class="col-sm pr-0">
-                <input id="<%= input_id_prefix %>-0" type="radio" value="0"
-                       name="<%= input_name %>" required>
-                <label for="<%= input_id_prefix %>-0">0 - Never</label>
+                <div class="col-sm pr-0">
+                  <input id="<%= input_id_prefix %>-0" type="radio" value="0"
+                         name="<%= input_name %>" required>
+                  <label for="<%= input_id_prefix %>-0">0 - Never</label>
+                </div>
               </div>
             </div>
-          </div>
 
-        </fieldset>
-      <% end %>
+          </fieldset>
+        <% end %>
 
-    </fieldset>
+      </fieldset>
+    <% end %>
+
+    <input type="hidden" name="state" value="<%= @lti_launch.state %>">
+    <%= form.submit %>
   <% end %>
-
-  <input type="hidden" name="state" value="<%= @lti_launch.state %>">
-  <%= form.submit %>
 <% end %>
