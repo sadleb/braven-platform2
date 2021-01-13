@@ -100,11 +100,12 @@ RSpec.describe WaiverSubmissionsController, type: :controller do
           expect(response.body).to match /<form.*<input type="hidden" value="#{Regexp.escape(lti_launch.state)}" name="state" id="state">.*<\/form>/m
         end
 
-        it 'allows unsafe-eval for FormAssembly in the content_security_policy' do
+        it 'allows unsafe-eval and unsafe-inline for FormAssembly in the content_security_policy' do
           # Accessing the script_src a second time returns nil. Not sure why. Just store it in a var.
           script_csp = response.request.content_security_policy.script_src
           expect(script_csp[0]).to eq(Rails.application.secrets.form_assembly_url + ":*")
           expect(script_csp[1]).to eq("'unsafe-eval'")
+          expect(script_csp[2]).to eq("'unsafe-inline'")
         end
 
       end # 'for initial form'

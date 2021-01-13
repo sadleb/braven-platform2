@@ -17,14 +17,14 @@ class FormAssemblyController < ApplicationController
 
   skip_before_action :verify_authenticity_token, only: [:create], if: :is_sessionless_lti_launch?
 
-  # The FormAssembly Javascript does an eval() so we need to loosen the CSP.
+  # The FormAssembly Javascript does an eval() and executes inline scripts so we need to loosen the CSP.
   # 
   # This syntax took forever to get right b/c content_security_policy is a DSL and you can't just
   # append normal items to an existing array. An alternative if we need to do this
   # sort of thing widely is https://github.com/github/secure_headers which has named overrides.
   content_security_policy do |policy|
      global_script_src =  policy.script_src
-     policy.script_src "#{Rails.application.secrets.form_assembly_url}:*", :unsafe_eval, -> { global_script_src }
+     policy.script_src "#{Rails.application.secrets.form_assembly_url}:*", :unsafe_eval, :unsafe_inline, -> { global_script_src }
   end
 
 protected
