@@ -33,6 +33,9 @@ log/
 *.swp
 *.swo
 
+# Ignore Visual Studio Code related files
+.vscode
+
 ## Ignore bundler config
 /.bundle/
 /vendor/bundle

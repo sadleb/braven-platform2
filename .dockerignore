@@ -21,3 +21,6 @@ coverage/
 # Bundler / gems stuff
 .bundle/config
 vendor/bundle/
+
+# Visual Studio Code
+.vscode
