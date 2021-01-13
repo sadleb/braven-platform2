@@ -30,7 +30,7 @@ class ModuleGradeCalculator
 
     quiz_grade = grade_mastery_quiz(
       interactions.where(verb: Rise360ModuleInteraction::ANSWERED),
-      Rise360Module.find_by(activity_id: activity_id).quiz_questions,
+      Rise360ModuleVersion.find_by(activity_id: activity_id).quiz_questions,
     )
 
     (
