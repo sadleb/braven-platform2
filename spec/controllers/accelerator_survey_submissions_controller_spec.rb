@@ -6,6 +6,7 @@ RSpec.describe AcceleratorSurveySubmissionsController, type: :controller do
   let(:user) { create :fellow_user }
   let(:course) { create :course }
   let(:section) { create :section, course: course }
+  let(:participant_id) { 'a2X11000000lakXEAQ' }
   let(:accelerator_survey_submission) { build(
     :accelerator_survey_submission,
     user: user,
@@ -67,6 +68,7 @@ RSpec.describe AcceleratorSurveySubmissionsController, type: :controller do
           .to receive(:get_fellow_form_assembly_info)
           .and_return(:form_assembly_info)
         allow(salesforce_api).to receive(:get_participant_id)
+          .and_return(participant_id)
         allow(form_assembly_client)
           .to receive(:get_form_head_and_body)
           .and_return([form_head, form_body])
