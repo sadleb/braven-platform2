@@ -13,24 +13,20 @@ class RegisterUserAccount
     # they gave us when they signed up / applied.
     @salesforce_participant = sf_client.find_participant(contact_id: sign_up_params[:salesforce_id])
     @salesforce_program = sf_client.find_program(id: @salesforce_participant.program_id)
-
-    @new_user = User.find_or_create_by(
-      salesforce_id: sign_up_params[:salesforce_id]
-    )
-    @new_user.update(sign_up_params.merge(salesforce_contact_params))
+    @create_user_params = sign_up_params.merge(salesforce_contact_params)
   end
 
   def run
     Honeycomb.start_span(name: 'RegisterUserAccount.run') do |span|
       span.add_field('salesforce.contact.id', @salesforce_participant.contact_id)
 
-      # Need to have the User record saved before the sync runs since it relies on it.
-      @new_user.skip_confirmation_notification!
+      # Need to have the User record saved before the Canvas sync runs since it relies on it.
+      # Essentially do an upsert
+      @new_user = User.find_or_create_by(
+        salesforce_id: @create_user_params[:salesforce_id]
+      )
+      @new_user.update(@create_user_params)
       span.add_field('user.id.created', @new_user.id)
-
-      # Do this before syncing their enrollment just in case it fails.
-      @new_user.send_confirmation_instructions
-      span.add_field('confirmation.instructions.sent', true)
 
       # Create a user in Canvas.
       create_canvas_user!

@@ -64,7 +64,9 @@ RSpec.describe RegisterUserAccount do
     end
 
     it 'sends confirmation instructions to user' do
+      Devise.mailer.deliveries.clear()
       RegisterUserAccount.new(sign_up_params).run
+      expect(Devise.mailer.deliveries.count).to eq 1
       user = User.find_by_canvas_user_id!(canvas_user['id'])
       expect(user.confirmation_sent_at).not_to be(nil)
     end
