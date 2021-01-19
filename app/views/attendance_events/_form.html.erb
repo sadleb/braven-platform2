@@ -1,0 +1,10 @@
+<%= form_with model: @attendance_event do |f| %>
+  <div class="form-group w-50">
+    <%= f.label :title, "Canvas Assignment Title: " %><br />
+    <%= f.text_field :title, autofocus: true, class: "form-control", required: true %>
+  </div>
+
+  <div class="actions mb-5">
+    <%= f.submit "Save" %>
+  </div>
+<% end %>

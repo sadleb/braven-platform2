@@ -1,0 +1,2 @@
+class AttendanceEventPolicy < ApplicationPolicy
+end

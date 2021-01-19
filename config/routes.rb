@@ -21,6 +21,8 @@ Rails.application.routes.draw do
     resources :survey_versions, path: 'versions', controller: 'custom_content_versions', type: "SurveyVersion", only: [:index, :show]
   end
 
+  resources :attendance_events, only: [:index, :new, :create, :destroy]
+
   resources :file_upload, only: [:create]
 
   devise_for :users, controllers: { registrations: 'users/registrations', confirmations: 'users/confirmations', passwords: 'users/passwords' }
