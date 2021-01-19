@@ -31,6 +31,8 @@ export default class ContentCommonEditing extends Plugin {
         const schema = this.editor.model.schema;
 
         // Shared elements.
+
+        // <fieldset> is used by both radio groups and industry selector.
         schema.register( 'fieldset', {
             isObject: true,
             allowIn: '$root',
@@ -57,17 +59,40 @@ export default class ContentCommonEditing extends Plugin {
             allowIn: [ '$root' ],
         } );
 
-        schema.register( 'select', {
+        /**
+         * Example valid structure:
+         *
+         * <selectWrapper>
+         *   <selectLabel for="select-id">$text</selectLabel>
+         *   <select id="select-id" name="select-name">
+         *     <selectOption value="value-1">$text</selectOption>
+         *     <selectOption value="value-2">$text</selectOption>
+         *   </select>
+         * </selectWrapper>
+         */
+        schema.register( 'selectWrapper',  {
             isObject: true,
-            allowAttributes: [ 'aria-label', 'name' ],
             allowIn: [ '$root' ],
         } );
 
+        schema.register( 'selectLabel', {
+            isLimit: true,
+            isInline: true,
+            allowAttributes: [ 'for' ],
+            allowIn: [ 'selectWrapper' ],
+            allowContentOf: '$block',
+        } );
+
+        schema.register( 'select', {
+            isInline: true,
+            allowAttributes: [ 'name', 'id' ],
+            allowIn: [ 'selectWrapper' ],
+        } );
+
         schema.register( 'selectOption', {
-            isObject: true,
             allowAttributes: [ 'value', 'selected' ],
             allowIn: [ 'select' ],
-            allowContentOf: '$block'
+            allowContentOf: '$block',
         } );
     }
 
@@ -77,30 +102,41 @@ export default class ContentCommonEditing extends Plugin {
         const { editing, data, model } = editor;
 
         // <fieldset> converters
+        // fieldsets should have a data-radio-group iff they contain radio buttons.
+        // The industry selector feature uses fieldsets too, without that attribute.
         conversion.for( 'upcast' ).elementToElement( {
             view: {
                 name: 'fieldset'
             },
             model: ( viewElement, { writer } ) => {
-                return writer.createElement( 'fieldset', {
-                    'data-radio-group': viewElement.getAttribute( 'data-radio-group' ),
-                } );
+                let attributes = {};
+                const radioGroup = viewElement.getAttribute( 'data-radio-group' );
+                if ( radioGroup ) {
+                    attributes['data-radio-group'] = radioGroup;
+                }
+                return writer.createElement( 'fieldset', attributes );
             }
         } );
         conversion.for( 'dataDowncast' ).elementToElement( {
             model: 'fieldset',
             view: ( modelElement, { writer } ) => {
-                return writer.createEditableElement( 'fieldset', {
-                    'data-radio-group': modelElement.getAttribute( 'data-radio-group' ),
-                } );
+                let attributes = {};
+                const radioGroup = modelElement.getAttribute( 'data-radio-group' );
+                if ( radioGroup ) {
+                    attributes['data-radio-group'] = radioGroup;
+                }
+                return writer.createEditableElement( 'fieldset', attributes );
             }
         } );
         conversion.for( 'editingDowncast' ).elementToElement( {
             model: 'fieldset',
             view: ( modelElement, { writer } ) => {
-                const fieldset = writer.createContainerElement( 'fieldset', {
-                    'data-radio-group': modelElement.getAttribute( 'data-radio-group' ),
-                } );
+                let attributes = {};
+                const radioGroup = modelElement.getAttribute( 'data-radio-group' );
+                if ( radioGroup ) {
+                    attributes['data-radio-group'] = radioGroup;
+                }
+                const fieldset = writer.createContainerElement( 'fieldset', attributes );
                 return toWidget( fieldset, writer, {
                     'label': 'fieldset',
                     'hasSelectionHandle': true,
@@ -217,6 +253,81 @@ export default class ContentCommonEditing extends Plugin {
             }
         } );
 
+        // Dropdown elements
+        // Note: There are custom clipboard handlers for these in
+        // inputuniqueattributeediting.js.
+
+        // <selectWrapper> converters
+        conversion.for( 'upcast' ).elementToElement( {
+            view: {
+                name: 'div',
+                classes: [ 'select-wrapper' ],
+            },
+            model: 'selectWrapper',
+        } );
+        conversion.for( 'dataDowncast' ).elementToElement( {
+            model: 'selectWrapper',
+            view: {
+                name: 'div',
+                classes: [ 'select-wrapper' ],
+            },
+        } );
+        conversion.for( 'editingDowncast' ).elementToElement( {
+            model: 'selectWrapper',
+            view: ( modelElement, { writer } ) => {
+                const div = writer.createContainerElement( 'div', {
+                    'class': 'select-wrapper',
+                } );
+                return toWidget( div, writer, {
+                    'label': 'dropdown wrapper',
+                    'hasSelectionHandle': true,
+                } );
+            }
+        } );
+
+        // <selectLabel> converters
+        conversion.for( 'upcast' ).elementToElement( {
+            view: {
+                name: 'label',
+                classes: [ 'select-label' ],
+            },
+            model: ( viewElement, { writer } ) => {
+                return writer.createElement( 'selectLabel', {
+                    // HACK: Get the id of the select this label corresponds to.
+                    'for': viewElement.parent.getChild(1).getAttribute('id')
+                } );
+            }
+
+        } );
+        conversion.for( 'dataDowncast' ).elementToElement( {
+            model: 'selectLabel',
+            view: ( modelElement, { writer } ) => {
+                return writer.createContainerElement( 'label', {
+                    // HACK: Get the id of the select this label corresponds to.
+                    'for': modelElement.parent.getChild(1).getAttribute('id'),
+                    'class': 'select-label',
+                } );
+            }
+        } );
+        conversion.for( 'editingDowncast' ).elementToElement( {
+            model: 'selectLabel',
+            view: ( modelElement, { writer } ) => {
+                const label = writer.createEditableElement( 'label', {
+                    // NOTE: We don't set the 'for' attribute in the editing view, so that clicking in the label
+                    // editable to type doesn't also toggle the select.
+                    'class': 'select-label',
+                } );
+
+                enablePlaceholder( {
+                    view: editing.view,
+                    element: label,
+                    text: 'Dropdown label'
+                } );
+
+                return toWidgetEditable( label, writer, { 'label': 'dropdown label' } );
+            }
+        } );
+
         // <select> converters
         conversion.for( 'upcast' ).elementToElement( {
             view: {
@@ -224,30 +335,19 @@ export default class ContentCommonEditing extends Plugin {
             },
             model: ( viewElement, { writer } ) => {
                 return writer.createElement( 'select', {
+                    'id': viewElement.getAttribute('id'),
                     'name': viewElement.getAttribute('name'),
-                    'aria-label': viewElement.getAttribute('aria-label') || '',
                 } );
             }
         } );
-        conversion.for( 'dataDowncast' ).elementToElement( {
+        conversion.for( 'downcast' ).elementToElement( {
             model: 'select',
             view: ( modelElement, { writer } ) => {
                 const select = writer.createContainerElement( 'select', {
+                    'id': modelElement.getAttribute('id'),
                     'name': modelElement.getAttribute('name'),
-                    'aria-label': modelElement.getAttribute('aria-label') || '',
                 } );
                 return select;
-            }
-        } );
-        conversion.for( 'editingDowncast' ).elementToElement( {
-            model: 'select',
-            view: ( modelElement, { writer } ) => {
-                // Note: using a ContainerElement because toWidget can only run on ContainerElements
-                const select = writer.createContainerElement( 'select', {
-                    'name': modelElement.getAttribute('name'),
-                    'aria-label': modelElement.getAttribute('aria-label') || '',
-                } );
-                return toWidget( select, writer, { 'label': 'dropdown' } );
             }
         } );
 

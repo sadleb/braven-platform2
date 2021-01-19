@@ -25,9 +25,9 @@ export default class InputUniqueAttributeEditing extends Plugin {
             let newContentElements = [];
 
             for ( const element of data.content.getChildren() ) {
-                if ( [ 'textarea', 'input', 'select' ].includes( element.name ) ) {
+                if ( [ 'textarea', 'input' ].includes( element.name ) ) {
                     const newAttributes = new Map( element.getAttributes() );
-                    if ( newAttributes.has( 'name' ) && newAttributes.get('name').startsWith( ELEMENT_NAME_PREFIX ) ) {
+                    if ( newAttributes.has( 'name' ) && newAttributes.get( 'name' ).startsWith( ELEMENT_NAME_PREFIX ) ) {
                         newAttributes.set( 'name', this._getNewName() );
                     }
 
@@ -36,6 +36,54 @@ export default class InputUniqueAttributeEditing extends Plugin {
                             element.name,
                             newAttributes,
                             element.getChildren(),
+                        )
+                    );
+                } else if ( element.name == 'div' && element.hasClass( 'select-wrapper' ) ) {
+                    // Dropdown wrapper.
+                    // Expected structure is:
+                    // <div class="select-wrapper">
+                    //   <label for="select-id"></label>
+                    //   <select id="select-id">
+                    //     <option></option>
+                    //   </select>
+                    // </div>
+
+                    let newChildren = [];
+                    for ( const child of element.getChildren() ) {
+                        if ( child.name == 'select' ) {
+                            // Dropdown.
+                            const newChildAttributes = new Map( child.getAttributes() );
+                            if ( newChildAttributes.has( 'name' ) && newChildAttributes.get( 'name' ).startsWith( ELEMENT_NAME_PREFIX ) ) {
+                                newChildAttributes.set( 'name', this._getNewName() );
+                            }
+                            if ( newChildAttributes.has( 'id' ) && newChildAttributes.get( 'id' ).startsWith( ELEMENT_ID_PREFIX ) ) {
+                                newChildAttributes.set( 'id', this._getNewId() );
+                            }
+
+                            newChildren.push(
+                                writer.createElement(
+                                    child.name,
+                                    newChildAttributes,
+                                    child.getChildren(),
+                                )
+                            );
+                        } else {
+                            // Label.
+                            newChildren.push(
+                                writer.createElement(
+                                    child.name,
+                                    child.getAttributes(),
+                                    child.getChildren(),
+                                )
+                            );
+                        }
+                    }
+
+                    newContentElements.push(
+                        writer.createElement(
+                            element.name,
+                            element.getAttributes(),
+                            newChildren,
                         )
                     );
                 } else if ( element.name == 'fieldset' && element.hasAttribute( 'data-radio-group' ) ) {
@@ -58,10 +106,11 @@ export default class InputUniqueAttributeEditing extends Plugin {
                                 // Radio button.
                                 const newRadioAttributes = new Map( child.getAttributes() );
                                 if ( newRadioAttributes.has( 'name' ) && newRadioAttributes.get( 'name' ).startsWith( ELEMENT_NAME_PREFIX ) ) {
-                                    newAttributes.set( 'name', this._getNewName() );
+                                    // Always set the radio name to the fieldset's data-radio-group value.
+                                    newRadioAttributes.set( 'name', newAttributes.get( 'data-radio-group' ) );
                                 }
                                 if ( newRadioAttributes.has( 'id' ) && newRadioAttributes.get( 'id' ).startsWith( ELEMENT_ID_PREFIX ) ) {
-                                    newAttributes.set( 'id', this._getNewId() );
+                                    newRadioAttributes.set( 'id', this._getNewId() );
                                 }
 
                                 newChildren.push(
@@ -108,7 +157,6 @@ export default class InputUniqueAttributeEditing extends Plugin {
                         )
                     );
                 }
-
             }
 
             data.content = writer.createDocumentFragment( newContentElements );

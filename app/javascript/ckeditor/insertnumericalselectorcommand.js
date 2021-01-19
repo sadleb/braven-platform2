@@ -6,8 +6,10 @@ const NUM_OPTIONS = 10;
 export default class InsertNumericalSelectorCommand extends Command {
   execute( ) {
     this.editor.model.change( writer => {
-      const inputName = this.editor.plugins.get('UniqueId').getNewName();
-      const selector = createSelector( writer, inputName );
+      const uniqueId = new UniqueId();
+      const inputName = uniqueId.getNewName();
+      const inputId = uniqueId.getNewId();
+      const selector = createSelector( writer, inputName, inputId );
       this.editor.model.insertContent( selector );
       writer.setSelection( selector, 'on' );
     } );
@@ -16,22 +18,30 @@ export default class InsertNumericalSelectorCommand extends Command {
   refresh() {
     const model = this.editor.model;
     const selection = model.document.selection;
-    const allowedIn = model.schema.findAllowedParent( selection.getFirstPosition(), 'select' );
+    const allowedIn = model.schema.findAllowedParent( selection.getFirstPosition(), 'selectWrapper' );
 
     this.isEnabled = allowedIn !== null;
   }
 }
 
-function createSelector( writer, inputName ) {
+function createSelector( writer, inputName, inputId ) {
+  const selectWrapper = writer.createElement( 'selectWrapper' );
+
+  const selectLabel = writer.createElement( 'selectLabel' );
+  writer.insertText( 'Choose a number:', selectLabel );
+
   const selector = writer.createElement( 'select', {
     'name': inputName,
-    'data-bz-retained': inputName,
+    'id': inputId,
   } );
 
   const options = createOptions( writer );
+
+  writer.append( selectLabel, selectWrapper );
+  writer.append( selector, selectWrapper );
   writer.append( options, selector );
   
-  return selector;
+  return selectWrapper;
 }
 
 function createOptions( writer ) {

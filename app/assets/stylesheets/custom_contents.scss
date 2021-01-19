@@ -55,6 +55,10 @@
     height: 43px; // Height of button plus 2px for the 1px border.
     border-width: 0;
   }
+
+  div.select-wrapper > label.select-label {
+    padding-right: 0.5rem;
+  }
 }
 /* End Braven Projects CSS */
 
