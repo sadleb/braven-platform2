@@ -17,8 +17,8 @@ export default class UniqueId extends Plugin {
 
     init() {
         this.getNewId = this.getNewId.bind(this);
-        this.getNewName = this.getNewId.bind(this);
-        this.getNewValue = this.getNewId.bind(this);
+        this.getNewName = this.getNewName.bind(this);
+        this.getNewValue = this.getNewValue.bind(this);
     }
 
     getNewId() {
