@@ -23,6 +23,9 @@ class Course < ApplicationRecord
   has_many :course_project_versions, -> { course_project_versions}, source: :course_custom_content_version, class_name: 'CourseProjectVersion'
   has_many :course_survey_versions, -> { course_survey_versions}, source: :course_custom_content_version, class_name: 'CourseSurveyVersion'
 
+  has_many :course_attendance_events
+  has_many :attendance_events, :through => :course_attendance_events
+
   has_many :grade_categories
   has_many :lessons, :through => :grade_categories
 

@@ -63,6 +63,11 @@ Rails.application.routes.draw do
       delete :unpublish, on: :member
     end
 
+    resources :course_attendance_events, only: [:new] do
+      post :publish, on: :collection
+      delete :unpublish, on: :member
+    end
+
     resources :peer_review_submissions, only: [:new, :create]
     resources :fellow_evaluation_submissions, only: [:new, :create]
 
@@ -119,6 +124,12 @@ Rails.application.routes.draw do
 
   resources :survey_submissions, only: [:show]
   resources :peer_review_submissions, only: [:show]
+
+  resources :attendance_event_submissions, only: [] do
+    collection do
+      get :launch
+    end
+  end
 
   resources :preaccelerator_survey_submissions, controller: 'accelerator_survey_submissions', type: 'Pre', only: [:new, :create] do
     collection do

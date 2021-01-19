@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_01_13_205804) do
+ActiveRecord::Schema.define(version: 2021_01_14_012202) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -49,6 +49,16 @@ ActiveRecord::Schema.define(version: 2021_01_13_205804) do
     t.string "title", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "course_attendance_events", force: :cascade do |t|
+    t.bigint "attendance_event_id", null: false
+    t.bigint "course_id", null: false
+    t.bigint "canvas_assignment_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["attendance_event_id"], name: "index_course_attendance_events_on_attendance_event_id"
+    t.index ["course_id"], name: "index_course_attendance_events_on_course_id"
   end
 
   create_table "course_custom_content_versions", force: :cascade do |t|
@@ -457,6 +467,8 @@ ActiveRecord::Schema.define(version: 2021_01_13_205804) do
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "course_attendance_events", "attendance_events"
+  add_foreign_key "course_attendance_events", "courses"
   add_foreign_key "course_custom_content_versions", "courses"
   add_foreign_key "course_custom_content_versions", "custom_content_versions"
   add_foreign_key "course_rise360_module_versions", "courses"

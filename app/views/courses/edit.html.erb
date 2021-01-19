@@ -152,6 +152,12 @@
   <h3>Edit Impact Surveys</h3>
   <%= link_to 'Add Impact Survey', new_course_course_survey_version_path(@course), class: 'btn btn-sm btn-secondary' %>
   <%= render :partial => 'course_custom_content_versions/list', locals: {course_custom_content_versions: @course.course_survey_versions} %>
+
+  <h3>Edit Attendance Events</h3>
+  <%= link_to 'Add Attendance Event', new_course_course_attendance_event_path(@course), class: 'btn btn-sm btn-secondary' %>
+  <%= link_to 'Create New Attendance Event', new_attendance_event_path(:redirect_to => edit_course_path(@course)), class: 'btn btn-sm btn-secondary' %>
+
+  <%= render :partial => 'course_attendance_events/list', locals: {course_attendance_events: @course.course_attendance_events} %>
 <% end %>
 
   <p><small><em><b>Hint:</b> Cmd-Click "View On Canvas" to open in new tab</em></small></p>

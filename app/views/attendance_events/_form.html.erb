@@ -4,6 +4,8 @@
     <%= f.text_field :title, autofocus: true, class: "form-control", required: true %>
   </div>
 
+  <%= f.hidden_field :redirect_to, :value => params[:redirect_to] %>
+
   <div class="actions mb-5">
     <%= f.submit "Save" %>
   </div>

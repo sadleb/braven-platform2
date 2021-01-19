@@ -62,6 +62,20 @@ RSpec.describe AttendanceEventsController, type: :controller do
       end
 
       it_behaves_like 'a successful update'
+
+      context 'with custom redirect' do
+        let(:course) { create :course }
+        let(:custom_path) { edit_course_path(course) }
+        let(:valid_attributes) { {
+          title: 'Attendance Event Title',
+          redirect_to: custom_path,
+        } }
+
+        it 'redirects to the specified path' do
+          subject
+          expect(response).to redirect_to(custom_path)
+        end
+      end
     end
 
     context "with invalid params" do

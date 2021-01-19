@@ -22,7 +22,7 @@ class AttendanceEventsController < ApplicationController
 
     respond_to do |format|
       format.html { redirect_to(
-        attendance_events_path,
+        create_params[:redirect_to] || attendance_events_path,
         notice: 'Attendance event was successfully created.'
       ) }
       format.json { head :no_content }
@@ -48,6 +48,9 @@ class AttendanceEventsController < ApplicationController
 
 private
   def create_params
-    params.require(:attendance_event).permit(:title)
+    params.require(:attendance_event).permit(
+      :title,
+      :redirect_to,
+    )
   end
 end

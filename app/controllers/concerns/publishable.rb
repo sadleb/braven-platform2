@@ -64,7 +64,7 @@ module Publishable
   extend ActiveSupport::Concern
 
   included do
-    before_action :verify_can_edit!
+    before_action :verify_can_edit!, only: [:publish, :publish_latest, :unpublish]
     before_action :create_model_instance,  only: [:publish]
     before_action :update_model_instance,  only: [:publish_latest]
     after_action  :destroy_model_instance, only: [:unpublish]

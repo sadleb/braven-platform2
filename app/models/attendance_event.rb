@@ -3,4 +3,14 @@
 # their LC.
 class AttendanceEvent < ApplicationRecord
   validates :title, presence: true
+
+  # For use with Publishable in CourseAttendanceEventsController
+  include Versionable
+
+  # For Versionable
+  # We don't version attendance events because the only content is the title,
+  # which is stored in Canvas independent of our DB.
+  def create_version!(user)
+    self
+  end
 end
