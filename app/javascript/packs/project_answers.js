@@ -20,7 +20,7 @@ const SUPPORTED_INPUT_ELEMENTS = [
  'textarea',
 ];
 
-async function main() {
+export async function main() {
     const wrapperDiv = document.getElementById(WRAPPER_DIV_ID);
     const isReadOnly = wrapperDiv.attributes[READ_ONLY_ATTR].value;
     const projectSubmissionId = wrapperDiv.attributes[SUBMISSION_DATA_ATTR].value;
@@ -150,5 +150,3 @@ async function main() {
 }
 
 document.addEventListener('DOMContentLoaded', main);
-
-exports.main = main;
