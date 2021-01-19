@@ -13,7 +13,7 @@ RSpec.describe CloneCourse do
 
   before(:each) do
     allow(CanvasAPI).to receive(:client).and_return(canvas_client)
-    allow(canvas_client).to receive(:create_course).with(destination_course_name).and_return(canvas_create_course)
+    allow(canvas_client).to receive(:create_course).with(destination_course_name, time_zone: nil).and_return(canvas_create_course)
     allow(canvas_client).to receive(:copy_course).with(source_course.canvas_course_id, destination_canvas_course_id).and_return(canvas_copy_course)
   end
 
@@ -32,7 +32,7 @@ RSpec.describe CloneCourse do
 
     context "with Canvas API success" do
       it "calls canvas API to copy the course" do
-        expect(canvas_client).to receive(:create_course).with(destination_course_name).once
+        expect(canvas_client).to receive(:create_course).with(destination_course_name, time_zone: nil).once
         expect(canvas_client).to receive(:copy_course).with(source_course.canvas_course_id, canvas_create_course['id']).once
         clone_course_service.run
       end

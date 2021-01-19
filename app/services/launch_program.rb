@@ -15,8 +15,8 @@ class LaunchProgram
 
   def run
     # Kick off both canvas clones before we start waiting on them.
-    fellow_clone_service = CloneCourse.new(@fellow_source_course, @fellow_course_name, @fellow_destination_course_section_names).run
-    lc_clone_service = CloneCourse.new(@lc_source_course, @lc_course_name, @lc_destination_course_section_names).run
+    fellow_clone_service = CloneCourse.new(@fellow_source_course, @fellow_course_name, @fellow_destination_course_section_names, @salesforce_program.timezone.to_s).run
+    lc_clone_service = CloneCourse.new(@lc_source_course, @lc_course_name, @lc_destination_course_section_names, @salesforce_program.timezone.to_s).run
 
     # Wait till they are cloned and initialized before updating Salesforce
     @fellow_destination_course = fellow_clone_service.wait_and_initialize

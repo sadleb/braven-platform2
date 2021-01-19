@@ -408,11 +408,15 @@ class CanvasAPI
   # See: https://canvas.instructure.com/doc/api/courses.html#method.courses.create
   # Returns course Hash on success: https://canvas.instructure.com/doc/api/courses.html#Course
   # Set publish:false to leave the course in the unpublished state.
-  def create_course(name, account_id=DefaultAccountID, publish=true)
-    response = post("/accounts/#{account_id}/courses", {
+  # Set time_zone to IANA time zone string.
+  def create_course(name, account_id=DefaultAccountID, publish: true, time_zone: nil)
+    body = {
       'course[name]': name,
       'offer': publish,
-    })
+    }
+    body['course[time_zone]'] = time_zone if time_zone
+
+    response = post("/accounts/#{account_id}/courses", body)
 
     JSON.parse(response.body)
   end

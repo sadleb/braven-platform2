@@ -13,10 +13,11 @@
 class CloneCourse
   CloneCourseError = Class.new(StandardError)
 
-  def initialize(source_course, destination_course_name, section_names = [])
+  def initialize(source_course, destination_course_name, section_names=[], time_zone=nil)
     @source_course = source_course
     @destination_course_name = destination_course_name
     @section_names = section_names
+    @time_zone = time_zone
   end
 
   def run
@@ -44,7 +45,7 @@ private
   def start_canvas_course_clone!(source_course, destination_course)
     # Be reasonably sure copy_course is going to work before calling create_course, otherwise
     # you'll end up with a bunch of empty courses in Canvas.
-    canvas_course_data = CanvasAPI.client.create_course(destination_course.name)
+    canvas_course_data = CanvasAPI.client.create_course(destination_course.name, time_zone: @time_zone)
     destination_course.update!(canvas_course_id: canvas_course_data['id'])
     CanvasAPI.client.copy_course(source_course.canvas_course_id, destination_course.canvas_course_id)
   end

@@ -68,10 +68,10 @@ RSpec.describe LaunchProgram do
 
     before(:each) do
       allow(CloneCourse).to receive(:new)
-        .with(fellow_source_course, fellow_course_name, fellow_section_names)
+        .with(fellow_source_course, fellow_course_name, fellow_section_names, salesforce_program['Default_Timezone__c'])
         .and_return(fellow_clone_course_service)
       allow(CloneCourse).to receive(:new)
-        .with(lc_source_course, lc_course_name, [SectionConstants::DEFAULT_SECTION])
+        .with(lc_source_course, lc_course_name, [SectionConstants::DEFAULT_SECTION], salesforce_program['Default_Timezone__c'])
         .and_return(lc_clone_course_service)
       allow(fellow_clone_course_service).to receive(:run).and_return(fellow_clone_course_service)
       allow(lc_clone_course_service).to receive(:run).and_return(lc_clone_course_service)
