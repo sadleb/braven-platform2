@@ -22,7 +22,7 @@ private
   end
 
   def lti_launch_url
-    launch_attendance_event_submissions_url(protocol: 'https')
+    launch_attendance_event_submission_answers_url(protocol: 'https')
   end
 
   # Note: The versioning here is faked by AttendanceEvent

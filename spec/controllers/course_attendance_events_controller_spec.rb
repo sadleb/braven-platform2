@@ -63,7 +63,7 @@ RSpec.describe CourseAttendanceEventsController, type: :controller do
 
     it 'creates a new Canvas assignment' do
       subject
-      launch_url = launch_attendance_event_submissions_url(protocol: 'https')
+      launch_url = launch_attendance_event_submission_answers_url(protocol: 'https')
       expect(canvas_client)
         .to have_received(:create_lti_assignment)
         .with(course.canvas_course_id, attendance_event.title)

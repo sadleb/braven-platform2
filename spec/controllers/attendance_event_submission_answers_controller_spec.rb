@@ -1,10 +1,10 @@
 require 'rails_helper'
 
-RSpec.describe AttendanceEventSubmissionsController, type: :controller do
+RSpec.describe AttendanceEventSubmissionAnswersController, type: :controller do
   render_views
 
   describe 'GET #launch' do
-    subject { get :launch, params: { id: attendance_event.id, state: @lti_launch.state } }
+    subject { get :launch, params: { state: @lti_launch.state } }
 
     let(:course) { create :course }
     let(:attendance_event) { create :attendance_event }

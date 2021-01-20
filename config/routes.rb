@@ -125,7 +125,7 @@ Rails.application.routes.draw do
   resources :survey_submissions, only: [:show]
   resources :peer_review_submissions, only: [:show]
 
-  resources :attendance_event_submissions, only: [] do
+  resources :attendance_event_submission_answers, only: [] do
     collection do
       get :launch
     end
