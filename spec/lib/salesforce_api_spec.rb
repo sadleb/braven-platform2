@@ -43,6 +43,23 @@ RSpec.describe SalesforceAPI do
     
   end
 
+  describe '#get_accelerator_course_id_from_lc_playbook_course_id' do
+    it 'calls the correct endpoint' do
+      request_url_regex = /#{Regexp.escape(SALESFORCE_DATA_SERVICE_QUERY_URL)}.*/
+      program_json = FactoryBot.json(:salesforce_program)
+      program = JSON.parse(program_json)
+
+      stub_request(:get, request_url_regex).to_return(body: program_json)
+      
+      accelerator_course_id = SalesforceAPI.client.get_accelerator_course_id_from_lc_playbook_course_id(
+        program['records'][0]['Highlander_LCPlaybook_Course_ID__c'],
+      )
+
+      expect(WebMock).to have_requested(:get, request_url_regex).once
+      expect(accelerator_course_id).to eq(program['records'][0]['Highlander_Accelerator_Course_ID__c'])
+    end
+  end
+
   describe '#get_program_info(program_id)' do
     let(:program_id) { '003170000125IpSAAU' }
 

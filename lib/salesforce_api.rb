@@ -178,6 +178,18 @@ class SalesforceAPI
     recursively_map_soql_column_to_array('Name', [], initial_api_path)
   end
 
+  # Get the associated Accelerator Canvas course ID for the specified 
+  # LC Playbook Canvas course ID.
+  def get_accelerator_course_id_from_lc_playbook_course_id(lc_playbook_course_id)
+    soql_query = 
+      "SELECT Highlander_Accelerator_Course_ID__c " \
+      "FROM Program__c WHERE Highlander_LCPlaybook_Course_ID__c = '#{lc_playbook_course_id}'"
+
+    response = get("#{DATA_SERVICE_PATH}/query?q=#{CGI.escape(soql_query)}")
+    record = JSON.parse(response.body)['records'][0]
+    return record ? record['Highlander_Accelerator_Course_ID__c'] : nil
+  end
+
   # Recursively pages the API in a SOQL query for a particular column 
   # builds up an array of the results. The initial call to this should be with the query path
   # and then this calls itself with the next path if necessary.
