@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_01_14_012202) do
+ActiveRecord::Schema.define(version: 2021_01_19_191740) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -43,6 +43,27 @@ ActiveRecord::Schema.define(version: 2021_01_14_012202) do
     t.string "checksum", null: false
     t.datetime "created_at", null: false
     t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
+  end
+
+  create_table "attendance_event_submission_answers", force: :cascade do |t|
+    t.bigint "attendance_event_submission_id", null: false
+    t.bigint "for_user_id", null: false
+    t.boolean "in_attendance"
+    t.boolean "late"
+    t.string "absence_reason"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["attendance_event_submission_id"], name: "index_attendance_event_submission_answers_on_submission_id"
+    t.index ["for_user_id"], name: "index_attendance_event_submission_answers_on_for_user_id"
+  end
+
+  create_table "attendance_event_submissions", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "course_attendance_event_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["course_attendance_event_id"], name: "index_submissions_on_course_attendance_event_id"
+    t.index ["user_id"], name: "index_attendance_event_submissions_on_user_id"
   end
 
   create_table "attendance_events", force: :cascade do |t|
@@ -467,6 +488,10 @@ ActiveRecord::Schema.define(version: 2021_01_14_012202) do
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "attendance_event_submission_answers", "attendance_event_submissions"
+  add_foreign_key "attendance_event_submission_answers", "users", column: "for_user_id"
+  add_foreign_key "attendance_event_submissions", "course_attendance_events"
+  add_foreign_key "attendance_event_submissions", "users"
   add_foreign_key "course_attendance_events", "attendance_events"
   add_foreign_key "course_attendance_events", "courses"
   add_foreign_key "course_custom_content_versions", "courses"
