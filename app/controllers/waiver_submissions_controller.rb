@@ -24,7 +24,7 @@ class WaiverSubmissionsController < FormAssemblyController
   # This way, it's just a static endpoint for any course to launch the waivers for that course pulling the
   # course info out of the LtiLaunch context.
   #
-  # GET /waivers/launch
+  # GET /waiver_submissions/launch
   def launch
     authorize :waiver_submission
 
@@ -33,7 +33,7 @@ class WaiverSubmissionsController < FormAssemblyController
 
   # Show the FormAssembly waiver form for them to sign.
   #
-  # GET /waivers/new
+  # GET /waiver_submissions/new
   def new 
     authorize :waiver_submission
 
@@ -57,7 +57,7 @@ class WaiverSubmissionsController < FormAssemblyController
   #
   # See: https://help.formassembly.com/help/post-redirect-connector
   #
-  # POST /waivers
+  # POST /waiver_submissions
   def create
     authorize :waiver_submission
 
@@ -74,7 +74,7 @@ class WaiverSubmissionsController < FormAssemblyController
   # Shows a "thank you for submitting" page. Note that since there is no
   # local waiver's model, we use completed instead of show b/c it's a static endpoint with
   # no id.
-  # GET /waivers/completed
+  # GET /waiver_submissions/completed
   def completed
     authorize :waiver_submission
   end

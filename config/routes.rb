@@ -133,12 +133,14 @@ Rails.application.routes.draw do
 
   resources :preaccelerator_survey_submissions, controller: 'accelerator_survey_submissions', type: 'Pre', only: [:new, :create] do
     collection do
+      get :launch
       get :completed
     end
   end
 
   resources :postaccelerator_survey_submissions, controller: 'accelerator_survey_submissions', type: 'Post', only: [:new, :create] do
     collection do
+      get :launch
       get :completed
     end
   end

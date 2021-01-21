@@ -11,6 +11,10 @@ class AcceleratorSurveySubmissionPolicy < ApplicationPolicy
     false
   end
 
+  def launch?
+    new?
+  end
+
   def create?
     # Only users enrolled as students can submit the form.
     # The LTIAdvantageAPI call to Canvas fails for all other enrollments.

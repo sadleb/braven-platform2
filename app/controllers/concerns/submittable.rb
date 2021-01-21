@@ -70,10 +70,15 @@ module Submittable
     )
     LtiAdvantageAPI.new(@lti_launch).create_score(lti_score)
 
-    redirect_to instance_path(instance_variable)
+    redirect_to instance_path(instance_variable) if redirect_after_create?
   end
 
 private
+  # Override in controller to change this behavior.
+  def redirect_after_create?
+    true
+  end
+
   def set_new_model_instance
     instance_variable_set("@#{instance_variable_name}", model_class.new(
       :user => current_user,

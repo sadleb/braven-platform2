@@ -25,7 +25,7 @@ private
 
   def lti_launch_url
     send(
-      "new_#{@type.downcase}accelerator_survey_submission_url",
+      "launch_#{@type.downcase}accelerator_survey_submissions_url",
       protocol: 'https',
     )
   end

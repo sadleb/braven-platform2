@@ -53,12 +53,33 @@ class AcceleratorSurveySubmissionsController < FormAssemblyController
   before_action :set_new_model_instance
   before_action :set_type!
   before_action :set_up_formassembly, only: [:new]
+  before_action :set_new_survey_url, only: [:launch]
+
+  # Presents a page to launch the survey form in its own window (aka this window) instead of inside an iFrame where
+  # the survey assignment is shown in Canvas.
+  #
+  # Note: ideally this would be nested under course similar to the rest of the routes, but it
+  # means that we'd need to adjust the LtiLaunch URLs when we launch a new Program and the course id changes.
+  # This way, it's just a static endpoint for any course to launch the survey for that course pulling the
+  # course info out of the LtiLaunch context.
+  #
+  # GET /{pre,post}accelerator_survey_submissions/launch
+  def launch
+    authorize instance_variable
+
+    redirect_to completed_submissions_path if previous_submission
+  end
 
   def completed
     authorize @accelerator_survey_submission
   end
 
 private
+  # Override default Submittable behavior.
+  def redirect_after_create?
+    false
+  end
+
   # For #new, embed the FormAssembly form in the view
   def set_up_formassembly
     form_id = form_assembly_info.send("#{@type}_accelerator_survey_form_id")
@@ -120,9 +141,24 @@ private
     )
   end
 
+  def completed_submissions_path
+    send(
+      "completed_#{@type}accelerator_survey_submissions_path",
+      state: @lti_launch.state
+    )
+  end
+
   def set_course
     @course ||= Course.find_by_canvas_course_id!(
       @lti_launch.request_message.canvas_course_id,
+    )
+  end
+
+  def set_new_survey_url
+    @new_survey_url = send(
+      "new_#{@type.downcase}accelerator_survey_submission_url",
+      protocol: 'https',
+      state: @lti_launch.state,
     )
   end
 

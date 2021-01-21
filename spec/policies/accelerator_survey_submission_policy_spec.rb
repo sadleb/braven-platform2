@@ -63,6 +63,27 @@ RSpec.describe AcceleratorSurveySubmissionPolicy, type: :policy do
     end
   end
 
+  permissions :launch? do
+    it "allows any admin user to see the accelerator survey launch button" do
+      user.add_role :admin
+      expect(subject).to permit user, accelerator_survey_submission
+    end
+
+    it "allows any fellow enrolled in course to see the accelerator survey launch button" do
+      user.add_role RoleConstants::STUDENT_ENROLLMENT, section
+      expect(subject).to permit user, accelerator_survey_submission
+    end
+
+    it "allows any TA enrolled in course to see the accelerator survey launch button" do
+      user.add_role RoleConstants::TA_ENROLLMENT, section
+      expect(subject).to permit user, accelerator_survey_submission
+    end
+
+    it "disallows non-admin users not enrolled in course to see the accelerator survey launch button" do
+      expect(subject).not_to permit user, accelerator_survey_submission
+    end
+  end
+
   permissions :create? do
     it "allow a fellow enrolled in course to submit" do
       user.add_role RoleConstants::STUDENT_ENROLLMENT, section

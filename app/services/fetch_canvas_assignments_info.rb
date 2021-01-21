@@ -90,10 +90,10 @@ private
     waivers_launch_path = launch_waiver_submissions_path
     add_waivers_info(canvas_assignment) and return if lti_launch_url =~ /#{waivers_launch_path}/
 
-    preaccelerator_survey_submission_path = new_preaccelerator_survey_submission_path
+    preaccelerator_survey_submission_path = launch_preaccelerator_survey_submissions_path
     add_preaccelerator_survey_info(canvas_assignment) and return if lti_launch_url =~ /#{preaccelerator_survey_submission_path}/
 
-    postaccelerator_survey_submission_path = new_postaccelerator_survey_submission_path
+    postaccelerator_survey_submission_path = launch_postaccelerator_survey_submissions_path
     add_postaccelerator_survey_info(canvas_assignment) and return if lti_launch_url =~ /#{postaccelerator_survey_submission_path}/
   end
 

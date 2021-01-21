@@ -1,0 +1,11 @@
+<% content_for :title, 'Launch Survey' %>
+
+<% content_for :instructions_prompt do %>
+  <p>Please fill out and submit the survey.</p>
+<% end %>
+
+<% content_for :instructions_call_to_action do  %>
+  <p><a href="<%= @new_survey_url %>" class="btn btn-primary btn-lg" target="_parent">Click here to get started</a></p>
+<% end %>
+
+<%= render partial: 'instructions' %>

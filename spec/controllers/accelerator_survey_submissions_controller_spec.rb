@@ -47,6 +47,71 @@ RSpec.describe AcceleratorSurveySubmissionsController, type: :controller do
     end
   end
 
+  describe 'GET #launch' do
+    context 'valid parameters' do
+      before(:each) do
+        allow(lti_advantage_api)
+          .to receive(:get_result)
+          .and_return(previous_submission)
+        get :launch, params: { type: type, state: lti_launch.state }
+      end
+
+      ['Pre', 'Post'].each do | type |
+        context 'unsubmitted' do
+          let(:previous_submission) { false }
+          let(:type) { type }
+
+          it_behaves_like 'checks for previous submission'
+
+          # These tests are duplicated from WaiverSubmissionsController
+          # because both controllers use FormAssemblyController.
+          it 'returns a success response' do
+            expect(response).to be_successful
+          end
+
+          it 'shows the launch button' do
+            expect(response.body).to match /Click here to get started/
+          end
+
+          it 'allows unsafe-eval and unsafe-inline for FormAssembly in the content_security_policy' do
+            # Accessing the script_src a second time returns nil. Not sure why. Just store it in a var.
+            script_csp = response.request.content_security_policy.script_src
+            expect(script_csp[0]).to eq(Rails.application.secrets.form_assembly_url + ":*")
+            expect(script_csp[1]).to eq("'unsafe-eval'")
+            expect(script_csp[2]).to eq("'unsafe-inline'")
+          end
+        end
+
+        context 'previously submitted' do
+          let(:previous_submission) { true }
+          let(:type) { type }
+
+          it_behaves_like 'checks for previous submission'
+
+          it 'redirects to #completed' do
+            url = send(
+              "completed_#{type.downcase}accelerator_survey_submissions_url",
+              state: lti_launch.state,
+            )
+            expect(response).to redirect_to(url)
+          end
+        end
+      end
+    end
+
+    context 'invalid parameters' do
+      it 'raises an error' do
+        [
+          { type: 'Pre' }, # missing state
+          { state: lti_launch.state }, # missing type
+          { state: lti_launch.state, type: 'Foo' }, # invalid type
+        ].each do | invalid_params |
+          expect { get :new, params: invalid_params }. to raise_error
+        end
+      end
+    end
+  end
+
   describe 'GET #new' do
     context 'valid parameters' do
       let(:form_assembly_info) { build(:salesforce_fellow_form_assembly_info_record) }
@@ -169,12 +234,12 @@ RSpec.describe AcceleratorSurveySubmissionsController, type: :controller do
             expect(lti_advantage_api).to have_received(:create_score).once
           end
 
-          it 'redirects to #completed' do
+          it 'renders #create' do
             url = send(
               "completed_#{type.downcase}accelerator_survey_submissions_path",
               state: lti_launch.state
             )
-            expect(response).to redirect_to(url)
+            expect(response.body).to match /Go Back To The Course/
           end
         end
 

@@ -61,7 +61,7 @@ RSpec.describe AcceleratorSurveysController, type: :controller do
           let(:title) { "TODO: Complete #{type}-Accelerator Survey"  }
           let(:lti_launch_url) {
             send(
-              "new_#{type.downcase}accelerator_survey_submission_url",
+              "launch_#{type.downcase}accelerator_survey_submissions_url",
               protocol: 'https',
             )
           }
