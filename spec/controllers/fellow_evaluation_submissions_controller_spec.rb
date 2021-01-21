@@ -3,17 +3,24 @@ require 'rails_helper'
 RSpec.describe FellowEvaluationSubmissionsController, type: :controller do
   render_views
 
-  let(:lc_playbook_course) { create :course }
+  let(:lc_playbook_course) { create :course, canvas_course_id: 1 }
   let(:lc_playbook_section) { create :section, course: lc_playbook_course }
 
-  let(:accelerator_course) { create :course }
+  let(:accelerator_course) { create :course, canvas_course_id: 2 }
   let(:accelerator_section) { create :section, course: accelerator_course }
+
+  let(:salesforce_client) { double(SalesforceAPI) }
 
   before(:each) do
     @lti_launch = create(
       :lti_launch_assignment,
       canvas_user_id: user.canvas_user_id,
     )
+    allow(SalesforceAPI).to receive(:client).and_return(salesforce_client)
+    allow(salesforce_client)
+      .to receive(:get_accelerator_course_id_from_lc_playbook_course_id)
+      .with(lc_playbook_course.canvas_course_id)
+      .and_return(accelerator_course.canvas_course_id)
   end
 
   shared_examples 'valid request' do

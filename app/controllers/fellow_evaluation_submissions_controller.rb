@@ -1,3 +1,4 @@
+require 'salesforce_api'
 
 # This controller handles Leadership Coaches (LCs) submitting a review for the
 # Fellows in their section.
@@ -17,12 +18,16 @@ class FellowEvaluationSubmissionsController < ApplicationController
 
 private
   def set_fellow_users
-    # Get all sections where this user is a TA
-    sections_as_ta = current_user.sections_with_role(RoleConstants::TA_ENROLLMENT)
+    # Determine the Accelerator course for this LC Playbook course
+    accelerator_canvas_course_id = SalesforceAPI.client.get_accelerator_course_id_from_lc_playbook_course_id(
+      @course.canvas_course_id,
+    )
+    accelerator_course = Course.find_by(canvas_course_id: accelerator_canvas_course_id)
 
-    # TODO: https://app.asana.com/0/1174274412967132/1199547040938233
-    # Determine the Accelerator course for this LC Playbook course using
-    # Salesforce so we don't show fellows from previous runs
+    # Get all Accelerator course sections where this user is a TA
+    sections_as_ta = current_user
+      .sections_with_role(RoleConstants::TA_ENROLLMENT)
+      .select { |section| section.course_id == accelerator_course.id }
 
     # Get all users enrolled as students in each section
     @fellow_users = []
