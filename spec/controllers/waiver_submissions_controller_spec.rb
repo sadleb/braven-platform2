@@ -53,7 +53,7 @@ RSpec.describe WaiverSubmissionsController, type: :controller do
       context 'when waivers are already signed' do
         let(:waivers_submission_result) { build(:lti_result) }
         it 'redirects to thank you page' do
-          expect(response).to redirect_to completed_waiver_submissions_path
+          expect(response).to redirect_to completed_waiver_submissions_path(state: lti_launch.state)
         end
       end
     end

@@ -28,7 +28,7 @@ class WaiverSubmissionsController < FormAssemblyController
   def launch
     authorize :waiver_submission
 
-    redirect_to completed_waiver_submissions_path if waivers_already_signed?
+    redirect_to completed_waiver_submissions_path(state: params[:state]) if waivers_already_signed?
   end
 
   # Show the FormAssembly waiver form for them to sign.
