@@ -8,6 +8,8 @@ require 'module_grade_calculator'
 namespace :grade do
   desc "grade modules"
   task modules: :environment do
+    puts("### Running rake grade:modules - #{Time.now.strftime("%Y-%m-%d %H:%M:%S %Z")}")
+
     # Select the max id at the very beginning, so we can use it at the bottom to mark only things
     # before this as old. If we don't do this, we run the risk of marking things as old that we
     # haven't actually processed yet, causing students to get missing or incorrect grades.
@@ -22,6 +24,7 @@ namespace :grade do
 
     Honeycomb.add_field('max_id', max_id)
     Honeycomb.add_field('records.length', records.length)
+    puts "Processing #{records.length} grades for new interactions up to Rise360ModuleInteraction[id: #{max_id}]"
 
     exit if records.empty?
 
@@ -40,10 +43,13 @@ namespace :grade do
     grades = Hash.new
     Honeycomb.start_span(name: 'rake:grade:modules:compute') do |span|
       filtered_records.each do |record|
+        puts "Computing grade for: user_id = #{record.user_id}, canvas_course_id = #{record.canvas_course_id}, " \
+             "canvas_assignment_id = #{record.canvas_assignment_id}, module activity_id = #{record.root_activity_id}"
         user = User.find(record.user_id)
         grades[record.canvas_course_id] ||= Hash.new
         grades[record.canvas_course_id][record.canvas_assignment_id] ||= Hash.new
-        grades[record.canvas_course_id][record.canvas_assignment_id][user.canvas_user_id] = "#{ModuleGradeCalculator.compute_grade(user.id, record.root_activity_id)}%"
+        grades[record.canvas_course_id][record.canvas_assignment_id][user.canvas_user_id] =
+          "#{ModuleGradeCalculator.compute_grade(user.id, record.canvas_assignment_id, record.root_activity_id)}%"
       end
     end
 
@@ -51,6 +57,7 @@ namespace :grade do
       # Send in batches.
       grades.keys.each do |canvas_course_id|
         grades[canvas_course_id].keys.each do |canvas_assignment_id|
+          puts "Sending new grades to Canvas for canvas_course_id = #{canvas_course_id}, canvas_assignment_id = #{canvas_assignment_id}"
           grades_by_user_id = grades[canvas_course_id][canvas_assignment_id]
           CanvasAPI.client.update_module_grades(canvas_course_id, canvas_assignment_id, grades_by_user_id)
           Rise360ModuleInteraction.where(new: true, canvas_course_id: canvas_course_id, canvas_assignment_id:
@@ -58,5 +65,7 @@ namespace :grade do
         end
       end
     end
+
+    puts("### Done running rake grade:modules - #{Time.now.strftime("%Y-%m-%d %H:%M:%S %Z")}")
   end
 end

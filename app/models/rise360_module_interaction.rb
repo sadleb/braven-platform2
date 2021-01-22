@@ -6,14 +6,6 @@ class Rise360ModuleInteraction < ApplicationRecord
   belongs_to :user
   validates :user, :activity_id, :verb, :canvas_course_id, :canvas_assignment_id, presence: true
 
-  scope :for_user_and_activity, -> (user_id, activity_id) do
-    where(
-      "activity_id LIKE ? AND user_id = ?",
-      "#{activity_id}%",
-      user_id,
-    )
-  end
-
   def root_activity_id
     if verb == ANSWERED
       # Remove the /quiz_id/question_id part.

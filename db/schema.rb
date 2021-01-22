@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_01_19_191740) do
+ActiveRecord::Schema.define(version: 2021_01_21_121910) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -104,6 +104,7 @@ ActiveRecord::Schema.define(version: 2021_01_19_191740) do
     t.bigint "course_id", null: false
     t.bigint "rise360_module_version_id", null: false
     t.bigint "canvas_assignment_id"
+    t.index ["canvas_assignment_id"], name: "index_course_rise360_module_versions_on_canvas_assignment_id", unique: true
     t.index ["course_id"], name: "index_course_rise360_module_versions_on_course_id"
     t.index ["rise360_module_version_id"], name: "index_course_module_versions_on_module_version_id "
   end
