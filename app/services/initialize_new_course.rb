@@ -54,10 +54,14 @@ private
     end
 
     # Peer review
-    initialize_new_peer_review(canvas_assignment_info.canvas_peer_reviews_assignment_id)
+    if canvas_assignment_info.canvas_peer_reviews_assignment_id
+      initialize_new_peer_review(canvas_assignment_info.canvas_peer_reviews_assignment_id)
+    end
 
     # Fellow evalution
-    initialize_new_fellow_evaluation(canvas_assignment_info.canvas_fellow_evaluation_assignment_id)
+    if canvas_assignment_info.canvas_fellow_evaluation_assignment_id
+      initialize_new_fellow_evaluation(canvas_assignment_info.canvas_fellow_evaluation_assignment_id)
+    end
 
     # Waivers, Modules, Pre-, and Post-Accelerator assignments don't need their
     # LTI launch URLs updated for a new course because they use course-agnostic
