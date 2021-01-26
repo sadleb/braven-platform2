@@ -42,8 +42,6 @@ class AcceleratorSurveySubmissionsController < FormAssemblyController
   # For #new, #create actions
   include Submittable
 
-  layout 'lti_canvas'
-
   # For FormAssemblyController
   attr_reader :course
   before_action :set_course
@@ -67,11 +65,14 @@ class AcceleratorSurveySubmissionsController < FormAssemblyController
   def launch
     authorize instance_variable
 
-    redirect_to completed_submissions_path if previous_submission
+    redirect_to completed_submissions_path and return if previous_submission
+
+    render layout: 'lti_canvas'
   end
 
   def completed
     authorize @accelerator_survey_submission
+    render layout: 'lti_canvas'
   end
 
 private

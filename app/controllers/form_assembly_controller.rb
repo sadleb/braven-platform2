@@ -13,7 +13,7 @@
 class FormAssemblyController < ApplicationController
   include LtiHelper
 
-  layout 'lti_canvas'
+  layout 'form_assembly'
 
   skip_before_action :verify_authenticity_token, only: [:create], if: :is_sessionless_lti_launch?
 

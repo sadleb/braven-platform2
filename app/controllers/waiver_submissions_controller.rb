@@ -28,7 +28,9 @@ class WaiverSubmissionsController < FormAssemblyController
   def launch
     authorize :waiver_submission
 
-    redirect_to completed_waiver_submissions_path(state: params[:state]) if waivers_already_signed?
+    redirect_to completed_waiver_submissions_path(state: params[:state]) and return if waivers_already_signed?
+
+    render layout: 'lti_canvas'
   end
 
   # Show the FormAssembly waiver form for them to sign.
@@ -69,6 +71,8 @@ class WaiverSubmissionsController < FormAssemblyController
       completed_waiver_submissions_url(protocol: 'https'),
     )
     lti_advantage_api_client.create_score(lti_score)
+
+    render layout: 'lti_canvas'
   end
 
   # Shows a "thank you for submitting" page. Note that since there is no
