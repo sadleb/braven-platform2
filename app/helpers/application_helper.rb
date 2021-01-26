@@ -36,4 +36,14 @@ module ApplicationHelper
       'alert-primary'
     end
   end
+
+  # https://www.w3schools.com/tags/att_option_selected.asp
+  def option_selected(condition)
+    condition == true ? 'selected' : ''
+  end
+
+  # https://www.w3schools.com/tags/att_input_checked.asp
+  def input_checked(condition)
+    condition == true ? 'checked' : ''
+  end
 end

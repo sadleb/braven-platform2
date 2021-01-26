@@ -1,5 +1,10 @@
 # frozen_string_literal: true
 
+# Represents the attendance answer (aka attendance status) submitted for a
+# Fellow (student) for a given event (e.g. a Learning Lab). An
+# AttendanceEventSubmission is a set of answers, one per Fellow. 
+#
+# Note: we use "answer" to be consistent with the other submission controllers/models.
 class AttendanceEventSubmissionAnswersController < ApplicationController
   include DryCrud::Controllers
   

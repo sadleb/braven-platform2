@@ -1,0 +1,103 @@
+<% absence_reasons = [
+    "Sick / Dr. Appt",
+    "Work",
+    "School",
+    "Caregiving",
+    "Bereavement / Family Emergency",
+    "Transportation",
+    "Professional Development",
+    "Vacation",
+] %>
+
+<div class="row py-3">
+  <form method="GET" action="<%= launch_attendance_event_submissions_path %>">
+    <div class="form-group col mb-0">
+      <label for="input-attend-event"><strong>Take Attendance For</strong></label>
+      <select id="input-attend-event" name="course_attendance_event_id" class="form-control">
+        <% @course_attendance_events.each do |course_attendance_event| %>
+          <option value="<%= course_attendance_event.id %>"
+                  <%= option_selected(course_attendance_event.id == @attendance_event_submission.course_attendance_event.id) %>
+                  ><%= course_attendance_event.attendance_event.title %></option>
+        <% end %>
+      </select>
+    </div>
+
+    <input type="hidden" name="state" value="<%= @lti_launch.state %>">
+
+    <div class="actions col">
+      <button type="submit" class="btn btn-secondary">Select event</button>
+    </div>
+  </form>
+</div>
+
+<div class="row">
+  <div class="col">
+    <h1>Attendance for <%= @attendance_event_submission.attendance_event.title %></h1>
+    <% if @fellow_users.empty? %>
+      <p>You have no fellows to take attendance for.</p>
+      <p>If you think this is wrong, please reach out to support@bebraven.org.</p>
+    <% else %>
+      <%= form_for(@attendance_event_submission, local: true) do |form| %>
+        <fieldset>
+          <% @fellow_users.each do |fellow| %>
+            <% radio_name = "attendance_event_submission[#{fellow.id}][in_attendance]" %>
+            <% select_name = "attendance_event_submission[#{fellow.id}][absence_reason]" %>
+            <% checkbox_name = "attendance_event_submission[#{fellow.id}][late]" %>
+            <% input_id_prefix = "input-#{fellow.id}" %>
+            <% prefill = @attendance_event_submission.answers.find_by(for_user: fellow) %>
+
+            <legend><%= fellow.full_name %></legend>
+
+            <div class="form-row">
+              <div class="form-group col-md-2 mb-1">
+              <input id="<%= input_id_prefix %>-present"
+                    type="radio"
+                    name="<%= radio_name %>"
+                    value="true"
+                    <%= input_checked(prefill&.in_attendance == true) %>>
+              <label for="<%= input_id_prefix %>-present" class="pl-1">Present</label>
+              </div>
+
+              <div class="form-group col-md-2 mb-1">
+              <input id="<%= input_id_prefix %>-absent"
+                    type="radio"
+                    name="<%= radio_name %>"
+                    value="false"
+                    <%= input_checked(prefill&.in_attendance == false) %>>
+              <label for="<%= input_id_prefix %>-absent" class="pl-1">Absent</label>
+              </div>
+
+              <div class="form-group col-md-2 mb-1">
+              <input id="<%= input_id_prefix %>-late"
+                    type="checkbox"
+                    name="<%= checkbox_name %>"
+                    <%= input_checked(prefill&.late) %>>
+              <label for="<%= input_id_prefix %>-late" class="pl-1">Late</label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="<%= input_id_prefix %>-reason">Reason for absence</label>
+              <select id="<%= input_id_prefix %>-reason"
+                      name="<%= select_name %>"
+                      class="form-control col-md-5">
+                <option></option>
+
+                <% absence_reasons.each do |absence_reason| %>
+                  <option value="<%= absence_reason %>" <%= option_selected(prefill&.absence_reason == absence_reason) %>><%= absence_reason %></option>
+                <% end %>
+              </select>
+
+            </div>
+          <% end %>
+        </fieldset>
+
+        <input type="hidden" name="state" value="<%= @lti_launch.state %>">
+
+        <div class="actions">
+          <%= form.submit 'Save', class: 'btn btn-primary' %>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>

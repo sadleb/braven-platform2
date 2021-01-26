@@ -39,7 +39,7 @@ RSpec.describe AttendanceEventSubmission, type: :model do
   end
 
   describe '#save_answers!' do
-    subject { attendance_event_submission.save_answers!(answers) }
+    subject { attendance_event_submission.save_answers!(answers, user) }
 
     shared_examples 'saves the answers to the submission' do
       scenario 'should not raise error' do

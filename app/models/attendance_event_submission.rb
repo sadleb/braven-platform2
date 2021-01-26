@@ -5,6 +5,9 @@ class AttendanceEventSubmission < ApplicationRecord
   belongs_to :course_attendance_event
 
   has_one :course, through: :course_attendance_event
+  has_one :attendance_event, through: :course_attendance_event
+  has_many :attendance_event_submission_answers
+  alias_attribute :answers, :attendance_event_submission_answers
 
   validates :user, :course_attendance_event, presence: true
 
@@ -14,13 +17,16 @@ class AttendanceEventSubmission < ApplicationRecord
   #       late: ?boolean,
   #       absence_reason: ?string } }
   # and adds them as AttendanceEventSubmissionAnswers to this submission.
-  def save_answers!(attendance_status_by_user)
+  def save_answers!(attendance_status_by_user, user)
     transaction do
-      save!
+      # Update who's taking attendance
+      update!(user: user)
       attendance_status_by_user.map do |for_user_id, attendance_status|
-        AttendanceEventSubmissionAnswer.create!(
+        answer = AttendanceEventSubmissionAnswer.find_or_create_by!(
           attendance_event_submission: self,
           for_user_id: for_user_id,
+        )
+        answer.update!(
           in_attendance: attendance_status[:in_attendance],
           late: attendance_status[:late],
           absence_reason: attendance_status[:absence_reason],
