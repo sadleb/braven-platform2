@@ -226,7 +226,7 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
 
     before(:each) do
       allow(CanvasAPI).to receive(:client).and_return(canvas_client)
-      allow(canvas_client).to receive(:update_module_grades)
+      allow(canvas_client).to receive(:update_grades)
     end
 
     shared_examples 'a successful update' do
@@ -250,7 +250,7 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
       scenario 'updates grades in Canvas' do
         subject
         grades = AttendanceGradeCalculator.compute_grades(attendance_event_submission)
-        expect(canvas_client).to have_received(:update_module_grades)
+        expect(canvas_client).to have_received(:update_grades)
           .with(accelerator_course.canvas_course_id, course_attendance_event.canvas_assignment_id, grades)
           .once
       end

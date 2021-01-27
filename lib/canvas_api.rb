@@ -70,10 +70,10 @@ class CanvasAPI
     put("/courses/#{course_id}/pages/#{wiki_page_id}", body)
   end
 
-  # Batch updates grades for modules using the Canvas Submissions API:
+  # Batch updates grades for multiple users and one assignment using the Canvas Submissions API:
   # https://canvas.instructure.com/doc/api/submissions.html#method.submissions_api.update
   # grades_by_user_id: hash containing canvas_user_id => grade
-  def update_module_grades(course_id, assignment_id, grades_by_user_id)
+  def update_grades(course_id, assignment_id, grades_by_user_id)
     body = grades_by_user_id.map { |canvas_user_id, grade|
       [ "grade_data[#{canvas_user_id}][posted_grade]", grade.to_s]
     }.to_h

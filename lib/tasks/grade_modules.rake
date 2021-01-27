@@ -59,7 +59,7 @@ namespace :grade do
         grades[canvas_course_id].keys.each do |canvas_assignment_id|
           puts "Sending new grades to Canvas for canvas_course_id = #{canvas_course_id}, canvas_assignment_id = #{canvas_assignment_id}"
           grades_by_user_id = grades[canvas_course_id][canvas_assignment_id]
-          CanvasAPI.client.update_module_grades(canvas_course_id, canvas_assignment_id, grades_by_user_id)
+          CanvasAPI.client.update_grades(canvas_course_id, canvas_assignment_id, grades_by_user_id)
           Rise360ModuleInteraction.where(new: true, canvas_course_id: canvas_course_id, canvas_assignment_id:
               canvas_assignment_id).where('id <= ?', max_id).update_all(new: false)
         end

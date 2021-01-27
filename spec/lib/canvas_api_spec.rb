@@ -118,7 +118,7 @@ RSpec.describe CanvasAPI do
     end
   end
 
-  describe "#update_module_grades" do
+  describe "#update_grades" do
     let(:course_id) { 111 }
     let(:assignment_id) { 222 }
 
@@ -132,7 +132,7 @@ RSpec.describe CanvasAPI do
 
       # Stub request
       stub_request(:post, url).to_return(body: '{}')
-      canvas.update_module_grades(
+      canvas.update_grades(
         course_id,
         assignment_id,
         grades_by_user_id,

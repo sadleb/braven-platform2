@@ -62,7 +62,7 @@ class AttendanceEventSubmissionsController < ApplicationController
     )
 
     # Update Fellow grades in Canvas
-    CanvasAPI.client.update_module_grades(
+    CanvasAPI.client.update_grades(
       @accelerator_course.canvas_course_id,
       @attendance_event_submission.course_attendance_event.canvas_assignment_id,
       AttendanceGradeCalculator.compute_grades(@attendance_event_submission),
