@@ -53,5 +53,8 @@
   <h3>Impact Surveys</h3>
   <%= render :partial => 'course_custom_content_versions/list', locals: {read_only: true, course_custom_content_versions: @course.course_survey_versions} %>
 
+  <h3>Attendance Events</h3>
+  <%= render :partial => 'course_attendance_events/list', locals: {read_only: true, course_attendance_events: @course.course_attendance_events} %>
+
   <p><small><em><b>Hint:</b> Cmd-Click "View On Canvas" to open in new tab</em></small></p>
 </div>
