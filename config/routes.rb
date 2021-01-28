@@ -25,7 +25,11 @@ Rails.application.routes.draw do
 
   resources :file_upload, only: [:create]
 
-  devise_for :users, controllers: { registrations: 'users/registrations', confirmations: 'users/confirmations', passwords: 'users/passwords' }
+  devise_for :users, controllers: {
+    registrations: 'users/registrations',
+    confirmations: 'users/confirmations',
+    passwords: 'users/passwords',
+    cas_sessions: 'users/cas_sessions' }
 
   devise_scope :user do
     get 'users/password/check_email', to: "users/passwords#check_email"

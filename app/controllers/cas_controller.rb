@@ -222,7 +222,6 @@ class CasController < ApplicationController
     # BZ modification: always use default service so logout/login goes back to our main
     # site (which can redirect) regardless of where they came from
     @service = @service || Utils.clean_service_url(@settings[:default_service])
-    @continue_url = params['url']
 
     @gateway = params['gateway'] == 'true' || params['gateway'] == '1'
 
@@ -259,18 +258,12 @@ class CasController < ApplicationController
 
     @message = {:type => 'confirmation', :message => "You have successfully logged out."}
 
-    @message[:message] +=  "Please click on the following link to continue:" if @continue_url
-
     @log_out_of_services = true
 
     @lt = LT.create! @request_client
 
     if current_user
       sign_out_and_redirect(current_user) and return
-    elsif @gateway && @service
-      return render :login
-    elsif @continue_url
-      return render :logout
     end
     render :login
   end

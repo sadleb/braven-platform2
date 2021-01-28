@@ -22,6 +22,7 @@ RSpec.describe CustomContentsController, type: :routing do
         #visit "/cas/login?service=#{url_encode(return_service)}"
         visit return_service
         fill_and_submit_login(username, password)
+        visit return_service # The login doesn't preserve the original path, so go there after logging in.
       end
 
       context "when username and password are valid" do

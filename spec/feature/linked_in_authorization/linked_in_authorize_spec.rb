@@ -4,7 +4,9 @@ require 'capybara_helper'
 require 'linked_in_api'
 
 RSpec.feature 'Authorize LinkedIn access to user data', :type => :feature do
-  let(:user) { create :linked_in_user }
+  let(:canvas_user_id) { 1717 }
+  let!(:user) { create :linked_in_user, canvas_user_id: canvas_user_id }
+  let!(:lti_launch) { create( :lti_launch_assignment, canvas_user_id: canvas_user_id) }
 
   describe "visit the signin page", js: true do
     before(:each) do
@@ -13,12 +15,12 @@ RSpec.feature 'Authorize LinkedIn access to user data', :type => :feature do
         c.ignore_hosts Capybara.server_host
       end
 
+      # Note that no login happens. The LtiAuthentication::WardenStrategy uses the lti_launch.state to authenticate.
       visit path
-      fill_and_submit_login(user.email, user.password)
     end
 
     context "signin" do
-      let(:path) { linked_in_login_path }
+      let(:path) { linked_in_login_path(state: lti_launch.state) }
 
       it "renders the LinkedIn sign-in link", js: true do
         expect(current_url).to include(linked_in_login_path)
@@ -44,7 +46,7 @@ RSpec.feature 'Authorize LinkedIn access to user data', :type => :feature do
     end
 
     context "launch" do
-      let(:path) { linked_in_auth_path }
+      let(:path) { linked_in_auth_path(state: lti_launch.state) }
 
       it "redirects to the LinkedIn", js: true, ci_exclude: true do
           expect(current_url).to include('https://www.linkedin.com/')
