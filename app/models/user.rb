@@ -31,14 +31,11 @@ class User < ApplicationRecord
   validates :email, :first_name, :last_name, presence: true
   validates :email, presence: true
 
+  # All sections where this user has any role.
+  has_many :sections, -> { distinct }, through: :roles, source: :resource, source_type: 'Section'
+
   def full_name
     [first_name, last_name].join(' ')
-  end
-
-  # All sections where this user has any role.
-  # This is a function just because I don't know how to write it as an association.
-  def sections
-    Section.with_roles(roles.distinct.map { |r| r.name }, self).distinct
   end
 
   # All sections with a specific role.
