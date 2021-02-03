@@ -9,6 +9,18 @@ class CourseAttendanceEvent < ApplicationRecord
 
   validates :course, :attendance_event, :canvas_assignment_id, presence: true
 
+  # Sort names with numbers correctly.
+  # From https://stackoverflow.com/a/25042119/12432170.
+  scope :order_by_title, -> {
+    sort_by{ |e|
+      e.attendance_event.title.gsub(/\d+/) { |s|
+        # Left-pad numbers with zeroes.
+        # 8 is arbitrarily longer than the numbers we'll see in titles.
+        "%08d" % s.to_i
+      }
+    }
+  }
+
   def canvas_url
     "#{Rails.application.secrets.canvas_url}/courses/#{course.canvas_course_id}/assignments/#{canvas_assignment_id}"
   end

@@ -49,7 +49,7 @@ class AttendanceEventSubmissionsController < ApplicationController
 
   def edit
     authorize @attendance_event_submission
-    @course_attendance_events = @attendance_event_submission.course.course_attendance_events
+    @course_attendance_events = @attendance_event_submission.course.course_attendance_events.order_by_title
   end
 
   def update
@@ -106,7 +106,7 @@ private
     else
       # If unspecified, use the first attendance event
       # TODO: Magically guess this based on date/time
-      @course_attendance_event = @accelerator_course.course_attendance_events.first
+      @course_attendance_event = @accelerator_course.course_attendance_events.order_by_title.first
     end
   end
 
