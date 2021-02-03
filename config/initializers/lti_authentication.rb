@@ -7,9 +7,6 @@ require 'lti_launch'
 # set by the browser causing authentication to fallback to this.
 module LtiAuthentication
 
-  # Note: if you change this, keep it in sync with: app/javascript/packs/project_answers.js
-  LTI_AUTH_HEADER_PREFIX='LtiState'
-
   class WardenStrategy < Warden::Strategies::Base
     
     # True if this strategy should be run for this request
@@ -70,18 +67,22 @@ private
       end
     end
 
-    # There are 3 possible locations where the lti state may be stored in a request:
+    # There are 4 possible locations where the lti state may be stored in a request:
     # params[:state] is there for routes hit using LtiLaunchController
     # params[:auth] is there when Rise360 packages load index.html. We piggyback off the "auth" query param that Rise 
     #               packages can be configured with and store it there when launching them.
     # request.headers[:authorization] is there for Ajax requests from both Rise360 and Projects. For Rise360 this
     #                                 is the result of configuring Tincan.js with the "auth" option in the launch.
+    # request.referrer contains a state token when an iframe is loaded *inside* Rise360 content.
     def fetch_state
-     lti_state = params[:state] || params[:auth]
-     unless lti_state
-       lti_state = request.headers[:authorization][/#{LTI_AUTH_HEADER_PREFIX} (.*)$/, 1] if request.headers[:authorization]
-     end
-     lti_state
+      lti_state = params[:state] || params[:auth]
+      unless lti_state
+        lti_state = request.headers[:authorization][/#{LtiConstants::AUTH_HEADER_PREFIX} (.*)$/, 1] if request.headers[:authorization]
+      end
+      unless lti_state
+        lti_state = LtiHelper.get_lti_state_from_referrer(request)
+      end
+      lti_state
     end
 
     def handle_failure(response)

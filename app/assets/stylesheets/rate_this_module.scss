@@ -1,0 +1,26 @@
+// Place all the styles related to the rate_this_module_submissions controller here.
+// They will automatically be included in lti_canvas.css.
+// You can use Sass (SCSS) here: http://sass-lang.com/
+
+@import "shared/variables";
+
+div.embedded_rate_this_module_container {
+
+  // Prevent the horizontal scroll bar that happens at certain
+  // cutoffs b/c of a small padding/margin issue that I have yet
+  // to figure out.
+  overflow-x: hidden;
+
+  // Style the 1-10 dropdown. Make sure the widest number (10) doesn't
+  // get cut-off on small width screens.
+  select#select-module-score {
+    padding: 0.4em 0.75em;
+    margin: 0.2em;
+    width: 4em;
+  }
+
+  textarea {
+    // The outline gets cutoff without this.
+    margin: 0.2em;
+  }
+}

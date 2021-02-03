@@ -22,6 +22,33 @@ module LtiHelper
     @lti_launch = LtiLaunch.current(params[:state]) if params[:state]
   end
 
+  def set_lti_launch_from_referrer
+    return if @lti_launch
+    raise ActionController::BadRequest.new(), "No referrer set" unless request.referrer
+    state = LtiHelper.get_lti_state_from_referrer(request)
+    raise ActionController::BadRequest.new(), "Unable to find LTI state in referrer" unless state
+
+    @lti_launch = LtiLaunch.current(state)
+  end
+
+  # We call this class method from the LTI middleware too.
+  def self.get_lti_state_from_referrer(request)
+    begin
+      referrer = Addressable::URI.parse(request.referrer)
+      referrer_query_params = referrer.query_values
+      referrer_query_params['auth'][/#{LtiConstants::AUTH_HEADER_PREFIX} (.*)$/, 1]
+    rescue NoMethodError
+      # Using an exception-handler pattern here instead of checking proactively because:
+      # * There are several pieces of the above that can fail with the same exception.
+      # * All the "failure" cases are expected, and in fact more common than the single
+      #   "good" case.
+      # * Expected behavior when we run into any of the "failure" cases is the same -
+      #   continue happily.
+      # * The exception we're handling is specific and unlikely to mask other problems.
+      nil
+    end
+  end
+
   def is_sessionless_lti_launch?
     set_lti_launch
     (@lti_launch ? @lti_launch.sessionless? : false )
@@ -47,7 +74,7 @@ module LtiHelper
     lrs_mock_url.path = LrsXapiMock::LRS_PATH
     {
       :endpoint => lrs_mock_url.to_s,
-      :auth => "#{LtiAuthentication::LTI_AUTH_HEADER_PREFIX} #{params[:state]}",
+      :auth => "#{LtiConstants::AUTH_HEADER_PREFIX} #{params[:state]}",
       # Our LRS mock will ignore these, but Rise 360 modules complain if they're not set.
       # Send empty values to get the Rise 360 Tincan code won't error out on missing keys.
       :actor => '{"name":"'"#{USERNAME_PLACEHOLDER}"'", "mbox":["mailto:'"#{PASSWORD_PLACEHOLDER}"'"]}',

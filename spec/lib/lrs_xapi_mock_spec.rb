@@ -7,7 +7,7 @@ RSpec.describe LrsXapiMock do
     let(:request) { ActionDispatch::TestRequest.create }
     let(:user) { create(:fellow_user) }
     let(:url) { "#{Rails.application.secrets.lrs_url}/#{endpoint}" }
-    let(:authorization) { "#{LtiAuthentication::LTI_AUTH_HEADER_PREFIX} #{state}" }
+    let(:authorization) { "#{LtiConstants::AUTH_HEADER_PREFIX} #{state}" }
     let(:response) { LrsXapiMock.handle_request!(request, endpoint, user) }
     let(:state) { LtiLaunchController.generate_state }
     let!(:lti_launch) { create(:lti_launch_assignment, state: state) }

@@ -164,6 +164,12 @@ Rails.application.routes.draw do
 
   resources :fellow_evaluation_submissions, only: [:show]
 
+  resources :rate_this_module_submissions, only: [:edit, :update] do
+    collection do
+      get :launch
+    end
+  end
+
   resources :access_tokens, except: [:show]
 
   # Exposes the public JWK so that external services can encode payloads using it and we

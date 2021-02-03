@@ -92,7 +92,7 @@ private
   private_class_method def self.parse_activity_id(authorization)
     # Get course and assignment IDs from the LtiLaunch specified in the auth header.
     # Header looks like "<prefix> <state>".
-    state = authorization.split(LtiAuthentication::LTI_AUTH_HEADER_PREFIX).last.strip
+    state = authorization.split(LtiConstants::AUTH_HEADER_PREFIX).last.strip
     ll = LtiLaunch.current(state)
     # Parse the canvas course and assignment IDs out of the LTI launch's activity ID.
     # See app/model/lti_launch.rb for more on activity ID; note this is entirely unrelated
@@ -101,7 +101,7 @@ private
   end
 
   private_class_method def self.save_state!(activity_id, state_id, data, authorization, user)
-    return unless authorization&.start_with? LtiAuthentication::LTI_AUTH_HEADER_PREFIX
+    return unless authorization&.start_with? LtiConstants::AUTH_HEADER_PREFIX
 
     # Since this returns data as application/octet-stream, a dangerous mimetype, let's
     # do some extra validation to make it less likely someone can use this as an
@@ -156,7 +156,7 @@ private
   end
 
   private_class_method def self.save_interaction!(data, authorization, user)
-    raise LrsXapiMockError.new("no auth header") unless authorization&.start_with? LtiAuthentication::LTI_AUTH_HEADER_PREFIX
+    raise LrsXapiMockError.new("no auth header") unless authorization&.start_with? LtiConstants::AUTH_HEADER_PREFIX
 
     # Get verb and activity_id from the payload.
     payload = JSON.parse(data)

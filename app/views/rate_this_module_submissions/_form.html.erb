@@ -1,0 +1,39 @@
+<% content_for :additional_container_css, 'embedded_rate_this_module_container' %>
+
+<h1>Rate This Module</h1>
+<p class="lead">
+At the end of every module, you will have the chance to provide your feedback.
+Braven takes feedback very seriously, so please take 60 seconds to let us know what you think!
+</p>
+
+<%= form_for(@rate_this_module_submission, local: true) do |form| %>
+
+  <p>On a scale from 0 (Not useful at all) to 10 (Very useful!), how useful was this module?</p>
+  <div class="form-group row">
+    <label for="select-module-score" class="col-sm-3 my-auto pr-0">Choose a number:</label>
+    <div class="col-sm-2">
+      <select id="select-module-score" name="rate_this_module_submission[module_score]" class="form-control" required>
+        <option value=""></option>
+        <% (0..10).each do |i| %>
+          <option value="<%= i %>" <%= option_selected(@prefill_score == i.to_s) %>><%= i %></option>
+        <% end %>
+      </select>
+    </div>
+  </div>
+
+  <p>Do you have any other feedback on this module to share?<p>
+  <div class="form-group">
+    <textarea name="rate_this_module_submission[module_feedback]"
+              rows="3"
+              aria-label="Other feedback"
+              class="form-control col"
+    ><%= @prefill_feedback %></textarea>
+  </div>
+
+  <input type="hidden" name="state" value="<%= @lti_launch.state %>">
+
+  <div class="actions">
+    <%= form.submit 'Submit', class: 'btn btn-primary btn-block' %>
+  </div>
+
+<% end %>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_01_21_121910) do
+ActiveRecord::Schema.define(version: 2021_01_26_184422) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -286,6 +286,26 @@ ActiveRecord::Schema.define(version: 2021_01_21_121910) do
     t.index ["service_ticket_id"], name: "index_proxy_granting_tickets_on_service_ticket_id"
   end
 
+  create_table "rate_this_module_submission_answers", force: :cascade do |t|
+    t.string "input_name"
+    t.string "input_value"
+    t.bigint "rate_this_module_submission_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["rate_this_module_submission_id", "input_name"], name: "index_rate_this_module_submission_answers_u1", unique: true
+    t.index ["rate_this_module_submission_id"], name: "index_rate_this_module_submission_answers_fkey_1"
+  end
+
+  create_table "rate_this_module_submissions", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "course_rise360_module_version_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["course_rise360_module_version_id"], name: "index_rate_this_module_submissions_fkey_2"
+    t.index ["user_id", "course_rise360_module_version_id"], name: "index_rate_this_module_submissions_unique_1", unique: true
+    t.index ["user_id"], name: "index_rate_this_module_submissions_on_user_id"
+  end
+
   create_table "rise360_module_interactions", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.string "activity_id", null: false
@@ -518,6 +538,9 @@ ActiveRecord::Schema.define(version: 2021_01_21_121910) do
   add_foreign_key "project_submission_answers", "project_submissions"
   add_foreign_key "project_submissions", "course_custom_content_versions"
   add_foreign_key "project_submissions", "users"
+  add_foreign_key "rate_this_module_submission_answers", "rate_this_module_submissions"
+  add_foreign_key "rate_this_module_submissions", "course_rise360_module_versions"
+  add_foreign_key "rate_this_module_submissions", "users"
   add_foreign_key "rise360_module_interactions", "users"
   add_foreign_key "rise360_module_states", "users"
   add_foreign_key "rise360_module_versions", "rise360_modules"

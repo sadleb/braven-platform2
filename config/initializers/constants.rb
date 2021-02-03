@@ -19,3 +19,9 @@ class SectionConstants
   DEFAULT_SECTION = 'Default Section'
   TA_SECTION = 'Teaching Assistants'
 end
+
+# LTI/Auth
+class LtiConstants
+  # Note: if you change this, keep it in sync with: app/javascript/packs/project_answers.js
+  AUTH_HEADER_PREFIX = 'LtiState'
+end
