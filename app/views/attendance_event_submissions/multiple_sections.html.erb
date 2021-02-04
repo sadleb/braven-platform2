@@ -1,0 +1,20 @@
+<% content_for :title, 'Take Attendance' %>
+
+<div class="row h-50">
+  <div class="col-md-10 align-self-center">
+
+    <h1>Take Attendance</h1>
+    <p>
+      It appears that you are an LC for multiple cohorts in the <em>'<%= @accelerator_course.name %>'</em> course. We don't currently support that.
+    </p>
+    <p>
+      If you think this is wrong, please reach out to <a href="mailto:support@bebraven.org">support@bebraven.org</a> and let them know you are getting this message for the following Canvas sections:
+    </p>
+    <ul>
+      <% @sections_as_ta.each do |sect| %>
+        <li><%= sect.name %></li>
+      <% end %>
+    </ul>
+
+  </div>
+</div>

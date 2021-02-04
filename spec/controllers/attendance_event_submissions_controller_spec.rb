@@ -94,6 +94,15 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
           course: accelerator_course,
         ) }
         it_behaves_like 'valid launch'
+
+        # Admins will just see the attendance form for the first section they are a TA in.
+        context 'as TA in multiple sections' do
+          let(:accelerator_section2) { create :section, course: accelerator_course  }
+          before(:each) do
+            user.add_role RoleConstants::TA_ENROLLMENT, accelerator_section2
+          end
+          it_behaves_like 'valid launch'
+        end
       end
 
       context 'no attendance events' do
@@ -103,6 +112,8 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
 
     context 'as enrolled (LC) user' do
       let!(:user) { create :ta_user, section: accelerator_section }
+      let(:accelerator_section2) { create :section, course: accelerator_course  }
+
       before(:each) do
         user.add_role RoleConstants::STUDENT_ENROLLMENT, lc_playbook_section
       end
@@ -124,10 +135,36 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
         context 'with fellows' do
           let!(:fellow_user) { create :fellow_user, section: accelerator_section }
           it_behaves_like 'valid launch'
+
+          context 'when different LCs take attendance for the same event' do
+            let!(:other_lc) { create :ta_user, canvas_user_id: 998877, section: accelerator_section2 }
+            before(:each) do
+              AttendanceEventSubmission.create(user: other_lc, course_attendance_event: course_attendance_event)
+            end
+
+            it_behaves_like 'valid launch'
+
+            it 'creates a separate submission' do
+              expect { subject }.to change(AttendanceEventSubmission, :count).by(1)
+              expect(AttendanceEventSubmission.where(user: other_lc).count).to eq(1)
+              expect(AttendanceEventSubmission.where(user: user).count).to eq(1)
+            end
+          end
+
         end
+
+        context 'as TA in multiple sections' do
+          it 'renders multiple sections message' do
+            user.add_role RoleConstants::TA_ENROLLMENT, accelerator_section2
+            subject
+            expect(response.body).to include("multiple cohorts")
+          end
+        end
+
       end
     end
-  end
+
+  end # /GET #launch
 
   describe 'GET #edit' do
     let(:course_attendance_event) { create(

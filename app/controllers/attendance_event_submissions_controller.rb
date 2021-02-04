@@ -18,8 +18,8 @@ class AttendanceEventSubmissionsController < ApplicationController
   include LtiHelper
 
   before_action :set_lti_launch, only: [:launch, :edit, :update]
-  before_action :set_accelerator_course, only: [:launch, :update]
-  before_action :set_course_attendance_event, only: [:launch]  
+  before_action :set_accelerator_course, only: [:launch, :edit, :update]
+  before_action :set_course_attendance_event, only: [:launch]
   before_action :set_fellow_users, only: [:edit, :update]
   skip_before_action :verify_authenticity_token, only: [:update], if: :is_sessionless_lti_launch?
 
@@ -30,19 +30,31 @@ class AttendanceEventSubmissionsController < ApplicationController
   def launch
     if @course_attendance_event.nil?
       authorize @accelerator_course, policy_class: AttendanceEventSubmissionPolicy
+      Honeycomb.add_field('attendance.no.events', true)
+      logger.warn("User #{current_user} is trying to take attendance but there are no events " \
+                  "in the Accelerator course '#{@accelerator_course.inspect}'")
       render :no_course_attendance_events and return
     end
 
+    if sections_as_ta.count != 1 and not current_user.admin?
+      authorize @accelerator_course, policy_class: AttendanceEventSubmissionPolicy
+      Honeycomb.add_field('attendance.mulitple.sections', true)
+      logger.error("User #{current_user} is a TA in multiple sections. Cannot take attendance.")
+      render :multiple_sections and return
+    end
+
     # This is a find_or_new_by() so we have an object to authorize against
-    attendance_event_submission = AttendanceEventSubmission.find_by(
+    @attendance_event_submission = AttendanceEventSubmission.find_by(
+      user: current_user,
       course_attendance_event: @course_attendance_event,
     ) || AttendanceEventSubmission.new(
+      user: current_user,
       course_attendance_event: @course_attendance_event,
     )
-    authorize attendance_event_submission
-    attendance_event_submission.update!(user: current_user)
+    authorize @attendance_event_submission
+    @attendance_event_submission.save! # Do this after the authorization so we don't add an unauthorized .new record
     redirect_to edit_attendance_event_submission_path(
-      attendance_event_submission,
+      @attendance_event_submission,
       state: @lti_launch.state,
     )
   end
@@ -82,8 +94,10 @@ class AttendanceEventSubmissionsController < ApplicationController
   end
 
 private
-  # For #launch, #update
+  # For #launch, #edit, #update
   def set_accelerator_course
+    return if @accelerator_course
+
     # Get this course, the LC Playbook course, from the LTI launch
     lc_playbook_course = Course.find_by(
       canvas_course_id: @lti_launch.request_message.canvas_course_id,
@@ -112,19 +126,21 @@ private
 
   # For #edit, #update
   def set_fellow_users
-    # Get all Accelerator course sections where this user is a TA
-    sections_as_ta = current_user
-      .sections_with_role(RoleConstants::TA_ENROLLMENT)
-      .select { |section| section.course_id == @attendance_event_submission.course.id }
-
-    # Get all users enrolled as students in each section. At the moment we only expect
-    # a Leadership Coach to be in one section, so this is a graceful way to handle the situation
-    # where they happen to be in multiple, just showing them all. If we encounter this in
-    # the wild, revisit how to handle it.
+    # Get all users enrolled as students in your section. At the moment we only expect
+    # a Leadership Coach to be in one section and show an error page if that's not true
     @fellow_users = []
-    sections_as_ta.each do |section|
-      @fellow_users += section.students
-    end
+    @fellow_users = section.students if section
+  end
+
+  def section
+    sections_as_ta.first
+  end
+
+  # Get all Accelerator course sections where this user is a TA
+  def sections_as_ta
+    @sections_as_ta ||= current_user
+      .sections_with_role(RoleConstants::TA_ENROLLMENT)
+      .select { |section| section.course_id == @accelerator_course.id}
   end
 
   # For #update
