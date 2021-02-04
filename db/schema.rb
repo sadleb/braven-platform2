@@ -287,7 +287,7 @@ ActiveRecord::Schema.define(version: 2021_01_26_184422) do
   end
 
   create_table "rate_this_module_submission_answers", force: :cascade do |t|
-    t.string "input_name"
+    t.string "input_name", null: false
     t.string "input_value"
     t.bigint "rate_this_module_submission_id", null: false
     t.datetime "created_at", precision: 6, null: false
