@@ -38,59 +38,80 @@
       <p>If you think this is wrong, please reach out to support@bebraven.org.</p>
     <% else %>
       <%= form_for(@attendance_event_submission, local: true) do |form| %>
-        <fieldset>
-          <% @fellow_users.each do |fellow| %>
-            <% radio_name = "attendance_event_submission[#{fellow.id}][in_attendance]" %>
-            <% select_name = "attendance_event_submission[#{fellow.id}][absence_reason]" %>
-            <% checkbox_name = "attendance_event_submission[#{fellow.id}][late]" %>
+        <% @fellow_users.each do |fellow| %>
+          <% if @attendance_event_submission.simple_form? %>
+            <% checkbox_name = "attendance_event_submission[#{fellow.id}][in_attendance]" %>
             <% input_id_prefix = "input-#{fellow.id}" %>
             <% prefill = @attendance_event_submission.answers.find_by(for_user: fellow) %>
 
-            <legend><%= fellow.full_name %></legend>
+            <%# We want to see unchecked checkboxes come through as false, so we use a hidden input. %>
+            <%# Since Rails uses the last value, it'll see this one if the checkbox is unchecked, but %>
+            <%# will see the checkbox's value instead if the box is checked. %>
+            <input type="hidden" name="<%= checkbox_name %>" value="false">
 
             <div class="form-row">
-              <div class="form-group col-md-2 mb-1">
-              <input id="<%= input_id_prefix %>-present"
-                    type="radio"
-                    name="<%= radio_name %>"
-                    value="true"
-                    <%= input_checked(prefill&.in_attendance == true) %>>
-              <label for="<%= input_id_prefix %>-present" class="pl-1">Present</label>
-              </div>
-
-              <div class="form-group col-md-2 mb-1">
-              <input id="<%= input_id_prefix %>-absent"
-                    type="radio"
-                    name="<%= radio_name %>"
-                    value="false"
-                    <%= input_checked(prefill&.in_attendance == false) %>>
-              <label for="<%= input_id_prefix %>-absent" class="pl-1">Absent</label>
-              </div>
-
-              <div class="form-group col-md-2 mb-1">
-              <input id="<%= input_id_prefix %>-late"
-                    type="checkbox"
-                    name="<%= checkbox_name %>"
-                    <%= input_checked(prefill&.late) %>>
-              <label for="<%= input_id_prefix %>-late" class="pl-1">Late</label>
+              <div class="form-group col-md-12 mb-12">
+                <input id="<%= input_id_prefix %>-checkbox"
+                      type="checkbox"
+                      name="<%= checkbox_name %>"
+                      <%= input_checked(prefill&.in_attendance == true) %>>
+                <label for="<%= input_id_prefix %>-checkbox" class="pl-1"><%= fellow.full_name %></label>
               </div>
             </div>
+          <% else %>
+            <fieldset>
+              <% radio_name = "attendance_event_submission[#{fellow.id}][in_attendance]" %>
+              <% select_name = "attendance_event_submission[#{fellow.id}][absence_reason]" %>
+              <% checkbox_name = "attendance_event_submission[#{fellow.id}][late]" %>
+              <% input_id_prefix = "input-#{fellow.id}" %>
+              <% prefill = @attendance_event_submission.answers.find_by(for_user: fellow) %>
 
-            <div class="form-group">
-              <label for="<%= input_id_prefix %>-reason">Reason for absence</label>
-              <select id="<%= input_id_prefix %>-reason"
-                      name="<%= select_name %>"
-                      class="form-control col-md-5">
-                <option></option>
+              <legend><%= fellow.full_name %></legend>
 
-                <% absence_reasons.each do |absence_reason| %>
-                  <option value="<%= absence_reason %>" <%= option_selected(prefill&.absence_reason == absence_reason) %>><%= absence_reason %></option>
-                <% end %>
-              </select>
+              <div class="form-row">
+                <div class="form-group col-md-2 mb-1">
+                <input id="<%= input_id_prefix %>-present"
+                      type="radio"
+                      name="<%= radio_name %>"
+                      value="true"
+                      <%= input_checked(prefill&.in_attendance == true) %>>
+                <label for="<%= input_id_prefix %>-present" class="pl-1">Present</label>
+                </div>
 
-            </div>
+                <div class="form-group col-md-2 mb-1">
+                <input id="<%= input_id_prefix %>-absent"
+                      type="radio"
+                      name="<%= radio_name %>"
+                      value="false"
+                      <%= input_checked(prefill&.in_attendance == false) %>>
+                <label for="<%= input_id_prefix %>-absent" class="pl-1">Absent</label>
+                </div>
+
+                <div class="form-group col-md-2 mb-1">
+                <input id="<%= input_id_prefix %>-late"
+                      type="checkbox"
+                      name="<%= checkbox_name %>"
+                      <%= input_checked(prefill&.late) %>>
+                <label for="<%= input_id_prefix %>-late" class="pl-1">Late</label>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="<%= input_id_prefix %>-reason">Reason for absence</label>
+                <select id="<%= input_id_prefix %>-reason"
+                        name="<%= select_name %>"
+                        class="form-control col-md-5">
+                  <option></option>
+
+                  <% absence_reasons.each do |absence_reason| %>
+                    <option value="<%= absence_reason %>" <%= option_selected(prefill&.absence_reason == absence_reason) %>><%= absence_reason %></option>
+                  <% end %>
+                </select>
+
+              </div>
+            </fieldset>
           <% end %>
-        </fieldset>
+        <% end %>
 
         <input type="hidden" name="state" value="<%= @lti_launch.state %>">
 

@@ -222,11 +222,27 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
       context 'with fellows' do
         let!(:fellow_user) { create :fellow_user, section: accelerator_section }
 
-        it "shows the Fellow's name in attendance form" do
+        it "shows the Fellow's name in standard attendance form" do
           subject
           expect(response.body).to include("</form>")
           expect(response.body).to include(fellow_user.full_name)
-          expect(response.body).not_to include (user.full_name)
+          expect(response.body).to include('type="radio"')
+          expect(response.body).not_to include(user.full_name)
+        end
+
+        context 'with 1:1 event' do
+          let(:course_attendance_event) { create(
+            :one_on_one_course_attendance_event,
+            course: accelerator_course,
+          ) }
+
+          it "shows the simple checkbox-only form" do
+            subject
+            expect(response.body).to include("</form>")
+            expect(response.body).to include(fellow_user.full_name)
+            expect(response.body).to include('type="checkbox"')
+            expect(response.body).not_to include('type="radio"')
+          end
         end
       end
     end

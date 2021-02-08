@@ -4,6 +4,10 @@
 class AttendanceEvent < ApplicationRecord
   validates :title, presence: true
 
+  # Type constants. Controls view behavior.
+  STANDARD_EVENT = :StandardEvent
+  SIMPLE_EVENT = :SimpleEvent
+
   # For use with Publishable in CourseAttendanceEventsController
   include Versionable
 

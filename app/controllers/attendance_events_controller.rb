@@ -18,7 +18,10 @@ class AttendanceEventsController < ApplicationController
   def create
     @attendance_event = AttendanceEvent.new
     authorize @attendance_event
-    @attendance_event.update!(title: create_params[:title])
+    @attendance_event.update!(
+      title: create_params[:title],
+      event_type: create_params[:event_type],
+    )
 
     respond_to do |format|
       format.html { redirect_to(
@@ -50,6 +53,7 @@ private
   def create_params
     params.require(:attendance_event).permit(
       :title,
+      :event_type,
       :redirect_to,
     )
   end
