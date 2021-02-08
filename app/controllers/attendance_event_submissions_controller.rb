@@ -118,9 +118,7 @@ private
         params[:course_attendance_event_id],
       )
     else
-      # If unspecified, use the first attendance event
-      # TODO: Magically guess this based on date/time
-      @course_attendance_event = @accelerator_course.course_attendance_events.order_by_title.first
+      @course_attendance_event = helpers.get_default_course_attendance_event(section)
     end
   end
 

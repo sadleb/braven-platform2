@@ -9,6 +9,9 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
   let(:accelerator_course) { create :course, canvas_course_id: 2 }
   let(:accelerator_section) { create :section, course: accelerator_course }
 
+  let(:assignment_overrides) { [] }
+
+  let(:canvas_client) { double(CanvasAPI) }
   let(:salesforce_client) { double(SalesforceAPI) }
 
   before(:each) do
@@ -22,6 +25,9 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
       .to receive(:get_accelerator_course_id_from_lc_playbook_course_id)
       .with(lc_playbook_course.canvas_course_id)
       .and_return(accelerator_course.canvas_course_id)
+    allow(CanvasAPI).to receive(:client).and_return(canvas_client)
+    allow(canvas_client).to receive(:get_assignment_overrides_for_section)
+      .and_return(assignment_overrides)
   end
 
   shared_examples 'valid request' do
@@ -85,7 +91,7 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
     end
 
     context 'as non-enrolled (admin) user' do
-      let!(:user) { create :admin_user }
+      let!(:user) { create :admin_user, section: accelerator_section }
       let!(:fellow_user) { create :fellow_user, section: accelerator_section }
 
       context 'with attendance events' do
@@ -93,7 +99,13 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
           :course_attendance_event,
           course: accelerator_course,
         ) }
-        it_behaves_like 'valid launch'
+
+        context 'as TA in a section' do
+          before(:each) do
+            user.add_role RoleConstants::TA_ENROLLMENT, accelerator_section
+          end
+          it_behaves_like 'valid launch'
+        end
 
         # Admins will just see the attendance form for the first section they are a TA in.
         context 'as TA in multiple sections' do

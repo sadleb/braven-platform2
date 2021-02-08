@@ -9,6 +9,8 @@ class CourseAttendanceEvent < ApplicationRecord
 
   validates :course, :attendance_event, :canvas_assignment_id, presence: true
 
+  attr_accessor :due_at
+
   # Sort names with numbers correctly.
   # From https://stackoverflow.com/a/25042119/12432170.
   scope :order_by_title, -> {

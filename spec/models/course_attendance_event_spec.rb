@@ -1,4 +1,5 @@
 require 'rails_helper'
+require 'canvas_api'
 
 RSpec.describe CourseAttendanceEvent, type: :model do
   # Associations
@@ -29,4 +30,5 @@ RSpec.describe CourseAttendanceEvent, type: :model do
     it { should include course.canvas_course_id.to_s }
     it { should include course_attendance_event.canvas_assignment_id.to_s }
   end
+
 end
