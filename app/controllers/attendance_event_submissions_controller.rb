@@ -55,6 +55,7 @@ class AttendanceEventSubmissionsController < ApplicationController
     @attendance_event_submission.save! # Do this after the authorization so we don't add an unauthorized .new record
     redirect_to edit_attendance_event_submission_path(
       @attendance_event_submission,
+      section_id: section.id,
       state: @lti_launch.state,
     )
   end
@@ -62,6 +63,7 @@ class AttendanceEventSubmissionsController < ApplicationController
   def edit
     authorize @attendance_event_submission
     @course_attendance_events = @attendance_event_submission.course.course_attendance_events.order_by_title
+    @section = section
   end
 
   def update
@@ -124,17 +126,29 @@ private
 
   # For #edit, #update
   def set_fellow_users
-    # Get all users enrolled as students in your section. At the moment we only expect
-    # a Leadership Coach to be in one section and show an error page if that's not true
+    # Get all users enrolled as students in the section.
+    # Note this is implicitly limited to students in this course and further
+    # restricted so only people with special permission can see students in
+    # sections they're not the TA for, by the `section` call. If you refactor
+    # this, be sure to keep those limitations.
     @fellow_users = []
     @fellow_users = section.students if section
   end
 
   def section
+    # If we have special permission, try to use the section_id param.
+    # Fall back to first section as TA, then first section in the course (if not a TA).
+    if current_user.can_take_attendance_for_all?
+      return @accelerator_course.sections.find_by_id(params[:section_id]) || sections_as_ta.first || @accelerator_course.sections.first
+    end
+
+    # If no special permission, fall back to TA section.
+    # At the moment we only expect a Leadership Coach to be in one section
+    # and show an error page if that's not true.
     sections_as_ta.first
   end
 
-  # Get all Accelerator course sections where this user is a TA
+  # Get all Accelerator course sections where this user is a TA.
   def sections_as_ta
     @sections_as_ta ||= current_user
       .sections_with_role(RoleConstants::TA_ENROLLMENT)
@@ -145,7 +159,9 @@ private
   def attendance_status_by_user_hash
     attendance_event_submission_param = params.require(:attendance_event_submission)
     attendance_event_submission_param.permit!.to_h.filter do |user_id|
-       @fellow_users.any? { |user| user.id.to_s == user_id.to_s }
+      # Restrict to only users in the section, which we have already determined
+      # current_user is allowed to access.
+      @fellow_users.any? { |user| user.id.to_s == user_id.to_s }
     end
   end
 end

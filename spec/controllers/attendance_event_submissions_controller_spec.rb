@@ -8,6 +8,7 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
 
   let(:accelerator_course) { create :course, canvas_course_id: 2 }
   let(:accelerator_section) { create :section, course: accelerator_course }
+  let(:launch_section) { accelerator_section }
 
   let(:assignment_overrides) { [] }
 
@@ -59,6 +60,7 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
       scenario 'redirects to #edit' do
         expect(subject).to redirect_to edit_attendance_event_submission_path(
           AttendanceEventSubmission.last,
+          section_id: launch_section.id,
           state: @lti_launch.state,
         )
       end
@@ -110,6 +112,7 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
         # Admins will just see the attendance form for the first section they are a TA in.
         context 'as TA in multiple sections' do
           let(:accelerator_section2) { create :section, course: accelerator_course  }
+          let(:launch_section) { accelerator_section2 }
           before(:each) do
             user.add_role RoleConstants::TA_ENROLLMENT, accelerator_section2
           end
@@ -215,6 +218,11 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
 
     context 'as non-enrolled (admin) user' do
       let(:user) { create :admin_user }
+      before :each do
+        # Set up the section.
+        accelerator_section
+      end
+
       it_behaves_like 'valid request'
       it_behaves_like 'no fellows'
     end
@@ -233,6 +241,25 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
 
       context 'with fellows' do
         let!(:fellow_user) { create :fellow_user, section: accelerator_section }
+
+        context 'when LC has special permission' do
+          before :each do
+            user.add_role RoleConstants::CAN_TAKE_ATTENDANCE_FOR_ALL
+          end
+
+          it 'loads section dropdown' do
+            subject
+            expect(response.body).to include('<select id="input-attend-section"')
+          end
+        end
+
+        context 'when LC does not have special permission' do
+          it 'does not load section dropdown' do
+            subject
+            expect(response.body).not_to include('<select id="input-attend-section"')
+          end
+        end
+
 
         it "shows the Fellow's name in standard attendance form" do
           subject

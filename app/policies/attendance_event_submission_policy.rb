@@ -13,6 +13,7 @@ class AttendanceEventSubmissionPolicy < ApplicationPolicy
   def launch?
     return true if user.admin?
 
+    # Is the user a TA in any section in the course?
     course = record.instance_of?(Course) ? record : record.course
     course.sections.each do |section|
       return true if user.has_role? RoleConstants::TA_ENROLLMENT, section

@@ -3,6 +3,11 @@
 
 # Roles
 class RoleConstants
+  # Global roles.
+  ADMIN = :admin
+  CAN_TAKE_ATTENDANCE_FOR_ALL = :CanTakeAttendanceForAll
+
+  # Local roles.
   TA_ENROLLMENT = :TaEnrollment
   STUDENT_ENROLLMENT = :StudentEnrollment
 
