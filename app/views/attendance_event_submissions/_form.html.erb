@@ -139,6 +139,7 @@
         <% end %>
 
         <input type="hidden" name="state" value="<%= @lti_launch.state %>">
+        <input type="hidden" name="section_id" value="<%= @section.id %>">
 
         <div class="actions">
           <%= form.submit 'Save', class: 'btn btn-primary' %>
