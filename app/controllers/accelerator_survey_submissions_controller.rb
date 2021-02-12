@@ -81,6 +81,11 @@ private
     false
   end
 
+  # Override default Submittable behavior.
+  def create_layout_to_render
+    'lti_canvas'
+  end
+
   # For #new, embed the FormAssembly form in the view
   def set_up_formassembly
     form_id = form_assembly_info.send("#{@type}_accelerator_survey_form_id")

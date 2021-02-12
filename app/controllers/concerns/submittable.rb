@@ -70,13 +70,20 @@ module Submittable
     )
     LtiAdvantageAPI.new(@lti_launch).create_score(lti_score)
 
-    redirect_to instance_path(instance_variable) if redirect_after_create?
+    redirect_to instance_path(instance_variable) and return if redirect_after_create?
+
+    render layout: create_layout_to_render if create_layout_to_render
   end
 
 private
   # Override in controller to change this behavior.
   def redirect_after_create?
     true
+  end
+
+  # Override in controller to change the `create` action's layout
+  def create_layout_to_render
+    nil
   end
 
   def set_new_model_instance

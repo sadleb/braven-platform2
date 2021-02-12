@@ -81,6 +81,7 @@ class WaiverSubmissionsController < FormAssemblyController
   # GET /waiver_submissions/completed
   def completed
     authorize :waiver_submission
+    render layout: 'lti_canvas'
   end
 
 private
