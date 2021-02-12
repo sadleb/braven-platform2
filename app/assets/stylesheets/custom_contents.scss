@@ -59,6 +59,11 @@
   div.select-wrapper > label.select-label {
     padding-right: 0.5rem;
   }
+
+  a[target="_blank"]::after {
+    // For link accessibility
+    content: " (Opens in new tab)";
+  }
 }
 /* End Braven Projects CSS */
 

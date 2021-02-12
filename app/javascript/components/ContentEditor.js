@@ -152,6 +152,18 @@ BalloonEditor.defaultConfig = {
             'linkImage',
         ]
     },
+    link: {
+        decorators: {
+            openInNewTab: {
+                mode: 'manual',
+                label: 'Open in a new tab',
+                attributes: {
+                    target: '_blank',
+                    rel: 'noopener noreferrer',
+                },
+            },
+        },
+    },
     heading: {
         options: [
             { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
