@@ -69,12 +69,12 @@
           <legend class="peer-review-question">
             Is there anything additional about this Fellow’s readiness for the workplace, or any general comments about this Fellow, you’d like to share with us?
           </legend>
-          <input name="<%= "fellow_evaluation[#{user.id}][other-fellow-comments-from-lc]" %>" type="text" />
+          <textarea class="form-control" name="<%= "fellow_evaluation[#{user.id}][other-fellow-comments-from-lc]" %>"></textarea>
         </fieldset>
       </fieldset>
     <% end %>
 
     <input type="hidden" name="state" value="<%= @lti_launch.state %>">
-  <%= form.submit %>
+  <%= form.submit "Submit", class: 'btn btn-primary btn-block' %>
   <% end %>
 <% end %>
