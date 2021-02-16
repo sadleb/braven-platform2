@@ -33,35 +33,37 @@ RSpec.describe ProjectSubmissionAnswersController, type: :controller do
       )
     end
 
-    context "as a Fellow" do
-      it 'returns a success response' do
+    shared_examples 'a successful request' do
+      scenario 'returns a success response' do
         expect(response).to be_successful
       end
 
-      it 'shows the correct content' do
+      scenario 'shows the correct content' do
         parsed_body = JSON.parse(response.body)
         expect(parsed_body.count).to eq(2)
         expect(parsed_body[0]['input_name']).to eq(project_submission_answers[0].input_name)
         expect(parsed_body[1]['input_value']).to eq(project_submission_answers[1].input_value)
       end
+    end
+
+    context "as a Fellow" do
+      it_behaves_like 'a successful request' 
     end
 
     context "as a TA" do
-      let(:ta_user) { create :ta_user, section: section }
+      let(:ta_section) { create :ta_section, course: course_project_version.course }
+      let(:ta_user) { create :ta_user, section: ta_section }
       let(:user_viewing_submission) { ta_user }
 
-      it 'returns a success response' do
-        expect(response).to be_successful
-      end
-
-      it 'shows the correct content' do
-        parsed_body = JSON.parse(response.body)
-        expect(parsed_body.count).to eq(2)
-        expect(parsed_body[0]['input_name']).to eq(project_submission_answers[0].input_name)
-        expect(parsed_body[1]['input_value']).to eq(project_submission_answers[1].input_value)
-      end
+      it_behaves_like 'a successful request' 
     end
 
+    context "as an LC" do
+      let(:lc_user) { create :ta_user, section: section }
+      let(:user_viewing_submission) { lc_user }
+
+      it_behaves_like 'a successful request' 
+    end
   end # 'GET #index'
 
   describe 'POST #create' do

@@ -16,6 +16,9 @@ class RoleConstants
   SECTION_ROLES = [
     STUDENT_ENROLLMENT,
     TA_ENROLLMENT,
+    # TODO: https://app.asana.com/0/1174274412967132/1199945855038779
+    # We need to introduce LC_ENROLLMENT here, Canvas, and Salesforce so it's
+    # easier to distinguish between LCs and TAs.
   ]
 end
 

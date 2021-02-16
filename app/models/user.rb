@@ -62,12 +62,34 @@ class User < ApplicationRecord
     has_role? :admin
   end
 
-  # True if this user is a TA in the same section where target_user is a student.
-  def ta_for?(target_user)
-    sections_with_role(RoleConstants::TA_ENROLLMENT).each do |section|
-      return true if target_user.has_role? RoleConstants::STUDENT_ENROLLMENT, section
-    end
-    false
+  def can_view_submission_from?(target_user, course)
+    return ta_for?(target_user, course) || lc_for?(target_user, course)
+  end
+
+  # True iff the user is enrolled in SectionConstants::TA_SECTION for the course
+  # and the target_user is a Fellow in the same course
+  def ta_for?(target_user, course)
+    # TODO: https://app.asana.com/0/1174274412967132/1199945855038779
+    # LCs also use TA_ENROLLMENT, we need to introduce a separate LC_ENROLLMENT
+    # role before we can check TA_ENROLLMENT for a course without specifying
+    # the TA_SECTION.
+    ta_section = sections_with_role(RoleConstants::TA_ENROLLMENT).find_by(
+      course: course,
+      name: SectionConstants::TA_SECTION,
+    )
+    student_section = target_user.student_section_by_course(course)
+    return ta_section && student_section ? true : false
+  end
+
+  def lc_for?(target_user, course)
+    # TODO: https://app.asana.com/0/1174274412967132/1199945855038779
+    # We need a separate LC_ENROLLMENT in Canvas and our RoleConstants
+    # and maybe Salesforce to differentiate between LCs and TAs.
+    lc_section = sections_with_role(RoleConstants::TA_ENROLLMENT).find_by(
+      course: course,
+    )
+    student_section = target_user.student_section_by_course(course)
+    return lc_section.present? && student_section.present? && lc_section.id == student_section.id
   end
 
   def can_take_attendance_for_all?

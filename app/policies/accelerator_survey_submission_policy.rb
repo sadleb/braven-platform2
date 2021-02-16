@@ -38,7 +38,7 @@ class AcceleratorSurveySubmissionPolicy < ApplicationPolicy
     # You can see a submission confirmation for a student who you're a TA for
     # TODO: https://app.asana.com/0/1168520191527013/1199512664295642
     # This need to be a specific check for the particular section of the course.
-    return true if user.ta_for?(record.user)
+    return true if user.can_view_submission_from?(record.user, record.course)
 
     false
   end

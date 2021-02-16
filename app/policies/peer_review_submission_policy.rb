@@ -14,7 +14,7 @@ class PeerReviewSubmissionPolicy < ApplicationPolicy
     return true if user.admin?
 
     # You are a TA for the user who submitted
-    return true if user.ta_for?(record.user)
+    return true if user.can_view_submission_from?(record.user, record.course)
 
     # This is your submission
     user == record.user

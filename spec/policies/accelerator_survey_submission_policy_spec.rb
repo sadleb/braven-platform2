@@ -4,6 +4,7 @@ RSpec.describe AcceleratorSurveySubmissionPolicy, type: :policy do
   let(:user) { create :registered_user }
   let(:course) { create :course }
   let(:section) { create :section, course: course }
+  let(:ta_section) { create :ta_section, course: course }
   let(:accelerator_survey_submission) { build(
     :accelerator_survey_submission,
     user: user,
@@ -18,11 +19,18 @@ RSpec.describe AcceleratorSurveySubmissionPolicy, type: :policy do
       expect(subject).to permit user, accelerator_survey_submission
     end
 
-    it "allows a ta user to view a submission confirmation for one of their students" do
+    it "allows a ta user to view a submission confirmations" do
       user.add_role RoleConstants::STUDENT_ENROLLMENT, section
       ta_user = create(:registered_user)
-      ta_user.add_role RoleConstants::TA_ENROLLMENT, section
+      ta_user.add_role RoleConstants::TA_ENROLLMENT, ta_section
       expect(subject).to permit ta_user, accelerator_survey_submission
+    end
+
+    it "allows an lc user to view a submission confirmation for one of their students" do
+      user.add_role RoleConstants::STUDENT_ENROLLMENT, section
+      lc_user = create(:registered_user)
+      lc_user.add_role RoleConstants::TA_ENROLLMENT, section
+      expect(subject).to permit lc_user, accelerator_survey_submission
     end
 
     it "allows users to see their own submission confirmation" do
@@ -35,6 +43,23 @@ RSpec.describe AcceleratorSurveySubmissionPolicy, type: :policy do
       peer_user = create(:registered_user)
       peer_user.add_role RoleConstants::STUDENT_ENROLLMENT, section
       expect(subject).not_to permit peer_user, accelerator_survey_submission
+    end
+
+    it "disallows a ta from another course" do
+      user.add_role RoleConstants::STUDENT_ENROLLMENT, section
+      another_course = create(:course)
+      ta_section = create(:ta_section, course: another_course)
+      ta_user = create(:registered_user)
+      ta_user.add_role RoleConstants::TA_ENROLLMENT, ta_section
+      expect(subject).not_to permit ta_user, accelerator_survey_submission
+    end
+
+    it "disallows lc for another cohort" do
+      user.add_role RoleConstants::STUDENT_ENROLLMENT, section
+      another_section = create(:section, course: course)
+      lc_user = create(:registered_user)
+      lc_user.add_role RoleConstants::TA_ENROLLMENT, another_section
+      expect(subject).not_to permit lc_user, accelerator_survey_submission
     end
 
     it "disallows non-admin users not enrolled in a course attached to the project" do

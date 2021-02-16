@@ -22,7 +22,7 @@ class ProjectSubmissionPolicy < ApplicationPolicy
     return true if user == project_submission.user
 
     # 2. b.) Are you a TA for the person who created this submission?
-    return true if user.ta_for?(project_submission.user)
+    return true if user.can_view_submission_from?(project_submission.user, project_submission.course)
 
     # 2. c.) Are you an admin?
     return true if user.admin?

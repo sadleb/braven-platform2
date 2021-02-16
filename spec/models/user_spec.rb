@@ -87,4 +87,242 @@ RSpec.describe User, type: :model do
       it { should contain_exactly(accelerator_section, lc_playbook_section) }
     end
   end
+
+  describe '#ta_for?' do
+    let(:course) { create :course }
+    let(:section) { create :section, course: course }
+    
+    subject { user.ta_for?(target_user, course) }
+
+    context 'target user is not a Fellow in the course' do
+      let(:ta_section) { create :ta_section, course: course }
+      let(:user) { create :ta_user, section: ta_section }
+
+      context 'target user is a Fellow in another course' do
+        let(:another_course) { create :course }
+        let(:another_section) { create :section, course: another_course }
+        let(:target_user) { create :fellow_user, section: another_section }
+        it { should eq(false) }
+      end
+
+      context 'target user is not enrolled' do
+        let(:target_user) { create :registered_user }
+        it { should eq(false) }
+      end
+
+      context 'target user is another TA' do
+        let(:target_user) { create :ta_user, section: ta_section, canvas_user_id: 111 }
+        it { should eq(false) }
+      end
+
+      context 'target user is an LC' do
+        let(:target_user) { create :ta_user, section: section, canvas_user_id: 111 }
+        it { should eq(false) }
+      end
+    end
+
+    context 'target user is a Fellow' do
+      let(:target_user) { create :fellow_user, section: section }
+
+      context 'user is TA in course' do
+        let(:ta_section) { create :ta_section, course: course }
+        let(:user) { create :ta_user, section: ta_section }
+        it { should eq(true) }
+
+        context 'with additional enrollment' do
+          before(:each) do
+            # This user is both a TA and an LC
+            user.add_role RoleConstants::TA_ENROLLMENT, section
+          end
+          it { should eq(true) }
+        end
+      end
+
+      context 'user is a TA in a different course' do
+        let(:other_course) { create :course }
+        let(:ta_section) { create :ta_section, course: other_course }
+        let(:user) { create :ta_user, section: ta_section }
+        it { should eq(false) }
+      end
+
+      context 'user is admin' do
+        let(:user) { create :admin_user }
+        it { should eq(false) }
+      end
+
+      context 'user is not enrolled' do
+        let(:user) { create :registered_user }
+        it { should eq(false) }
+      end
+
+      context 'user is in the same section' do
+        context 'as LC' do
+          let(:user) { create :ta_user, section: section }
+          it { should eq(false) }
+        end
+
+        context 'as Fellow' do
+          let(:user) { create :peer_user, section: section }
+          it { should eq(false) }
+        end
+      end
+    end
+
+    context 'is TA for target but in different course' do
+      let(:another_course) { create :course }
+
+      let(:ta_section) { create :ta_section, course: another_course }
+      let(:user) { create :ta_user, section: ta_section }
+
+      let(:another_section) { create :section, course: another_course }
+      let(:target_user) { create :fellow_user, section: another_section }
+
+      it { should eq(false) }
+    end
+  end
+
+  describe '#lc_for?' do
+    let(:course) { create :course }
+    let(:section) { create :section, course: course }
+
+    subject { user.lc_for?(target_user, course) }
+
+    context 'target user is a Fellow in the section' do
+      let(:target_user) { create :fellow_user, section: section }
+
+      context 'user is an LC' do
+        context 'in the same section' do
+          let(:user) { create :ta_user, section: section }
+          it { should eq(true) }
+
+          context 'with multiple enrollments' do
+            let(:ta_section) { create :ta_section }
+            before(:each) do
+              # User is both an LC and TA for this course
+              user.add_role RoleConstants::TA_ENROLLMENT, ta_section
+            end
+            it { should eq(true) }
+          end
+        end
+
+        context 'in a different section' do
+          let(:another_section) { create :section, course: course }
+          let(:user) { create :ta_user, section: another_section }
+          it { should eq(false) }
+        end
+
+        context 'in a different course' do
+          let(:another_course) { create :course }
+          let(:another_section) { create :section, course: course }
+          let(:user) { create :ta_user, section: another_section }
+          it { should eq(false) }
+        end
+      end
+
+      context 'user is a Fellow in the same section' do
+        let(:user) { create :fellow_user, section: section, canvas_user_id: 111 }
+        it { should eq(false) }
+      end
+
+      context 'user is a TA in the course' do
+        let(:ta_section) { create :ta_section, course: course }
+        let(:user) { create :ta_user, section: ta_section }
+        it { should eq(false) }
+      end
+    end
+
+    context 'target user is not a Fellow in the section' do
+      let(:user) { create :ta_user, section: section }
+
+      context 'target user is a Fellow' do
+        context 'in another section/cohort' do
+          let(:another_section) { create :section, course: course }
+          let(:target_user) { create :fellow_user, section: another_section }
+          it { should eq(false) }
+        end
+
+        context 'in another course' do
+          let(:another_course) { create :course }
+          let(:another_section) { create :section, course: another_course }
+          let(:target_user) { create :fellow_user, section: another_section }
+          it { should eq(false) }
+        end
+      end
+
+      context 'target user is another TA in the course' do
+        let(:ta_section) { create :ta_section, course: course }
+        let(:target_user) { create :ta_user, section: ta_section, canvas_user_id: 111 }
+        it { should eq(false) }
+      end
+
+      context 'target user is another LC in the section' do
+        let(:target_user) { create :ta_user, section: section, canvas_user_id: 111 }
+        it { should eq(false) }
+      end
+
+      context 'target user is not enrolled' do
+        let(:target_user) { create :registered_user }
+        it { should eq(false) }
+      end
+    end
+
+    context 'is LC for target but in different course' do
+      let(:another_course) { create :course }
+      let(:another_section) { create :section, course: another_course }
+      let(:user) { create :ta_user, section: another_section }
+      let(:target_user) { create :fellow_user, section: another_section }
+
+      it { should eq(false) }
+    end
+  end
+
+  describe 'can_view_submission_from?' do
+    let(:course) { create :course }
+    let(:section) { create :section, course: course }
+
+    subject { user.can_view_submission_from?(target_user, course) }
+
+    context 'target user is a Fellow' do
+      let(:target_user) { create :fellow_user, section: section }
+
+      context 'user is a TA in the same course' do
+        let(:ta_section) { create :ta_section, course: course }
+        let(:user) { create :ta_user, section: ta_section }
+        it { should eq(true) }
+      end
+
+      context 'user is a TA in a different course' do
+        let(:another_course) { create :course }
+        let(:ta_section) { create :ta_section, course: another_course }
+        let(:user) { create :ta_user, section: ta_section }
+        it { should eq(false) }
+      end
+
+      context 'user is an LC in the same section' do
+        let(:user) { create :ta_user, section: section }
+        it { should eq(true) }
+      end
+
+      context 'user is an LC in a different section' do
+        let(:another_section) { create :section, course: course }
+        let(:user) { create :ta_user, section: another_section }
+        it { should eq(false) }
+      end
+
+      context 'user is a Fellow in the same section' do
+        let(:user) { create :peer_user, section: section }
+        it { should eq(false) }
+      end
+
+      context 'user is not registered' do
+        let(:user) { create :registered_user }
+        it { should eq(false) }
+      end
+
+      context 'user is an admin' do
+        let(:user) { create :admin_user }
+        it { should eq(false) }
+      end
+    end
+  end
 end

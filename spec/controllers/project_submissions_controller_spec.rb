@@ -30,27 +30,33 @@ RSpec.describe ProjectSubmissionsController, type: :controller do
       )
     end
 
-    context "as a Fellow" do
-      it 'returns a success response' do
+    shared_examples 'a successful request' do
+      scenario 'returns a success response' do
         expect(response).to be_successful
       end
 
-      it 'shows the correct content' do
+      scenario 'shows the correct content' do
         expect(response.body.include?(course_project_version.project_version.body)).to be(true)
       end
     end
 
+    context "as a Fellow" do
+      it_behaves_like 'a successful request'
+    end
+
     context "as a TA" do
-      let(:ta_user) { create :ta_user, section: section }
+      let(:ta_section) { create :ta_section, course: course_project_version.course }
+      let(:ta_user) { create :ta_user, section: ta_section }
       let(:user_viewing_submission) { ta_user }
 
-      it 'returns a success response' do
-        expect(response).to be_successful
-      end
+      it_behaves_like 'a successful request'
+    end
 
-      it 'shows the correct content' do
-        expect(response.body.include?(course_project_version.project_version.body)).to be(true)
-      end
+    context "as an LC" do
+      let(:lc_user) { create :ta_user, section: section }
+      let(:user_viewing_submission) { lc_user }
+
+      it_behaves_like 'a successful request'
     end
 
   end # 'GET #show'

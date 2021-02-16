@@ -5,6 +5,7 @@ RSpec.describe ProjectSubmissionPolicy, type: :policy do
   let(:course) { create(:course) }
   let(:project_version) { create(:project_version) }
   let(:section) { create(:section, course: course) }
+  let(:ta_section) { create(:ta_section, course: course) }
   let(:course_project_version) { create(:course_project_version, course: course, custom_content_version: project_version) }
   let(:project_submission) { create(:project_submission, user: user, course_project_version: course_project_version) }
 
@@ -16,16 +17,40 @@ RSpec.describe ProjectSubmissionPolicy, type: :policy do
       expect(subject).to permit user, project_submission
     end
 
-    it "allows a ta user to show a project submission from one of their students" do
+    it "allows an lc user to show a project submission from one of their students" do
       user.add_role RoleConstants::STUDENT_ENROLLMENT, section
       ta_user = create(:registered_user)
       ta_user.add_role RoleConstants::TA_ENROLLMENT, section
       expect(subject).to permit ta_user, project_submission
     end
 
+    it "allows a ta user to show a project submission" do
+      user.add_role RoleConstants::STUDENT_ENROLLMENT, section
+      ta_user = create(:registered_user)
+      ta_user.add_role RoleConstants::TA_ENROLLMENT, ta_section
+      expect(subject).to permit ta_user, project_submission
+    end
+
     it "allows users to see their own submissions" do
       user.add_role RoleConstants::STUDENT_ENROLLMENT, section
       expect(subject).to permit user, project_submission
+    end
+
+    it "disallows TAs from other courses" do
+      user.add_role RoleConstants::STUDENT_ENROLLMENT, section
+      another_course = create(:course)
+      ta_user = create(:registered_user)
+      ta_section = create(:ta_section, course: another_course)
+      ta_user.add_role RoleConstants::TA_ENROLLMENT, ta_section
+      expect(subject).not_to permit ta_user, project_submission
+    end
+
+    it "disallows LCs from other sections in course" do
+      user.add_role RoleConstants::STUDENT_ENROLLMENT, section
+      another_section = create(:section, course: course)
+      lc_user = create(:registered_user)
+      lc_user.add_role RoleConstants::TA_ENROLLMENT, another_section
+      expect(subject).not_to permit lc_user, project_submission
     end
 
     it "disallows users to see submissions from another student in their section" do
