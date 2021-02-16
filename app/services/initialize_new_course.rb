@@ -53,6 +53,12 @@ private
       initialize_new_course_custom_content_version(canvas_assignment_id, cccv)
     end
 
+    # Attendance events don't need their LTI launch URLs updated, but do need
+    # new CourseAttendanceEvent records in our DB.
+    canvas_assignment_info.course_attendance_events_mapping.each do |canvas_assignment_id, course_attendance_event|
+      initialize_new_course_attendance_event(canvas_assignment_id, course_attendance_event)
+    end
+
     # Peer review
     if canvas_assignment_info.canvas_peer_reviews_assignment_id
       initialize_new_peer_review(canvas_assignment_info.canvas_peer_reviews_assignment_id)
@@ -85,7 +91,7 @@ private
   end
 
   def create_new_course_custom_content_version!(canvas_assignment_id, old_course_custom_content_version)
-    if old_course_custom_content_version.course_id == @new_course.canvas_course_id
+    if old_course_custom_content_version.course.canvas_course_id == @new_course.canvas_course_id
       raise InitializeNewCourseError, "Canvas Assignment[#{canvas_assignment_id}] is already associated with #{@new_course}"
     end
 
@@ -96,6 +102,22 @@ private
     )
 
     new_launch_url = new_cccv.new_submission_url
+  end
+
+  def initialize_new_course_attendance_event(canvas_assignment_id, old_course_attendance_event)
+    create_new_course_attendance_event!(canvas_assignment_id, old_course_attendance_event)
+  end
+
+  def create_new_course_attendance_event!(canvas_assignment_id, old_course_attendance_event)
+    if old_course_attendance_event.course.canvas_course_id == @new_course.canvas_course_id
+      raise InitializeNewCourseError, "Canvas Assignment[#{canvas_assignment_id}] is already associated with #{@new_course}"
+    end
+
+    new_course_attendance_event = CourseAttendanceEvent.create!(
+      course: @new_course,
+      attendance_event: old_course_attendance_event.attendance_event,
+      canvas_assignment_id: canvas_assignment_id,
+    )
   end
 
   def initialize_new_peer_review(canvas_assignment_id)

@@ -16,7 +16,8 @@ class FetchCanvasAssignmentsInfo
               :canvas_peer_reviews_url, :canvas_peer_reviews_assignment_id,
               :canvas_fellow_evaluation_url, :canvas_fellow_evaluation_assignment_id,
               :course_project_versions, :course_survey_versions,
-              :course_custom_content_versions_mapping # Maps the fetched canvas assignment ID to the cccv.
+              :course_custom_content_versions_mapping,  # Maps the fetched canvas assignment ID to the cccv.
+              :course_attendance_events_mapping
 
   def initialize(canvas_course_id)
     @canvas_course_id = canvas_course_id
@@ -36,10 +37,12 @@ class FetchCanvasAssignmentsInfo
 
     @canvas_fellow_evaluation_url = nil
     @canvas_fellow_evaluation_assignment_id = nil
-    
+
     @course_project_versions = nil
     @course_survey_versions = nil
     @course_custom_content_versions_mapping = nil
+
+    @course_attendance_events_mapping = nil
 
     # Add the rest of the assignment types we implement as well. E.g. pre/post
     # accelerator surveys, peer evaluations, attendance, etc
@@ -52,6 +55,7 @@ class FetchCanvasAssignmentsInfo
     @course_project_versions= []
     @course_survey_versions = []
     @course_custom_content_versions_mapping = {}
+    @course_attendance_events_mapping = {}
 
     canvas_assignments.each do |ca|
       @canvas_assignment_ids << ca['id']
@@ -78,6 +82,16 @@ private
     cccv = CourseCustomContentVersion.find_by_lti_launch_url(lti_launch_url) 
     add_project_or_survey_info!(cccv, canvas_assignment) and return if cccv
 
+    # Doesn't matter which Course the CourseAttendanceEvent is attached to, because we'll be
+    # replacing the course. Just get one with the right AttendanceEvent.
+    attendance_event_submission_answer_path = launch_attendance_event_submission_answers_path
+    if lti_launch_url =~ /#{attendance_event_submission_answer_path}/
+      attendance_event = AttendanceEvent.find_by(title: canvas_assignment['name'])
+      course_attendance_event = CourseAttendanceEvent.find_by(attendance_event_id: attendance_event&.id)
+      add_attendance_event_info(course_attendance_event, canvas_assignment)
+      return
+    end
+
     # We don't use new_**course**_peer_review_submission_path here because
     # InitializeNewCourse needs to be able to detect the LTI launch URL that
     # was copied containing the old course ID
@@ -95,6 +109,7 @@ private
 
     postaccelerator_survey_submission_path = launch_postaccelerator_survey_submissions_path
     add_postaccelerator_survey_info(canvas_assignment) and return if lti_launch_url =~ /#{postaccelerator_survey_submission_path}/
+
   end
 
   def add_project_or_survey_info!(course_custom_content_version, canvas_assignment)
@@ -107,6 +122,10 @@ private
     end
 
     @course_custom_content_versions_mapping[canvas_assignment['id']] = course_custom_content_version
+  end
+
+  def add_attendance_event_info(course_attendance_event, canvas_assignment)
+    @course_attendance_events_mapping[canvas_assignment['id']] = course_attendance_event
   end
 
   def add_waivers_info(canvas_assignment)
