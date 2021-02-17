@@ -21,6 +21,6 @@ class Rise360ModuleVersionsController < ApplicationController
     @rise360_module_version = Rise360ModuleVersion.find(params[:id])
     url = Addressable::URI.parse(@rise360_module_version.launch_url)
     url.query_values = helpers.launch_query
-    redirect_to url.to_s
+    @launch_path = "#{url.path}?#{url.query}"
   end
 end

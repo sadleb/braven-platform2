@@ -1,0 +1,31 @@
+// This file allows us to apply our own CSS to Rise360 Module content.
+//
+// It's a bit non-standard b/c we compile it as a standalone CSS file
+// rather than bundle it together with other CSS for the layout b/c it's
+// injected into the Rise360 content using Javascript. See:
+// app/javascript/packs/rise360_module_versions.js.erb
+//
+// DEV NOTE: changes here won't take effect in development until you force
+// Webpacker to recompile the above Javascript file
+
+// ##########
+// IMPORTANT: avoid adding styles here as much as possible!!!
+// #########
+// It's not maintainable to add styles here.  For everything we add, the odds
+// of Rise360 changing their HTML and it just suddenly breaking one day causing us
+// to rush out a fix and have to deal with both old and new HTML rises.
+// We likely won't have a good way to proactively detect this either.
+// Avoid this at all costs and make sure you've pushed back on the
+// the Designer or Product Manager that is pushing for this change, being very
+// clear that it's brittle and WILL just suddenly break one day causing fires and headaches.
+
+@import "shared/variables";
+
+// TODO: add custom styles to overwrite the Rise360 ones that we need here.
+
+// TODO: remove this, just an example that makes the first button text green as a proof of concept.
+/*
+a.overview__button.brand--ui {
+  color: green !important;
+}
+*/

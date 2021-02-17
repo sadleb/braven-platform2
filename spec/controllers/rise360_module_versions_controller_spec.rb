@@ -14,19 +14,17 @@ RSpec.describe Rise360ModuleVersionsController, type: :controller do
   end
 
   describe "GET #show" do
-    it 'redirects to public url with LRS query parameters' do 
+    it 'loads the public url with xAPI query parameters in an iframe' do 
       launch_path = '/lessons/somekey/index.html' 
       allow(Rise360Util).to receive(:launch_path).and_return(launch_path) 
       allow(Rise360Util).to receive(:publish).and_return(launch_path) 
 
       get :show, params: {:id => rise360_module_version.id, :state => state}
 
-      redirect_url = Addressable::URI.parse(response.location)  
       expected_url =  Addressable::URI.parse(rise360_module_version.launch_url)  
-      expect(redirect_url.path).to eq(expected_url.path)  
-
-      # Specific LRS query parameters are tested in LtiHelper 
-      expect(redirect_url.query_values).not_to be_empty 
+      expect(response.body).to match /<iframe id="rise360-iframe" src="#{expected_url.path}\?.*=.*">/
+      # Note that specific xAPI query parameters are tested in LtiHelper. We just want to make
+      # sure they are being added. 
     end 
   end
 end
