@@ -18,7 +18,6 @@ Rails.application.config.assets.precompile += %w( layouts/admin.css )
 Rails.application.config.assets.precompile += %w( layouts/content_editor.css )
 Rails.application.config.assets.precompile += %w( layouts/lti_canvas.css )
 Rails.application.config.assets.precompile += %w( layouts/form_assembly.css )
-Rails.application.config.assets.precompile += %w( rise360_content.css )
 
 # Add fonts to precompile
 Rails.application.config.assets.precompile << /\.(?:svg|eot|woff|ttf)\z/
