@@ -36,7 +36,15 @@ module LtiHelper
     begin
       referrer = Addressable::URI.parse(request.referrer)
       referrer_query_params = referrer.query_values
-      referrer_query_params['auth'][/#{LtiConstants::AUTH_HEADER_PREFIX} (.*)$/, 1]
+      # Two possible places for the state token to be at this point.
+      # If neither is found, we return nil.
+      if referrer_query_params['auth']
+        # The first occurs when the current page is iframed inside Rise360 content:
+        referrer_query_params['auth'][/#{LtiConstants::AUTH_HEADER_PREFIX} (.*)$/, 1]
+      else
+        # The second occurs when the current page is iframed inside CustomContent like Projects:
+        referrer_query_params['state']
+      end
     rescue NoMethodError
       # Using an exception-handler pattern here instead of checking proactively because:
       # * There are several pieces of the above that can fail with the same exception.

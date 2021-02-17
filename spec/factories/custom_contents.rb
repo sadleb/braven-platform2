@@ -10,6 +10,12 @@ FactoryBot.define do
         "<p>Based on these responses, what are your next steps?</p>"\
         "<textarea id='test-question-id' name=\"h2c2-0600-next-steps\" placeholder=\"\"></textarea>"
       }
+
+      factory :linkedin_project, class: 'Project' do
+        body {
+          '<iframe class="linked-in-authorization-button" src="/linked_in/login"></iframe>'
+        }
+      end
     end
 
     factory :survey, class: 'Survey' do

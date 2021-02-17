@@ -5,12 +5,19 @@ RSpec.describe LinkedInAuthorizationController, type: :controller do
   render_views
   let(:user) { create :fellow_user }
   let(:valid_session) { {} }
+  let(:target_link_uri) { 'https://target/link' }
+  let(:state) { LtiLaunchController.generate_state }
+  let(:lti_launch) { create(:lti_launch_assignment_selection, target_link_uri: target_link_uri, state: state) }
 
   before do
     sign_in user
   end
   
   describe 'GET #login' do
+    before :each do
+      request.headers['Referer'] = "https://example.org/?state=#{lti_launch.state}"
+    end
+
     it 'returns a success response' do
       get :login, session: valid_session
       expect(response).to be_successful

@@ -67,13 +67,14 @@ private
       end
     end
 
-    # There are 4 possible locations where the lti state may be stored in a request:
+    # There are 5 possible locations where the lti state may be stored in a request:
     # params[:state] is there for routes hit using LtiLaunchController
     # params[:auth] is there when Rise360 packages load index.html. We piggyback off the "auth" query param that Rise 
     #               packages can be configured with and store it there when launching them.
     # request.headers[:authorization] is there for Ajax requests from both Rise360 and Projects. For Rise360 this
     #                                 is the result of configuring Tincan.js with the "auth" option in the launch.
     # request.referrer contains a state token when an iframe is loaded *inside* Rise360 content.
+    # request.referrer contains a state token when an iframe is loaded *inside* CustomContent (Projects).
     def fetch_state
       lti_state = params[:state] || params[:auth]
       unless lti_state

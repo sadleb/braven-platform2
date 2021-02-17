@@ -58,13 +58,26 @@ RSpec.describe LtiHelper, type: :helper do
   describe 'LtiHelper.get_lti_state_from_referrer' do
     let(:request) { ActionDispatch::Request.new({}) }
 
-    before :each do
-      request.headers['Referer'] = 'https://example.org/?auth=LtiState%20test_state'
+    context 'with Rise360 format' do
+      before :each do
+        request.headers['Referer'] = 'https://example.org/?auth=LtiState%20test_state'
+      end
+
+      it 'returns the correct state' do
+        lti_state = LtiHelper.get_lti_state_from_referrer(request)
+        expect(lti_state).to eq('test_state')
+      end
     end
 
-    it 'returns the correct state' do
-      lti_state = LtiHelper.get_lti_state_from_referrer(request)
-      expect(lti_state).to eq('test_state')
+    context 'with CustomContent format' do
+      before :each do
+        request.headers['Referer'] = 'https://example.org/?state=test_state'
+      end
+
+      it 'returns the correct state' do
+        lti_state = LtiHelper.get_lti_state_from_referrer(request)
+        expect(lti_state).to eq('test_state')
+      end
     end
   end
 end

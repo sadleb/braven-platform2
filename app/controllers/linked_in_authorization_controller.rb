@@ -7,6 +7,14 @@ require 'uri'
 require 'linked_in_api'
 
 class LinkedInAuthorizationController < ApplicationController
+  include LtiHelper
+
+  before_action :set_lti_launch_from_referrer, only: [:login]
+  # We only need set_lti_launch on #launch, because once the launch page loads
+  # it sets a same-domain cookie, and we don't have to worry about passing
+  # state around any more.
+  before_action :set_lti_launch, only: [:launch]
+
   layout 'lti_canvas'
 
   # iframe-able endpoint that renders a static LinkedIn button

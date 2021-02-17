@@ -33,6 +33,10 @@ FactoryBot.define do
           user.add_role RoleConstants::STUDENT_ENROLLMENT, options.section
         end
 
+        factory :linked_in_user do
+          linked_in_state { '' }
+        end
+
         factory :peer_user do
           # Different user ID than fellow_user.
           canvas_user_id { '4321' }
@@ -50,10 +54,6 @@ FactoryBot.define do
         after :create do |user|
           user.add_role :admin
         end
-      end
-
-      factory :linked_in_user do
-        linked_in_state { '' }
       end
 
       factory :lc_playbook_user do
