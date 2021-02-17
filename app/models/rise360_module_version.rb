@@ -20,6 +20,11 @@ class Rise360ModuleVersion < ApplicationRecord
    "#{LtiRise360Proxy.proxy_url}#{Rise360Util.launch_path(rise360_zipfile.key)}"
   end
 
+  def self.find_by_lti_launch_url(url)
+    rise360_module_version_id = url[/.*\/rise360_module_versions\/(\d+)/, 1]
+    return Rise360ModuleVersion.find_by(id: rise360_module_version_id)
+  end
+
 private
   def publish
     # Unlike Rise360Module, we don't run update_metadata! to compute

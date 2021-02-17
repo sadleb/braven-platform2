@@ -17,7 +17,8 @@ class FetchCanvasAssignmentsInfo
               :canvas_fellow_evaluation_url, :canvas_fellow_evaluation_assignment_id,
               :course_project_versions, :course_survey_versions,
               :course_custom_content_versions_mapping,  # Maps the fetched canvas assignment ID to the cccv.
-              :course_attendance_events_mapping
+              :course_attendance_events_mapping,
+              :rise360_module_versions_mapping
 
   def initialize(canvas_course_id)
     @canvas_course_id = canvas_course_id
@@ -44,6 +45,8 @@ class FetchCanvasAssignmentsInfo
 
     @course_attendance_events_mapping = nil
 
+    @rise360_module_versions_mapping = nil
+
     # Add the rest of the assignment types we implement as well. E.g. pre/post
     # accelerator surveys, peer evaluations, attendance, etc
   end
@@ -56,6 +59,7 @@ class FetchCanvasAssignmentsInfo
     @course_survey_versions = []
     @course_custom_content_versions_mapping = {}
     @course_attendance_events_mapping = {}
+    @rise360_module_versions_mapping = {}
 
     canvas_assignments.each do |ca|
       @canvas_assignment_ids << ca['id']
@@ -81,6 +85,9 @@ private
   def parse_assignment_info!(lti_launch_url, canvas_assignment)
     cccv = CourseCustomContentVersion.find_by_lti_launch_url(lti_launch_url) 
     add_project_or_survey_info!(cccv, canvas_assignment) and return if cccv
+
+    rise360_module_version = Rise360ModuleVersion.find_by_lti_launch_url(lti_launch_url)
+    add_module_info(rise360_module_version, canvas_assignment) and return if rise360_module_version
 
     # Doesn't matter which Course the CourseAttendanceEvent is attached to, because we'll be
     # replacing the course. Just get one with the right AttendanceEvent.
@@ -122,6 +129,10 @@ private
     end
 
     @course_custom_content_versions_mapping[canvas_assignment['id']] = course_custom_content_version
+  end
+
+  def add_module_info(rise360_module_version, canvas_assignment)
+    @rise360_module_versions_mapping[canvas_assignment['id']] = rise360_module_version
   end
 
   def add_attendance_event_info(course_attendance_event, canvas_assignment)
