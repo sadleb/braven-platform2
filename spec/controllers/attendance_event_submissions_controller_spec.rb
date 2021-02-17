@@ -241,6 +241,7 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
 
       context 'with fellows' do
         let!(:fellow_user) { create :fellow_user, section: accelerator_section }
+        let!(:ta_section) { create :section, name: SectionConstants::TA_SECTION, course: accelerator_section.course }
 
         context 'when LC has special permission' do
           before :each do
@@ -250,6 +251,16 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
           it 'loads section dropdown' do
             subject
             expect(response.body).to include('<select id="input-attend-section"')
+          end
+
+          it 'includes accelerator section in section dropdown' do
+            subject
+            expect(response.body).to include(accelerator_section.name)
+          end
+
+          it 'excludes TA section from section dropdown' do
+            subject
+            expect(response.body).not_to include(ta_section.name)
           end
         end
 
