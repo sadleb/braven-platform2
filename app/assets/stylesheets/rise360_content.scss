@@ -21,11 +21,49 @@
 
 @import "shared/variables";
 
-// TODO: add custom styles to overwrite the Rise360 ones that we need here.
+// Add custom styles to overwrite the Rise360 ones that we need here.
 
-// TODO: remove this, just an example that makes the first button text green as a proof of concept.
-/*
-a.overview__button.brand--ui {
+/** Links */ 
+.page__content .brand--linkColor a {
+  color: $bv-oceanblue-600 !important;
+  fill: $bv-oceanblue-600 !important;
+}
+
+.page__content .brand--linkColor a:visited {
+  color: $bv-oceanblue-700 !important;
+  fill: $bv-oceanblue-700 !important;
+}
+
+.page__content .brand--linkColorHover a:hover {
+  color: $bv-oceanblue-700 !important;
+  fill: $bv-oceanblue-700 !important;
+}
+
+/** Quizzes */
+
+// Note: the "Incorrect" color is black, not red. Just leave it alone b/c there is no "incorrect"
+// version of selectors to target.
+
+// Checkmark in overall feedback when correct
+.page__content div.quiz-card__feedback-icon.quiz-card__feedback-icon--correct.brand--color {
   color: green !important;
 }
-*/
+
+// Inline feedback
+.page__content div.quiz-card__interactive.quiz-card__interactive--done .quiz-multiple-choice-option--correct {
+  // Checkmark inside radio for selected correct answer
+  .icon.brand--color {
+    color: green !important; 
+  }
+
+  // Checkmark inside checkbox for correct answer (selected or not)
+  .i-checkMark.brand--fill {
+    fill: green !important;
+  }
+
+  // Border box around selected correct answer (both radios and checkboxes)
+  .brand--beforeBorder:before {
+    border-color: green !important; 
+  }
+}
+
