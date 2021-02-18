@@ -195,6 +195,13 @@ RSpec.describe CourseRise360ModuleVersionsController, type: :controller do
       expect { subject }.to change(CourseRise360ModuleVersion, :count).by(-1)
     end
 
+    it 'deletes all related Interactions' do
+      create(:progressed_module_interaction, canvas_assignment_id: course_rise360_module_version.canvas_assignment_id)
+      create(:answered_module_interaction, canvas_assignment_id: course_rise360_module_version.canvas_assignment_id)
+      create(:progressed_module_interaction, canvas_assignment_id: course_rise360_module_version.canvas_assignment_id + 1)
+      expect { subject }.to change(Rise360ModuleInteraction, :count).by(-2)
+    end
+
     it 'deletes the Canvas assignment' do
       subject
       expect(canvas_client)
