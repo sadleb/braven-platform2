@@ -1,0 +1,8 @@
+<% content_for :title, 'Braven Module' %>
+
+<% content_for :css_js do %>
+  <%= javascript_pack_tag 'rise360_module_versions', 'data-turbolinks-track': 'reload' %>
+<% end %>
+
+<iframe id="rise360-iframe" src="<%= @launch_path %>"></iframe>
+

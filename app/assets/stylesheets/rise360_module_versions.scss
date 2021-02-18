@@ -1,0 +1,11 @@
+// Place all the styles related to the rise360_module_versions controller here.
+// They will automatically be included in rise360_container layout CSS
+// You can use Sass (SCSS) here: http://sass-lang.com/
+
+@import "shared/variables";
+
+iframe#rise360-iframe {
+  border: none;
+  height: 99%; // Gives a tiny bit of space at the bottom so the content doesn't go to the absolute edge of the screen.
+  width: 100%;
+}

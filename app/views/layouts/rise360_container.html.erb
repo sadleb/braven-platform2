@@ -1,0 +1,16 @@
+<%#
+  This layout is a container for Rise360 content so that we can iframe in the content
+  and inject our own CSS using Javascript in order to apply custom styles.
+%>
+
+<%= stylesheet_link_tag 'layouts/rise360_container', media: 'all', 'data-turbolinks-track': 'reload' %>
+
+<% content_for :content do %>
+  <div class="rise360-container">
+    <%= yield %>
+  </div>
+<% end %>
+
+<%= render template: "layouts/application" %>
+
+
