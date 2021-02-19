@@ -71,6 +71,6 @@ others, resulting in a final Teamwork score for each Fellow in your cohort.</p>
     <% end %>
 
     <input type="hidden" name="state" value="<%= @lti_launch.state %>">
-    <%= form.submit %>
+    <%= form.submit "Submit", class: 'btn btn-primary btn-block' %>
   <% end %>
 <% end %>
