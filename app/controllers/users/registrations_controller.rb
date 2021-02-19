@@ -22,10 +22,14 @@ class Users::RegistrationsController < Devise::RegistrationsController
 
   # POST /resource
   def create
-
     # Registers the new user in all of our systems and creates the local User record
     # to send the confirmation email on success
-    RegisterUserAccount.new(sign_up_params).run
+    RegisterUserAccount.new(sign_up_params).run do |user|
+      unless user.persisted?
+        self.resource = user
+        return render :new
+      end
+    end
 
     redirect_to action: :show
   end

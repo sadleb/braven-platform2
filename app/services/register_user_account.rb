@@ -26,6 +26,8 @@ class RegisterUserAccount
         salesforce_id: @create_user_params[:salesforce_id]
       )
       @new_user.update(@create_user_params)
+      # Allow error handling on model validation when called from a controller.
+      yield @new_user if block_given?
       span.add_field('user.id.created', @new_user.id)
 
       # Create a user in Canvas.

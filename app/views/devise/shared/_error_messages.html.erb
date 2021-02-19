@@ -1,8 +1,6 @@
 <% if resource.errors.any? %>
   <div id="error_explanation">
-    <h3>
-      Please try again
-    </h3>
+    <p><strong>Please try again</strong></p>
     <ul>
       <%# Only show the first error and let them work through them one at a time %>
       <li><%= resource.errors.first[1] %></li>
