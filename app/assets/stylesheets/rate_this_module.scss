@@ -4,7 +4,7 @@
 
 @import "shared/variables";
 
-div.embedded_rate_this_module_container {
+div.embedded-rate-this-module-container {
 
   // Prevent the horizontal scroll bar that happens at certain
   // cutoffs b/c of a small padding/margin issue that I have yet
@@ -19,8 +19,63 @@ div.embedded_rate_this_module_container {
     width: 4em;
   }
 
-  textarea {
-    // The outline gets cutoff without this.
-    margin: 0.2em;
+  /**
+    Below is a bunch of hackiness that works together with the media queries in
+    rise360_content.scss to try and make the content look like other
+    Rise360 content at various screen sizes. It's just a "good enough"
+    attempt that optimizes for things looking good on a desktop b/c of
+    what I'm about to describe.
+
+    We're trying to align the rate_this_module stuff with the Rise360 stuff outside
+    of this iframe, however there are two different views of the Rise360 content:
+    1) with the sidebar visible 2) with the sidebar hidden.
+
+    The problem is that we don't know from inside the iframe whether we're in the hidden vs showing
+    sidebar mode AND the padding/margin/width needs to be different for each on some of the same
+    "window" sizes (aka size of this iframe). All we know is the size of the window so the below
+    media queries work for the sidebar showing, which is the default on a desktop, and the commented
+    out ones below work for the sidebar hidden. If we want to make things look good in both viewing modes,
+    we somehow need to target that. Maybe use Javascript at the time we're injecting the rise360_content.css
+    to also add some classes that we can target? The only difference I've been able to find the in
+    CSS is that the aria-hidden attribute on this element changes between true and false.
+    <section aria-hidden="false" class="overview-sidebar__header-outer" ... />
+  */
+
+  max-width: 92rem;
+  margin-left: auto;
+  padding: 0 2rem;
+  width: 100%;
+
+  @media all and (min-width: 540px) and (max-width: 679px) {
+    margin-left: auto;
+    padding: 0 3rem;
+    width: 100%;
   }
+
+  @media all and (min-width: 680px) and (max-width: 799px) {
+    margin-left: auto;
+    padding: 0 6rem;
+    width: 100%;
+  }
+
+  @media all and (min-width: 800px) {
+    margin-left: 8.3333%;
+    padding: 0 5rem;
+    width: 83.3333%;
+  }
+
+  /* Overlapping queries that make it look good when the sidebar is hidden. See comment above.
+  @media all and (min-width: 540px) and (max-width: 716px) {
+    margin-left: auto;
+    padding: 0 3rem;
+    width: 100%;
+  }
+
+  @media all and (min-width: 840px) {
+    margin-left: 8.3333%;
+    padding: 0 2.5rem;
+    width: 83.3333%;
+  }
+  */
+
 }

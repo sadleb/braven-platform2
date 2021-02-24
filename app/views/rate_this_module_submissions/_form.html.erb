@@ -1,39 +1,56 @@
-<% content_for :additional_container_css, 'embedded_rate_this_module_container' %>
+<%#
+IMPORTANT: if you change this form, you'll have to go through the hacky CSS
+in rate_this_module.scss and rise360_content.scss to adjust the media query
+breakpoints in order to make sure it still looks good iframed inside a Rise360
+package at various screen sizes. You probably want to avoid that.
+%>
+<div class="row no-gutters">
+  <div class="col-md">
+    <h1>Rate This Module</h1>
+    <p>
+    At the end of every module, you will have the chance to provide your feedback.
+    Braven takes feedback very seriously, so please take 60 seconds to let us know what you think!
+    </p>
 
-<h1>Rate This Module</h1>
-<p class="lead">
-At the end of every module, you will have the chance to provide your feedback.
-Braven takes feedback very seriously, so please take 60 seconds to let us know what you think!
-</p>
+    <%= form_for(@rate_this_module_submission, local: true) do |form| %>
 
-<%= form_for(@rate_this_module_submission, local: true) do |form| %>
+      <div class="form-group">
+        <label for="select-module-score" class="mt-4">
+          On a scale from 0 (Not useful at all) to 10 (Very useful!), how useful was this module?
+        </label>
+        <select id="select-module-score" name="rate_this_module_submission[module_score]" class="form-control" required>
+          <option value=""></option>
+          <% (0..10).each do |i| %>
+            <option value="<%= i %>" <%= option_selected(@prefill_score == i.to_s) %>><%= i %></option>
+          <% end %>
+        </select>
+      </div>
 
-  <p>On a scale from 0 (Not useful at all) to 10 (Very useful!), how useful was this module?</p>
-  <div class="form-group row">
-    <label for="select-module-score" class="col-sm-3 my-auto pr-0">Choose a number:</label>
-    <div class="col-sm-2">
-      <select id="select-module-score" name="rate_this_module_submission[module_score]" class="form-control" required>
-        <option value=""></option>
-        <% (0..10).each do |i| %>
-          <option value="<%= i %>" <%= option_selected(@prefill_score == i.to_s) %>><%= i %></option>
-        <% end %>
-      </select>
-    </div>
+      <div class="form-group">
+        <label for="module-other-feedback" class="mt-4">
+          Do you have any other feedback on this module to share?
+        </label>
+        <textarea id="module-other-feedback"
+                  name="rate_this_module_submission[module_feedback]"
+                  rows="3"
+                  class="form-control"
+        ><%= @prefill_feedback %></textarea>
+      </div>
+
+      <input type="hidden" name="state" value="<%= @lti_launch.state %>">
+
+      <div class="actions">
+        <%= form.submit 'Submit', class: 'btn btn-primary btn-block' %>
+      </div>
+
+    <% end %>
   </div>
+</div>
 
-  <p>Do you have any other feedback on this module to share?<p>
-  <div class="form-group">
-    <textarea name="rate_this_module_submission[module_feedback]"
-              rows="3"
-              aria-label="Other feedback"
-              class="form-control col"
-    ><%= @prefill_feedback %></textarea>
-  </div>
-
-  <input type="hidden" name="state" value="<%= @lti_launch.state %>">
-
-  <div class="actions">
-    <%= form.submit 'Submit', class: 'btn btn-primary btn-block' %>
-  </div>
-
-<% end %>
+<%#
+Override the default .rise360-container with our own since the
+height of the iframe and content needs to be dynamic depending on screen size
+and we need to adjust the padding on the left and right to make it
+appear to flow right along with the Rise360 content when embedded
+%>
+<% content_for :alternate_container_css, 'embedded-rate-this-module-container' %>

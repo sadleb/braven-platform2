@@ -6,7 +6,7 @@ class RateThisModuleSubmissionsController < ApplicationController
   before_action :set_course_rise360_module_version, only: [:launch]
   skip_before_action :verify_authenticity_token, only: [:update], if: :is_sessionless_lti_launch?
 
-  layout 'lti_canvas'
+  layout 'rise360_container'
 
   def launch
     # Note: we immediately discard this `new` submission after using it

@@ -12,11 +12,49 @@
  *
  */
 //*= require rise360_module_versions 
+//*= require rate_this_module
 
 html, body {
-  margin: 0;
+  height: 100%;
+  margin: 0 auto;
+
+  // This is what Rise360 does as their root size (10px). Use it so we
+  // can copy their rem values and have the sizes match. This is the reason
+  // the rem values below are inflated relative to everywhere else on the
+  // platform
+  font-size: 62.5%; 
 }
 
+// Default to take up the full screen. 
+// Provide content_for :alternate_container_css if you want to override this.
 .rise360-container {
-    min-height: 100vh;
+  height: 100%;
+  min-height: 100vh;
 }
+
+/************************************************/
+// Make content we add in a view with Rise360
+// content match it's style. Only add stuff for generic HTML
+// elements here. If you have style targeting specific elements
+// of a view, put that in the associated stylesheet for that view.
+
+h1 {
+  font-size: 3.2rem;
+}
+
+p, input[type=submit] { 
+  font-size: 1.7rem;
+  line-height: 2;
+}
+
+input[type=submit] {
+  margin-top: 2rem;
+}
+
+label, select, textarea, 
+select.form-control, textarea.form-control {
+  font-size: 1.6rem;
+}
+
+// End making it match Rise360
+/************************************************/

@@ -47,6 +47,8 @@ class HoneycombSpanBase {
             window.BOOMR.addVar('name', this.name, true);
      
             this.addFields(fields);
+
+            this.startTime = window.BOOMR.now();
         });
     }
 
@@ -94,6 +96,20 @@ class HoneycombSpanBase {
              window.BOOMR.plugins.Errors.send(e); // Force the beacon to go out.
         });
     } 
+
+    /*
+     * When measuring arbitrary events, call this to force a beacon to go out with
+     * any fields you added and the h.pg field set to the name of this span with the
+     * time it took to run as the value.
+     * See here for more detail: https://akamai.github.io/boomerang/tutorial-howto-measure-arbitrary-events.html
+     */
+    sendTimerBeacon() {
+        this.runAfterBoomerangLoaded(() => {
+            if(this.startTime) {
+                window.BOOMR.responseEnd(this.name, this.startTime);
+            }
+        });
+    }
 }
 
 /*

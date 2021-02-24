@@ -1,5 +1,6 @@
 // This is responsible for injecting the 'rise360_content.css' into a Rise360 package
-// that is shown inside an iframe. We do this b/c we want to apply custom styling to 
+// that is shown inside an iframe and for running any Javascript we need to on the
+// Rise360 content. We do this b/c we want to apply custom styling to 
 // Rise360 content and there doesn't seem to be another way to do this.
 //
 // Run this script by adding
@@ -12,12 +13,90 @@ the wrong version of it and you'll get 404's until you force Webpacker to recomp
 this file so that it gets to the proper checksum/version of the CSS.
 %>
 
+import { HoneycombSpan } from './honeycomb'
 <% helpers = ActionController::Base.helpers %>
-window.onload = function() {
-  let link = document.createElement('link');
-  link.href = '<%= helpers.asset_path("rise360_content.css") %>';
-  link.rel = 'stylesheet';
-  link.type = 'text/css';
+export async function main() {
   let myiFrame = document.getElementById('rise360-iframe');
-  myiFrame.contentDocument.head.appendChild(link);
-}
+  let iframeDocument = myiFrame.contentDocument;
+
+  function injectStylesheet() {
+    let link = document.createElement('link');
+    link.href = '<%= helpers.asset_path("rise360_content.css") %>';
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    iframeDocument.head.appendChild(link);
+  }
+
+  // Add a 'rate-this-module' CSS class to the Rate This Module
+  // iframe and all parent nodes up to the top one we need to target
+  // in rise360_content.scss (if it's there) so that we can distinguish
+  // a Rise360 block with an iframed RTM view vs some random thing iframed in.
+  async function addRateThisModuleClasses() {
+    const honey_span = new HoneycombSpan('rise360_module_versions', 'addRateThisModuleClasses');
+    try {
+      // Even though the DOM is loaded at this point, empirically it can take another 2.5 seconds
+      // or so for Rise360 to insert this element into the DOM. Loop for up to 10 seconds looking
+      // for it before giving up (1/2sec * 20 times = 10 seconds).
+      let iframeSelector = 'iframe[src*=rate_this_module_submissions]';
+      var currentNode = iframeDocument.body.querySelector(iframeSelector);
+      let waitTimeMillis = 500;
+      var count = 0;
+      while (count < 20 && !currentNode) {
+        count++;
+        await new Promise(r => setTimeout(r, waitTimeMillis)); 
+        currentNode = iframeDocument.body.querySelector(iframeSelector);
+      }
+      honey_span.addField('rate_this_module_submissions.iframe.search.time', count * waitTimeMillis);
+
+      if (currentNode) {
+        honey_span.addField('rate_this_module_submissions.iframe.found', 'true');
+
+        // Example HTML after running the below:
+        /*
+        <div class="noOutline rate-this-module">
+          <div class="rate-this-module">
+            <div class="block-embed rate-this-module">
+              <div class="rate-this-module">
+                <div class="block-embed__wrapper block-embed__wrapper--full rate-this-module">
+                  <section class="block-embed__item block-embed__item--border rate-this-module">
+                    <div class="embed rate-this-module">
+                      <div class="embed--iframe rate-this-module">
+                        <iframe src="https://platform.braven.org/rate_this_module_submissions/launch"
+                                class="rate-this-module">
+                          ...
+                        </iframe>
+        ...
+        */
+        while (currentNode && currentNode.classList.contains('noOutline') == false) {
+          currentNode.classList.add('rate-this-module');
+          currentNode = currentNode.parentNode;
+        }
+  
+        // Add it to the top-level <div class="noOutline"> as well.
+        if (currentNode) {
+          currentNode.classList.add('rate-this-module');
+        } else {
+          honey_span.addErrorDetails('Failed to find the noOutline div. Stopped at root element.', ''); 
+          return;
+        }
+      } else {
+        honey_span.addField('rate_this_module_submissions.iframe.found', 'false');
+      }
+      honey_span.sendTimerBeacon();
+    } catch (err) {
+        const error_msg = 'Failed to apply custom CSS to make Rate This Module iframes look ok.';
+        honey_span.addErrorDetails(error_msg, err);
+    }
+
+  } // END: function addRateThisModuleClasses()
+
+  //////////////////////////////
+  // Actually run the functions
+  //////////////////////////////
+  injectStylesheet();
+  addRateThisModuleClasses();
+
+} // END: main
+
+window.onload = main;
+

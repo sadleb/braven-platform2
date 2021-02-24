@@ -67,3 +67,60 @@
   }
 }
 
+
+/** Rate This Module */
+
+// See rise360_module_versions.js.erb for how the .rate-this-module class
+// got on all these out-of-the-box Rise360 elements.
+//
+// Also, note that this is a bit of a babushka doll situation where this
+// is the CSS for Rise360 content (aka a module) which is being applied to
+// the elements responsible for iframing in the rate_this_module view.
+
+.embed--iframe.rate-this-module {
+
+  // On mobile, the iframe height is not respected from what you set
+  // when authoring the Rise360 package. We have to unset some stuff that was locking
+  // the height of the iframe on mobile so that we can set it to match the
+  // content height for various screen width breakpoints.
+  overflow: unset !important; // Originally set to hidden. Causes iframe content to not fill the space
+  height: unset !important; // Originally set to 0 which causes stuff below to smoosh up.
+  padding-bottom: 0; // Originally set to 56.25% which causes a crazy big whitespace
+  margin-bottom: 0; // Originally 2rem. Remove it (and padding) so we can add a buffer to min-height of the iframe
+
+  iframe.rate-this-module {
+    position: unset !important; // Originally set to absolute causing the divs after this to smoosh up into this
+
+    // TODO: try to do the below dynamically in Javascript by measuring the content size,
+    // https://app.asana.com/0/1174274412967132/1199964542142977
+    //
+    // Get rid of the scrollber by setting the height of the iframe to be big enough
+    // for the content at various screen sizes (with a 40px buffer). Note that this could still
+    // cause a scrollbar for some if their base font size is set bigger for example. The breakpoints
+    // are non-standard to account for the fact that we're iframed inside Canvas which takes up some of
+    // the screen for it's own stuff.
+    // These measurements taken empirically just reflect my system, but different browsers
+    // or resolutions or font settings could cause the content to be bigger. That's why a JS solution
+    // to actually measure it would be better.
+    min-height: 661px; // Smallest screen, biggest height
+    @media all and (min-width: 500px) and (max-width: 921px) {
+      min-height: 511px;
+    }
+    @media all and (min-width: 922px) and (max-width: 1130px) {
+      min-height: 487px;
+    }
+    @media all and (min-width: 1131px) {
+      min-height: 453px;  // Desktop.
+    }
+
+  }
+}
+
+// Get rid of the border and massive padding that was meant to make this
+// very clearly identified as an iframe. I think the point was that you
+// would have to click fullscreen or something and they just assuming the
+// iframed content wouldn't be usable on mobile.
+section.block-embed__item--border.rate-this-module {
+  padding: 0;
+  border: 0;
+}

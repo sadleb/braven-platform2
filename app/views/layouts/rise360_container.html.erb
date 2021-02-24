@@ -3,10 +3,12 @@
   and inject our own CSS using Javascript in order to apply custom styles.
 %>
 
-<%= stylesheet_link_tag 'layouts/rise360_container', media: 'all', 'data-turbolinks-track': 'reload' %>
+<% content_for :head do %>
+  <%= stylesheet_link_tag 'layouts/rise360_container', media: 'all', 'data-turbolinks-track': 'reload' %>
+<% end %>
 
 <% content_for :content do %>
-  <div class="rise360-container">
+  <div class="container-fluid <%= content_for?(:alternate_container_css) ? yield(:alternate_container_css) : 'rise360-container' %>">
     <%= yield %>
   </div>
 <% end %>

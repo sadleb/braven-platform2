@@ -5,7 +5,9 @@ beforeEach(() => {
         isBoomerangLoaded: true,
         hasSentPageLoadBeacon: jest.fn(),
         subscribe: jest.fn(),
-        addVar: jest.fn()
+        addVar: jest.fn(),
+        now: jest.fn(),
+        responseEnd: jest.fn()
     };
 });
 
