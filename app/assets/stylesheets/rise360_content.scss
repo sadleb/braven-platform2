@@ -50,23 +50,45 @@
 }
 
 // Inline feedback
-.page__content div.quiz-card__interactive.quiz-card__interactive--done .quiz-multiple-choice-option--correct {
-  // Checkmark inside radio for selected correct answer
-  .icon.brand--color {
-    color: green !important; 
+.page__content div.quiz-card__interactive {
+  .quiz-multiple-choice-option--correct,
+  .quiz-multiple-response-option--correct {
+
+    // Checkmark inside radio for selected correct answer
+    .icon.brand--color {
+      color: green !important; 
+    }
+
+    // Checkmark inside checkbox for correct answer (selected or not)
+    .i-checkMark.brand--fill {
+      fill: green !important;
+    }
+
+    // Border box around selected correct answer (both radios and checkboxes)
+    .brand--beforeBorder:before {
+      border-color: green !important; 
+    }
   }
 
-  // Checkmark inside checkbox for correct answer (selected or not)
-  .i-checkMark.brand--fill {
-    fill: green !important;
-  }
-
-  // Border box around selected correct answer (both radios and checkboxes)
-  .brand--beforeBorder:before {
-    border-color: green !important; 
+  // Color of circle "correct" icon for fill-in-the-blank or matching game answers
+  .quiz-fill, .quiz-match {
+    .i-checkMarkFilled.brand--fill {
+      fill: green !important;
+    }
   }
 }
 
+// Hide overall "X Incorrect" icon and label for multiple choice checkboxes when in a Lesson
+// (not a Mastery Quiz). We use these to have them think about the question and attempt to
+// answer so we can give more context, but we don't expect them to get it all correct.
+// This is VERY brittle b/c there is no way to tell if it's a radio list of checkbox list
+// without javascript except looking at the aria-label
+.page__content .block-knowledge div.block-knowledge__wrapper[aria-label*="Multiple Response"] {
+  div.quiz-card__feedback-icon:not(.quiz-card__feedback-icon--correct),
+  div.quiz-card__feedback-icon:not(.quiz-card__feedback-icon--correct) + .quiz-card__feedback-label {
+    display: none;
+  }
+}
 
 /** Rate This Module */
 
