@@ -8,6 +8,17 @@ FactoryBot.define do
     factory :progressed_module_interaction do
       verb { Rise360ModuleInteraction::PROGRESSED }
       progress { 0 }
+
+      factory :ungraded_module_interaction do
+        # new: true is the default
+      end
+
+      factory :graded_module_interaction do
+       # add_attributoe(:new) { false } # I think "new" is a reserved word, but this still wasn't working.
+        after(:create) do |ri, evaluator|
+          ri.update!(new: false)
+        end
+      end
     end
 
     factory :answered_module_interaction do

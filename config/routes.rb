@@ -111,6 +111,8 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :rise360_module_grades, only: [:show]
+
   resources :course_custom_content_versions, only: [:create, :update, :destroy] 
 
   resources :course_project_versions, only: [] do

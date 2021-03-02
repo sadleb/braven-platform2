@@ -1,0 +1,68 @@
+<% content_for :title, 'About Your Module Grade' %>
+<div class="row mt-2 p-2">
+  <div class="col">
+ 
+    <h1 class="mt-4">About your Module grade</h3>
+    <p>Your grade for this Module is at the top of the screen.</p>
+    <% unless grade_is_up_to_date? %>
+      <p><mark>It looks like your most recent work hasn't been graded yet. It will be graded tonight.</mark></p>
+      <%# Note: we consciously made the decision not to add a button that allows folks to
+        force the grade to be recalculated. The reason is b/c the Rise360ModuleInteractions
+        table is likely going to be our biggest, most used table in the database and the
+        grade computation is resource intensive. In the future, we should figure out how to
+        compute the grade in real-time as they progress through the module as a solution
+        (while not sending "your grade as been updated" email notifications)/. For now, the UX of just
+        waiting is day feels pretty ok and a button doesn't actually provide much real value add.
+      %>
+    <% end %>
+    <p>
+      <a href="<%= canvas_url %>" target="_parent">
+      Click here to go to the Module</a> and continue working on it
+    </p>
+    <hr>
+
+    <h2 class="bv-font-size-4">How are Modules graded?</h2>
+    <p>
+      Modules are graded nightly. The grade consists of two components:
+    </p>
+    <ol>
+      <li>
+        <div class="row">
+          <div class="col-6 col-md-3">Engagement:</div><div class="col-1"><strong>50%</strong></div>
+        </div>
+      </li>
+      <li>
+        <div class="row">
+          <div class="col-6 col-md-3">Mastery quizzes:</div><div class="col-1"><strong>50%</strong></div>
+        </div>
+      </li>
+    </ol>
+    
+    <h3 class="bv-font-size-5 mt-4">How do you get engagement credit?</h3>
+    <p>
+      You get credit for engagement just by going through the Module.
+      If you get to the end then you get full credit for the engagement portion
+      of the Module which is half of your overall grade.
+    </p>
+    
+    <h3 class="bv-font-size-5"><strong>How do you get credit for mastery quizzes?</strong></h3>
+    <p>
+      You get credit for mastery quizzes by getting the answers correct. If there are ten
+      total mastery questions and you get them all right then you get full credit for the
+      master portion of the Module which is also half of your overall grade.
+    </p>
+
+    <h3 class="bv-font-size-5"><strong>Here is an example of how a Module is graded:</strong></h3>
+    <p>
+      Say you do 80% of the Module and get nine out of ten of the mastery questions right.
+      Your grade is calculated as:
+    </p>
+    <p><code>(Engagement grade) + (Mastery grade) = (Total grade)</code></p>
+    <p><code>(80% of 50%) + (90% of 50%) = (X% of total)</code></p>
+    <p><code>(0.8 * 0.5) + (0.9 * 0.5) = 0.85</code></p>
+    <p>so... </p>
+    <p><code>0.85 percent * 10 points = 8.5 points</code></p>
+    <p>You'll see <strong>GRADE: 8.5 / 10</strong> at the top in this example.</p>
+     
+  </div>
+</div>

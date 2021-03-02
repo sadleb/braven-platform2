@@ -70,6 +70,20 @@ class CanvasAPI
     put("/courses/#{course_id}/pages/#{wiki_page_id}", body)
   end
 
+  # Submits an assignment for a user that when viewed, launches the specified
+  # lti_launch_url as the submission to view.
+  def create_lti_submission(canvas_course_id, assignment_id, canvas_user_id, lti_launch_url)
+    raise NotImplementedError, 'This is going to lead to headaches. It''ll sort of work ' \
+      'in certain situations, but fail with permission errors in others. Use LtiAdvantage ' \
+      'to create basic_lti_launch submission types instead'
+    #  body = {
+    #    'submission[submission_type]' => 'basic_lti_launch',
+    #    'submission[user_id]' => canvas_user_id,
+    #    'submission[url]' => lti_launch_url
+    #  }
+    #  post("/courses/#{canvas_course_id}/assignments/#{assignment_id}/submissions", body)
+  end
+
   # Batch updates grades for multiple users and one assignment using the Canvas Submissions API:
   # https://canvas.instructure.com/doc/api/submissions.html#method.submissions_api.update
   # grades_by_user_id: hash containing canvas_user_id => grade

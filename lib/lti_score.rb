@@ -28,12 +28,20 @@ class LtiScore
   # Generates an LtiScore that represents a new Project submission where
   # a Teaching Assitant or other staff must grade the project.
   def self.new_project_submission(canvas_user_id, submission_url)
-    submission_data = {
-      :new_submission => true,
-      :submission_type => 'basic_lti_launch',
-      :submission_data => submission_url
-    }
-    generate(canvas_user_id, SUBMITTED, PENDING_MANUAL, submission_data)
+    new_pending_manual_submission(canvas_user_id, submission_url)
+  end
+
+  # Generates an LtiScore that represents a new Module submission where
+  # the automatic grading (grade_modules.rake) can update grades to.
+  def self.new_module_submission(canvas_user_id, submission_url)
+
+    # You may be tempted to use values like STARTED/PENDING to create this
+    # placeholder score/submission, but that would be a mistake. When doing that,
+    # if you use the Canvas API (e.g. update_grades) then it causes a 500 error
+    # on the Canvas side next time you try to retrieve the score. I think it's bc
+    # of the comments in API docs about only PENDING_MANUAL and FULLY_GRADED causing
+    # an associated submission to be created for the score line_item.
+    new_pending_manual_submission(canvas_user_id, submission_url)
   end
 
   # Generates an LtiScore that represents a new submission where no manual
@@ -75,5 +83,14 @@ private
     msg[:scoreMaximum] = score_maximum if score_maximum
     msg[:comment] = comment if comment
     msg.to_json
+  end
+
+  def self.new_pending_manual_submission(canvas_user_id, submission_url)
+    submission_data = {
+      :new_submission => true,
+      :submission_type => 'basic_lti_launch',
+      :submission_data => submission_url
+    }
+    generate(canvas_user_id, SUBMITTED, PENDING_MANUAL, submission_data)
   end
 end

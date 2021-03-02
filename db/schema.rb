@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_02_03_173624) do
+ActiveRecord::Schema.define(version: 2021_03_01_154020) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -307,6 +307,15 @@ ActiveRecord::Schema.define(version: 2021_02_03_173624) do
     t.index ["user_id"], name: "index_rate_this_module_submissions_on_user_id"
   end
 
+  create_table "rise360_module_grades", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "course_rise360_module_version_id", null: false
+    t.string "canvas_results_url"
+    t.index ["course_rise360_module_version_id"], name: "index_rise360_module_grades_on_course_rise360_module_version_id"
+    t.index ["user_id", "course_rise360_module_version_id"], name: "index_rise360_module_grades_uniqueness", unique: true
+    t.index ["user_id"], name: "index_rise360_module_grades_on_user_id"
+  end
+
   create_table "rise360_module_interactions", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.string "activity_id", null: false
@@ -319,6 +328,7 @@ ActiveRecord::Schema.define(version: 2021_02_03_173624) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["new", "user_id", "activity_id", "verb"], name: "index_lesson_interactions_1"
+    t.index ["user_id", "canvas_assignment_id"], name: "index_rise360_module_interactions_on_user_id_and_assignment_id"
     t.index ["user_id"], name: "index_rise360_module_interactions_on_user_id"
   end
 
@@ -542,6 +552,8 @@ ActiveRecord::Schema.define(version: 2021_02_03_173624) do
   add_foreign_key "rate_this_module_submission_answers", "rate_this_module_submissions"
   add_foreign_key "rate_this_module_submissions", "course_rise360_module_versions"
   add_foreign_key "rate_this_module_submissions", "users"
+  add_foreign_key "rise360_module_grades", "course_rise360_module_versions"
+  add_foreign_key "rise360_module_grades", "users"
   add_foreign_key "rise360_module_interactions", "users"
   add_foreign_key "rise360_module_states", "users"
   add_foreign_key "rise360_module_versions", "rise360_modules"
