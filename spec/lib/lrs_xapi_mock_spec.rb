@@ -19,6 +19,7 @@ RSpec.describe LrsXapiMock do
       allow(request).to receive(:raw_post).and_return(post_body) if method == 'PUT' || method == 'POST'
       allow(request).to receive(:method).and_return(method)
       allow(request).to receive(:authorization).and_return(authorization)
+      allow(GradeModuleForUserJob).to receive(:perform_later).and_return(nil)
       response # This is what makes the request for each test and sets this to the response
     end
 
@@ -109,6 +110,42 @@ RSpec.describe LrsXapiMock do
           expect(Rise360ModuleInteraction.last.progress).to eq(30)
           expect(Rise360ModuleInteraction.last.user).to eq(user)
           expect(Rise360ModuleInteraction.last.activity_id).to eq('http://example_activity_id')
+        end
+
+        # We only do this when they finish or nighlty b/c it's computationally and memory intensive.
+        it 'does not kick off module grading job' do
+          expect(GradeModuleForUserJob).not_to have_received(:perform_later)
+        end
+
+        it 'returns 204' do
+          expect(response).to eq(response_204)
+        end
+      end
+
+      context 'PUT with progressed 100 verb' do
+        let(:query_parameters) {{ 'statementId': 'test' }}
+        let(:post_body) {{
+          'actor': 'TEST_REPLACED',
+          'verb': { 'id': Rise360ModuleInteraction::PROGRESSED },
+          'object': { 'id': 'http://example_activity_id' },
+          'result': { 'extensions': {
+            'http://w3id.org/xapi/cmi5/result/extensions/progress': 100,
+          } },
+        }.to_json}
+        let(:method) { 'PUT' }
+
+        it 'saves an interaction record' do
+          expect(Rise360ModuleInteraction.count).to eq(1)
+          expect(Rise360ModuleInteraction.last.progress).to eq(100)
+        end
+
+        it 'kicks off the module grading job' do
+          expect(GradeModuleForUserJob).to have_received(:perform_later)
+            .with(user,
+                  lti_launch.request_message.canvas_course_id,
+                  lti_launch.request_message.custom['assignment_id'],
+                  'http://example_activity_id',
+            ).once 
         end
 
         it 'returns 204' do

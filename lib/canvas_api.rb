@@ -100,6 +100,19 @@ class CanvasAPI
     JSON.parse(response.body)
   end
 
+  # Updates a single grade synchronously. Note that update_grades() above does it
+  # asynchonously.
+  def update_grade(course_id, assignment_id, canvas_user_id, grade)
+    body = { 'submission[posted_grade]' => grade.to_s }
+
+    response = put(
+      "/courses/#{course_id}/assignments/#{assignment_id}/submissions/#{canvas_user_id}",
+      body,
+    )
+
+    JSON.parse(response.body)
+  end
+
   def create_user(first_name, last_name, username, email, salesforce_id, student_id, timezone)
     body = {
         'user[name]' => "#{first_name} #{last_name}",

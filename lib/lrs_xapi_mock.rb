@@ -176,15 +176,22 @@ private
     # We want this to 500 out if there's anything unexpected.
     case verb
     when Rise360ModuleInteraction::PROGRESSED
-      Rise360ModuleInteraction.create!(
+      progress = payload.dig('result', 'extensions',
+        'http://w3id.org/xapi/cmi5/result/extensions/progress'
+      )
+      rmi = Rise360ModuleInteraction.create!(
         verb: verb,
         user: user,
         canvas_course_id: parsed[:course],
         canvas_assignment_id: parsed[:assignment],
         activity_id: activity_id,
-        progress: payload.dig('result', 'extensions',
-            'http://w3id.org/xapi/cmi5/result/extensions/progress')
-        )
+        progress: progress,
+      )
+      # Grade it now if they complete the module instead of waiting for the nightly task
+      # so that they immediately see they get credit and feel good about that.
+      if progress == 100
+        GradeModuleForUserJob.perform_later(user, rmi.canvas_course_id, rmi.canvas_assignment_id, activity_id)
+      end
     when Rise360ModuleInteraction::ANSWERED
       Rise360ModuleInteraction.create!(
         verb: verb,
