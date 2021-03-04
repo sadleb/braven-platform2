@@ -222,4 +222,11 @@ Rails.application.routes.draw do
 
   # Honeycomb Instrumentation Routes
   post '/honeycomb_js/send_span', to: 'honeycomb_js#send_span'
+
+  # Catch-all route for missing ones to return an unauthorized response rather than a 404
+  get '*other', to: 'home#missing_route'
+  post '*other', to: 'home#missing_route'
+  put '*other', to: 'home#missing_route'
+  patch '*other', to: 'home#missing_route'
+  delete '*other', to: 'home#missing_route'
 end
