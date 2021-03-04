@@ -76,7 +76,10 @@ private
     # request.referrer contains a state token when an iframe is loaded *inside* Rise360 content.
     # request.referrer contains a state token when an iframe is loaded *inside* CustomContent (Projects).
     def fetch_state
-      lti_state = params[:state] || params[:auth]
+      lti_state = params[:state]
+      unless lti_state
+        lti_state = params[:auth][/#{LtiConstants::AUTH_HEADER_PREFIX} (.*)$/, 1] if params[:auth]
+      end
       unless lti_state
         lti_state = request.headers[:authorization][/#{LtiConstants::AUTH_HEADER_PREFIX} (.*)$/, 1] if request.headers[:authorization]
       end

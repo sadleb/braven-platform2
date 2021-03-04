@@ -27,7 +27,9 @@ class LtiRise360Proxy < Rack::Proxy
 
   def perform_request(env)
     request = Rack::Request.new(env)
+
     if request.path =~ PROXY_REGEX
+      return [401, {}, ['Unauthorized']] unless authenticate(request)
       env["HTTP_HOST"] = @backend.host # e.g. some-bucket.s3.amazonaws.com
       env['PATH_INFO'] = $1            # The match in the regex above
       super(env)
@@ -36,4 +38,22 @@ class LtiRise360Proxy < Rack::Proxy
     end
   end
 
+private
+
+  # Authentication is handled by Warden in Rails/Rack:
+  # https://github.com/wardencommunity/warden/wiki
+  # This is a proxy / middleware endpoint that doesn't go through
+  # the normal Rails controller routing, so we have to handle this
+  # ourselves
+  def authenticate(request)
+    warden = request.env['warden']
+    return false unless warden
+    return true if warden.authenticated? # short circuit if already authenticated using session
+
+    # Authenticate but don't fail out b/c it would try redirecting to login.
+    # Just return if it fails so we respond with a 401
+    warden.authenticate 
+    return true if warden.user
+    false
+  end
 end
