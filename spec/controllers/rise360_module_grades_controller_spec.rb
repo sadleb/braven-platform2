@@ -14,14 +14,14 @@ RSpec.describe Rise360ModuleGradesController, type: :controller do
     create :rise360_module_grade, user: user_with_grade, course_rise360_module_version: course_rise360_module_version
   }
   let(:rise360_module_interaction_ungraded) {
-    create(:ungraded_module_interaction,
+    create(:ungraded_progressed_module_interaction,
       user: user_with_grade,
       canvas_course_id: course.canvas_course_id,
       canvas_assignment_id: course_rise360_module_version.canvas_assignment_id
     )
   }
   let(:rise360_module_interaction_graded) {
-    create(:graded_module_interaction,
+    create(:graded_progressed_module_interaction,
       user: user_with_grade,
       canvas_course_id: course.canvas_course_id,
       canvas_assignment_id: course_rise360_module_version.canvas_assignment_id
