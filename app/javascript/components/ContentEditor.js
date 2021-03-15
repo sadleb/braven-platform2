@@ -494,15 +494,15 @@ class ContentEditor extends Component {
                         }}
                     />
                     <CommandButton
-                        key="imageUpload"
-                        enabled={this.state.enabledCommands.includes('imageUpload')}
+                        key="uploadImage"
+                        enabled={this.state.enabledCommands.includes('uploadImage')}
                         onClick={this.showFileUpload}
                         onClickDisabled={() => this.editor.editing.view.focus()}
                         name='Image (Upload)'
                     />
                     <CommandButton
-                        key="imageInsert"
-                        enabled={this.state.enabledCommands.includes('imageInsert')}
+                        key="insertImage"
+                        enabled={this.state.enabledCommands.includes('insertImage')}
                         onClick={( id ) => {
                             const url = window.prompt('URL', 'http://placekitten.com/200/300');
                             this.editor.execute( 'imageInsert', {source: url} );

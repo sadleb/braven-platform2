@@ -534,9 +534,17 @@ To update JavaScript dependencies, run:
 
 CKEditor updates tend to have major breaking changes often, so be sure to test and make sure everything still works.
 
+From time to time, it may be useful to check for JS packages with known vulnerabilities. To do so, run:
+
+    yarn audit
+
+If there is anything to fix, you should be able to upgrade them automatically with:
+
+    npx yarn-audit-fix
+
 Once the dependencies are updated, you will need to rebuild your container:
 
-    docker-compose build
+    ./docker-compose/scripts/rebuild.sh
 
 ### Accessibility testing
 
