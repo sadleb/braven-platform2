@@ -156,7 +156,7 @@
 
   <h3>Edit Attendance Events</h3>
   <%= link_to 'Add Attendance Event', new_course_course_attendance_event_path(@course), class: 'btn btn-sm btn-secondary' %>
-  <%= link_to 'Create New Attendance Event', new_attendance_event_path(:redirect_to => edit_course_path(@course)), class: 'btn btn-sm btn-secondary' %>
+  <%= link_to 'Create New Attendance Event', new_attendance_event_path(:redirect_to_course => @course.id), class: 'btn btn-sm btn-secondary' %>
 
   <%= render :partial => 'course_attendance_events/list', locals: {course_attendance_events: @course.course_attendance_events} %>
 <% end %>
