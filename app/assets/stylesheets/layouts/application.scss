@@ -80,12 +80,3 @@
   z-index: 100;
   width: 100%;
 }
-
-/**
- * Misc
- */
-// A place to store data attributes in a hidden div so we can pass
-// information from the controller to the JS.
-#javascript_variables {
-  display: none;
-}
