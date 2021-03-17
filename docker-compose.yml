@@ -52,7 +52,7 @@ services:
     command: ./docker-compose/scripts/docker_compose_run.sh
 
   platformdb:
-    image: postgres
+    image: postgres:12
     env_file:
       - .env.database
     volumes:
