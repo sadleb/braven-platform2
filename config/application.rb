@@ -13,7 +13,7 @@ module Platform
   class Application < Rails::Application
 
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 6.0
+    config.load_defaults 6.1
 
     # Determines whether forgery protection is added on ActionController:Base. This is false by default to
     # be backwards compatible with v5.2 and below who may have removed it from ApplicationController

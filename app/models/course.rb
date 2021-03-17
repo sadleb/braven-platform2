@@ -20,8 +20,8 @@ class Course < ApplicationRecord
 
   # These are the actual join table records the represent a published ProjectVersion or SurveyVersion
   # to a particular Course
-  has_many :course_project_versions, -> { course_project_versions}, source: :course_custom_content_version, class_name: 'CourseProjectVersion'
-  has_many :course_survey_versions, -> { course_survey_versions}, source: :course_custom_content_version, class_name: 'CourseSurveyVersion'
+  has_many :course_project_versions, -> { course_project_versions }, class_name: 'CourseProjectVersion'
+  has_many :course_survey_versions, -> { course_survey_versions }, class_name: 'CourseSurveyVersion'
 
   has_many :course_attendance_events
   has_many :attendance_events, :through => :course_attendance_events

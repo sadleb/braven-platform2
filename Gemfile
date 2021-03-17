@@ -4,7 +4,7 @@ source 'https://rubygems.org'
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 ruby '2.6.5'
-gem 'rails', '~> 6.0.0'
+gem 'rails', '~> 6.1.0'
 
 gem 'pg'
 
@@ -28,7 +28,7 @@ group :development, :test do
 
   gem 'dotenv'
   gem 'factory_bot_rails'
-  gem 'rspec-rails', '~> 3.6'
+  gem 'rspec-rails', '~> 4.0.2'
   gem 'shoulda-matchers'
 end
 
