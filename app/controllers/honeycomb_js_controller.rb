@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'filter_logging'
+
 # Endpoint to handle Honeycomb instrumentation sent from Javascript
 #
 # Inspriation taken from these repos and the Honeycomb beeline source:
@@ -148,6 +150,9 @@ class HoneycombJsController < ApplicationController
       ensure
         Rails.logger.debug("  Sending JS span '#{@name}' to Honeycomb: trace.trace_id=#{@trace_id}")
         if (event.writekey)
+          # We have to explicitly run the logic in the Honeycomb.config.presend_hook here
+          # b/c apparently using the lower layer "libhoney" object doesn't run the hook.
+          FilterLogging.filter_honeycomb_data(event.data)
           event.send
         else
           Rails.logger.debug("  Skipped sending. Honeycomb isn't configured.")

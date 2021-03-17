@@ -95,7 +95,8 @@ gem 'devise_cas_authenticatable'
 
 gem 'react-rails'
 
-gem 'sentry-raven'
+gem "sentry-ruby"
+gem "sentry-rails"
 
 # Using a branch for a time being to remove R18n until we decide what we want to do
 gem 'rubycas-server-activerecord'

@@ -8,7 +8,7 @@ RSpec.describe HoneycombJsController, type: :controller do
   let!(:lti_launch) { create(:lti_launch_assignment, canvas_user_id: user.canvas_user_id) }
 
   let(:libhoney_client) { Libhoney::TestClient.new }
-  let(:libhoney_event) { double(Libhoney::Event, add_field: nil, send: nil, writekey: 'fakekey') }
+  let(:libhoney_event) { double(Libhoney::Event, add_field: nil, send: nil, data: nil, writekey: 'fakekey') }
 
   before(:each) do
     # Setup

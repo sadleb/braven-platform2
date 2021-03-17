@@ -1,6 +1,12 @@
-# Be sure to restart your server when you modify this file.
+require 'filter_logging'
 
-# Configure sensitive parameters which will be filtered from the log file.
-Rails.application.config.filter_parameters += [
-  :passw, :secret, :token, :_key, :crypt, :salt, :certificate, :otp, :ssn
-]
+# Used for filtering out the parameters that you don't want shown in the logs,
+# such as passwords or credit card numbers.
+if FilterLogging.is_enabled? 
+
+  #Rails.application.config.filter_parameters += [
+  #  :passw, :secret, :token, :_key, :crypt, :salt, :certificate, :otp, :ssn
+  #]
+
+  Rails.application.config.filter_parameters << FilterLogging.filter_parameters
+end

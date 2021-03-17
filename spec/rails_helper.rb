@@ -19,6 +19,9 @@ require 'platform_helper'
 
 Dir["./spec/support/**/*.rb"].sort.each{|f| require f}
 
+# Disable Sentry for tests
+ENV['SENTRY_DSN'] = ''
+
 ENV['RAILS_ENV'] = 'test'
 require File.expand_path('../../config/environment', __FILE__)
 # Prevent database truncation if the environment is production

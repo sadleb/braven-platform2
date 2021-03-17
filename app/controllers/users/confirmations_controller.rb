@@ -53,10 +53,11 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
 
      # TGT = Ticket Granting Ticket helper, ST = Service Ticket helper. See: lib/rubycas-server-core/tickets.rb 
      tgt = TGT.create! username, ::Devise.cas_client
+# TODO: do we need to filter this cookie?
      response.set_cookie('tgt', tgt.to_s) # When the app calls back to validate the ticket, this is what makes that work.
      st = ST.create! login_service_url, username, tgt, ::Devise.cas_client
 
-     Rails.logger.debug("Done signing in confirmed user #{username} with CAS Ticket granting cookie '#{tgt.inspect}' and Service Ticket #{st.inspect}")
+     Rails.logger.debug("Done signing in confirmed user #{username} with CAS Ticket granting cookie and Service Ticket")
 
      Utils.build_ticketed_url(login_service_url, st)
   end

@@ -13,12 +13,12 @@ RestClient::Request.prepend(RestClientInstrumentation)
 
   before(:each) do
     expect(Honeycomb).to receive(:start_span).and_yield(span)
-    expect(span).to receive(:add_field).with('class_name', class_name).once # Example is the class one caller up. E.g. the `it` block.
-    expect(span).to receive(:add_field).with('method', method).once
-    expect(span).to receive(:add_field).with('url', target_url).once
-    expect(span).to receive(:add_field).with('timestamp', anything).once
-    expect(span).to receive(:add_field).with('headers', hash_including(expected_headers)).once
-    expect(span).to receive(:add_field).with('status', status).once
+    expect(span).to receive(:add_field).with('restclient.class_name', class_name).once # Example is the class one caller up. E.g. the `it` block.
+    expect(span).to receive(:add_field).with('restclient.method', method).once
+    expect(span).to receive(:add_field).with('restclient.url', target_url).once
+    expect(span).to receive(:add_field).with('restclient.timestamp', anything).once
+    expect(span).to receive(:add_field).with('restclient.headers', hash_including(expected_headers)).once
+    expect(span).to receive(:add_field).with('restclient.status', status).once
     stub_request(method.to_sym, target_url).to_return(body: fake_body, status: status) 
   end
 
@@ -34,7 +34,7 @@ RestClient::Request.prepend(RestClientInstrumentation)
     end
   
     context 'with :authorization header => "Basic sometoken"' do
-      let(:expected_headers) { {'Authorization' => '[REDACTED]' } }
+      let(:expected_headers) { {'Authorization' => 'Basic fakeauthtoken' } }
       it 'redacts the header value' do
         response = RestClient.get(target_url, { :authorization => 'Basic fakeauthtoken' } )
         expect(response).to eq(fake_body)
@@ -42,7 +42,7 @@ RestClient::Request.prepend(RestClientInstrumentation)
     end
 
     context 'with "Authorization: Bearer sometoken" header' do
-      let(:expected_headers) { {'Authorization' => '[REDACTED]' } }
+      let(:expected_headers) { {'Authorization' => 'Bearer fakeauthtoken' } }
       it 'redacts the :authorization header' do
         response = RestClient.get(target_url, { 'Authorization' => 'Bearer fakeauthtoken' } )
         expect(response).to eq(fake_body)
@@ -58,8 +58,8 @@ RestClient::Request.prepend(RestClientInstrumentation)
     let(:class_name) { 'RaiseError' }
 
     it 'adds error details to Honeycomb' do
-      expect(span).to receive(:add_field).with('error', '401 Unauthorized')
-      expect(span).to receive(:add_field).with('error_response', fake_body)
+      expect(span).to receive(:add_field).with('restclient.error', '401 Unauthorized')
+      expect(span).to receive(:add_field).with('restclient.error_response', fake_body)
       expect { RestClient.get(target_url) }.to raise_error(RestClient::Exception)
     end
   end

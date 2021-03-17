@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rubycas-server-core/util'
 require 'rubycas-server-core/tickets'
 require 'rubycas-server-core/tickets/validations'
@@ -43,15 +45,15 @@ class CasController < ApplicationController
         :message => "You are currently logged in as '#{tgt.username}'. If this is not you, please log in below."
       }
     elsif tgt_error
-      logger.debug("Ticket granting cookie could not be validated: #{tgt_error}")
+      logger.debug('Ticket granting cookie could not be validated. Most likely it is not in the database')
     elsif !tgt
-      logger.debug("No ticket granting ticket detected.")
+      logger.debug('No ticket granting ticket detected.')
     end
 
     if params['redirection_loop_intercepted']
       @message = {
         :type => 'mistake',
-        :message => "The client and server are unable to negotiate authentication. Please try logging in again later."
+        :message => 'The client and server are unable to negotiate authentication. Please try logging in again later.'
       }
     end
 
@@ -60,7 +62,7 @@ class CasController < ApplicationController
         if @renew
           logger.info("Authentication renew explicitly requested. Proceeding with CAS login for service #{@service.inspect}.")
         elsif tgt && !tgt_error
-          logger.debug("Valid ticket granting ticket detected.")
+          logger.debug('Valid ticket granting ticket detected.')
           st = ST.create! @service, tgt.username, tgt, @request_client
           logger.info("User '#{tgt.username}' authenticated based on ticket granting cookie. Redirecting to service '#{@service}'.")
           # Devise tends to flash a "You need to sign in or sign up before continuing." alert.
@@ -73,24 +75,24 @@ class CasController < ApplicationController
           logger.info("Proceeding with CAS login for service #{@service.inspect}.")
         end
       elsif @gateway
-          logger.error("This is a gateway request but no service parameter was given!")
+          logger.error('This is a gateway request but no service parameter was given!')
           @message = {
             :type => 'mistake',
-            :message => "The server cannot fulfill this gateway request because no service parameter was given."
+            :message => 'The server cannot fulfill this gateway request because no service parameter was given.'
           }
       else
-        logger.info("Proceeding with CAS login without a target service.")
+        logger.info('Proceeding with CAS login without a target service.')
       end
     rescue URI::InvalidURIError
       logger.error("The service '#{@service}' is not a valid URI!")
       @message = {:type => 'mistake',
-        :message => "The target service your browser supplied appears to be invalid. Please contact your system administrator for help."
+        :message => 'The target service your browser supplied appears to be invalid. Please contact your system administrator for help.'
       }
     end
 
     lt = LT.create! @request_client
 
-    logger.debug("Rendering login form with lt: #{lt}, service: #{@service}, renew: #{@renew}, gateway: #{@gateway}")
+    logger.debug("Rendering login form with login ticket for service: #{@service}, renew: #{@renew}, gateway: #{@gateway}")
 
     @lt = lt.ticket
 
@@ -112,7 +114,7 @@ class CasController < ApplicationController
       if @form_action
         return render :_login_form
       else
-        return render :json => {:response => "Could not guess the CAS login URI. Please supply a submitToURI parameter with your request."}, status: :internal_server_error
+        return render :json => {:response => 'Could not guess the CAS login URI. Please supply a submitToURI parameter with your request.'}, status: :internal_server_error
       end
     else
       render :login
@@ -135,7 +137,7 @@ class CasController < ApplicationController
     @lt = LT.create!(@request_client).ticket
 
     # Don't log out the entire @settings variable, it has sensitive info.
-    logger.debug("Logging in with username: #{@username}, lt: #{@lt}, service: #{@service}")
+    logger.debug("Logging in with username: #{@username} using a login ticket for service: #{@service}")
 
     credentials_are_valid = false
     extra_attributes = {}
@@ -169,11 +171,11 @@ class CasController < ApplicationController
         tgt = TGT.create! @username, @request_client, false, extra_attributes
         response.set_cookie('tgt', tgt.to_s)
 
-        logger.debug("Ticket granting cookie '#{tgt.inspect}' granted to #{@username.inspect}")
+        logger.debug("Ticket granting cookie granted to #{@username.inspect}")
 
         if @service.blank?
           logger.info("Successfully authenticated user '#{@username}' at '#{tgt.client_hostname}'. No service param was given, so we will not redirect.")
-          @message = {:type => 'confirmation', :message => "You have successfully logged in."}
+          @message = {:type => 'confirmation', :message => 'You have successfully logged in.'}
         else
           @st = ST.create! @service, @username, tgt, @request_client
 
@@ -186,7 +188,7 @@ class CasController < ApplicationController
             logger.error("The service '#{@service}' is not a valid URI!")
             @message = {
               :type => 'mistake',
-              :message => "The target service your browser supplied appears to be invalid. Please contact your system administrator for help."
+              :message => 'The target service your browser supplied appears to be invalid. Please contact your system administrator for help.'
             }
           end
         end
@@ -195,10 +197,10 @@ class CasController < ApplicationController
         unconfirmed_user = user && user.confirmed? == false
         if unconfirmed_user
           logger.warn("Unconfirmed user tried to login: '#{@username}'")
-          @message = { :type => 'mistake', :message => "Please confirm your account by clicking on the link in the email you received first." }
+          @message = { :type => 'mistake', :message => 'Please confirm your account by clicking on the link in the email you received first.' }
         else
           logger.warn("Invalid credentials given for user '#{@username}'")
-          @message = { :type => 'mistake', :message => "Incorrect username or password." }
+          @message = { :type => 'mistake', :message => 'Incorrect username or password.' }
         end
         return render :login, status: :unauthorized
       end
@@ -230,10 +232,10 @@ class CasController < ApplicationController
 
     if tgt
       TicketGrantingTicket.transaction do
-        logger.debug("Deleting Service/Proxy Tickets for '#{tgt}' for user '#{tgt.username}'")
+        logger.debug("Deleting Service/Proxy Tickets for user '#{tgt.username}'")
         tgt.service_tickets.each do |st|
           ST.send_logout_notification_for_service_ticket(st) if @settings[:enable_single_sign_out]
-          logger.debug "Deleting #{st.class.name.demodulize} #{st.ticket.inspect} for service #{st.service}."
+          logger.debug "Deleting #{st.class.name.demodulize} for service #{st.service}."
           st.destroy
         end
 
@@ -243,20 +245,20 @@ class CasController < ApplicationController
         #   :include => :service_ticket
         # )
         # pgts.each do |pgt|
-        #   logger.debug("Deleting Proxy-Granting Ticket '#{pgt}' for user '#{pgt.service_ticket.username}'")
+        #   logger.debug("Deleting Proxy-Granting Ticket for user '#{pgt.service_ticket.username}'")
         #   pgt.destroy
         # end
 
-        logger.debug("Deleting #{tgt.class.name.demodulize} '#{tgt}' for user '#{tgt.username}'")
+        logger.debug("Deleting #{tgt.class.name.demodulize} for user '#{tgt.username}'")
         tgt.destroy
       end
 
       logger.info("User '#{tgt.username}' logged out.")
     else
-      logger.warn("User tried to log out without a valid ticket-granting ticket.")
+      logger.warn('User tried to log out without a valid ticket-granting ticket.')
     end
 
-    @message = {:type => 'confirmation', :message => "You have successfully logged out."}
+    @message = {:type => 'confirmation', :message => 'You have successfully logged out.'}
 
     @log_out_of_services = true
 
@@ -269,8 +271,8 @@ class CasController < ApplicationController
   end
 
   def loginTicket
-    logger.error("Tried to use login ticket dispenser with get method!")
-    render :json => {:response => "To generate a login ticket, you must make a POST request."}, status: :unprocessable_entity
+    logger.error('Tried to use login ticket dispenser with get method!')
+    render :json => {:response => 'To generate a login ticket, you must make a POST request.'}, status: :unprocessable_entity
   end
   
   # Renders a page with a login ticket (and only the login ticket)
@@ -278,7 +280,7 @@ class CasController < ApplicationController
   def loginTicketPost
     lt = LT.create! @request_client
 
-    logger.debug("Dispensing login ticket #{lt} to host #{@request_client.inspect}")
+    logger.debug("Dispensing login ticket to host #{@request_client.inspect}")
 
     render :json => {:ticket => lt.ticket}
   end
@@ -387,7 +389,7 @@ module RubyCAS
             validate_proxy_granting_ticket(pgt)
           end
 
-          def self.create(pgt_url, pt, client = "localhost")
+          def self.create(pgt_url, pt, client = 'localhost')
             generate_proxy_granting_ticket(pgt_url, pt, client)
           end
         end
@@ -399,7 +401,7 @@ module RubyCAS
             validate_proxy_ticket(service, ticket)
           end
 
-          def self.create(target_service, pgt, client = "localhost")
+          def self.create(target_service, pgt, client = 'localhost')
             generate_proxy_ticket(target_service, pgt, client)
           end
         end
