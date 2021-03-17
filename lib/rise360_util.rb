@@ -48,7 +48,6 @@ class Rise360Util
               next unless entry.file?
               s3_object = bucket.object(s3_object_key(zipfile.key, entry.name))
               s3_object.put({
-                  acl: "public-read",
                   body: entry.get_input_stream.read,
               })
             end
