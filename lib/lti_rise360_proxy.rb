@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 require 'rack/proxy'
+require 'uri'
+require_relative 'rise360_util'
 
 # Implements a reverse proxy to our published LessonContent on AWS S3.
 # Needed to avoid security concerns with cross origin / AJAX / XHR browser issues.
@@ -30,8 +32,14 @@ class LtiRise360Proxy < Rack::Proxy
 
     if request.path =~ PROXY_REGEX
       return [401, {}, ['Unauthorized']] unless authenticate(request)
-      env["HTTP_HOST"] = @backend.host # e.g. some-bucket.s3.amazonaws.com
-      env['PATH_INFO'] = $1            # The match in the regex above
+
+      path = $1 # from regex match above
+      uri = URI(Rise360Util.presigned_url(path))
+
+      env["HTTP_HOST"] = uri.host           # e.g. some-bucket.s3.amazonaws.com
+      env['PATH_INFO'] = uri.path           # The path matched in the regex above
+      env['QUERY_STRING'] = uri.query       # The AWS query params signing it
+
       super(env)
     else
       @app.call(env)

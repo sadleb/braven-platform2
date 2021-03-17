@@ -3,11 +3,13 @@ require 'rise360_util'
 
 RSpec.describe Rise360Util do
 
+  let(:aws_bucket) { double(Rise360Util::AwsS3Bucket) }
   let(:aws_object) { instance_double(Aws::S3::Object) }
   let(:rise360_module) { create(:rise360_module_with_zipfile) }
 
   before(:each) do
-    allow_any_instance_of(Rise360Util::AwsS3Bucket).to receive(:object).and_return(aws_object)
+    allow(Rise360Util::AwsS3Bucket).to receive(:new).and_return(aws_bucket)
+    allow(aws_bucket).to receive(:object).and_return(aws_object)
     allow(aws_object).to receive(:public_url).and_return("https://S3-bucket-path/lessons/somekey/index.html")
     allow(aws_object).to receive(:put)
   end
@@ -30,6 +32,21 @@ RSpec.describe Rise360Util do
         allow(Rise360Util).to receive(:publish).and_return("https://S3-bucket-path/lessons/somekey/index.html")
         expect(aws_object).to receive(:public_url).and_return("https://S3-bucket-path/lessons/somekey/index.html")
         expect(Rise360Util.launch_path(rise360_module.rise360_zipfile.key)).to eq('/lessons/somekey/index.html')
+      end
+
+    end
+  end
+
+  describe '#presigned_url' do
+    context 'when valid Rise360 zipfile' do
+
+      it 'returns a presigned URL' do
+        presigned_query = 'X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=FAKEACCESSKEY%2F20210316%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20210316T175545Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=37FAKESIGNATURE9c'
+        presigned_url = "https://S3-bucket-path/lessons/somekey/index.html?#{presigned_query}"
+
+        expect(aws_bucket).to receive(:object).with('lessons/somekey/index.html').and_return(aws_object)
+        expect(aws_object).to receive(:presigned_url).with(:get, Hash).and_return(presigned_url)
+        expect(Rise360Util.presigned_url('/lessons/somekey/index.html')).to eq(presigned_url)
       end
 
     end
