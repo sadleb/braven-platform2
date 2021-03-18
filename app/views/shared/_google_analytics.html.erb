@@ -1,0 +1,6 @@
+<% if Rails.application.secrets.google_analytics_tracking_id %>
+
+  <%= javascript_include_tag "https://www.googletagmanager.com/gtag/js?id=#{Rails.application.secrets.google_analytics_tracking_id}", async: true %>
+  <%= javascript_pack_tag 'analytics', async: true %>
+
+<% end %>

@@ -1,0 +1,18 @@
+// Google Analytics code adapted slighlty to work with turbolinks drawing inspiration
+// from these articles / examples:
+//
+// https://levelup.gitconnected.com/ruby-on-rails-6-with-google-analytics-turbolinks-and-a-content-security-policy-c4e078df8530
+// https://github.com/paulmwatson/rails-google-analytics-csp-turbolinks
+
+window.dataLayer = window.dataLayer || []
+function gtag() { dataLayer.push(arguments) }
+
+gtag('js', new Date())
+
+const trackGoogleAnalytics = (event) => {
+  gtag('config', '<%= Rails.application.secrets.google_analytics_tracking_id %>', {
+    'cookie_flags': 'max-age=7200;secure;samesite=none'
+  })
+}
+
+document.addEventListener('turbolinks:load', trackGoogleAnalytics)
