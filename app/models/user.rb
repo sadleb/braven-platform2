@@ -1,4 +1,3 @@
-require 'grade_calculator'
 require 'salesforce_api'
 require 'canvas_api'
 
@@ -92,10 +91,6 @@ class User < ApplicationRecord
 
   def can_take_attendance_for_all?
     admin? or has_role? RoleConstants::CAN_TAKE_ATTENDANCE_FOR_ALL
-  end
-
-  def total_grade(course)
-    ::GradeCalculator.total_grade(self, course)
   end
 
   def self.search(query)
