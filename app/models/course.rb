@@ -26,8 +26,6 @@ class Course < ApplicationRecord
   has_many :course_attendance_events
   has_many :attendance_events, :through => :course_attendance_events
 
-  has_many :grade_categories
-
   before_validation do
     name.strip!
   end
