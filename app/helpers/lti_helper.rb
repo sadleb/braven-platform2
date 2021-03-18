@@ -74,9 +74,9 @@ module LtiHelper
   # - https://learningpool.com/how-to-launch-elearning-content-using-xapi/
 
   # TODO: we can also provide an activity_id and registration. These are ways to group xApi statements together.
-  # I'm thinking each lesson or project has an activity_id to group the statements for that and then we have a
+  # I'm thinking each rise360_module_version or project has an activity_id to group the statements for that and then we have a
   # registration for the course to get all statements for a user for a particular course (in case they take multiple or drop and try again).
-  # However, will we need a finer grained level to group statements than just project / lesson?
+  # However, will we need a finer grained level to group statements than just project / rise360_module_version?
   def launch_query
     lrs_mock_url = URI(root_url)
     lrs_mock_url.path = LrsXapiMock::LRS_PATH
@@ -90,12 +90,12 @@ module LtiHelper
       # set it to whatever was specified when you exported the package. We should use their IDs but we need to coordinate
       # with designers on what to do here b/c we have the potential to be inconsistent making the data hard to gather.
       # Actually, this means a single export that is imported into different courses needs the registration set so we can
-      # pull data for that lesson just for the current course and not just any course.
+      # pull data for that rise360_module_version just for the current course and not just any course.
       # ALSO, we *could* set the activity id either when we publish it or on the fly by changing the
       # TC_COURSE_ID variable in tc-config.js
       # ALSO note that the "experienced" statement send the activity ID appended with another ID to identify the section
-      # of the lesson. The IDs are defined in tincan.xml. See here for an example:
-      # https://platform-dev-file-uploads.s3.amazonaws.com/lessons/ytec17h3ckbr92vcf7nklxmat4tc/tincan.xml
+      # of the rise360_module_version. The IDs are defined in tincan.xml. See here for an example:
+      # https://the-file-uploads-bucket.s3.amazonaws.com/lessons/ytec17h3ckbr92vcf7nklxmat4tc/tincan.xml
       #      :activity_id => url_encode('https://braven.instructure.com/courses/48/assignments/158')
 
     }

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_03_15_210909) do
+ActiveRecord::Schema.define(version: 2021_03_18_132111) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -182,27 +182,6 @@ ActiveRecord::Schema.define(version: 2021_03_15_210909) do
     t.datetime "updated_at", precision: 6, null: false
     t.index ["created_at"], name: "index_keypairs_on_created_at"
     t.index ["jwk_kid"], name: "index_keypairs_on_jwk_kid"
-  end
-
-  create_table "lesson_submissions", force: :cascade do |t|
-    t.bigint "user_id", null: false
-    t.bigint "lesson_id", null: false
-    t.float "points_received"
-    t.datetime "submitted_at"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.index ["lesson_id"], name: "index_lesson_submissions_on_lesson_id"
-    t.index ["user_id"], name: "index_lesson_submissions_on_user_id"
-  end
-
-  create_table "lessons", force: :cascade do |t|
-    t.bigint "grade_category_id", null: false
-    t.string "name", null: false
-    t.integer "points_possible", null: false
-    t.float "percent_of_grade_category", null: false
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.index ["grade_category_id"], name: "index_lessons_on_grade_category_id"
   end
 
   create_table "location_relationships", id: false, force: :cascade do |t|
@@ -548,9 +527,6 @@ ActiveRecord::Schema.define(version: 2021_03_15_210909) do
   add_foreign_key "fellow_evaluation_submissions", "courses"
   add_foreign_key "fellow_evaluation_submissions", "users"
   add_foreign_key "grade_categories", "courses"
-  add_foreign_key "lesson_submissions", "lessons"
-  add_foreign_key "lesson_submissions", "users"
-  add_foreign_key "lessons", "grade_categories"
   add_foreign_key "peer_review_submission_answers", "peer_review_questions"
   add_foreign_key "peer_review_submission_answers", "peer_review_submissions"
   add_foreign_key "peer_review_submission_answers", "users", column: "for_user_id"

@@ -34,20 +34,20 @@ module DryCrud
 
   protected
 
-    # E.g. if your controller is called LessonsController this will set the instance variable like so:
-    # @lessons = Lessons.all
+    # E.g. if your controller is called ProjectSubmissionsController this will set the instance variable like so:
+    # @project_submissions = ProjectSubmissions.all
     def set_models_instance
       instance_variable_set(:"@#{instance_variable_name.pluralize}", models_list)
     end
 
-    # E.g. if your controller is called LessonsController this will set the instance variable like so:
-    # @lesson = Lesson.find(params[:id])
+    # E.g. if your controller is called ProjectSubmissionsController this will set the instance variable like so:
+    # @project_submission = ProjectSubmission.find(params[:id])
     def set_model_instance
       instance_variable_set(:"@#{instance_variable_name}", model_class.find(params[:id]))
     end
 
-    # E.g. if your controller is called LessonsController this will create a new instance variable like so:
-    # @lesson = Lesson.new
+    # E.g. if your controller is called ProjectSubmissionsController this will create a new instance variable like so:
+    # @project_submission = ProjectSubmission.new
     def new_model_instance
       instance_variable_set(:"@#{instance_variable_name}", model_class.new)
     end
@@ -150,8 +150,8 @@ module DryCrud
 
       def models_list
         if @parent.present?
-          # E.g. for a Lesson with LessonSubmissions nested under it, this would call
-          # Lesson.send(lesson_submissions)
+          # E.g. for a CourseProjectVersion with ProjectSubmissions nested under it, this would call
+          # CourseProjectVersion.send(project_submissions)
           @parent.send(model_class.name.underscore.pluralize)
         else
           super

@@ -9,7 +9,7 @@ require_relative 'rise360_util'
 #
 # Hitting a path like:
 #
-#   https://platformweb/lesson_contents_proxy/the/path/on/aws/s3
+#   https://platformweb/rise360_proxy/the/path/on/aws/s3
 # 
 # will cause the request/response to be proxied to the configured AWS S3 bucket at
 #

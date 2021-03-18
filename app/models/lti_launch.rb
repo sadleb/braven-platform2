@@ -60,7 +60,7 @@ class LtiLaunch < ApplicationRecord
     User.find_by(canvas_user_id: request_message.canvas_user_id)
   end
 
-  # Each lesson or project has a single activity ID that ties together all the xAPI statements
+  # Each rise360_module_version or project has a single activity ID that ties together all the xAPI statements
   # for it. This returns that ID.
   def activity_id
     raise ArgumentError.new, 'Wrong LTI launch message type. Must be a launch of a ResourceLink.' unless request_message.is_a?(LtiResourceLinkRequestMessage) 

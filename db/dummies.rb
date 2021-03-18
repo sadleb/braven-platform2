@@ -47,11 +47,3 @@ ProjectSubmission.find_or_create_by! user: User.first, project: project1, points
 ProjectSubmission.find_or_create_by! user: User.first, project: project2, points_received: 20, submitted_at: DateTime.now
 ProjectSubmission.find_or_create_by! user: User.second, project: project1, points_received: 5, submitted_at: DateTime.now
 ProjectSubmission.find_or_create_by! user: User.second, project: project2, points_received: 10, submitted_at: DateTime.now
-
-lesson1 = Lesson.find_or_create_by! name: 'Test Lesson 1', grade_category: grade_category1, percent_of_grade_category: 0.5, points_possible: 50
-lesson2 = Lesson.find_or_create_by! name: 'Test Lesson 2', grade_category: grade_category2, percent_of_grade_category: 0.5, points_possible: 100
-
-LessonSubmission.find_or_create_by! user: User.first, lesson: lesson1, points_received: 50, submitted_at: DateTime.now
-LessonSubmission.find_or_create_by! user: User.first, lesson: lesson2, points_received: 100, submitted_at: DateTime.now
-LessonSubmission.find_or_create_by! user: User.second, lesson: lesson1, points_received: 25, submitted_at: DateTime.now
-LessonSubmission.find_or_create_by! user: User.second, lesson: lesson2, points_received: 50, submitted_at: DateTime.now
