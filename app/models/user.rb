@@ -24,8 +24,6 @@ class User < ApplicationRecord
   
   has_many :project_submissions
   has_many :projects, :through => :project_submissions
-  has_many :lesson_submissions
-  has_many :lessons, :through => :lesson_submissions
 
   validates :email, uniqueness: true
   validates :email, :first_name, :last_name, presence: true
