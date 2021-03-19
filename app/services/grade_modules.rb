@@ -66,7 +66,7 @@ class GradeModules
         .pluck(:canvas_assignment_id)
 
       span.add_field('app.course.id', course.id)
-      span.add_field('app.course.canvas_course_id', course.canvas_course_id)
+      span.add_field('app.canvas.course.id', course.canvas_course_id)
       span.add_field('app.grade_modules.users.count', user_ids.count)
       span.add_field('app.grade_modules.assignments.count', canvas_assignment_ids.count)
 
