@@ -99,6 +99,14 @@ RSpec.describe LtiRise360Proxy do
       it 'returns a 401 unauthorized' do
         expect(last_response.status).to eq(401)
       end
+
+      context 'getting a font file' do
+        let(:aws_s3_file_path) { '/lessons/ytec17h3ckbr92vcf7nklxmat4tc/lib/fonts/icomoon.woff' }
+        it 'allows the request' do
+          expect(warden).not_to have_received(:authenticated?)
+          expect(WebMock).to have_requested(:get, proxied_full_url).once
+        end
+      end
     end
   end
 end
