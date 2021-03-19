@@ -24,13 +24,13 @@ class GradeModules
         return
       end
       canvas_course_ids = programs['records'].map { |r| r['Highlander_Accelerator_Course_ID__c'] }
-      span.add_field('canvas_course_ids', canvas_course_ids)
+      span.add_field('app.grade_modules.canvas_course_ids', canvas_course_ids)
 
       # Eliminate courses with no module interactions, and exit early if that
       # leaves us with an empty list.
       courses = Course.where(canvas_course_id: canvas_course_ids)
         .filter { |c| Rise360ModuleInteraction.where(canvas_course_id: c.canvas_course_id).exists? }
-      span.add_field('courses.count', courses.count)
+      span.add_field('app.grade_modules.courses.count', courses.count)
       if courses.empty?
         Rails.logger.info("Exit early: no accelerator courses with interactions")
         return
@@ -65,10 +65,10 @@ class GradeModules
         .where(course: course)
         .pluck(:canvas_assignment_id)
 
-      span.add_field('course.id', course.id)
-      span.add_field('course.canvas_course_id', course.canvas_course_id)
-      span.add_field('users.count', user_ids.count)
-      span.add_field('assignments.count', canvas_assignment_ids.count)
+      span.add_field('app.course.id', course.id)
+      span.add_field('app.course.canvas_course_id', course.canvas_course_id)
+      span.add_field('app.grade_modules.users.count', user_ids.count)
+      span.add_field('app.grade_modules.assignments.count', canvas_assignment_ids.count)
 
       canvas_assignment_ids.each do |canvas_assignment_id|
         # We grab user_ids once outside the assignment loop and pass that list
@@ -83,9 +83,9 @@ class GradeModules
       # Select course again, because it's not that expensive and saves us passing it in.
       course = CourseRise360ModuleVersion.find_by(canvas_assignment_id: canvas_assignment_id).course
 
-      span.add_field('canvas_assignment_id', canvas_assignment_id)
-      span.add_field('course.id', course.id)
-      span.add_field('course.canvas_course_id', course.canvas_course_id)
+      span.add_field('app.canvas.assignment.id', canvas_assignment_id)
+      span.add_field('app.canvas.course.id', course.canvas_course_id)
+      span.add_field('app.course.id', course.id)
 
       # Initialize map of grades[canvas_user_id] = 'X%'.
       grades = Hash.new
@@ -102,15 +102,15 @@ class GradeModules
         canvas_assignment_id
       )
       # Send all the overrides to Honeycomb, hooray for wide events!
-      span.add_field('assignment_overrides', assignment_overrides)
+      span.add_field('app.grade_modules.assignment_overrides', assignment_overrides)
 
       # Select the max id before starting grading, so we can use it at the bottom to mark only things
       # before this as old. If we don't do this, we run the risk of marking things as old that we
       # haven't actually processed yet, causing students to get missing or incorrect grades.
       # NOTE: the `new` column should only be considered an estimate with +/- 1 day resolution.
       max_id = Rise360ModuleInteraction.maximum(:id)
-      span.add_field('interactions.max_id', max_id)
-      span.add_field('users.count', user_ids.count)
+      span.add_field('app.grade_modules.interactions.max_id', max_id)
+      span.add_field('app.grade_modules.users.count', user_ids.count)
 
       # All users in the course, even if they haven't interacted with this assignment.
       user_ids.each do |user_id|
@@ -144,10 +144,10 @@ class GradeModules
           )}%"
       end
 
-      span.add_field('grades.count', grades.count)
+      span.add_field('app.grade_modules.grades.count', grades.count)
       # Note: converting grades to string so it doesn't auto-unpack the JSON and
       # fill our schema with crud.
-      span.add_field('grades', grades.to_s)
+      span.add_field('app.grade_modules.grades', grades.to_s)
 
       if grades.empty?
         Rails.logger.info("Skip sending grades to Canvas for canvas_assignment_id = #{canvas_assignment_id}; no grades to send")

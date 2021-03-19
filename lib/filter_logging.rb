@@ -33,6 +33,14 @@ class FilterLogging
     'AccessToken' => ['key'],
   }
 
+  BOOMERANG_FIELD_PREFIX = 'js.boomerang'
+  FILTER_BOOMERANG_FIELDS = [
+    'pgu',
+    'u',
+    'restiming',
+    'state',
+  ]
+
   def self.is_enabled?
     # Filter sensitive data in all environments so that it's more likely we catch something slipping through
     true
@@ -117,17 +125,11 @@ class FilterLogging
       if fields.has_key?('request.query_string')
         fields['request.query_string'] = parameter_filter.filter_param('url', fields['request.query_string'])
       end
-      if fields.has_key?('pgu')
-        fields['pgu'] = parameter_filter.filter_param('pgu', fields['pgu'])
-      end
-      if fields.has_key?('u')
-        fields['u'] = parameter_filter.filter_param('u', fields['u'])
-      end
-      if fields.has_key?('restiming')
-        fields['restiming'] = parameter_filter.filter_param('restiming', fields['restiming'])
-      end
-      if fields.has_key?('state')
-        fields['state'] = parameter_filter.filter_param('state', fields['state'])
+      FILTER_BOOMERANG_FIELDS.each do |field_name|
+        if fields.has_key?("#{BOOMERANG_FIELD_PREFIX}.#{field_name}")
+          fields["#{BOOMERANG_FIELD_PREFIX}.#{field_name}"] =
+            parameter_filter.filter_param("#{field_name}", fields["#{BOOMERANG_FIELD_PREFIX}.#{field_name}"])
+        end
       end
     end
 
@@ -183,7 +185,8 @@ class FilterLogging
 
   rescue => e
     Rails.logger.error(e)
-    Honeycomb.add_field('sentry.error', e)
+    Honeycomb.add_field('error', e.class.name)
+    Honeycomb.add_field('error_detail', e.message)
   ensure
     return event
   end

@@ -17,7 +17,6 @@ module LtiAuthentication
 
     def authenticate!
       Honeycomb.start_span(name: 'LtiAuthentication.authenticate!') do |span|
-        span.add_field('lti_auth.state', @lti_state)
         user = nil
         url = nil
         status = nil
@@ -53,11 +52,12 @@ module LtiAuthentication
 private
 
     def finish_authenticate(span, status, message, url = nil, canvas_id = nil, user = nil)
-      span.add_field('status', status)
-      span.add_field('lti_auth.message', message)
-      span.add_field('url', url) if url 
-      span.add_field('canvas_id', canvas_id) if canvas_id
-      span.add_field('user_id', user.id) if user
+      span.add_field('app.lti_authentication.status', status&.to_s)
+      span.add_field('app.lti_authentication.message', message)
+      span.add_field('app.lti_authentication.url', url)
+      span.add_field('app.canvas.user.id', canvas_id)
+      span.add_field('app.user.id', user&.id)
+
       if status == :ok
         Rails.logger.debug(message)
         success!(user)

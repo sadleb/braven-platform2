@@ -31,7 +31,6 @@ class LinkedInAuthorizationController < ApplicationController
     redirect_url = linked_in_auth_redirect_url
 
     Honeycomb.add_field('user.linked_in_state', state)
-    Honeycomb.add_field('redirect_url', redirect_url)
 
     # Save a CSRF token so we can verify in #redirect
     current_user.linked_in_state = state
@@ -47,9 +46,6 @@ class LinkedInAuthorizationController < ApplicationController
   def oauth_redirect
     authorize :LinkedInAuthorization
 
-    Honeycomb.add_field('params.code', params[:code]) if params[:code]
-    Honeycomb.add_field('params.error', params[:error]) if params[:error]
-    Honeycomb.add_field('params.state', params[:state])
     Honeycomb.add_field('user.linked_in_state', current_user.linked_in_state)
 
     begin

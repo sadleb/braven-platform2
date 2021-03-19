@@ -26,6 +26,9 @@ class HoneycombJsController < ApplicationController
   #   https://github.com/honeycombio/beeline-ruby/blob/6db9d6e0f696d93212100cca5efdeefc7723afb7/lib/honeycomb/integrations/rack.rb#L35
   X_HONEYCOMB_TRACE_HEADER = 'X-Honeycomb-Trace'
 
+  BOOMERANG_FIELD_PREFIX = "js.boomerang"
+  CUSTOM_FIELD_PREFIX = "js.app"
+
   # Takes a span from Javascript and sends it to Honeycomb. The trace for the controller that
   # that rendered the page must be serialized in the 'X-Honeycomb-Trace' header so that we can
   # add this span as a child of that trace.
@@ -45,29 +48,32 @@ class HoneycombJsController < ApplicationController
     existing_trace_to_add_to = request.headers[X_HONEYCOMB_TRACE_HEADER]
     raise ActionController::BadRequest, "Missing '#{X_HONEYCOMB_TRACE_HEADER}' header" unless existing_trace_to_add_to 
 
-    span_name = params[:name] || 'javascript.event'
+    span_name = params[:name] || 'js.event'
     duration = params['t_done']
 
     if is_page_load_beacon?
-      span_name = 'javascript.page.load'
+      span_name = 'js.page.load'
     elsif is_page_unload_beacon?
-      span_name = 'javascript.page.unload'
+      span_name = 'js.page.unload'
       duration = 0 # the duration passed is actually for the page.load, so 0 it out.
     end
 
     PropagatedSpan.new(span_name, existing_trace_to_add_to, duration).send_to_honeycomb() do |span|
 
       # Add some standard common server side accessible fields to make it easier to query for and analyze when troubleshooting.
-      span.add_field('user.id', current_user.id)
-      span.add_field('user.canvas_user_id', current_user.canvas_user_id)
-      span.add_field('user.email', current_user.email)
-      span.add_field('user.first_name', current_user.first_name)
-      span.add_field('user.last_name', current_user.last_name)
+      span.add_field('app.user.id', current_user.id)
+      span.add_field('app.canvas.user.id', current_user.canvas_user_id)
+      span.add_field('app.user.email', current_user.email)
+      span.add_field('app.user.first_name', current_user.first_name)
+      span.add_field('app.user.last_name', current_user.last_name)
 
       translate_boomerang_fields(span)
 
-      # Add the Boomerang sent data
-      params.each { |key, value| span.add_field(key, value) }
+      # Add the data sent by the JS. Includes both Boomerang and manual fields.
+      params.each do |key, value|
+        key = "#{BOOMERANG_FIELD_PREFIX}.#{key}" unless key.start_with? CUSTOM_FIELD_PREFIX
+        span.add_field(key, value)
+      end
     end
 
     head :no_content
@@ -88,7 +94,7 @@ class HoneycombJsController < ApplicationController
         span.add_field('response.status_code', status)
       end
 
-      span.add_field('javascript.timestamp', beacon_timestamp) if params['rt.end']
+      span.add_field("#{BOOMERANG_FIELD_PREFIX}.timestamp", beacon_timestamp) if params['rt.end']
   end
 
   def is_page_load_beacon?

@@ -18,13 +18,13 @@ test('HoneycombXhrSpan adds standard fields to span', () => {
  
     const honey_span = new honeycomb.HoneycombXhrSpan('controller.name', 'action.name', {'somefield': 'somevalue'});
     expect(window.BOOMR.addVar.mock.calls.length).toBe(3);
-    expect(window.BOOMR.addVar.mock.calls[0][0]).toBe('javascript.controller');
+    expect(window.BOOMR.addVar.mock.calls[0][0]).toBe('controller');
     expect(window.BOOMR.addVar.mock.calls[0][1]).toBe('controller.name');
     expect(window.BOOMR.addVar.mock.calls[0][2]).toBe(true);
     expect(window.BOOMR.addVar.mock.calls[1][0]).toBe('name');
-    expect(window.BOOMR.addVar.mock.calls[1][1]).toBe('controller.name.action.name');
+    expect(window.BOOMR.addVar.mock.calls[1][1]).toBe('js.controller.name.action.name');
     expect(window.BOOMR.addVar.mock.calls[1][2]).toBe(true);
-    expect(window.BOOMR.addVar.mock.calls[2][0]).toBe('controller.name.somefield');
+    expect(window.BOOMR.addVar.mock.calls[2][0]).toBe('js.app.somefield');
     expect(window.BOOMR.addVar.mock.calls[2][1]).toBe('somevalue');
     expect(window.BOOMR.addVar.mock.calls[2][2]).toBe(true);
 
@@ -83,10 +83,10 @@ test('HoneycombXhrSpan adds multiple fields', () => {
 
     honey_span.addFields({ 'field1': 'value1', 'field2': 'value2'});
     expect(window.BOOMR.addVar.mock.calls.length).toBe(2);
-    expect(window.BOOMR.addVar.mock.calls[0][0]).toBe('controller.name.field1');
+    expect(window.BOOMR.addVar.mock.calls[0][0]).toBe('js.app.field1');
     expect(window.BOOMR.addVar.mock.calls[0][1]).toBe('value1');
     expect(window.BOOMR.addVar.mock.calls[0][2]).toBe(true);
-    expect(window.BOOMR.addVar.mock.calls[1][0]).toBe('controller.name.field2');
+    expect(window.BOOMR.addVar.mock.calls[1][0]).toBe('js.app.field2');
     expect(window.BOOMR.addVar.mock.calls[1][1]).toBe('value2');
     expect(window.BOOMR.addVar.mock.calls[1][2]).toBe(true);
 

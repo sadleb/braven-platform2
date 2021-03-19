@@ -25,7 +25,7 @@ RSpec.describe HoneycombJsController, type: :controller do
     context "receives beacon and" do
       let(:duration_ms) { '550' }
       let(:name) { 'some.javascript.event' }
-      let(:beacon) { { :state => lti_launch.state, :name => name, :t_done => duration_ms, :field1 => 'value1', :field2 => 'value2'} }
+      let(:beacon) { { :state => lti_launch.state, :name => name, :t_done => duration_ms, :field1 => 'value1', :field2 => 'value2', 'http.initiator' => 'xhr' } }
 
       it 'returns a success response' do
         expect(response).to be_successful
@@ -49,23 +49,23 @@ RSpec.describe HoneycombJsController, type: :controller do
       end
 
       it "sets the user.id" do
-        expect(libhoney_event).to have_received(:add_field).with('user.id', user.id).once
+        expect(libhoney_event).to have_received(:add_field).with('app.user.id', user.id).once
       end
 
       it "sets the user.canvas_user_id" do
-        expect(libhoney_event).to have_received(:add_field).with('user.canvas_user_id', user.canvas_user_id).once
+        expect(libhoney_event).to have_received(:add_field).with('app.canvas.user.id', user.canvas_user_id).once
       end
 
       it "sets the user.email" do
-        expect(libhoney_event).to have_received(:add_field).with('user.email', user.email).once
+        expect(libhoney_event).to have_received(:add_field).with('app.user.email', user.email).once
       end
 
       it "sets the user.first_name" do
-        expect(libhoney_event).to have_received(:add_field).with('user.first_name', user.first_name).once
+        expect(libhoney_event).to have_received(:add_field).with('app.user.first_name', user.first_name).once
       end
 
       it "sets the user.last_name" do
-        expect(libhoney_event).to have_received(:add_field).with('user.last_name', user.last_name).once
+        expect(libhoney_event).to have_received(:add_field).with('app.user.last_name', user.last_name).once
       end
 
       it "calls send on Libhoney event" do
@@ -78,7 +78,7 @@ RSpec.describe HoneycombJsController, type: :controller do
       let(:beacon) { JSON.parse(FactoryBot.json(:boomerang_page_unload_beacon, state: lti_launch.state, serialized_trace: serialized_trace)) }
 
       it "sets the name to 'javascript.page.unload'" do
-        expect(libhoney_event).to have_received(:add_field).with('name', 'javascript.page.unload').once
+        expect(libhoney_event).to have_received(:add_field).with('name', 'js.page.unload').once
       end
 
       it "sets the duration_ms to 0" do
@@ -91,7 +91,7 @@ RSpec.describe HoneycombJsController, type: :controller do
       let(:beacon) { JSON.parse(FactoryBot.json(:boomerang_page_load_beacon, state: lti_launch.state, serialized_trace: serialized_trace)) }
 
       it "sets the name to 'javascript.page.load'" do
-        expect(libhoney_event).to have_received(:add_field).with('name', 'javascript.page.load').once
+        expect(libhoney_event).to have_received(:add_field).with('name', 'js.page.load').once
       end
 
       it "sets the request.path and request.query_string" do

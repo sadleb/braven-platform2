@@ -2,10 +2,9 @@
 // For an example, see the view used for project_submissions_controller#edit
 import Rails from '@rails/ujs';
 import { HoneycombXhrSpan } from './honeycomb'
-import { HoneycombSpan } from './honeycomb'
 
 const AUTH_HEADER = 'LtiState '+ document.querySelector('meta[name="state"]').content;
-const HONEYCOMB_CONTROLLER_NAME = 'javascript.project.answer';
+const HONEYCOMB_CONTROLLER_NAME = 'project_answers';
 
 // Passed in from the view using this JS
 const SUBMISSION_DATA_ATTR = 'data-project-submission-id';

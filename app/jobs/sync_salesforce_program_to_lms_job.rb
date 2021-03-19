@@ -11,7 +11,8 @@ class SyncSalesforceProgramToLmsJob < ApplicationJob
 
   rescue_from(StandardError) do |exception|
     Rails.logger.error(exception)
-    Honeycomb.add_field('error', exception)
+    Honeycomb.add_field('error', exception.class.name)
+    Honeycomb.add_field('error_detail', exception.message)
     SyncSalesforceToLmsMailer.with(email: arguments.second).failure_email.deliver_now
   end
 end

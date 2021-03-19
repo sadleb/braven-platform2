@@ -127,6 +127,9 @@ module Publishable
     # We can't use `model_class` here because we don't have a PeerReview model
     authorize controller_path.classify.to_sym
 
+    Honeycomb.add_field('canvas.course.id', @course.canvas_course_id)
+    Honeycomb.add_field('canvas.assignment.id', canvas_assignment_id)
+
     begin
       CanvasAPI.client.delete_assignment(
         @course.canvas_course_id,
@@ -136,8 +139,6 @@ module Publishable
       # This gets thrown when the assignment doesn't exist in Canvas.
       # It's fine to delete the record from our DB in this case.
       Honeycomb.add_field('unpublish.canvas_assignment_not_found', true)
-      Honeycomb.add_field('unpublish.canvas_course_id', @course.canvas_course_id)
-      Honeycomb.add_field('unpublish.canvas_assignment_id', canvas_assignment_id)
     end
 
     respond_to do |format|

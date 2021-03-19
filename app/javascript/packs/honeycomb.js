@@ -1,5 +1,7 @@
 import { isErrorObject } from '../utils/errorutils';
 
+const FIELD_PREFIX = 'js.app';
+
 /*
  * Base class for various types of HoneycombSpan wrappers exported in this module.
  */
@@ -16,15 +18,15 @@ class HoneycombSpanBase {
      *                                   extra logic before (and after) executing it. All public methods 
      *                                   will be wrapped in this if it's specified.
      */
-    constructor(controller, action, fields = {}, prefixFieldsWithControllerName = true, functionWrapper = null) {
+    constructor(controller, action, fields = {}, prefixFields = true, functionWrapper = null) {
         this.controller = controller;
         this.action = action;
-        this.name = `${controller}.${action}`;
-        this.prefixFieldsWithControllerName = prefixFieldsWithControllerName;
+        this.name = `js.${controller}.${action}`;
+        this.prefixFields = prefixFields;
         this.functionWrapper = functionWrapper;
  
         this.getFieldName = function(key) {
-            return (this.prefixFieldsWithControllerName ? `${this.controller}.${key}` : key);
+            return (this.prefixFields ? `${FIELD_PREFIX}.${key}` : key);
         }
 
         this.runAfterBoomerangLoaded = function(f) {
@@ -43,7 +45,7 @@ class HoneycombSpanBase {
         this.runAfterBoomerangLoaded(() => {
             // Standard fields that should be added to every span.
             // Don't prefix these. They're common to all "controllers" 
-            window.BOOMR.addVar('javascript.controller', controller, true);
+            window.BOOMR.addVar('controller', controller, true);
             window.BOOMR.addVar('name', this.name, true);
      
             this.addFields(fields);
@@ -154,7 +156,7 @@ export class HoneycombXhrSpan extends HoneycombSpanBase {
      * which may have callbacks and other function's to accomplish it, but all instrumentation added
      * in those should be part of the overall request/response.
      */
-    constructor(controller, action, fields = {}, prefixFieldsWithControllerName = true) {
+    constructor(controller, action, fields = {}, prefixFields = true) {
       // Define a wrapper function that delays executing the passed in function until the page load beacon has
       // gone out. Pass this to the base class so that it wraps all public methods with this delay.
       // We need to do this so that the fields end up in the XHR beacon and not the page load beacon so they 
@@ -167,7 +169,7 @@ export class HoneycombXhrSpan extends HoneycombSpanBase {
           }
       };
 
-      super(controller, action, fields, prefixFieldsWithControllerName, runAfterPageLoadBeacon);
+      super(controller, action, fields, prefixFields, runAfterPageLoadBeacon);
     }
 }
 
@@ -191,8 +193,8 @@ export class HoneycombXhrSpan extends HoneycombSpanBase {
  */
 export class HoneycombSpan extends HoneycombSpanBase {
 
-    constructor(controller, action, fields = {}, prefixFieldsWithControllerName = true) {
-      super(controller, action, fields, prefixFieldsWithControllerName);
+    constructor(controller, action, fields = {}, prefixFields = true) {
+      super(controller, action, fields, prefixFields);
     }
 
 }

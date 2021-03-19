@@ -15,9 +15,9 @@ class GradeModuleForUserJob < ApplicationJob
 
     Honeycomb.start_span(name: 'GradeModuleForUserJob.perform') do |span|
       # Note a lot of this code is duplicated (but simplified) from app/services/grade_modules.rb.
-      span.add_field('user.id', user.id)
-      span.add_field('canvas_course_id', canvas_course_id)
-      span.add_field('canvas_assignment_id', canvas_assignment_id)
+      span.add_field('app.user.id', user.id)
+      span.add_field('app.canvas.course.id', canvas_course_id)
+      span.add_field('app.canvas.assignment.id', canvas_assignment_id)
 
       # Select the max id at the very beginning, so we can use it at the bottom to mark only things
       # before this as old. If we don't do this, we run the risk of marking things as old that we
@@ -32,7 +32,7 @@ class GradeModuleForUserJob < ApplicationJob
 
       grade = "#{ModuleGradeCalculator.compute_grade(user.id, canvas_assignment_id, assignment_overrides)}%"
 
-      span.add_field('grade', grade)
+      span.add_field('app.grade_module_for_user.grade', grade)
       Rails.logger.info("Graded finished Rise360ModuleVersion[user_id = #{user.id}, canvas_course_id = #{canvas_course_id}, " \
         "canvas_assignment_id = #{canvas_assignment_id}] " \
         "- computed grade = #{grade}")

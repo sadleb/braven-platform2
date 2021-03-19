@@ -40,8 +40,8 @@ class Rise360Util
 
       zipfile.open do |file|
         Honeycomb.start_span(name: 'Rise360Util.publish.zipfile') do |span|
-          span.add_field('file.path', file.path)
-          span.add_field('file.size', file.size)
+          span.add_field('app.zipfile.path', file.path)
+          span.add_field('app.zipfile.size', file.size)
 
           Zip::File.open(file.path) do |zip_file|
             zip_file.each do |entry|
@@ -77,8 +77,9 @@ class Rise360Util
   rescue Exception => e
     Rails.logger.error("Could not update Rise360Module metadata: #{rise360_module}")
     Rails.logger.error("  Error: #{e}")
-    Honeycomb.add_field('error', e)
-    Honeycomb.add_field('rise360_module', rise360_module)
+    Honeycomb.add_field('error', e.class.name)
+    Honeycomb.add_field('error_detail', e.message)
+    Honeycomb.add_field('rise360_module.id', rise360_module.id)
   end
 
   class << self

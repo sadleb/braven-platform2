@@ -17,22 +17,19 @@ module RestClientInstrumentation
     # https://guides.rubyonrails.org/active_support_instrumentation.html#process-action-action-controller
     Honeycomb.start_span(name: "restclient.#{method}") do |span|
       span.add_field('restclient.class_name', calling_class)
-      span.add_field('restclient.method', method)
-      span.add_field('restclient.url', redacted_url) # Strips out password if it's in there.
       span.add_field('restclient.timestamp', DateTime.now)
-      span.add_field('restclient.headers', processed_headers.dup)
+      span.add_field('restclient.request.method', method)
+      span.add_field('restclient.request.url', redacted_url) # Strips out password if it's in there.
+      span.add_field('restclient.request.header', processed_headers.dup)
       begin
         ret_val = super(&block)
-        span.add_field('restclient.status', ret_val.code)
+        span.add_field('restclient.response.status_code', ret_val.code)
       rescue RestClient::Exception => e
         Rails.logger.error("{\"Error\":\"#{e.message}\"}")
         error_response = e.http_body
         Rails.logger.error(error_response)
-        span.add_field('restclient.error', e.message)
-        span.add_field('restclient.status', e.http_code)
-        # Note: can't use error_detail field name. It's overwritten somewhere with the exception
-        # message detail, not the actual response.
-        span.add_field('restclient.error_response', error_response)
+        span.add_field('restclient.response.status_code', e.http_code)
+        span.add_field('restclient.response.body', error_response)
 
         if e.is_a?(RestClient::BadRequest) and error_response =~ /JWS signature invalid/
           Rails.logger.error('TROUBLESHOOTING HINT: Copy/pasta the "Public JWK URL" from the Developer Key ' \

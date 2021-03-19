@@ -14,11 +14,11 @@ RestClient::Request.prepend(RestClientInstrumentation)
   before(:each) do
     expect(Honeycomb).to receive(:start_span).and_yield(span)
     expect(span).to receive(:add_field).with('restclient.class_name', class_name).once # Example is the class one caller up. E.g. the `it` block.
-    expect(span).to receive(:add_field).with('restclient.method', method).once
-    expect(span).to receive(:add_field).with('restclient.url', target_url).once
+    expect(span).to receive(:add_field).with('restclient.request.method', method).once
+    expect(span).to receive(:add_field).with('restclient.request.url', target_url).once
     expect(span).to receive(:add_field).with('restclient.timestamp', anything).once
-    expect(span).to receive(:add_field).with('restclient.headers', hash_including(expected_headers)).once
-    expect(span).to receive(:add_field).with('restclient.status', status).once
+    expect(span).to receive(:add_field).with('restclient.request.header', hash_including(expected_headers)).once
+    expect(span).to receive(:add_field).with('restclient.response.status_code', status).once
     stub_request(method.to_sym, target_url).to_return(body: fake_body, status: status) 
   end
 
@@ -58,8 +58,7 @@ RestClient::Request.prepend(RestClientInstrumentation)
     let(:class_name) { 'RaiseError' }
 
     it 'adds error details to Honeycomb' do
-      expect(span).to receive(:add_field).with('restclient.error', '401 Unauthorized')
-      expect(span).to receive(:add_field).with('restclient.error_response', fake_body)
+      expect(span).to receive(:add_field).with('restclient.response.body', fake_body)
       expect { RestClient.get(target_url) }.to raise_error(RestClient::Exception)
     end
   end
