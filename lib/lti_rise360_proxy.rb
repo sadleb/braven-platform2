@@ -36,7 +36,7 @@ class LtiRise360Proxy < Rack::Proxy
       path = $1 # from regex match above
       uri = URI(Rise360Util.presigned_url(path))
 
-      env["HTTP_HOST"] = uri.host           # e.g. some-bucket.s3.amazonaws.com
+      env['HTTP_HOST'] = uri.host           # e.g. some-bucket.s3.amazonaws.com
       env['PATH_INFO'] = uri.path           # The path matched in the regex above
       env['QUERY_STRING'] = uri.query       # The AWS query params signing it
 
@@ -54,6 +54,10 @@ private
   # the normal Rails controller routing, so we have to handle this
   # ourselves
   def authenticate(request)
+    # Exclude fonts from authentication. They are linked into CSS stylesheets and the
+    # state param is not in the referer when loaded. E.g. let icomoon.ttf and icomoon.woff load
+    return true if request.env['PATH_INFO'] =~ /\/lib\/fonts/
+
     warden = request.env['warden']
     return false unless warden
     return true if warden.authenticated? # short circuit if already authenticated using session
