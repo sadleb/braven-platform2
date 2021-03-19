@@ -16,7 +16,7 @@ RSpec.describe WaiverSubmissionsController, type: :controller do
     let(:lti_launch) {
       create( :lti_launch_assignment,
         canvas_user_id: fellow_user.canvas_user_id,
-        course_id: course.canvas_course_id
+        canvas_course_id: course.canvas_course_id
       )
     }
 

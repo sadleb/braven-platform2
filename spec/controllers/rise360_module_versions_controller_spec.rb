@@ -18,8 +18,8 @@ RSpec.describe Rise360ModuleVersionsController, type: :controller do
   let(:lti_launch) {
     create(:lti_launch_assignment,
       state: state,
-      course_id: course.canvas_course_id,
-      assignment_id: course_rise360_module_version.canvas_assignment_id)
+      canvas_course_id: course.canvas_course_id,
+      canvas_assignment_id: course_rise360_module_version.canvas_assignment_id)
   }
   let(:user) { create :registered_user, canvas_user_id: lti_launch.request_message.canvas_user_id }
 

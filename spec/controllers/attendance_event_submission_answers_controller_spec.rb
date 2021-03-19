@@ -18,8 +18,8 @@ RSpec.describe AttendanceEventSubmissionAnswersController, type: :controller do
       @lti_launch = create(
         :lti_launch_assignment,
         canvas_user_id: user.canvas_user_id,
-        course_id: course_attendance_event.course.id,
-        assignment_id: course_attendance_event.canvas_assignment_id,
+        canvas_course_id: course_attendance_event.course.id,
+        canvas_assignment_id: course_attendance_event.canvas_assignment_id,
       )
     end
 

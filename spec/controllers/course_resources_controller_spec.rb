@@ -69,7 +69,7 @@ RSpec.describe CourseResourcesController, type: :controller do
     let(:state) { LtiLaunchController.generate_state }
     let(:canvas_course_id) { '54321' }
     let(:launch_path) { '/lessons/somekey/index.html' }
-    let(:lti_launch) { create(:lti_launch_resource_link_request, target_link_uri: 'https://target/link', course_id: canvas_course_id, state: state) }
+    let(:lti_launch) { create(:lti_launch_resource_link_request, target_link_uri: 'https://target/link', canvas_course_id: canvas_course_id, state: state) }
     let!(:user) { create :registered_user, canvas_user_id: lti_launch.request_message.canvas_user_id }
 
     describe "GET #lti_show" do

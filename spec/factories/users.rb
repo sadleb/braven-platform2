@@ -28,7 +28,7 @@ FactoryBot.define do
       end
 
       factory :fellow_user do
-        canvas_user_id { '1234' }
+        sequence(:canvas_user_id)
         after :create do |user, options|
           user.add_role RoleConstants::STUDENT_ENROLLMENT, options.section
         end
@@ -38,13 +38,12 @@ FactoryBot.define do
         end
 
         factory :peer_user do
-          # Different user ID than fellow_user.
-          canvas_user_id { '4321' }
+          sequence(:canvas_user_id)
         end
       end
 
       factory :ta_user do
-        canvas_user_id { '1235' }
+        sequence(:canvas_user_id)
         after :create do |user, options|
           user.add_role RoleConstants::TA_ENROLLMENT, options.section
         end
@@ -57,7 +56,7 @@ FactoryBot.define do
       end
 
       factory :lc_playbook_user do
-        canvas_user_id { '1236' }
+        sequence(:canvas_user_id)
         after :create do |user, options|
           user.add_role RoleConstants::STUDENT_ENROLLMENT, options.section
         end

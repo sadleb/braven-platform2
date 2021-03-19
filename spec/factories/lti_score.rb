@@ -5,7 +5,7 @@ FactoryBot.define do
   factory :lti_score, class: Hash do
 
     # The lti_user_id or the Canvas user_id
-    userId { 50 }
+    sequence(:userId)
     # The Current score received in the tool for this line item and user, scaled to
     # the scoreMaximum
     scoreGiven { 100.0 }
@@ -31,7 +31,12 @@ FactoryBot.define do
   end
 
   factory :lti_score_response, class: Hash do
-    resultUrl { 'https://example.canvas.domain/api/lti/courses/55/line_items/15/results/1' }
+    transient do
+      sequence(:canvas_course_id)
+      sequence(:line_item_id)
+    end
+
+    resultUrl { "https://example.canvas.domain/api/lti/courses/#{canvas_course_id}/line_items/#{line_item_id}/results/1" }
     initialize_with { attributes.stringify_keys }
   end
 end

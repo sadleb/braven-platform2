@@ -15,11 +15,12 @@ FactoryBot.define do
       message_type { 'LtiResourceLinkRequest' }
       target_link_uri { 'https://platformweb/some/assignment/to/launch' }
       launch_presentation_return_url { "https://braven.instructure.com/courses/#{course_id}/external_content/success/external_tool_redirect" }
-      module_id { 555 } # Can be nil if the assignment isn't in a module.
-      module_item_id { 444 }
-      assignment_id { 123 }
+      sequence(:module_id) # Can be nil if the assignment isn't in a module.
+      sequence(:module_item_id)
+      sequence(:assignment_id)
       assignment_title { 'Example Assignment' }
       assignment_points { 10 }
+      sequence(:line_item_id)
     end
 
     before(:json) do |request_msg, evaluator|
@@ -38,7 +39,7 @@ FactoryBot.define do
             'https://purl.imsglobal.org/spec/lti-ags/scope/score'
           ],
           'lineitems' => "https://platformdomain/api/lti/courses/#{evaluator.course_id}/line_items",
-          'lineitem' => "https://platformdomain/api/lti/courses/#{evaluator.course_id}/line_items/15"
+          'lineitem' => "https://platformdomain/api/lti/courses/#{evaluator.course_id}/line_items/#{evaluator.line_item_id}"
         }
       })
     end

@@ -1,7 +1,7 @@
 FactoryBot.define do
   factory :course do
     sequence(:name) { |i| "Course #{i}" }
-    canvas_course_id { 55 }
+    sequence(:canvas_course_id)
     is_launched { false } # Default is less restrictive. Set is_launched = true if you want more restrictive.
 
     factory :course_launched do

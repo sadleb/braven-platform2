@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe RateThisModuleSubmissionsController, type: :controller do
   render_views
 
-  let(:course) { create :course, canvas_course_id: 1 }
+  let(:course) { create :course }
   let(:section) { create :section, course: course }
   let(:user) { create :fellow_user, section: section }
   let(:course_rise360_module_version) { create :course_rise360_module_version, course: course }
@@ -11,9 +11,9 @@ RSpec.describe RateThisModuleSubmissionsController, type: :controller do
   let(:lti_launch) {
     create(
       :lti_launch_assignment,
-      course_id: course.canvas_course_id,
+      canvas_course_id: course.canvas_course_id,
       canvas_user_id: user.canvas_user_id,
-      assignment_id: course_rise360_module_version.canvas_assignment_id,
+      canvas_assignment_id: course_rise360_module_version.canvas_assignment_id,
     )
   }
 

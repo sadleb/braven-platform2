@@ -31,8 +31,8 @@ RSpec.describe Rise360ModuleGradesController, type: :controller do
     create(:lti_launch_assignment,
       state: state,
       canvas_user_id: user_viewing.canvas_user_id,
-      course_id: course.canvas_course_id,
-      assignment_id: course_rise360_module_version.canvas_assignment_id)
+      canvas_course_id: course.canvas_course_id,
+      canvas_assignment_id: course_rise360_module_version.canvas_assignment_id)
   }
 
   before do

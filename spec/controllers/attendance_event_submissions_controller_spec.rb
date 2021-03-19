@@ -3,10 +3,10 @@ require 'rails_helper'
 RSpec.describe AttendanceEventSubmissionsController, type: :controller do
   render_views
 
-  let(:lc_playbook_course) { create :course, canvas_course_id: 1 }
+  let(:lc_playbook_course) { create :course }
   let(:lc_playbook_section) { create :section, course: lc_playbook_course }
 
-  let(:accelerator_course) { create :course, canvas_course_id: 2 }
+  let(:accelerator_course) { create :course }
   let(:accelerator_section) { create :section, course: accelerator_course }
   let(:launch_section) { accelerator_section }
 
@@ -18,7 +18,7 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
   before(:each) do
     @lti_launch = create(
       :lti_launch_resource_link_request,
-      course_id: lc_playbook_course.canvas_course_id,
+      canvas_course_id: lc_playbook_course.canvas_course_id,
       canvas_user_id: user.canvas_user_id,
     )
     allow(SalesforceAPI).to receive(:client).and_return(salesforce_client)

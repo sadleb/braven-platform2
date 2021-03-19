@@ -26,21 +26,21 @@ FactoryBot.define do
       launch_presentation_return_url { 'https://braven.instructure.com/courses/42/external_content/success/external_tool_redirect' }
 
       # Values in the Custom variables claim
-      account_id { 5 }
+      sequence(:account_id)
       assignment_id { '$Canvas.assignment.id' }
       assignment_title { '$Canvas.assignment.title' }
       assignment_points { '$Canvas.assignment.pointsPossible' }
       attachment_id { '$Canvas.file.media.id' }
       attachment_title { '$Canvas.file.media.title' }
-      course_id { 55 }
+      sequence(:course_id)
       course_title { 'ExampleCourseTitle' }
       module_id { '$Canvas.module.id' }
       module_item_id { '$Canvas.moduleItem.id' }
       email { 'example@example.org' }
       first_name { 'MyFirstName' }
       last_name { 'MyLastName' }
-      canvas_user_id { 55555 }
-      section_ids { '55' } # This is a string, comma delimited if in multiple sections
+      sequence(:canvas_user_id)
+      sequence(:section_ids) { |i| i.to_s } # This is a string, comma delimited if in multiple sections
     end
 
     # These are not valid attributes so they have to be added manually to the hash. Only works when this
@@ -65,7 +65,7 @@ FactoryBot.define do
             "https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly",
             "https://purl.imsglobal.org/spec/lti-ags/scope/score"
           ],
-          "lineitems" => "https://braven.instructure.com/api/lti/courses/42/line_items",
+          "lineitems" => "https://braven.instructure.com/api/lti/courses/#{evaluator.course_id}/line_items",
           "validation_context" => nil,
           "errors" => {"errors" => {}}
         },

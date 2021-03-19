@@ -65,7 +65,7 @@ RSpec.describe LtiLaunch, type: :model do
     end
 
     describe '#activity_id' do
-      let(:assignment_launch) { create(:lti_launch_assignment, assignment_id: 12345, course_id: 123) }
+      let(:assignment_launch) { create(:lti_launch_assignment, canvas_assignment_id: 12345, canvas_course_id: 123) }
       let(:assignment_selection_launch) { create(:lti_launch_assignment_selection) }
 
       it 'returns the correct Canvas assignment URL' do

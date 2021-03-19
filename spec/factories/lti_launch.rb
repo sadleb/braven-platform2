@@ -18,23 +18,23 @@ FactoryBot.define do
   
       factory :lti_launch_canvas do
         transient do
-          canvas_user_id { 5555 }
-          course_id { 55 }
+          sequence(:canvas_user_id)
+          sequence(:canvas_course_id)
         end
 
         factory :lti_launch_assignment do
           transient do
-            assignment_id { 555 }
+            sequence(:canvas_assignment_id)
           end
-          id_token_payload { JSON.parse FactoryBot.json(:lti_launch_assignment_message, course_id: course_id, canvas_user_id: canvas_user_id, assignment_id: assignment_id) }
+          id_token_payload { JSON.parse FactoryBot.json(:lti_launch_assignment_message, course_id: canvas_course_id, canvas_user_id: canvas_user_id, assignment_id: canvas_assignment_id) }
         end 
 
         factory :lti_launch_assignment_selection do
-          id_token_payload { JSON.parse FactoryBot.json(:lti_launch_assignment_selection_message, course_id: course_id, canvas_user_id: canvas_user_id) }
+          id_token_payload { JSON.parse FactoryBot.json(:lti_launch_assignment_selection_message, course_id: canvas_course_id, canvas_user_id: canvas_user_id) }
         end 
 
         factory :lti_launch_resource_link_request do
-          id_token_payload { JSON.parse FactoryBot.json(:lti_launch_resource_link_request_message, course_id: course_id, canvas_user_id: canvas_user_id) }
+          id_token_payload { JSON.parse FactoryBot.json(:lti_launch_resource_link_request_message, course_id: canvas_course_id, canvas_user_id: canvas_user_id) }
         end
       end
     end

@@ -14,7 +14,7 @@ RSpec.feature 'Submit a project', :type => :feature do
     create(
       :lti_launch_assignment, 
       canvas_user_id: project_submission.user.canvas_user_id,
-      course_id: project_submission.course_project_version.course.id,
+      canvas_course_id: project_submission.course_project_version.course.id,
     )
   }
   let(:uri) {
