@@ -1,0 +1,25 @@
+<%#
+// Google Tag Manager Javascript adapted slighlty to work with turbolinks
+//
+// GTM is a centralized way to deploy other tools like Google Analytics without
+// changing the app/client code. E.g. it will allow us to filter out query params
+// by changing some settings in the tag manager through their browser admin dashboard.
+//
+// Dealing with the Content Security Policy (CSP) and the turbolinks stuff draws
+// inspiration from from these articles / examples:
+//
+// https://levelup.gitconnected.com/ruby-on-rails-6-with-google-analytics-turbolinks-and-a-content-security-policy-c4e078df8530
+// https://github.com/paulmwatson/rails-google-analytics-csp-turbolinks
+%>
+
+const enableTagManager = (event) => {
+  // Google Tag Manager
+  (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','<%= Rails.application.secrets.google_tag_manager_id %>');
+  // End Google Tag Manager
+}
+
+document.addEventListener('turbolinks:load', enableTagManager)

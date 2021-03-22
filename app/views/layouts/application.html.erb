@@ -6,7 +6,9 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <%= render :partial => 'shared/google_analytics' %>
+    <% if Rails.application.secrets.google_tag_manager_id %>
+      <%= javascript_pack_tag 'google_tag_manager', async: true %>
+    <% end %>
 
     <% if current_state_param %> <meta name="state" content="<%= current_state_param %>"> <% end %>
     <meta name="serialized-trace" content="<%= Honeycomb.current_span.to_trace_header %>">
@@ -33,6 +35,13 @@
   </head>
 
   <body>
+    <% if Rails.application.secrets.google_tag_manager_id %>
+      <!-- Google Tag Manager (noscript) -->
+      <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=<%= Rails.application.secrets.google_tag_manager_id %>"
+        height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+      <!-- End Google Tag Manager (noscript) -->
+    <% end %>
+
     <% flash.each do |type, message| %>
       <% unless message.blank? %>
         <div class="alert <%= alert_css_class(type) %> alert-dismissible fade show show-alert" role="alert">
