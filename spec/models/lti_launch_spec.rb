@@ -64,16 +64,39 @@ RSpec.describe LtiLaunch, type: :model do
       end
     end
 
-    describe '#activity_id' do
+    describe '#assignment_id' do
       let(:assignment_launch) { create(:lti_launch_assignment, canvas_assignment_id: 12345, canvas_course_id: 123) }
       let(:assignment_selection_launch) { create(:lti_launch_assignment_selection) }
 
-      it 'returns the correct Canvas assignment URL' do
-        expect(assignment_launch.activity_id).to eq("#{Rails.application.secrets.canvas_cloud_url}/courses/123/assignments/12345")
+      it 'returns the correct Canvas assignment ID' do
+        expect(assignment_launch.assignment_id).to eq(12345)
+      end
+
+      it 'returns nil with non-integer assignment ID' do
+        assignment_launch = create(:lti_launch_assignment, canvas_assignment_id: '$Canvas.assignment.id', canvas_course_id: 123)
+        expect(assignment_launch.assignment_id).to eq(nil)
       end
 
       it 'throws exception on incorrect message type' do
-        expect{ assignment_selection_launch.activity_id }.to raise_error(ArgumentError)
+        expect{ assignment_selection_launch.assignment_id }.to raise_error(ArgumentError)
+      end
+    end
+
+    describe '#course_id' do
+      let(:assignment_launch) { create(:lti_launch_assignment, canvas_assignment_id: 12345, canvas_course_id: 123) }
+      let(:assignment_selection_launch) { create(:lti_launch_assignment_selection) }
+
+      it 'returns the correct Canvas course ID' do
+        expect(assignment_launch.course_id).to eq(123)
+      end
+
+      it 'returns nil with non-integer course ID' do
+        assignment_launch = create(:lti_launch_assignment, canvas_course_id: '$Canvas.course.id')
+        expect(assignment_launch.course_id).to eq(nil)
+      end
+
+      it 'throws exception on incorrect message type' do
+        expect{ assignment_selection_launch.course_id }.to raise_error(ArgumentError)
       end
     end
 

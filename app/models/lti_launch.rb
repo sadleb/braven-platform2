@@ -60,16 +60,18 @@ class LtiLaunch < ApplicationRecord
     User.find_by(canvas_user_id: request_message.canvas_user_id)
   end
 
-  # Each rise360_module_version or project has a single activity ID that ties together all the xAPI statements
-  # for it. This returns that ID.
-  def activity_id
+  # Assignment and Course IDs are used for attaching Rise360ModuleInteractions
+  # to the appropriate module. Return nil if the ID was not an integer.
+  def assignment_id
     raise ArgumentError.new, 'Wrong LTI launch message type. Must be a launch of a ResourceLink.' unless request_message.is_a?(LtiResourceLinkRequestMessage) 
 
-    # Note:  request_message.resource_link['id'] is an LTI ID tied to this resource, but activity_id 
-    # can't be a GUID, it has to be a URI per the xAPI specs. That's the point of this.
-    aid = Integer(request_message.custom['assignment_id']) # raises ArgumentError if not an int
-    cid = Integer(request_message.custom['course_id'])    # ditto
-    "#{Rails.application.secrets.canvas_cloud_url}/courses/#{cid}/assignments/#{aid}"
+    Integer(request_message.custom['assignment_id'], exception: false)
+  end
+
+  def course_id
+    raise ArgumentError.new, 'Wrong LTI launch message type. Must be a launch of a ResourceLink.' unless request_message.is_a?(LtiResourceLinkRequestMessage) 
+
+    Integer(request_message.custom['course_id'], exception: false)
   end
 
   # True if this is an LtiLaunch that doesn't have access to normal Devise session based authentication
