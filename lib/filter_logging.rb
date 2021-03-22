@@ -2,6 +2,11 @@
 
 # Used for filtering out the parameters and data that you don't want shown in the logs,
 # such as passwords or credit card numbers or the state param (which is like a password).
+#
+# IMPORTANT NOTE: if you add a parameter in this file, go to https://papertrailapp.com/account/settings
+# click "Filter logs", and add it there too. We can't control the heroku/router logging
+# and it sends query params in GET requests, so we just tell Papertrail to drop logs with
+# those params. It's the filter that looks like: heroku\/router.*(state=|auth=|...)
 class FilterLogging
 
   FILTERED = '[FILTERED]'
