@@ -79,6 +79,11 @@ class HoneycombSpanBase {
      *
      * Most errors will be picked up and logged automatically, but not with the easiest to read and
      * query for data. This pulls out some convenient details from the error and adds them as fields.
+     *
+     * If you don't explicitly catch errors and call this, the fields that will come through are
+     * are found here: https://github.com/bebraven/boomerang/blob/master/plugins/zzz-last-plugin.js#L22
+     * so make sure that these fields match those, otherwise you'll have the same error information
+     * in different fields
      */
     addErrorDetails(log_msg, e) {
         this.runAfterBoomerangLoaded(() => {

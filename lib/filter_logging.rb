@@ -6,7 +6,9 @@ class FilterLogging
 
   FILTERED = '[FILTERED]'
   FILTERED_STATE_QUERY_PARAM = "state=#{FILTERED}"
+  FILTERED_STATE_QUERY_PARAM_ENCODED = "state%3D#{FILTERED}"
   FILTERED_AUTH_QUERY_PARAM = "auth=#{FILTERED}"
+  FILTERED_AUTH_QUERY_PARAM_ENCODED = "auth%3D#{FILTERED}"
 
   # These are the parameters where the entire value should be filtered out.
   FILTER_ENTIRE_ATTRIBUTE_NAMES = [
@@ -39,6 +41,7 @@ class FilterLogging
     'u',
     'restiming',
     'state',
+    'error_detail', # Google Analytics puts the URL in the error_detail on failures
   ]
 
   def self.is_enabled?
@@ -62,9 +65,11 @@ class FilterLogging
         value.clear()
         value.insert(0, FILTERED)
 
-      elsif param_name == 'url' || param_name == 'u' || param_name == 'pgu'
+      elsif param_name == 'url' || param_name == 'u' || param_name == 'pgu' || param_name == 'error_detail'
         value.gsub!(/state\=([^&]+)/, FILTERED_STATE_QUERY_PARAM)
+        value.gsub!(/state%3D([^&]+)/, FILTERED_STATE_QUERY_PARAM_ENCODED)
         value.gsub!(/auth\=([^&]+)/, FILTERED_AUTH_QUERY_PARAM)
+        value.gsub!(/auth%3D([^&]+)/, FILTERED_AUTH_QUERY_PARAM_ENCODED)
 
       elsif param_name == 'restiming'
         value.gsub!(/state\=([^"&]+)/, FILTERED_STATE_QUERY_PARAM)
@@ -121,9 +126,10 @@ class FilterLogging
 
     # These are values coming from HoneycombJsController generated spans
     # from Boomerang payloads.
-    if fields['name'].start_with?('javascript')
-      if fields.has_key?('request.query_string')
-        fields['request.query_string'] = parameter_filter.filter_param('url', fields['request.query_string'])
+    if fields['name'].start_with?('js.')
+      if fields.has_key?("#{BOOMERANG_FIELD_PREFIX}.request.query_string")
+        fields["#{BOOMERANG_FIELD_PREFIX}.request.query_string"] =
+          parameter_filter.filter_param('url', fields["#{BOOMERANG_FIELD_PREFIX}.request.query_string"])
       end
       FILTER_BOOMERANG_FIELDS.each do |field_name|
         if fields.has_key?("#{BOOMERANG_FIELD_PREFIX}.#{field_name}")

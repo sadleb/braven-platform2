@@ -5,7 +5,7 @@ require 'filter_logging'
 # when posting to controller endpoints.
 RSpec.describe FilterLogging do
 
-  describe '.filter_parameters' do 
+  describe '.filter_parameters' do
     it 'is a NOOP when the value is nil' do
       param_name = 'state'
       value = nil
@@ -42,7 +42,7 @@ RSpec.describe FilterLogging do
       expect(value).to eq(FilterLogging::FILTERED)
     end
 
-    # Sent to the users/passwords and users/registrations controllers. 
+    # Sent to the users/passwords and users/registrations controllers.
     it 'filters the "password" parameter' do
       param_name = 'password'
       value = 'Cats4Lyfe'
@@ -50,7 +50,7 @@ RSpec.describe FilterLogging do
       expect(value).to eq(FilterLogging::FILTERED)
     end
 
-    # Sent to the users/passwords and users/registrations controllers. 
+    # Sent to the users/passwords and users/registrations controllers.
     it 'filters the "password_confirmation" parameter' do
       param_name = 'password_confirmation'
       value = 'Cats4Lyfe'
@@ -58,7 +58,7 @@ RSpec.describe FilterLogging do
       expect(value).to eq(FilterLogging::FILTERED)
     end
 
-    # Sent to the users/passwords controller. 
+    # Sent to the users/passwords controller.
     it 'filters the "reset_password_token" parameter' do
       param_name = 'reset_password_token'
       value = 'fake-reset-pass-token'
@@ -66,7 +66,7 @@ RSpec.describe FilterLogging do
       expect(value).to eq(FilterLogging::FILTERED)
     end
 
-    # Sent to the users/confirmations controller. 
+    # Sent to the users/confirmations controller.
     it 'filters the "confirmation_token" parameter' do
       param_name = 'confirmation_token'
       value = 'fake-confirmation-token'
@@ -120,7 +120,7 @@ RSpec.describe FilterLogging do
     # not logged, which is why there is no parameter spec for the LinkedIn token here.
   end
 
-  describe '.filter_sql' do 
+  describe '.filter_sql' do
     let(:log_name) { 'User Load' }
     let(:column_name) { 'some_column' }
     let(:bind) { double(ActiveRecord::Relation::QueryAttribute, :name => column_name, :value => column_value) }
@@ -251,6 +251,21 @@ RSpec.describe FilterLogging do
         expect(filtered_binds).to eq([FilterLogging::FILTERED])
       end
     end
+  end # END .filter_sql
+
+  describe '.filter_honeycomb_data' do
+
+    context 'when Boomerang error' do
+      let(:state) { 'FAKESTATEVALUE' }
+
+      it 'filters "error_details" field' do
+        get_error_details = -> (state_val) { "https://www.google-analytics.com/j/collect?v=1&_v=j88&a=659599164&t=pageview&_s=1&dl=https%3A%2F%2Fplatform.braven.org%2Flinked_in%2Fauth%3Fstate%3D#{state_val}&ul=en-us&de=UTF-8&dt=Braven%20LTI%20Extension&sd=32-bit&sr=375x667&vp=375x559&je=0&_u=AACAAUABAAAAAC~&jid=1775313237&gjid=1393104712&cid=128933538.1616124287&tid=UA-FAKETRACKINGID-2&_gid=38343245.1616124287&_r=1&gtm=2ou3a0&z=1604529632" }
+        fields = { 'name' => 'js.page.load', 'js.boomerang.error_detail' => get_error_details.call(state) }
+        FilterLogging.filter_honeycomb_data(fields)
+        expect(fields['js.boomerang.error_detail']).to eq(get_error_details.call(FilterLogging::FILTERED))
+      end
+    end
   end
+
 end
 

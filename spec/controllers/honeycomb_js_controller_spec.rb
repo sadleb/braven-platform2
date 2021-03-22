@@ -96,8 +96,8 @@ RSpec.describe HoneycombJsController, type: :controller do
 
       it "sets the request.path and request.query_string" do
         pathinfo = URI(beacon['u'])
-        expect(libhoney_event).to have_received(:add_field).with('request.path', pathinfo.path).once
-        expect(libhoney_event).to have_received(:add_field).with('request.query_string', pathinfo.query).once
+        expect(libhoney_event).to have_received(:add_field).with('js.boomerang.request.path', pathinfo.path).once
+        expect(libhoney_event).to have_received(:add_field).with('js.boomerang.request.query_string', pathinfo.query).once
       end
     end
 
@@ -105,11 +105,11 @@ RSpec.describe HoneycombJsController, type: :controller do
       let(:beacon) { JSON.parse(FactoryBot.json(:boomerang_lrs_query_beacon, state: lti_launch.state, serialized_trace: serialized_trace)) }
 
       it "sets the request.method" do
-        expect(libhoney_event).to have_received(:add_field).with('request.method', 'GET').once
+        expect(libhoney_event).to have_received(:add_field).with('js.boomerang.request.method', 'GET').once
       end
 
       it "sets the response.status_code" do
-        expect(libhoney_event).to have_received(:add_field).with('response.status_code', '200').once
+        expect(libhoney_event).to have_received(:add_field).with('js.boomerang.response.status_code', '200').once
       end
     end
 

@@ -51,6 +51,7 @@ class HoneycombJsController < ApplicationController
     span_name = params[:name] || 'js.event'
     duration = params['t_done']
 
+    # Span names are different than field names. Not prefixed b/c this is shorter and still unambiguous.
     if is_page_load_beacon?
       span_name = 'js.page.load'
     elsif is_page_unload_beacon?
@@ -83,15 +84,15 @@ class HoneycombJsController < ApplicationController
   def translate_boomerang_fields(span)
       if params[:u] # "u" stands for "url" 
         pathinfo = URI(params[:u])
-        span.add_field('request.path', pathinfo.path)
-        span.add_field('request.query_string', pathinfo.query)
+        span.add_field("#{BOOMERANG_FIELD_PREFIX}.request.path", pathinfo.path)
+        span.add_field("#{BOOMERANG_FIELD_PREFIX}.request.query_string", pathinfo.query)
       end
 
       if params['http.initiator'] == 'xhr'
         method = params['http.method'] || 'GET' # Annoyingly, 'http.method' may not be set for GET. If missing on XHR beacon, it's GET.
-        span.add_field('request.method', method)
+        span.add_field("#{BOOMERANG_FIELD_PREFIX}.request.method", method)
         status = params['http.errno'] || '200'
-        span.add_field('response.status_code', status)
+        span.add_field("#{BOOMERANG_FIELD_PREFIX}.response.status_code", status)
       end
 
       span.add_field("#{BOOMERANG_FIELD_PREFIX}.timestamp", beacon_timestamp) if params['rt.end']
