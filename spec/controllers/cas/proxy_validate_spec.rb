@@ -5,8 +5,6 @@ require "json"
 include ERB::Util
 include Rack::Utils
 
-unless ENV['BZ_AUTH_SERVER'] # Only run these specs if on a server with local database authentication enabled
-
 RSpec.describe CasController, type: :routing do
   let!(:valid_user) { create(:registered_user) }
   let(:valid_user_creds) {{ email: valid_user.email, password: valid_user.password }}
@@ -55,5 +53,3 @@ RSpec.describe CasController, type: :routing do
     end
   end
 end
-
-end # unless ENV['BZ_AUTH_SERVER']

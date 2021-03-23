@@ -5,5 +5,5 @@ def fill_and_submit_login(username, password)
   
   # Make sure there is a login button that can be clicked
   # Capybara with Selenium can have problems with javascript
-  find("#login-submit").click
+  find(".actions input[type=submit]").click
 end

@@ -1,41 +1,22 @@
-<% if @log_out_of_services %>
-<!-- The purpose of this is to log out of all our dependent services, so a user
-     doesn't get trapped in a weird circle of logging out of Canvas, but still
-     being another user on BZ and thereby getting jerked around in a confusing
-     circle when she goes back to the home page.
+<%= form_tag(cas_login_path, method: :post) do -%>
+  <div class="field"><label id="username-label" for="username">
+    Email
+  </label><br />
+  <input class="form-control" autofocus="autofocus" type="text" id="username" name="username"
+         size="32" tabindex="1" /></div>
+  <div class="field"><label id="password-label" for="password">
+    Password
+  </label>
+  <input class="form-control" type="password" id="password" name="password"
+         size="32" tabindex="2" autocomplete="off" /></div>
 
-     Since it is a cross-domain, client side cookie, we had to implement this
-     using a helper method on the other side and an iframe on this side.
--->
-  <iframe style="visibility: hidden; width: 1px; height: 1px;" src="//<%= @settings[:public_site_domain] %>/users/clear_session_cookie"></iframe>
-<% end %>
-<form method="post" action="<%= @form_action || "login" %>" id="login-form">
-      <div class="field"><label id="username-label" for="username">
-        Email
-      </label><br />
-      <input class="form-control" autofocus="autofocus" type="text" id="username" name="username"
-             size="32" tabindex="1" /></div>
-      <div class="field"><label id="password-label" for="password">
-        Password
-      </label><br />
-      <input class="form-control" type="password" id="password" name="password"
-             size="32" tabindex="2" autocomplete="off" /></div>
+  <input type="hidden" id="lt" name="lt" value="<%= @lt %>" />
+  <input type="hidden" id="service" name="service" value="<%= @service %>" />
 
-    <input type="hidden" id="lt" name="lt" value="<%= @lt %>" />
-    <input type="hidden" id="service" name="service" value="<%= @service %>" />
-    <div><input id="login-submit" name="commit" type="submit" value="Log in" /></div>
-    <div id="infoline">
-      <%= @infoline %>
-    </div>
-    <%= hidden_field_tag :authenticity_token, form_authenticity_token -%>
-    <br />
+  <div class="actions">
+    <%= submit_tag "Log in" %>
+  </div>
 
-    <% if ENV['BZ_AUTH_SERVER'] %>
-      <a href="//<%= @settings[:public_site_domain] %>/signup/new">Sign up</a><br />
-      <a href="//<%= @settings[:public_site_domain] %>/users/password/new">Forgot your password?</a><br />
-      <a href="//<%= @settings[:public_site_domain] %>/users/confirmation/new">Didn&#39;t receive confirmation instructions?</a><br />
-    <% else %>
-      <%= render "devise/shared/links" %>
-    <% end %>
-
-</form>
+  <br>
+  <%= render "devise/shared/links" %>
+<% end -%>

@@ -28,19 +28,9 @@ Devise.setup do |config|
   config.parent_mailer = 'ActionMailer::Base'
   
   # ==> CAS configuration
-  # We can operate the server in two modes. 1) the old mode where we connect
-  # to the Join server to check their credentials because that is where the account 
-  # was created 2) we check the local database credentials because they created the account here.
-  # We're in a transition, so remove this toggle and switch to only supporting the local database
-  # once we don't have to run the old mode to allow folks to continue to be able to login to the running
-  # course.
-  if ENV['BZ_AUTH_SERVER']
-    config.cas_create_user = true
-  else
-    config.cas_create_user = false
-    config.cas_logout_url_param = "destination"
-    config.cas_destination_logout_param_name = "service"
-  end
+  config.cas_create_user = false
+  config.cas_logout_url_param = "destination"
+  config.cas_destination_logout_param_name = "service"
 
   # If we're running in the test env, we always want the SSO URL to be the server that Capybara
   # spins up for Selenium tests. We set that server from env variables, so we can use those

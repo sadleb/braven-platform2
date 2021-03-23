@@ -4,12 +4,10 @@ default: &default
   maximum_unused_service_ticket_lifetime: 300
   maximum_session_lifetime: 172800
   maximum_remember_me_lifetime: 604800
-  infoline: Powered by <a href="http://rubycas.github.com">RubyCAS-Server-Core</a>
   log:
     output:
     level: INFO
   booster_portal_domain: <%= ENV['BOOSTER_PORTAL_DOMAIN'] %>
-  public_site_domain: <%= ENV['PUBLIC_SITE_DOMAIN'] %>
   database: &default_db
     database: platform
     reconnect: true
@@ -18,21 +16,9 @@ default: &default
     host: <%= ENV['DATABASE_HOST'] %>
     username: <%= ENV['DATABASE_USERNAME'] %>
     password: <%= ENV['DATABASE_PASSWORD'] %>
-<% if ENV['BZ_AUTH_SERVER'] %>
-  authenticator: &default_bz_auth
-    class: BeyondZ::CustomAuthenticator
-    source: beyondz.rb
-    server: <%= ENV['BZ_AUTH_SERVER'] %>
-    # We can override ssl, port, and self signed options for dev
-    # The default is to use SSL.
-    # ssl: false
-    # port: 3001
-    # allow_self_signed: true
-<% else %>
   authenticator: &default_cas_auth
     class: BravenCAS::CustomAuthenticator
     source: cas_authenticator.rb
-<% end %>
 
 development: &development_config
   <<: *default
@@ -40,25 +26,13 @@ development: &development_config
     output: 
     level: DEBUG
   booster_portal_domain: boosterweb
-  public_site_domain: joinweb
-  # this should be the *top* domain - so even for staging, it should be .join.bebraven.org stilldefault_service: http://canvasweb/login/cas
-  cookie_domain: .localhost 
   theme: simple
   organization: Braven Docker SSO
   database:
     <<: *default_db
     database: platform_development
-<% if ENV['BZ_AUTH_SERVER'] %>
-  authenticator:
-    <<: *default_bz_auth
-    server: joinweb
-    ssl: false
-    port: 3001
-    allow_self_signed: true
-<% else %>
   authenticator:
     <<: *default_cas_auth
-<% end %>
 
 test:
   <<: *development_config
@@ -66,7 +40,6 @@ test:
     output: 
     level: ERROR
   organization: "RSPEC-TEST"
-  infoline: "This is an rspec test."  
   database:
     <<: *default_db
     database: platform_test

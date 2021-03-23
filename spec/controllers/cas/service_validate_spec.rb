@@ -4,8 +4,6 @@ require "capybara_helper"
 include ERB::Util
 include Rack::Utils
 
-unless ENV['BZ_AUTH_SERVER'] # Only run these specs if on a server with local database authentication enabled
-
 RSpec.describe CasController, type: :routing do
   describe "RubyCAS routing" do
     let!(:valid_user) { create(:registered_user) }
@@ -79,5 +77,3 @@ RSpec.describe CasController, type: :routing do
     end
   end
 end
-
-end # unless ENV['BZ_AUTH_SERVER']

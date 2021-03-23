@@ -5,8 +5,6 @@ require "json"
 include ERB::Util
 include Rack::Utils
 
-unless ENV['BZ_AUTH_SERVER'] # Only run these specs if on a server with local database authentication enabled
-
 RSpec.describe CasController, type: :controller do
   render_views
 
@@ -86,5 +84,3 @@ RSpec.describe CasController, type: :controller do
     end
   end
 end
-
-end # unless ENV['BZ_AUTH_SERVER']

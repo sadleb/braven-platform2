@@ -5,8 +5,6 @@ require "securerandom"
 include ERB::Util
 include Rack::Utils
 
-unless ENV['BZ_AUTH_SERVER'] # Only run these specs if on a server with local database authentication enabled
-
 RSpec.describe ProjectSubmissionsController, type: :feature do
   let(:input_name) { 'test-input-name' }
   let(:project_version) { create :project_version, body: %{
@@ -172,4 +170,3 @@ RSpec.describe ProjectSubmissionsController, type: :feature do
     end
   end
 end
-end # unless ENV['BZ_AUTH_SERVER']

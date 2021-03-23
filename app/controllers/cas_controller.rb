@@ -96,29 +96,7 @@ class CasController < ApplicationController
 
     @lt = lt.ticket
 
-    # If the 'onlyLoginForm' parameter is specified, we will only return the
-    # login form part of the page. This is useful for when you want to
-    # embed the login form in some external page (as an IFRAME, or otherwise).
-    # The optional 'submitToURI' parameter can be given to explicitly set the
-    # action for the form, otherwise the server will try to guess this for you.
-    if params.has_key? 'onlyLoginForm'
-      if request.env['HTTP_HOST']
-        @protocol = request.env['HTTPS'] == 'on' ? 'https' : 'http'
-        guessed_login_uri = "#{@protocol}://#{request.env['REQUEST_URI']}/cas/login"
-      else
-        guessed_login_uri = nil
-      end
-
-      @form_action = params['submitToURI'] || guessed_login_uri
-
-      if @form_action
-        return render :_login_form
-      else
-        return render :json => {:response => 'Could not guess the CAS login URI. Please supply a submitToURI parameter with your request.'}, status: :internal_server_error
-      end
-    else
-      render :login
-    end
+    render :login
   end
 
   def loginpost
@@ -259,8 +237,6 @@ class CasController < ApplicationController
     end
 
     @message = {:type => 'confirmation', :message => 'You have successfully logged out.'}
-
-    @log_out_of_services = true
 
     @lt = LT.create! @request_client
 
