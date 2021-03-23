@@ -49,6 +49,8 @@ class ModuleGradeCalculator
       # export it again. This means, we can have multiple Rise360ModuleVersions with
       # the same activity ID. That's why we use the canvas_assignment_id to find the
       # the correct version.
+      # NOTE: Always use Rise360ModuleVersion.quiz_questions for this calculation,
+      # since the base Module might have different questions than this Version.
       crmv = CourseRise360ModuleVersion.find_by!(canvas_assignment_id: canvas_assignment_id)
       rmv = Rise360ModuleVersion.find(crmv.rise360_module_version_id)
       total_quiz_questions = rmv.quiz_questions

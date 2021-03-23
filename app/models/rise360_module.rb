@@ -1,6 +1,9 @@
 require 'rise360_util'
 
 # Represents the contents of a Canvas module, e.g. a Rise 360 course
+# NOTE: You probably don't want to use Rise360Module.quiz_questions
+# directly! To get the number of quiz questions in a given module, always
+# use Rise360ModuleVersion.quiz_questions instead!
 class Rise360Module < ApplicationRecord
   include Versionable
 
