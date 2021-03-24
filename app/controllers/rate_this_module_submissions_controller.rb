@@ -46,9 +46,10 @@ class RateThisModuleSubmissionsController < ApplicationController
       format.html { redirect_to(
         edit_rate_this_module_submission_path(
           @rate_this_module_submission,
-          state: @lti_launch.state
-        ),
-        notice: 'Feedback submitted.'
+          state: @lti_launch.state,
+          show_alert: true,
+          submitted: true
+        )
       ) }
       format.json { head :no_content }
     end

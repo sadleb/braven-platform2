@@ -56,6 +56,7 @@ RSpec.describe RateThisModuleSubmissionsController, type: :controller do
   end
 
   describe 'GET #edit' do
+    let(:other_params) { {} }
     let(:rate_this_module_submission) { create(
       :rate_this_module_submission,
       course_rise360_module_version: course_rise360_module_version,
@@ -63,13 +64,32 @@ RSpec.describe RateThisModuleSubmissionsController, type: :controller do
     ) }
 
     subject { get(:edit, params: {
-      id: rate_this_module_submission.id,
-      state: lti_launch.state,
-    } ) }
+        id: rate_this_module_submission.id,
+        state: lti_launch.state,
+      }.merge(other_params)
+    ) }
 
     it "shows the form" do
       subject
       expect(response.body).to include("Rate This Module")
+      expect(response.body).to include("Submit")
+      expect(response.body).not_to include("Feedback submitted")
+    end
+
+    context 'when submitted' do
+      let(:other_params) { {show_alert: true} }
+      it 'shows the alert' do
+        subject
+        expect(response.body).to include("Feedback submitted")
+      end
+    end
+
+    context 'when submitted' do
+      let(:other_params) { {submitted: true} }
+      it 'shows Re-Submit instead of Submit' do
+        subject
+        expect(response.body).to include("Re-Submit")
+      end
     end
   end
 
@@ -113,17 +133,14 @@ RSpec.describe RateThisModuleSubmissionsController, type: :controller do
         expect { subject }.not_to change(RateThisModuleSubmissionAnswer, :count)
       end
 
-      it 'redirects to #edit' do
+      it 'redirects to #edit with success params' do
         subject
         expect(response).to redirect_to edit_rate_this_module_submission_path(
           rate_this_module_submission,
           state: lti_launch.state,
+          show_alert: true,
+          submitted: true,
         )
-      end
-
-      it 'renders a success notification' do
-        subject
-        expect(flash[:notice]).to match /submitted/
       end
     end
   end

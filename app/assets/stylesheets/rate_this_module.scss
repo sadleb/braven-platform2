@@ -19,6 +19,11 @@ div.embedded-rate-this-module-container {
     width: 4em;
   }
 
+  // Make the X bigger on the "Feedback submitted" alert.
+  a.close {
+    font-size: 2.4rem;
+  }
+
   /**
     Below is a bunch of hackiness that works together with the media queries in
     rise360_content.scss to try and make the content look like other

@@ -4,8 +4,18 @@ in rate_this_module.scss and rise360_content.scss to adjust the media query
 breakpoints in order to make sure it still looks good iframed inside a Rise360
 package at various screen sizes. You probably want to avoid that.
 %>
+
 <div class="row no-gutters">
   <div class="col-md">
+
+    <% if params[:show_alert] %>
+      <div class="alert alert-success alert-dismissible fade show show-alert" role="alert">
+        <p>Feedback submitted. Thank you!</p>
+        <a href="<%= edit_rate_this_module_submission_path(@rate_this_module_submission, state: @lti_launch.state, submitted: true) %>"
+           class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></a>
+      </div>
+    <% end %>
+
     <h1>Rate This Module</h1>
     <p>
     At the end of every module, you will have the chance to provide your feedback.
@@ -40,7 +50,8 @@ package at various screen sizes. You probably want to avoid that.
       <input type="hidden" name="state" value="<%= @lti_launch.state %>">
 
       <div class="actions">
-        <%= form.submit 'Submit', class: 'btn btn-primary btn-block' %>
+        <% submit_btn_message = (params[:submitted] ? 'Re-Submit' : 'Submit') %>
+        <%= form.submit submit_btn_message, class: 'btn btn-primary btn-block' %>
       </div>
 
     <% end %>
