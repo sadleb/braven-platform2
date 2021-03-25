@@ -22,6 +22,10 @@ FactoryBot.define do
       sequence(:salesforce_id) { |i| "003#{i}100001iyv8IAAQ" }
       confirmed_at { DateTime.now }
 
+      factory :unconfirmed_user do
+        confirmed_at { nil }
+      end
+
       # section only used in child factory callbacks.
       transient do
         section { build(:section) }

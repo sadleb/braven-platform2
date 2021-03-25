@@ -1,6 +1,10 @@
 <div class="row">
   <div class="col-md-6 offset-md-3">
-    <h1>One More Step</h1>
+    <% if params[:login_attempt] %>
+      <h1>Please confirm your email address</h1>
+    <% else %>
+      <h1>One more step</h1>
+    <% end %>
     <p>Please check your email for instructions on how to finish creating your account.</p>
   </div>
 </div>

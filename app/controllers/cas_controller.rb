@@ -15,6 +15,7 @@ class CasController < ApplicationController
   before_action :set_settings
   before_action :set_request_client
   before_action :set_params
+  before_action :set_loginpost_params, only: [:loginpost] 
 
   # Note that the following helper classes in this controller come from this module
   # TGT = Ticket Granting Ticket
@@ -96,14 +97,18 @@ class CasController < ApplicationController
 
     @lt = lt.ticket
 
+    # This happens if they try and sign-up to create an account a second time. We redirect here with
+    # the "u" param that was in the original /users/sign_up?u=<blah> path. The reason we don't translate
+    # it to a nicer to read "salesforce_id" param is b/c it's an unauthenticated endpoint and we don't
+    # want to help anyone trying to brute force attack this trying to determine which IDs are valid
+    # by identifying more information about what it is which would allow them to reduce the space of IDs
+    # to try. Make them read through the code on github at least :)
+    @salesforce_id = params[:u]
+
     render :login
   end
 
   def loginpost
-    @username = params['username'].downcase.strip
-    @password = params['password']
-    @lt = params['lt']
-
     if !result = LT.validate(@lt)
       @message = {:type => 'mistake', :message => error}
       # generate another login ticket to allow for re-submitting the form
@@ -175,7 +180,7 @@ class CasController < ApplicationController
         unconfirmed_user = user && user.confirmed? == false
         if unconfirmed_user
           logger.warn("Unconfirmed user tried to login: '#{@username}'")
-          @message = { :type => 'mistake', :message => 'Please confirm your account by clicking on the link in the email you received first.' }
+          redirect_to users_registration_path(u: user.salesforce_id, login_attempt: true) and return
         else
           logger.warn("Invalid credentials given for user '#{@username}'")
           @message = { :type => 'mistake', :message => 'Incorrect username or password.' }
@@ -350,6 +355,17 @@ class CasController < ApplicationController
     @renew = params['renew'] || nil
     @extra_attributes = {}
   end 
+
+  def set_loginpost_params
+    # The username could either be explicitly typed into the form OR it could
+    # be that a hidden salesforce_id is passed in params[:u] if we redirect from
+    # the users/sign_up endpoint b/c they've already signed up.
+    @username = params[:username].downcase.strip if params[:username]
+    @username = User.find_by!(salesforce_id: params[:u]).email if params[:u]
+
+    @password = params[:password]
+    @lt = params[:lt]
+  end
 end
 
 # TODO: move this to the rubycas-server-core gem here:

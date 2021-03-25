@@ -1,14 +1,37 @@
 <%= form_tag(cas_login_path, method: :post) do -%>
-  <div class="field"><label id="username-label" for="username">
-    Email
-  </label><br />
-  <input class="form-control" autofocus="autofocus" type="text" id="username" name="username"
-         size="32" tabindex="1" /></div>
-  <div class="field"><label id="password-label" for="password">
-    Password
-  </label>
-  <input class="form-control" type="password" id="password" name="password"
-         size="32" tabindex="2" autocomplete="off" /></div>
+
+  <%#
+    This form has two modes for how it's loaded. 1) As a normal login form where you type in
+    your email and password. 2) As a login form where we've already identified who you are using
+    your Salesforce ID and just need you to type in your password.
+
+    Note that autofocus is on a different input depending on the mode.
+  %>
+
+  <% if @salesforce_id %>
+
+    <div class="field">
+      <label id="password-label" for="password">Password</label>
+      <input class="form-control" type="password" id="password" name="password"
+             autofocus size="32" autocomplete="off" />
+    </div>
+    <input type="hidden" id="u" name="u" value="<%= @salesforce_id %>" />
+
+  <% else %>
+
+    <div class="field">
+      <label id="username-label" for="username">Email</label>
+      <input class="form-control" type="text" id="username" name="username"
+             autofocus size="32" />
+    </div>
+    <div class="field">
+      <label id="password-label" for="password">Password</label>
+      <input class="form-control" type="password" id="password" name="password"
+             size="32" autocomplete="off" />
+    </div>
+
+  <% end %>
+
 
   <input type="hidden" id="lt" name="lt" value="<%= @lt %>" />
   <input type="hidden" id="service" name="service" value="<%= @service %>" />
@@ -16,7 +39,7 @@
   <div class="actions">
     <%= submit_tag "Log in" %>
   </div>
-
   <br>
   <%= render "devise/shared/links" %>
+
 <% end -%>

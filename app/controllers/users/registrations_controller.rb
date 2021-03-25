@@ -16,7 +16,12 @@ class Users::RegistrationsController < Devise::RegistrationsController
     super do
       return render :bad_link unless salesforce_id
 
-      return render :already_exists if find_user_by_salesforce_id.present?
+      if find_user_by_salesforce_id.present?
+        redirect_to cas_login_path(
+          u: salesforce_id,
+          notice: 'Looks like you have already signed up. Please log in.'
+        ) and return
+      end
     end
   end
 
