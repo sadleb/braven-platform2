@@ -14,6 +14,7 @@ class FilterLogging
   FILTERED_STATE_QUERY_PARAM_ENCODED = "state%3D#{FILTERED}"
   FILTERED_AUTH_QUERY_PARAM = "auth=#{FILTERED}"
   FILTERED_AUTH_QUERY_PARAM_ENCODED = "auth%3D#{FILTERED}"
+  FILTERED_TICKET_QUERY_PARAM = "ticket=#{FILTERED}"
 
   # These are the parameters where the entire value should be filtered out.
   FILTER_ENTIRE_ATTRIBUTE_NAMES = [
@@ -75,10 +76,12 @@ class FilterLogging
         value.gsub!(/state%3D([^&]+)/, FILTERED_STATE_QUERY_PARAM_ENCODED)
         value.gsub!(/auth\=([^&]+)/, FILTERED_AUTH_QUERY_PARAM)
         value.gsub!(/auth%3D([^&]+)/, FILTERED_AUTH_QUERY_PARAM_ENCODED)
+        value.gsub!(/ticket\=([^&]+)/, FILTERED_TICKET_QUERY_PARAM)
 
       elsif param_name == 'restiming'
         value.gsub!(/state\=([^"&]+)/, FILTERED_STATE_QUERY_PARAM)
         value.gsub!(/auth\=([^"&]+)/, FILTERED_AUTH_QUERY_PARAM)
+        value.gsub!(/ticket\=([^&]+)/, FILTERED_TICKET_QUERY_PARAM)
 
       end
     end
