@@ -19,6 +19,7 @@ class Users::RegistrationsController < Devise::RegistrationsController
       if find_user_by_salesforce_id.present?
         redirect_to cas_login_path(
           u: salesforce_id,
+          service: CanvasAPI.client.canvas_url,
           notice: 'Looks like you have already signed up. Please log in.'
         ) and return
       end
