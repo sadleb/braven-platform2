@@ -198,7 +198,7 @@ RSpec.describe FilterLogging do
     end
 
     context 'for login_tickets table' do
-      let(:log_name) { 'LoginTicket Update' }
+      let(:log_name) { 'RubyCAS::Server::Core::Tickets::LoginTicket Update' }
       let(:column_name) { 'ticket' }
       let(:column_value) { 'fake-ticket'}
 
@@ -209,7 +209,7 @@ RSpec.describe FilterLogging do
     end
 
     context 'for proxy_granting_tickets table' do
-      let(:log_name) { 'ProxyGrantingTicket Update' }
+      let(:log_name) { 'RubyCAS::Server::Core::Tickets::ProxyGrantingTicket Update' }
       let(:column_name) { 'ticket' }
       let(:column_value) { 'fake-ticket'}
 
@@ -220,7 +220,7 @@ RSpec.describe FilterLogging do
     end
 
     context 'for service_tickets table' do
-      let(:log_name) { 'ServiceTicket Create' }
+      let(:log_name) { 'RubyCAS::Server::Core::Tickets::ServiceTicket Create' }
       let(:column_name) { 'ticket' }
       let(:column_value) { 'fake-ticket'}
 
@@ -231,7 +231,7 @@ RSpec.describe FilterLogging do
     end
 
     context 'for ticket_granting_tickets table' do
-      let(:log_name) { 'TicketGrantingTicket Create' }
+      let(:log_name) { 'RubyCAS::Server::Core::Tickets::TicketGrantingTicket Create' }
       let(:column_name) { 'ticket' }
       let(:column_value) { 'fake-ticket'}
 

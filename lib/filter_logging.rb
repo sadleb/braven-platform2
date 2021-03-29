@@ -71,19 +71,15 @@ class FilterLogging
         value.clear()
         value.insert(0, FILTERED)
 
-      elsif param_name == 'url' || param_name == 'u' || param_name == 'pgu' || param_name == 'error_detail'
-        value.gsub!(/state\=([^&]+)/, FILTERED_STATE_QUERY_PARAM)
-        value.gsub!(/state%3D([^&]+)/, FILTERED_STATE_QUERY_PARAM_ENCODED)
-        value.gsub!(/auth\=([^&]+)/, FILTERED_AUTH_QUERY_PARAM)
-        value.gsub!(/auth%3D([^&]+)/, FILTERED_AUTH_QUERY_PARAM_ENCODED)
-        value.gsub!(/ticket\=([^&]+)/, FILTERED_TICKET_QUERY_PARAM)
-
-      elsif param_name == 'restiming'
-        value.gsub!(/state\=([^"&]+)/, FILTERED_STATE_QUERY_PARAM)
-        value.gsub!(/auth\=([^"&]+)/, FILTERED_AUTH_QUERY_PARAM)
-        value.gsub!(/ticket\=([^&]+)/, FILTERED_TICKET_QUERY_PARAM)
-
+      elsif param_name == 'url' || param_name == 'u' || param_name == 'pgu' || param_name == 'restiming' || param_name == 'error_detail'
+        value.gsub!(/state\=([^&" ]+)/, FILTERED_STATE_QUERY_PARAM)
+        value.gsub!(/state%3D([^&" ]+)/, FILTERED_STATE_QUERY_PARAM_ENCODED)
+        value.gsub!(/auth\=([^&" ]+)/, FILTERED_AUTH_QUERY_PARAM)
+        value.gsub!(/auth%3D([^&" ]+)/, FILTERED_AUTH_QUERY_PARAM_ENCODED)
+        value.gsub!(/ticket\=([^&" ]+)/, FILTERED_TICKET_QUERY_PARAM)
       end
+
+      value
     end
   end
 
@@ -192,10 +188,26 @@ class FilterLogging
     # NOTE2: the SQL statements in the breadcrumbs are filtered at the source. See core_ext/postgresql_adapter.rb
     # and https://github.com/getsentry/sentry-ruby/blob/master/sentry-rails/lib/sentry/rails/breadcrumb/active_support_logger.rb
 
-    event.request.cookies = event.request.cookies.except('_platform_session')
-    event.request.query_string = parameter_filter.filter_param('url', event.request.query_string)
-    event.request.headers['Referer'] = parameter_filter.filter_param('url', event.request.headers['Referer'])
-    event.breadcrumbs = FilterLogging.filter_sentry_breadcrumbs(event.breadcrumbs.to_hash)
+    event = event.to_hash
+
+    cookies = event[:request][:cookies]
+    event[:request][:cookies] = cookies.except('_platform_session') if cookies
+
+    query_string = event[:request][:query_string]
+    event[:request][:query_string] = parameter_filter.filter_param('url', query_string) if query_string
+
+    referer = event.dig(:request, :headers, 'Referer')
+    event[:request][:headers]['Referer'] = parameter_filter.filter_param('url', referer) if referer
+
+    # Despite the name, "exception" is actually a collection of exceptions. Looks like sentry-ruby extracts nested
+    # traces into their own exception. See: https://github.com/getsentry/sentry-ruby/blob/8bbfda8492e0ed77ac6ad99fab8e075cc8b1c3ac/sentry-ruby/lib/sentry/interfaces/exception.rb
+    if event[:exception]
+      event[:exception][:values].each do |e|
+        e[:value] = parameter_filter.filter_param('url', e[:value])
+      end
+    end
+
+    event[:breadcrumbs] = FilterLogging.filter_sentry_breadcrumbs(event[:breadcrumbs])
 
   rescue => e
     Rails.logger.error(e)
