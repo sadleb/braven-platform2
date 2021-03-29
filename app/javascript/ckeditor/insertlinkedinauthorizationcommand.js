@@ -6,9 +6,9 @@ const PRIVACY_POLICY_URL = 'https://bebraven.org/privacy-policy/';
 // The language around the LinkedIn authorization button is legally required.
 const LINKED_IN_DESCRIPTION = `
 Please click the following button to sign into LinkedIn and authorize Braven 
-to have continued access to your profile data for an extended period of time. 
-We'll use this data to track your progress towards finding a strong first job, 
-so that we can support you in any way we can after you complete the course!`;
+to have continued access to your profile data for three years. We'll use this
+data to track your progress towards finding a strong first job, so that we can
+support you in any way we can after you complete the course!`;
 const LINKED_IN_NOTE = `
 * Note: Braven won't be able to make any changes to your profile and 
 will only use your data in accordance with our `; // privacy policy
