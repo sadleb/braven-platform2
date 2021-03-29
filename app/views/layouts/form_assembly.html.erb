@@ -1,7 +1,8 @@
 <%# Override the application-wide CSS/JS and let FormAssembly handle that.
     Our stuff was conflicting with theirs.%>
 <% content_for :css_js do %>
-    <%= stylesheet_link_tag 'layouts/form_assembly', media: 'all', 'data-turbolinks-track': 'reload' %>
+  <%= stylesheet_link_tag 'layouts/form_assembly', media: 'all', 'data-turbolinks-track': 'reload' %>
+  <%= javascript_pack_tag 'form_assembly', 'data-turbolinks-track': 'reload' %>
 <% end %>
 
 <%# Add stuff to the body here %>
