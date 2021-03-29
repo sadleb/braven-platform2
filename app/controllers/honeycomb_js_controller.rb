@@ -9,8 +9,8 @@ require 'filter_logging'
 #  - https://github.com/thewoolleyman/honeycomb-react-rails-fullstack-tracing
 #
 # Note: we have some Honeycomb wrapper classes in honeycomb.js to help with sending
-# Boomerang events from Javasript to this controller. They are mostly meant for helping 
-# to make sure the instrumentation you add ends up in a Boomerang beacon that makes 
+# Boomerang events from Javasript to this controller. They are mostly meant for helping
+# to make sure the instrumentation you add ends up in a Boomerang beacon that makes
 # sense as a "span". HOWEVER, this controller is the one mostly responsible for translating built-in
 # Boomerang field names / values into normalized field names / values that match the rest of
 # the Rails Honeycomb Beeline instrumentation to allow us to easily query for and analyze the data.
@@ -20,7 +20,7 @@ class HoneycombJsController < ApplicationController
 
   # Slightly undocumented header to use to propagate traces in a distributed fashion.
   # I noticed this mentioned in the docs about Faraday doing this: https://docs.honeycomb.io/getting-data-in/ruby/beeline/#faraday
-  # and dug into the code to do the same. One example here: 
+  # and dug into the code to do the same. One example here:
   #   https://github.com/honeycombio/beeline-ruby/blob/6db9d6e0f696d93212100cca5efdeefc7723afb7/lib/honeycomb/integrations/faraday.rb#L25
   # This is where Beeline uses it to setup the trace and spans in the current context:
   #   https://github.com/honeycombio/beeline-ruby/blob/6db9d6e0f696d93212100cca5efdeefc7723afb7/lib/honeycomb/integrations/rack.rb#L35
@@ -46,17 +46,26 @@ class HoneycombJsController < ApplicationController
     authorize :honeycomb_js
 
     existing_trace_to_add_to = request.headers[X_HONEYCOMB_TRACE_HEADER]
-    raise ActionController::BadRequest, "Missing '#{X_HONEYCOMB_TRACE_HEADER}' header" unless existing_trace_to_add_to 
+    raise ActionController::BadRequest, "Missing '#{X_HONEYCOMB_TRACE_HEADER}' header" unless existing_trace_to_add_to
 
-    span_name = params[:name] || 'js.event'
     duration = params['t_done']
 
-    # Span names are different than field names. Not prefixed b/c this is shorter and still unambiguous.
-    if is_page_load_beacon?
-      span_name = 'js.page.load'
+    # Note that if you're looking for information that came from a particular span wrapper in JS,
+    # query by it's context, which is 'js.app.the_filename.the_function_name'. There can be multiple
+    # of those JS wrappers that end up putting fields in a single beacon that calls this send_span
+    # action. That's why we set the span name to be the type of beacon instead of letting the JS
+    # choose a name
+    if is_xhr_beacon?
+      span_name = "#{BOOMERANG_FIELD_PREFIX}.xhr"
+    elsif is_page_load_beacon?
+      span_name = "#{BOOMERANG_FIELD_PREFIX}.page_load"
     elsif is_page_unload_beacon?
-      span_name = 'js.page.unload'
+      span_name = "#{BOOMERANG_FIELD_PREFIX}.page_unload"
       duration = 0 # the duration passed is actually for the page.load, so 0 it out.
+    elsif is_manual_beacon?
+      span_name = "#{BOOMERANG_FIELD_PREFIX}.manual"
+    else
+      span_name = BOOMERANG_FIELD_PREFIX 
     end
 
     PropagatedSpan.new(span_name, existing_trace_to_add_to, duration).send_to_honeycomb() do |span|
@@ -72,6 +81,9 @@ class HoneycombJsController < ApplicationController
 
       # Add the data sent by the JS. Includes both Boomerang and manual fields.
       params.each do |key, value|
+        # The controller and action keys are added by something, but they arent params sent from JS.
+        # Don't propagate these as "JS" fields. state either b/c it's sensitive and should be filtered anyway.
+        next if key == 'controller' or key == 'action' or key == 'state'
         key = "#{BOOMERANG_FIELD_PREFIX}.#{key}" unless key.start_with? CUSTOM_FIELD_PREFIX
         span.add_field(key, value)
       end
@@ -82,28 +94,39 @@ class HoneycombJsController < ApplicationController
 
   # Standardize some Boomerang fields to Rails equivalents for easier querying.
   def translate_boomerang_fields(span)
-      if params[:u] # "u" stands for "url" 
-        pathinfo = URI(params[:u])
-        span.add_field("#{BOOMERANG_FIELD_PREFIX}.request.path", pathinfo.path)
-        span.add_field("#{BOOMERANG_FIELD_PREFIX}.request.query_string", pathinfo.query)
-      end
+    if params[:u] # "u" stands for "url"
+      pathinfo = URI(params[:u])
+      span.add_field("#{BOOMERANG_FIELD_PREFIX}.request.path", pathinfo.path)
+      span.add_field("#{BOOMERANG_FIELD_PREFIX}.request.query_string", pathinfo.query)
+    end
 
-      if params['http.initiator'] == 'xhr'
-        method = params['http.method'] || 'GET' # Annoyingly, 'http.method' may not be set for GET. If missing on XHR beacon, it's GET.
-        span.add_field("#{BOOMERANG_FIELD_PREFIX}.request.method", method)
-        status = params['http.errno'] || '200'
-        span.add_field("#{BOOMERANG_FIELD_PREFIX}.response.status_code", status)
-      end
+    if is_xhr_beacon?
+      method = params['http.method'] || 'GET' # Annoyingly, 'http.method' may not be set for GET. If missing on XHR beacon, it's GET.
+      span.add_field("#{BOOMERANG_FIELD_PREFIX}.request.method", method)
+      status = params['http.errno'] || '200'
+      span.add_field("#{BOOMERANG_FIELD_PREFIX}.response.status_code", status)
+    end
 
-      span.add_field("#{BOOMERANG_FIELD_PREFIX}.timestamp", beacon_timestamp) if params['rt.end']
+    span.add_field("#{BOOMERANG_FIELD_PREFIX}.timestamp", beacon_timestamp) if params['rt.end']
   end
 
   def is_page_load_beacon?
-    !is_page_unload_beacon? && !params.key?('http.initiator') && !params.key?('early') 
+    !is_page_unload_beacon? && !params.key?('http.initiator') && !params.key?('early') && !params.key?('xhr.pg')
   end
 
   def is_page_unload_beacon?
     params.key?('rt.quit')
+  end
+
+  # See https://developer.akamai.com/tools/boomerang/docs/BOOMR.plugins.AutoXHR.html
+  # These are Fetch/XHR calls for some AJAX'y thing.
+  def is_xhr_beacon?
+    params['http.initiator'] == 'xhr'
+  end
+
+  # See: https://akamai.github.io/boomerang/tutorial-howto-measure-arbitrary-events.html
+  def is_manual_beacon?
+    params.key?('h.pg') || params.key?('xhr.pg')
   end
 
   # The time that the event completed on the client side (as reported based on the client's clock).
@@ -118,7 +141,7 @@ class HoneycombJsController < ApplicationController
   # timestamp will be when the server received the event and not when the client says the event
   # happened.
   #
-  # The time format used is the same in libhoney: 
+  # The time format used is the same in libhoney:
   # https://github.com/honeycombio/libhoney-rb/blob/3607446da676a59aad47ff72c3e8d749f885f0e9/lib/libhoney/transmission.rb#L187
   def beacon_timestamp
     Time.at(params['rt.end'].to_f / 1000.0).iso8601(3)
@@ -128,7 +151,7 @@ class HoneycombJsController < ApplicationController
   #
   # Note: we use the current_span as the parent span instead of the original one so that we can
   # see all the layers in the trace just in case something bad happens with this controller
-  # and we need to troubleshoot and tie it all together. 
+  # and we need to troubleshoot and tie it all together.
   # (e.g. if this controller get's bombarded with requests and the server can't keep up)
   class PropagatedSpan
 

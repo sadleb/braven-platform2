@@ -23,30 +23,29 @@ export async function main() {
     const wrapperDiv = document.getElementById(WRAPPER_DIV_ID);
     const isReadOnly = wrapperDiv.attributes[READ_ONLY_ATTR].value;
     const projectSubmissionId = wrapperDiv.attributes[SUBMISSION_DATA_ATTR].value;
-    const api_url = `/project_submissions/${projectSubmissionId}/project_submission_answers`;
+    const apiUrl = `/project_submissions/${projectSubmissionId}/project_submission_answers`;
 
     function getAllInputs() {
-        return document.querySelectorAll(SUPPORTED_INPUT_ELEMENTS.join(', '));   
+        return document.querySelectorAll(SUPPORTED_INPUT_ELEMENTS.join(', '));
     }
-    
+
     function prefillAnswers() {
 
-        const honey_span = new HoneycombXhrSpan(HONEYCOMB_CONTROLLER_NAME, 'prefillAnswers', {
-                                             'submission.id': projectSubmissionId,
-                                             'url': api_url,
+        const honeySpan = new HoneycombXhrSpan(HONEYCOMB_CONTROLLER_NAME, 'prefillAnswers', {
+                                             'project_submission.id': projectSubmissionId,
                                              'readonly': isReadOnly});
-    
+
         const inputs = getAllInputs();
-    
+
         // Mark all inputs as disabled if data-read-only is true.
         if (isReadOnly === "true") {
             inputs.forEach((input) => {
                 input.disabled = true;
             });
-        }    
-    
+        }
+
         return fetch(
-          api_url,
+          apiUrl,
           {
             method: 'GET',
             headers: {
@@ -60,10 +59,10 @@ export async function main() {
             // Convert array of answer objects into map of {input_name: input_value}.
             response.json().then((answers) => {
                 const prefills = answers.reduce((map, obj) => {
-                    map[obj.input_name] = obj.input_value;
+                    map[obj.input_name] = obj.input_value; // Ruby snake_case sent
                     return map;
                 }, {});
-    
+
                 inputs.forEach( input => {
                     // Prefill input values with answers.
                     const prefill = prefills[input.name];
@@ -78,41 +77,40 @@ export async function main() {
                     }
                 });
             });
-    
+
         })
         .catch((error) => {
-            const error_msg = 'Failed to populate previous answers.';
-            console.error(error_msg);
-            honey_span.addErrorDetails(error_msg, error);
+            const errorMsg = 'Failed to populate previous answers.';
+            console.error(errorMsg);
+            honeySpan.addErrorDetails(errorMsg, error);
         });
     }
-    
+
     function attachInputListeners() {
         getAllInputs().forEach(input => { input.onblur = sendAnswer });
     }
-    
+
     function sendAnswer(e) {
         const input = e.target;
-        const input_name = input.name;
-        const input_value = input.value;
-     
+        const inputName = input.name;
+        const inputValue = input.value;
+
         const data = {
             project_submission_answer: {
-                input_name: input_name,
-                input_value: input_value,
+                input_name: inputName,
+                input_value: inputValue,
             },
         };
-    
-        const honey_span = new HoneycombXhrSpan(HONEYCOMB_CONTROLLER_NAME, 'sendAnswer', {
-                                             'submission.id': projectSubmissionId,
-                                             'url': api_url,
+
+        const honeySpan = new HoneycombXhrSpan(HONEYCOMB_CONTROLLER_NAME, 'sendAnswer', {
+                                             'project_submission.id': projectSubmissionId,
                                              'readonly': isReadOnly,
-                                             'input.name': input_name,
-                                             'input.value': input_value});
+                                             'input_name': inputName,
+                                             'input_value': inputValue});
 
          // AJAX call to ProjectSubmissionAnswersController.
         fetch(
-          api_url,
+          apiUrl,
           {
             method: 'POST',
             body: JSON.stringify(data),
@@ -124,12 +122,12 @@ export async function main() {
           },
          )
         .then((response) => {
-            honey_span.addField('response.status', response.status);
+            honeySpan.addField('response.status', response.status, false);
         })
         .catch((error) => {
-            const error_msg = `Failed to save answer: [name='${input_name}', value='${input_value}']`;
-            console.error(error_msg);
-            honey_span.addErrorDetails(error_msg, error);
+            const errorMsg = `Failed to save answer: [name='${inputName}', value='${inputValue}']`;
+            console.error(errorMsg);
+            honeySpan.addErrorDetails(errorMsg, error);
         });
     }
 

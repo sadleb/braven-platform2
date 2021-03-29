@@ -3,34 +3,33 @@ import { isErrorObject } from '../utils/errorutils';
 const FIELD_PREFIX = 'js.app';
 
 /*
- * Base class for various types of HoneycombSpan wrappers exported in this module.
+ * Base class for various types of span wrappers exported in this module.
  */
 class HoneycombSpanBase {
 
     /*
-     * Instantiate this with a particular "controller" and "action".
-     * I'm using these terms to mimic Rails where the "controller" is the general service we're
-     * dealing with, such as xAPI request/responses for a Project. The "action" is what
-     * we're currenly doing. E.g. populating previous answers. The concept maps to the Rails concept
-     * of the particular method we're calling on the controller.
+     * Instantiate this with a particular "fileName" and "functionName".
      *
      * @param {Function} functionWrapper a function that takes a function as an argument and wraps it in
-     *                                   extra logic before (and after) executing it. All public methods 
+     *                                   extra logic before (and after) executing it. All public methods
      *                                   will be wrapped in this if it's specified.
      */
-    constructor(controller, action, fields = {}, prefixFields = true, functionWrapper = null) {
-        this.controller = controller;
-        this.action = action;
-        this.name = `js.${controller}.${action}`;
-        this.prefixFields = prefixFields;
+    constructor(fileName, functionName, fields = {}, functionWrapper = null) {
+        this.fileName = fileName;
+        this.functionName = functionName;
+        this.context = `${fileName}.${functionName}`;
         this.functionWrapper = functionWrapper;
- 
-        this.getFieldName = function(key) {
-            return (this.prefixFields ? `${FIELD_PREFIX}.${key}` : key);
+
+        this.getFieldName = function(key, prefixWithContext = true) {
+            if (prefixWithContext) {
+                return `${FIELD_PREFIX}.${this.context}.${key}`
+            } else {
+                return `${FIELD_PREFIX}.${key}`
+            }
         }
 
         this.runAfterBoomerangLoaded = function(f) {
-            if (window.BOOMR && window.BOOMR.isBoomerangLoaded) { 
+            if (window.BOOMR && window.BOOMR.isBoomerangLoaded) {
                 if (functionWrapper) {
                     functionWrapper(f);
                 } else {
@@ -43,11 +42,7 @@ class HoneycombSpanBase {
         }
 
         this.runAfterBoomerangLoaded(() => {
-            // Standard fields that should be added to every span.
-            // Don't prefix these. They're common to all "controllers" 
-            window.BOOMR.addVar('controller', controller, true);
-            window.BOOMR.addVar('name', this.name, true);
-     
+            // Fields that the caller passed into the constructor
             this.addFields(fields);
 
             this.startTime = window.BOOMR.now();
@@ -55,21 +50,27 @@ class HoneycombSpanBase {
     }
 
     /*
-     * Adds a field to the current span.
+     * Adds a field to the current span. Note that field names are prefixed by the "context"
+     * of this span, so just add the "interesting_thing_name" you want as the key and not
+     * where to look in the code according to the field naming guidelines on the Wiki
+     *
+     * Set prefixWithContext to false if you're adding a generic field that is not specific to
+     * JS file/context.
      */
-    addField(key, value) {
+    addField(key, value, prefixWithContext = true) {
         this.runAfterBoomerangLoaded(() => {
-            window.BOOMR.addVar(this.getFieldName(key), value, true);
+            window.BOOMR.addVar(this.getFieldName(key, prefixWithContext), value, true);
         });
     }
 
     /*
-     * Adds multiple fields to the current span.
+     * Adds multiple fields to the current span. See addField() for a note about field naming
+     * and the prefixWithContext param.
      */
-    addFields(fields) {
+    addFields(fields, prefixWithContext = true) {
         this.runAfterBoomerangLoaded(() => {
             for (const key of Object.keys(fields)) {
-                this.addField(key, fields[key]);
+                this.addField(key, fields[key], prefixWithContext);
             }
         });
     }
@@ -96,24 +97,25 @@ class HoneycombSpanBase {
                  error: e.name,
                  error_log: log_msg,
                  error_detail: e.toString(),
-                 error_action: this.action,
+                 error_filename: this.fileName,
+                 error_function: this.functionName,
                  error_stacktrace: e.stack
              };
              window.BOOMR.addVar(error_data, null, true);
              window.BOOMR.plugins.Errors.send(e); // Force the beacon to go out.
         });
-    } 
+    }
 
     /*
      * When measuring arbitrary events, call this to force a beacon to go out with
-     * any fields you added and the h.pg field set to the name of this span with the
+     * any fields you added and the h.pg field set to the context of this span with the
      * time it took to run as the value.
      * See here for more detail: https://akamai.github.io/boomerang/tutorial-howto-measure-arbitrary-events.html
      */
-    sendTimerBeacon() {
+    sendNow() {
         this.runAfterBoomerangLoaded(() => {
             if(this.startTime) {
-                window.BOOMR.responseEnd(this.name, this.startTime);
+                window.BOOMR.responseEnd(`${FIELD_PREFIX}.${this.context}`, this.startTime);
             }
         });
     }
@@ -121,24 +123,27 @@ class HoneycombSpanBase {
 
 /*
  * Wrapper for Boomerang AutoXHR plugin beacons (also handles Fetch requests) to treat them
- * as a "span" in Honeycomb. This allows us to more easily add our own instrumentation details 
- * to what the automatic beacon provides and ensure that it ends up on the correct beacon. 
+ * as a "span" in Honeycomb. This allows us to more easily add our own instrumentation details
+ * to what the automatic beacon provides and ensure that it ends up on the correct beacon.
  * See here for documentation on the AutoXHR plugin behavior:
  *     https://akamai.github.io/boomerang/BOOMR.plugins.AutoXHR.html
  *
- * Example Usage: 
- * const honey_span = new HoneycombXhrSpan('controller.name', 'action.name', {
- *    'field1.to.add': 'value1', 
- *    'field2.to.add': 'value2'});
+ * Note: use snake_case for field names to keep things consistent with the Rails instrumentation.
+ * The one exception is the functionName b/c that should be an actual JS function which is CamelCase
+
+ * Example Usage:
+ * const honeySpan = new HoneycombXhrSpan('file_name', 'function_name', {
+ *    'some_field1_to_add': 'value1',
+ *    'some_field2_to_add': 'value2'});
  *
  * try {
  *
  * ... kick off XHR or Fetch request ...
  *
- *     honey_span.addField('another.field.to.add', 'itsValue');
+ *     honeySpan.addField('another_field_to_add', 'value2');
  *
  * } catch(err) {
- *     honey_span.honey_span.addErrorDetails('error message about what happened', err);
+ *     honeySpan.honeySpan.addErrorDetails('error message about what happened', err);
  * }
  *
  * That's it! The span info will automatically go out in the XHR beacon.
@@ -149,7 +154,7 @@ class HoneycombSpanBase {
  * important to understand when dealing with Boomerang.
  *
  * Note2: if you enhance this class, try to avoid translating built-in Boomerang fields (aka vars)
- * into normalized ones that we use for Rails instrumentation. Let the honeycombjscontroller do the
+ * into normalized ones that we use for Rails instrumentation. Let the honeycombjs_controller do the
  * translation when possible.
  */
 export class HoneycombXhrSpan extends HoneycombSpanBase {
@@ -157,14 +162,14 @@ export class HoneycombXhrSpan extends HoneycombSpanBase {
     /*
      * See the base class for info on the params.
      *
-     * Another way to think about the "action" HoneycombXhrSpan is that it's the AJAX call we're making,
+     * Another way to think about the "functionName" HoneycombXhrSpan is that it's the AJAX call we're making,
      * which may have callbacks and other function's to accomplish it, but all instrumentation added
      * in those should be part of the overall request/response.
      */
-    constructor(controller, action, fields = {}, prefixFields = true) {
+    constructor(fileName, functionName, fields = {}) {
       // Define a wrapper function that delays executing the passed in function until the page load beacon has
       // gone out. Pass this to the base class so that it wraps all public methods with this delay.
-      // We need to do this so that the fields end up in the XHR beacon and not the page load beacon so they 
+      // We need to do this so that the fields end up in the XHR beacon and not the page load beacon so they
       // end up in that Honeycomb span and don't get split across multiple.
       const runAfterPageLoadBeacon = function(f) {
           if (window.BOOMR.hasSentPageLoadBeacon()) {
@@ -174,7 +179,7 @@ export class HoneycombXhrSpan extends HoneycombSpanBase {
           }
       };
 
-      super(controller, action, fields, prefixFields, runAfterPageLoadBeacon);
+      super(fileName, functionName, fields, runAfterPageLoadBeacon);
     }
 }
 
@@ -183,23 +188,23 @@ export class HoneycombXhrSpan extends HoneycombSpanBase {
  * Honeycomb span once the beacon is sent. This can be used to add fields to the page load beacon, or
  * log errors during page load.
  *
- * Example Usage: 
- * const honey_span = new HoneycombSpan('controller.name', 'action.name');
+ * Note: use snake_case for field names to keep things consistent with the Rails instrumentation.
+ * The one exception is the functionName b/c that should be an actual JS function which is CamelCase
+ *
+ * Example Usage:
+ * const honeySpan = new HoneycombAddToSpan('file_name', 'functionName');
  * try {
  *     ... something not necessarily related to an Ajax call using XHR or Fetch, like initializing a component ...
- *     honey_span.addField('key.name.of.something.interesting', 'interesting.value'); 
+ *     honeySpan.addField('key_name_of_something_interesting', 'interesting_value');
  * } catch (err) {
- *     const error_msg = "something went wrong";
- *     honey_span.addErrorDetails(error_msg, err);
+ *     const errorMsg = "something went wrong";
+ *     honeySpan.addErrorDetails(errorMsg, err);
  * }
- *
- * Note: if you need a mechanism to manually trace some unit-of-work, add something to this class that uses
- * this: https://akamai.github.io/boomerang/tutorial-howto-measure-arbitrary-events.html
  */
-export class HoneycombSpan extends HoneycombSpanBase {
+export class HoneycombAddToSpan extends HoneycombSpanBase {
 
-    constructor(controller, action, fields = {}, prefixFields = true) {
-      super(controller, action, fields, prefixFields);
+    constructor(fileName, functionName, fields = {}) {
+      super(fileName, functionName, fields);
     }
 
 }

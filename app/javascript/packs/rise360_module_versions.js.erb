@@ -1,6 +1,6 @@
 // This is responsible for injecting the 'rise360_content.css' into a Rise360 package
 // that is shown inside an iframe and for running any Javascript we need to on the
-// Rise360 content. We do this b/c we want to apply custom styling to 
+// Rise360 content. We do this b/c we want to apply custom styling to
 // Rise360 content and there doesn't seem to be another way to do this.
 //
 // Run this script by adding
@@ -13,7 +13,7 @@ the wrong version of it and you'll get 404's until you force Webpacker to recomp
 this file so that it gets to the proper checksum/version of the CSS.
 %>
 
-import { HoneycombSpan } from './honeycomb'
+import { HoneycombAddToSpan } from './honeycomb'
 <% helpers = ActionController::Base.helpers %>
 export async function main() {
   let myiFrame = document.getElementById('rise360-iframe');
@@ -31,8 +31,8 @@ export async function main() {
   // iframe and all parent nodes up to the top one we need to target
   // in rise360_content.scss (if it's there) so that we can distinguish
   // a Rise360 block with an iframed RTM view vs some random thing iframed in.
-  async function addRateThisModuleClasses() {
-    const honey_span = new HoneycombSpan('rise360_module_versions', 'addRateThisModuleClasses');
+  async function addRateThisModuleCSS() {
+    const honeySpan = new HoneycombAddToSpan('rise360_module_versions', 'addRateThisModuleCSS');
     try {
       // Even though the DOM is loaded at this point, empirically it can take another 2.5 seconds
       // or so for Rise360 to insert this element into the DOM. Loop for up to 10 seconds looking
@@ -43,13 +43,13 @@ export async function main() {
       var count = 0;
       while (count < 20 && !currentNode) {
         count++;
-        await new Promise(r => setTimeout(r, waitTimeMillis)); 
+        await new Promise(r => setTimeout(r, waitTimeMillis));
         currentNode = iframeDocument.body.querySelector(iframeSelector);
       }
-      honey_span.addField('rate_this_module_submissions.iframe.search.time', count * waitTimeMillis);
+      honeySpan.addField('iframe_search_time', count * waitTimeMillis);
 
       if (currentNode) {
-        honey_span.addField('rate_this_module_submissions.iframe.found', 'true');
+        honeySpan.addField('iframe_found', 'true');
 
         // Example HTML after running the below:
         /*
@@ -71,30 +71,30 @@ export async function main() {
           currentNode.classList.add('rate-this-module');
           currentNode = currentNode.parentNode;
         }
-  
+
         // Add it to the top-level <div class="noOutline"> as well.
         if (currentNode) {
           currentNode.classList.add('rate-this-module');
         } else {
-          honey_span.addErrorDetails('Failed to find the noOutline div. Stopped at root element.', ''); 
+          honeySpan.addErrorDetails('Failed to find the noOutline div. Stopped at root element.', '');
           return;
         }
       } else {
-        honey_span.addField('rate_this_module_submissions.iframe.found', 'false');
+        honeySpan.addField('iframe_found', 'false');
       }
-      honey_span.sendTimerBeacon();
+      honeySpan.sendNow();
     } catch (err) {
-        const error_msg = 'Failed to apply custom CSS to make Rate This Module iframes look ok.';
-        honey_span.addErrorDetails(error_msg, err);
+        const errorMsg = 'Failed to apply custom CSS to make Rate This Module iframes look ok.';
+        honeySpan.addErrorDetails(errorMsg, err);
     }
 
-  } // END: function addRateThisModuleClasses()
+  } // END: function addRateThisModuleCSS()
 
   //////////////////////////////
   // Actually run the functions
   //////////////////////////////
   injectStylesheet();
-  addRateThisModuleClasses();
+  addRateThisModuleCSS();
 
 } // END: main
 

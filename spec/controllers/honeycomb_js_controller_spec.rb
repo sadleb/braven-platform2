@@ -24,8 +24,10 @@ RSpec.describe HoneycombJsController, type: :controller do
 
     context "receives beacon and" do
       let(:duration_ms) { '550' }
-      let(:name) { 'some.javascript.event' }
-      let(:beacon) { { :state => lti_launch.state, :name => name, :t_done => duration_ms, :field1 => 'value1', :field2 => 'value2', 'http.initiator' => 'xhr' } }
+      let(:beacon) { {
+        :state => lti_launch.state, :t_done => duration_ms, :action => 'send_span',
+        :controller => 'honeycomb_js', :field1 => 'value1', :field2 => 'value2'
+      } }
 
       it 'returns a success response' do
         expect(response).to be_successful
@@ -38,10 +40,6 @@ RSpec.describe HoneycombJsController, type: :controller do
       # I couldn't figure out how to do this.
       xit "puts it in the correct parent span" do
         expect(libhoney_event).to have_received(:add_field).with('trace.parent_id', Honeycomb.current_span.id).once
-      end
-
-      it "sets the span's name" do
-        expect(libhoney_event).to have_received(:add_field).with('name', name).once
       end
 
       it "sets the duration_ms to t_done field" do
@@ -71,14 +69,30 @@ RSpec.describe HoneycombJsController, type: :controller do
       it "calls send on Libhoney event" do
         expect(libhoney_event).to have_received(:send).once
       end
+
+      # This field is for Rails spans, not JS. Some rails magic puts it in params.
+      it "does not send a 'controller' field" do
+        expect(libhoney_event).not_to have_received(:add_field).with(/controller/, anything)
+      end
+
+      # This field is for Rails spans, not JS. Some rails magic puts it in params.
+      it "does not send an 'action' field" do
+        expect(libhoney_event).not_to have_received(:add_field).with(/action/, anything)
+      end
+
+      # We would filter this anyway. No reason to send it as a field even though it
+      # comes through as a query param (b/c we need to authenticate the JS call)
+      it "does not send an 'state' field" do
+        expect(libhoney_event).not_to have_received(:add_field).with(/state/, anything)
+      end
     end
 
 
     context "receives page unload beacon and" do
       let(:beacon) { JSON.parse(FactoryBot.json(:boomerang_page_unload_beacon, state: lti_launch.state, serialized_trace: serialized_trace)) }
 
-      it "sets the name to 'javascript.page.unload'" do
-        expect(libhoney_event).to have_received(:add_field).with('name', 'js.page.unload').once
+      it "sets the 'name' to 'js.boomerang.page_unload'" do
+        expect(libhoney_event).to have_received(:add_field).with('name', 'js.boomerang.page_unload').once
       end
 
       it "sets the duration_ms to 0" do
@@ -90,8 +104,8 @@ RSpec.describe HoneycombJsController, type: :controller do
     context "receives page load beacon and" do
       let(:beacon) { JSON.parse(FactoryBot.json(:boomerang_page_load_beacon, state: lti_launch.state, serialized_trace: serialized_trace)) }
 
-      it "sets the name to 'javascript.page.load'" do
-        expect(libhoney_event).to have_received(:add_field).with('name', 'js.page.load').once
+      it "sets the 'name' to 'js.boomerang.page_load'" do
+        expect(libhoney_event).to have_received(:add_field).with('name', 'js.boomerang.page_load').once
       end
 
       it "sets the request.path and request.query_string" do
@@ -111,6 +125,11 @@ RSpec.describe HoneycombJsController, type: :controller do
       it "sets the response.status_code" do
         expect(libhoney_event).to have_received(:add_field).with('js.boomerang.response.status_code', '200').once
       end
+
+      it "sets the 'name' to 'js.boomerang.xhr'" do
+        expect(libhoney_event).to have_received(:add_field).with('name', 'js.boomerang.xhr').once
+      end
+
     end
 
   end

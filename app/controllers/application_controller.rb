@@ -7,6 +7,7 @@ class ApplicationController < ActionController::Base
   include Pundit
 
   before_action :authenticate_user!
+  before_action :add_honeycomb_fields
   after_action :remove_x_frame_options
 
   # This callback is a development helper that complains if an action has not explicitly
@@ -57,6 +58,26 @@ class ApplicationController < ActionController::Base
     ::Devise.cas_client.add_service_to_login_url(::Devise.cas_service_url(request.url, devise_mapping))
   end
   helper_method :cas_login_url
+
+  # Honeycomb's auto-instrumentation is nice and adds a bunch of common stuff we need to troubleshoot,
+  # but here is a place to add anything that's specific to our environment (or missing from the
+  # auto-instrumentation) that would also help
+  #
+  # Note that Honeycomb.add_field() auto-prefixes with 'app'. E.g. 'app.user.id'
+  def add_honeycomb_fields
+    # This is something going on with the CAS specs (and the feature specs that rely on CAS)
+    # that I can't figure out. Even though the Honeycomb host is ignored, it causes a seemingly
+    # unrelated HTTP request (still to the CAS controller) with no cassette in use (even though there is?)
+    # Not worth putting more time into this.
+    unless Rails.env.test?
+
+      # This one doesn't seem to come through for exceptions, so always start off
+      # by adding it to the root span. This ends up in the 'process_action.action_controller' span
+      # which also has a 'process_action.action_controller.exception' field, so that should make
+      # it easier to query for Rails exceptions for particular users.
+      Honeycomb.add_field('user.id', current_user.id) if current_user
+    end
+  end
 
   # Remove the default X-Frame-Options header Rails adds. We use CSP instead.
   # See config/initializers/content_security_policy.rb
