@@ -284,7 +284,8 @@ class CanvasAPI
         :published => true,
         :submission_types => [ 'external_tool' ],
         :external_tool_tag_attributes => {
-          :url => launch_url
+          :url => launch_url,
+          :new_tab => true,
         }
       }
     }

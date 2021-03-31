@@ -82,26 +82,24 @@ RSpec.describe CourseResourcesController, type: :controller do
       context 'existing course resource' do
 
         context 'for course' do
-          it 'redirects to public url' do
+          it 'shows link to course_resources url' do
             course = create(:course_with_resource, canvas_course_id: canvas_course_id)
   
             get :lti_show, params: {:id => course.course_resource.id, :state => state}
   
-            redirect_url = Addressable::URI.parse(response.location)
-            expected_url =  Addressable::URI.parse(course.course_resource.launch_url)
-            expect(redirect_url.path).to eq(expected_url.path)
+            expected_url = course.course_resource.launch_url
+            expect(response.body).to include(expected_url)
           end
         end
 
         context 'for course resource' do
-          it 'redirects to public url' do
+          it 'shows link to course_resources url' do
             course = create(:course_with_resource, canvas_course_id: canvas_course_id)
   
             get :lti_show, params: {:id => course.course_resource.id, :state => state}
   
-            redirect_url = Addressable::URI.parse(response.location)
-            expected_url =  Addressable::URI.parse(course.course_resource.launch_url)
-            expect(redirect_url.path).to eq(expected_url.path)
+            expected_url = course.course_resource.launch_url
+            expect(response.body).to include(expected_url)
           end
         end 
 

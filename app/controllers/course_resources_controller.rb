@@ -16,7 +16,8 @@ class CourseResourcesController < ApplicationController
     if course&.course_resource
       url = Addressable::URI.parse(course.course_resource.launch_url)
       url.query_values = helpers.launch_query
-      redirect_to url.to_s
+      @course_resources_url = url.to_s
+      render :lti_show, layout: 'lti_canvas'
     else
       render plain: "Course resources not configured!", status: 404
     end
