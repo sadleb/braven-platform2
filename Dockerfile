@@ -1,5 +1,5 @@
 # See https://github.com/ledermann/docker-rails/blob/develop/Dockerfile
-FROM ruby:2.6.5-alpine
+FROM ruby:2.6.6-alpine
 
 RUN apk add --update --no-cache \
     build-base \
