@@ -66,6 +66,8 @@ class LinkedInAuthorizationController < ApplicationController
     ensure
       # Consume the CSRF token
       current_user.linked_in_state = ''
+      # Set a timestamp for compliance with the LinkedIn API contract.
+      current_user.linked_in_authorized_at = DateTime.now.utc
       current_user.save!
     end
   end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_03_18_141747) do
+ActiveRecord::Schema.define(version: 2021_04_01_153754) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -484,6 +484,7 @@ ActiveRecord::Schema.define(version: 2021_03_18_141747) do
     t.integer "join_user_id"
     t.string "linked_in_access_token"
     t.string "linked_in_state"
+    t.datetime "linked_in_authorized_at"
     t.index ["canvas_user_id"], name: "index_users_on_canvas_user_id", unique: true
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email"

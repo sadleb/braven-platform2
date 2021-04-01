@@ -62,6 +62,7 @@ RSpec.describe LinkedInAuthorizationController, type: :controller do
       )
       expect(response).to be_successful
       expect(user.reload.linked_in_access_token).to eq('some-access-token')
+      expect(user.reload.linked_in_authorized_at).not_to eq(nil)
       expect(user.reload.linked_in_state).to be_empty
     end
 
