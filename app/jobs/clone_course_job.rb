@@ -9,10 +9,10 @@ class CloneCourseJob < ApplicationJob
   def perform(notification_email, source_course, destination_course_name)
     CloneCourse.new(source_course, destination_course_name).run.wait_and_initialize
     CloneCourseMailer.with(email: notification_email).success_email.deliver_now
-  end
-
-  rescue_from(StandardError) do |exception|
-    CloneCourseMailer.with(email: arguments.first, exception: exception).failure_email.deliver_now
+  rescue => exception
+    Rails.logger.error(exception)
+    CloneCourseMailer.with(email: notification_email, exception: exception).failure_email.deliver_now
     raise
   end
+
 end

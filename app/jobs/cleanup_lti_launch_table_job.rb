@@ -17,27 +17,25 @@ class CleanupLtiLaunchTableJob < ApplicationJob
   queue_as :low_priority
 
   def perform
-    Honeycomb.start_span(name: 'cleanup_lti_launch_table_job.perform') do |span|
-      # The value of 'lti_launch_remember_for' can be a Rails Time helper like 2.weeks or the 
-      # number of seconds, like 1209600 (this is also 2 weeks)
-      cutoff_time = Time.at(Time.now - eval(Rails.application.secrets.lti_launch_remember_for))
-      span.add_field('app.lti_launch_cleanup.current_server_time', Time.now)
-      span.add_field('app.lti_launch_cleanup.cutoff_time', cutoff_time)
+    # The value of 'lti_launch_remember_for' can be a Rails Time helper like 2.weeks or the
+    # number of seconds, like 1209600 (this is also 2 weeks)
+    cutoff_time = Time.at(Time.now - eval(Rails.application.secrets.lti_launch_remember_for))
+    Honeycomb.add_field('lti_launch_cleanup.current_server_time', Time.now)
+    Honeycomb.add_field('lti_launch_cleanup.cutoff_time', cutoff_time)
 
-      start_msg = "Cleaning up LtiLaunches older than #{cutoff_time}"
-      Rails.logger.info(start_msg)
+    start_msg = "Cleaning up LtiLaunches older than #{cutoff_time}"
+    Rails.logger.info(start_msg)
 
-      # Use updated_at so that continuing to interact with the launch extends it's validity.
-      records_to_delete = LtiLaunch.where("updated_at < ?", cutoff_time) 
-      total_count = LtiLaunch.count
-      count = records_to_delete.count
-      records_to_delete.delete_all if count > 0
+    # Use updated_at so that continuing to interact with the launch extends it's validity.
+    records_to_delete = LtiLaunch.where("updated_at < ?", cutoff_time)
+    total_count = LtiLaunch.count
+    count = records_to_delete.count
+    records_to_delete.delete_all if count > 0
 
-      finish_msg = "#{count} out #{total_count} LtiLaunch records deleted. Done cleaning up old LtiLaunches"
-      Rails.logger.info(finish_msg)
-      span.add_field('app.lti_launch_cleanup.records_to_delete.count', count)
-      span.add_field('app.lti_launch_cleanup.total_records.count', total_count)
-    end
+    finish_msg = "#{count} out #{total_count} LtiLaunch records deleted. Done cleaning up old LtiLaunches"
+    Rails.logger.info(finish_msg)
+    Honeycomb.add_field('lti_launch_cleanup.records_to_delete.count', count)
+    Honeycomb.add_field('lti_launch_cleanup.total_records.count', total_count)
   end
 
 end

@@ -15,6 +15,12 @@ Honeycomb.configure do |config|
     send_file.action_controller
     send_data.action_controller
     deliver.action_mailer
+    perform.active_job
+    perform_start.active_job
+    enqueue_at.active_job
+    retry_stopped.active_job
+    discard.active_job
+    enqueue_retry.active_job
   ].freeze
   # Turn this on if you want to see some craziness
   # config.debug = true

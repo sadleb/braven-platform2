@@ -33,8 +33,7 @@ RSpec.describe SyncSalesforceProgramToLmsJob, type: :job do
       allow(program_portal_enrollments).to receive(:run).and_raise('something bad')
       program_id = 'some_fake_id'
       email = 'example@example.com'
-      SyncSalesforceProgramToLmsJob.perform_now(program_id, email)
-
+      expect{ SyncSalesforceProgramToLmsJob.perform_now(program_id, email) }.to raise_error('something bad')
       expect(mailer).to have_received(:failure_email)
     end
   end

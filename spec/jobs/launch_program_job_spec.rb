@@ -36,7 +36,7 @@ RSpec.describe LaunchProgramJob, type: :job do
     it 'sends failure mail if something bad happens' do
       allow(launch_program).to receive(:run).and_raise('something bad')
       expect(mailer).to receive(:failure_email)
-      launch_program_job
+      expect{ launch_program_job }.to raise_error('something bad')
     end
   end
 end

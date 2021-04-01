@@ -8,9 +8,10 @@ class LaunchProgramJob < ApplicationJob
     LaunchProgram.new(salesforce_program_id, fellow_source_course_id, fellow_course_name, lc_source_course_id, lc_course_name).run
     LaunchProgramMailer.with(email: notification_email).success_email.deliver_now
 
+  rescue => exception
+    Rails.logger.error(exception)
+    LaunchProgramMailer.with(email: notification_email, exception: exception).failure_email.deliver_now
+    raise
   end
 
-  rescue_from(StandardError) do |exception|
-    LaunchProgramMailer.with(email: arguments.second, exception: exception).failure_email.deliver_now
-  end
 end

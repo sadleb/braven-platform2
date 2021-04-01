@@ -13,41 +13,40 @@ class GradeModuleForUserJob < ApplicationJob
     # in Modules just so they can test it out though:
     # https://app.asana.com/0/1174274412967132/1199946751486950
 
-    Honeycomb.start_span(name: 'grade_module_fo_user_job.perform') do |span|
-      # Note a lot of this code is duplicated (but simplified) from app/services/grade_modules.rb.
-      span.add_field('app.user.id', user.id)
-      span.add_field('app.canvas.course.id', canvas_course_id)
-      span.add_field('app.canvas.assignment.id', canvas_assignment_id)
+    # Note a lot of this code is duplicated (but simplified) from app/services/grade_modules.rb.
+    Honeycomb.add_field('user.id', user.id)
+    Honeycomb.add_field('canvas.course.id', canvas_course_id)
+    Honeycomb.add_field('canvas.assignment.id', canvas_assignment_id)
 
-      # Select the max id at the very beginning, so we can use it at the bottom to mark only things
-      # before this as old. If we don't do this, we run the risk of marking things as old that we
-      # haven't actually processed yet, causing students to get missing or incorrect grades.
-      max_id = Rise360ModuleInteraction.maximum(:id)
+    # Select the max id at the very beginning, so we can use it at the bottom to mark only things
+    # before this as old. If we don't do this, we run the risk of marking things as old that we
+    # haven't actually processed yet, causing students to get missing or incorrect grades.
+    max_id = Rise360ModuleInteraction.maximum(:id)
 
-      # Fetch assignment overrides.
-      assignment_overrides = CanvasAPI.client.get_assignment_overrides(
-        canvas_course_id,
-        canvas_assignment_id
-      )
+    # Fetch assignment overrides.
+    assignment_overrides = CanvasAPI.client.get_assignment_overrides(
+      canvas_course_id,
+      canvas_assignment_id
+    )
 
-      grade = "#{ModuleGradeCalculator.compute_grade(user.id, canvas_assignment_id, assignment_overrides)}%"
+    grade = "#{ModuleGradeCalculator.compute_grade(user.id, canvas_assignment_id, assignment_overrides)}%"
 
-      span.add_field('app.grade_module_for_user.grade', grade)
-      Rails.logger.info("Graded finished Rise360ModuleVersion[user_id = #{user.id}, canvas_course_id = #{canvas_course_id}, " \
-        "canvas_assignment_id = #{canvas_assignment_id}] " \
-        "- computed grade = #{grade}")
+    Honeycomb.add_field('grade_module_for_user.grade', grade)
+    Rails.logger.info("Graded finished Rise360ModuleVersion[user_id = #{user.id}, canvas_course_id = #{canvas_course_id}, " \
+      "canvas_assignment_id = #{canvas_assignment_id}] " \
+      "- computed grade = #{grade}")
 
-      result = CanvasAPI.client.update_grade(canvas_course_id, canvas_assignment_id, user.canvas_user_id, grade)
+    result = CanvasAPI.client.update_grade(canvas_course_id, canvas_assignment_id, user.canvas_user_id, grade)
 
-      Rails.logger.debug(result)
+    Honeycomb.add_field('grade_module_for_user.sent_to_canvas', true)
+    Rails.logger.debug(result)
 
-      Rise360ModuleInteraction.where(
-        new: true,
-        user: user,
-        canvas_course_id: canvas_course_id,
-        canvas_assignment_id: canvas_assignment_id,
-      ).where('id <= ?', max_id).update_all(new: false)
-    end
+    Rise360ModuleInteraction.where(
+      new: true,
+      user: user,
+      canvas_course_id: canvas_course_id,
+      canvas_assignment_id: canvas_assignment_id,
+    ).where('id <= ?', max_id).update_all(new: false)
   end
 
 end
