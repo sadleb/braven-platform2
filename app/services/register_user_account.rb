@@ -17,7 +17,7 @@ class RegisterUserAccount
   end
 
   def run
-    Honeycomb.start_span(name: 'RegisterUserAccount.run') do |span|
+    Honeycomb.start_span(name: 'register_user_account.run') do |span|
       span.add_field('app.salesforce.contact.id', @salesforce_participant.contact_id)
 
       # Need to have the User record saved before the Canvas sync runs since it relies on it.

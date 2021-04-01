@@ -22,7 +22,7 @@ class ModuleGradeCalculator
   # necessary. For an example, see:
   #   lib/tasks/grade_modules.rake
   def self.compute_grade(user_id, canvas_assignment_id, assignment_overrides)
-    Honeycomb.start_span(name: 'ModuleGradeCalculator.compute_grade') do |span|
+    Honeycomb.start_span(name: 'module_grade_calculator.compute_grade') do |span|
       # Note: If a content designer publishes a new Rise360 package to the same
       # assignment, all old interactions are technically invalidated. But we
       # can't easily detect that here, so make sure outdated interactions are

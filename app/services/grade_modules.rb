@@ -15,7 +15,7 @@ class GradeModules
   end
 
   def run
-    Honeycomb.start_span(name: 'GradeModules.run') do |span|
+    Honeycomb.start_span(name: 'grade_modules.run') do |span|
       # From the list of "running" "programs" in Salesforce, fetch a list of "accelerator"
       # (non-LC) courses.
       programs = SalesforceAPI.client.get_current_and_future_accelerator_programs
@@ -44,7 +44,7 @@ class GradeModules
   end
 
   def grade_course(course)
-    Honeycomb.start_span(name: 'GradeModules.grade_course') do |span|
+    Honeycomb.start_span(name: 'grade_modules.grade_course') do |span|
       # We're doing some less-readable queries here because they're drastically
       # more efficient than using the more-readable model associations would be.
       # For reference, the query built by ActiveRecord becomes something like:
@@ -79,7 +79,7 @@ class GradeModules
   end
 
   def grade_assignment(canvas_assignment_id, user_ids)
-    Honeycomb.start_span(name: 'GradeModules.grade_assignment') do |span|
+    Honeycomb.start_span(name: 'grade_modules.grade_assignment') do |span|
       # Select course again, because it's not that expensive and saves us passing it in.
       course = CourseRise360ModuleVersion.find_by(canvas_assignment_id: canvas_assignment_id).course
 

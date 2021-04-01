@@ -13,7 +13,7 @@ class GradeModuleForUserJob < ApplicationJob
     # in Modules just so they can test it out though:
     # https://app.asana.com/0/1174274412967132/1199946751486950
 
-    Honeycomb.start_span(name: 'GradeModuleForUserJob.perform') do |span|
+    Honeycomb.start_span(name: 'grade_module_fo_user_job.perform') do |span|
       # Note a lot of this code is duplicated (but simplified) from app/services/grade_modules.rb.
       span.add_field('app.user.id', user.id)
       span.add_field('app.canvas.course.id', canvas_course_id)

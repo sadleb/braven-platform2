@@ -17,7 +17,7 @@ class CleanupLtiLaunchTableJob < ApplicationJob
   queue_as :low_priority
 
   def perform
-    Honeycomb.start_span(name: 'CleanupLtiLaunchTableJob.perform') do |span|
+    Honeycomb.start_span(name: 'cleanup_lti_launch_table_job.perform') do |span|
       # The value of 'lti_launch_remember_for' can be a Rails Time helper like 2.weeks or the 
       # number of seconds, like 1209600 (this is also 2 weeks)
       cutoff_time = Time.at(Time.now - eval(Rails.application.secrets.lti_launch_remember_for))

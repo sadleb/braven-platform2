@@ -39,7 +39,7 @@ class Rise360Util
       bucket = AwsS3Bucket.new
 
       zipfile.open do |file|
-        Honeycomb.start_span(name: 'Rise360Util.publish.zipfile') do |span|
+        Honeycomb.start_span(name: 'rise360_util.publish.zipfile') do |span|
           span.add_field('app.zipfile.path', file.path)
           span.add_field('app.zipfile.size', file.size)
 

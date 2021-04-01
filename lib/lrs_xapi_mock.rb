@@ -27,7 +27,7 @@ class LrsXapiMock
 
   # Returns a hash with keys {:code, :body}, OR nil.
   def self.handle_request!(request, endpoint, user)
-    Honeycomb.start_span(name: 'LrsXapiMock.handle_request!') do |span|
+    Honeycomb.start_span(name: 'lrs_xapi_mock.handle_request!') do |span|
       span.add_field('app.lrs_xapi_mock.path', "/#{endpoint}")
       span.add_field('app.user.id', user.id)
       span.add_field('app.user.email', user.email)
