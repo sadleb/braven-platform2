@@ -1,0 +1,82 @@
+/*
+ * This is a part of Braven Network.
+ * Please don't add features to Braven Network.
+ * This code should be considered unsupported. We want to remove it ASAP.
+ */
+@import "shared/variables";
+
+.multi-complete {
+    width: 100%;
+}
+
+// New Braven Network Member
+.new-member-form {
+    .radio-group-legend,
+    .form-group > label {
+        font-size: unset;
+        font-weight: bold;
+    }
+}
+
+// Help text
+//
+// Apply to any element you wish to create light text for placement immediately
+// below a form control. Use for general help, formatting, or instructional text.
+.help-block {
+  display: block; // account for any element using help-block
+  margin-top: 0.4rem;
+  margin-bottom: 0.6rem;
+}
+
+// Connect
+tbody {
+    vertical-align: baseline;
+}
+
+th {
+    background-color: $bv-oceanblue-600;
+    color: white;
+    font-size: $h5-font-size;
+}
+
+td, th {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.active-requests tr {
+    border-bottom: solid 1px $bv-silver-500;
+}
+
+
+.zebra tr:nth-child(odd) {
+    background-color: $bv-silver-200;
+}
+
+.too-recent td {
+    background-color: $bv-red-200;
+}
+
+// Surveys
+.champion-flow-survey {
+
+  br {
+    margin-bottom: 0.5em;
+  }
+
+  textarea {
+    height: 8rem;
+  }
+
+  .subquestion {
+    padding-left: 2em;
+    margin-left: 2em;
+    border-left: solid 2px $bv-silver-500;
+    display: none;
+  }
+
+  :checked ~ .subquestion {
+    display: block;
+  }
+
+}

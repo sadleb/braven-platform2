@@ -1,0 +1,63 @@
+<div class="col champion-flow-survey">
+  <h1>Braven Network Survey</h1>
+
+  <p class="lead">
+    We'd like to know a little about how your interaction went with the Braven Network.
+  </p>
+
+  <%= form_for @contact, :url => fellow_survey_champion_path do |f| %>
+    <p>
+    Did <%= @champion.full_name %> reply to your request to connect?
+    </p>
+    <div>
+      <%= f.radio_button :champion_replied, "true" %>
+      <%= f.label :champion_replied_true, 'Yes' %>
+      <div class="subquestion">
+        <p>Did you get to talk?</p>
+          <div>
+          <%= f.radio_button :fellow_get_to_talk_to_champion, "true" %>
+          <%= f.label :fellow_get_to_talk_to_champion_true, 'Yes' %>
+            <div class="subquestion col-sm-12 col-md-12 col-lg-8">
+              <div class="mb-2">
+                Would you recommend <%= @champion.full_name %> to other Fellows with similar interests as yours?
+              </div>
+              <span class="pr-1">Less Likely</span>
+                <label class="pr-1"><%= f.radio_button :would_fellow_recommend_champion, "1" %> 1</label>
+                <label class="pr-1"><%= f.radio_button :would_fellow_recommend_champion, "2" %> 2</label>
+                <label class="pr-1"><%= f.radio_button :would_fellow_recommend_champion, "3" %> 3</label>
+                <label class="pr-1"><%= f.radio_button :would_fellow_recommend_champion, "4" %> 4</label>
+                <label class="pr-1"><%= f.radio_button :would_fellow_recommend_champion, "5" %> 5</label>
+              <span class="pl-1">More Likely</span>
+              <br />
+                <%= f.label :what_did_champion_do_well, "What did #{@champion.full_name} do well in your conversation?" %>
+                <%= f.text_area :what_did_champion_do_well, :class => 'form-control' %>
+              <br />
+                <%= f.label :what_could_champion_improve, "What could #{@champion.full_name} improve next time?" %>
+                <%= f.text_area :what_could_champion_improve, :class => 'form-control' %>
+            </div>
+          </div>
+          <div>
+          <%= f.radio_button :fellow_get_to_talk_to_champion, "false" %>
+          <%= f.label :fellow_get_to_talk_to_champion_false, 'No' %>
+          <div class="subquestion form-group col-sm-12 col-md-12 col-lg-8">
+              <%= f.label :why_not_talk_to_champion, 'Why not?' %>
+              <%= f.text_area :why_not_talk_to_champion, :class => 'form-control' %>
+          </div>
+          </div>
+        </div>
+      </div>
+      <div>
+      <%= f.radio_button :champion_replied, "false" %>
+      <%= f.label :champion_replied_false, 'No' %>
+        <div class="subquestion">
+          <p>Would you like to try reaching out to <%= @champion.full_name %> once more?</p>
+          <%= f.radio_button :reminder_requested, "true" %>
+          <%= f.label :reminder_requested_true, 'Yes' %>
+          <br />
+          <%= f.radio_button :reminder_requested, "false" %>
+          <%= f.label :reminder_requested_false, 'No' %>
+        </div>
+      </div>
+    <%= f.submit 'Save', :class => 'btn btn-primary' %>
+  <% end %>
+</div>

@@ -1,0 +1,156 @@
+<div class="col-sm-12 col-md-12 col-lg-10">
+    <h1>Braven Network</h1>
+
+    <p class="lead">
+      Welcome to the Braven Network! Search for friends of Braven who work in your desired career field. You will be prompted to reach out to these professionals to request an informational interview.
+    </p>
+
+    <p>
+      Please remember that members of the Braven Network are located all over the country and will not necessarily be able to meet you in person. Most informational interviews will be done over the phone or online.
+    </p>
+
+  <% if @active_requests.any? %>
+    <h2>You have the following active contacts:</h2>
+    <table class="active-requests mb-2" >
+      <tr>
+        <th>Member</th>
+        <th>Areas of Interest</th>
+        <th>Next Steps</th>
+      </tr>
+      <% @active_requests.each do |ar| %>
+      <% champion = Champion.find(ar.champion_id) %>
+      <tr>
+        <td>
+          <%= champion.full_name%>
+        </td>
+        <td>
+          <ul>
+          <% [champion.studies, champion.industries].flatten.sort.uniq.each do |i| %>
+            <li><%= i %></li>
+          <% end %>
+          </ul>
+        </td>
+        <td class="next-steps">
+          <% if ar.active_to_prevent_abuse %>
+            <p>Once you request contact you have to wait a week</p>
+          <% else %>
+            <p><a href="<%= contact_champion_path(ar) %>">Email Them!</a></p>
+            <% if ar.can_fellow_cancel? %>
+              <p>
+                Changed your mind?<br />
+                <%= link_to 'Cancel this connect request.', contact_champion_path(ar.id), :method => 'delete' %>
+              </p>
+            <% end %>
+            <p>
+              When you have finished talking to them,<br />
+              <a href="<%= fellow_survey_champion_path(ar.id) %>">Take this survey</a>
+            </p>
+          <% end %>
+        </td>
+      </tr>
+      <% end %>
+    </table>
+  <% end %>
+
+    <% if @max_allowed == 0 %>
+      <p>You can only contact up to two members of the Braven Network at a time.  Chat with them, then complete the surveys linked above before trying to reach anyone else.</p>
+
+      <p>The survey must be filled out by both the member of the Braven Network and Fellow or more than a week must pass if the member is unresponsive.</p>
+
+    <% else %>
+      <div class="row">
+      <div class="col-sm-12 col-md-10 col-lg-8">
+      <form action="#search-results">
+        <div class="form-group">
+          <div class="checkbox">
+            <label>
+              <input id="terms-check" <%= @search_attempted ? 'checked' : '' %> type="checkbox" required="required">
+              I agree to our <a href="<%= terms_champions_path %>" target="_BLANK">Terms of Service</a> and will act professionally in my interactions with Braven Volunteers.
+            </label>
+          </div>
+        </div>
+        <div class="form-group">
+            <label for="interests_csv">Your interests:</label>
+            <input type="text" class="multi-complete form-control" id="interests_csv" name="interests_csv"
+                  data-multi-complete-options="<%= ChampionsHelper::INTERESTS_OPTIONS %>"
+                  value="<%= params[:interests_csv] ? params[:interests_csv] : '' %>">
+
+          <input value="Search" type="submit" />
+        </div>
+      </form>
+      </div>
+      </div>
+    <% end %>
+
+  <%# Search Results %>
+
+  <% if @search_attempted && @results.empty? %>
+    <h2 id="search-results">Search Results</h2>
+
+    <p>No new results were found for your search. Please try something else!</p>
+
+  <% end %>
+  <% if @results && @results.any? %>
+    <h2 id="search-results">Search Results</h2>
+
+    <p>First, click someone's name to view their LinkedIn profile.</p>
+
+    <p>Then, if you want to contact them, return here and click the checkbox next to their name, then hit Request Contact at the bottom of the page. You can only contact up to two members of the Braven Network at a time.</p>
+
+    <form method="POST" action="<%= request_contact_champions_path %>" class="" id="request-contact-form" data-max-allowed="<%= @max_allowed %>">
+      <input name="authenticity_token" type="hidden" value="<%= form_authenticity_token %>" />
+
+      <% had_too_recent = false %>
+
+      <table class="zebra">
+        <tr>
+          <th></th>
+          <th>Name</th>
+          <th>Company</th>
+          <th>Title</th>
+          <th>Areas of Interest</th>
+        </tr>
+        <% @results.each do |champ| %>
+          <%
+            too_recent = champ.too_recently_contacted
+            had_too_recent ||= too_recent
+          %>
+          <tr <%= too_recent ? "class='too-recent'".html_safe : "" %>>
+            <td>
+              <% unless too_recent %>
+              <input type="checkbox" value="<%=champ.id%>" name="champion_ids[]" >
+              <% else %>
+                <span>*</span>
+              <% end %>
+            </td>
+            <td>
+              <% if champ.linkedin_url.blank? %>
+                <%= champ.first_name %> <%= champ.last_name %>
+              <% else %>
+                <a href="<%= champ.linkedin_url %>"><%= champ.first_name %> <%= champ.last_name %></a>
+              <% end %>
+            </td>
+            <td>
+              <%= champ.company %>
+            </td>
+            <td>
+              <%= champ.job_title %>
+            </td>
+            <td>
+              <ul>
+              <% champ.interests.each do |i| %>
+                <li><%= i %></li>
+              <% end %>
+              </ul>
+            </td>
+          </tr>
+        <% end %>
+      </table>
+      <input id="request-contact-button" type="submit" class="btn btn-primary" value="Request Contact" />
+    </form>
+  <% end %>
+
+  <% if had_too_recent %>
+    <p>* Some members are temporarily unavailable for contact because they are already committed to helping other Fellows at this time. You may return to this page to try to contact them again in a week or two.</p>
+  <% end %>
+</div>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_04_01_153754) do
+ActiveRecord::Schema.define(version: 2021_04_02_151617) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -78,6 +78,70 @@ ActiveRecord::Schema.define(version: 2021_04_01_153754) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.string "event_type"
+  end
+
+  create_table "champion_contacts", force: :cascade do |t|
+    t.integer "user_id"
+    t.integer "champion_id"
+    t.boolean "champion_replied"
+    t.boolean "fellow_get_to_talk_to_champion"
+    t.text "why_not_talk_to_champion"
+    t.integer "would_fellow_recommend_champion"
+    t.text "what_did_champion_do_well"
+    t.text "what_could_champion_improve"
+    t.boolean "reminder_requested"
+    t.datetime "fellow_survey_answered_at"
+    t.text "inappropriate_champion_interaction"
+    t.text "inappropriate_fellow_interaction"
+    t.boolean "champion_get_to_talk_to_fellow"
+    t.text "why_not_talk_to_fellow"
+    t.integer "how_champion_felt_conversaion_went"
+    t.text "what_did_fellow_do_well"
+    t.text "what_could_fellow_improve"
+    t.text "champion_comments"
+    t.datetime "champion_survey_answered_at"
+    t.text "fellow_comments"
+    t.boolean "champion_survey_email_sent", default: false
+    t.boolean "fellow_survey_email_sent", default: false
+    t.string "nonce"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "champion_search_synonyms", force: :cascade do |t|
+    t.string "search_term", null: false
+    t.string "search_becomes", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["search_term"], name: "index_champion_search_synonyms_on_search_term"
+  end
+
+  create_table "champion_stats", force: :cascade do |t|
+    t.string "search_term", null: false
+    t.integer "search_count", default: 0
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "champions", force: :cascade do |t|
+    t.string "first_name", null: false
+    t.string "last_name", null: false
+    t.string "email", null: false
+    t.string "phone", null: false
+    t.string "linkedin_url", null: false
+    t.string "industries", null: false
+    t.string "studies", null: false
+    t.string "region"
+    t.string "company"
+    t.string "job_title"
+    t.boolean "braven_fellow"
+    t.boolean "braven_lc"
+    t.boolean "willing_to_be_contacted"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.string "salesforce_id"
+    t.string "salesforce_campaign_member_id"
+    t.index ["email"], name: "index_champions_on_email"
   end
 
   create_table "course_attendance_events", force: :cascade do |t|

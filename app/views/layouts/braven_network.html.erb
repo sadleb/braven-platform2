@@ -1,0 +1,38 @@
+<%# This is a part of Braven Network. %>
+<%# Please don't add features to Braven Network. %>
+<%# This code should be considered unsupported. We want to remove it ASAP. %>
+
+<% content_for :title, 'Braven Network'  %>
+<% content_for :head do %>
+  <%# NOTE: We explicitly allow these CDN sources for scripts/styles in our CSP.
+      Remove that as soon as we can get this jQuery gone and redesign in React instead
+      (or if we delete Braven Network entirely). %>
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <%= stylesheet_link_tag 'layouts/accounts', media: 'all', 'data-turbolinks-track': 'reload' %>
+  <%= stylesheet_link_tag 'braven_network', media: 'all', 'data-turbolinks-track': 'reload' %>
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1/jquery-ui.min.js"></script>
+  <%= javascript_pack_tag 'braven_network' %>
+<% end %>
+<% content_for :content do %>
+  <div class="container-fluid px-0">
+
+    <%= render :partial => 'shared/header' %>
+
+    <main>
+      <div class="plank plain-md">
+        <div class="section-container">
+          <section>
+            <%= yield %>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <%= render :partial => 'shared/footer' %>
+
+  </div>
+
+<% end %>
+<%= render template: "layouts/application" %>

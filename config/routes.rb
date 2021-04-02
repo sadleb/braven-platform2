@@ -214,6 +214,26 @@ Rails.application.routes.draw do
   post '/lti/launch', to: 'lti_launch#launch'
   get '/lti/course_resources', to: 'course_resources#lti_show'
 
+  # Braven Network routes
+  resources :champions, only: [:new, :create] do
+    collection do
+      get :connect, to: 'champions#connect'
+      post :request_contact, to: 'champions#request_contact'
+      get :terms, to: 'champions#terms'
+    end
+
+    member do
+      get :contact, to: 'champions#contact'
+      delete :contact, to: 'champions#delete_contact'
+      get :fellow_survey, to: 'champions#fellow_survey'
+      get :champion_survey, to: 'champions#champion_survey'
+      post :fellow_survey, to: 'champions#fellow_survey_save'
+      post :champion_survey, to: 'champions#champion_survey_save'
+      patch :fellow_survey, to: 'champions#fellow_survey_save'
+      patch :champion_survey, to: 'champions#champion_survey_save'
+    end
+  end
+
   # Send xAPI messages to our mock LRS.
   match '/data/xAPI/*endpoint', to: 'lrs_xapi_mock#xAPI', via: [:get, :put]
 

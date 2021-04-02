@@ -1,0 +1,100 @@
+<div class="col-sm-12 col-md-8 col-lg-6">
+  <h1>Join the Braven Network</h1>
+  <p class="lead">Please fill out the form below and click "Register". Thank you for your support!</p>
+
+  <%= form_for :champion, :url => champions_path, :html => { class: 'new-member-form' } do |f| %>
+    <%= render :partial => 'shared/form_errors', locals: { object: @champion } %>
+
+    <div class="form-group">
+      <%= f.label :first_name %>
+      <%= f.text_field :first_name, :class => 'form-control', required: 'required' %>
+    </div>
+    <div class="form-group">
+      <%= f.label :last_name %>
+      <%= f.text_field :last_name, :class => 'form-control', required: 'required' %>
+    </div>
+    <div class="form-group">
+      <%= f.label :email %>
+      <%= f.text_field :email, :class => 'form-control', required: 'required', placeholder: 'email@example.com'  %>
+    </div>
+    <div class="form-group">
+      <%= f.label :phone %>
+      <%= f.text_field :phone, :class => 'form-control', placeholder: '555-555-5555' %>
+    </div>
+    <div class="form-group">
+      <%= f.label :company %>
+      <%= f.text_field :company, :class => 'form-control', required: 'required' %>
+    </div>
+    <div class="form-group">
+      <%= f.label :job_title %>
+      <%= f.text_field :job_title, :class => 'form-control', required: 'required' %>
+    </div>
+    <div class="form-group">
+      <%= f.label :linkedin_url, 'LinkedIn URL' %>
+      <%= f.text_field :linkedin_url, :class => 'form-control', placeholder: 'https://www.linkedin.com/...', required: 'required'  %>
+    </div>
+
+    <fieldset>
+      <legend class="radio-group-legend">Were you a Braven Fellow in the past?</legend>
+      <div class="radio">
+        <label><%= f.radio_button :braven_fellow, :true, required: 'required' %> Yes</label>
+      </div>
+      <div class="radio">
+        <label><%= f.radio_button :braven_fellow, :false, required: 'required' %> No</label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend class="radio-group-legend">Were/are you a Braven Leadership Coach?</legend>
+      <div class="radio">
+        <label><%= f.radio_button :braven_lc, :true, required: 'required' %> Yes</label>
+      </div>
+      <div class="radio">
+        <label><%= f.radio_button :braven_lc, :false, required: 'required' %> No</label>
+      </div>
+    </fieldset>
+
+    <div class="form-group">
+      <%= f.label :industries_csv, "In which industries do you work or have you worked in the past?" %>
+      <span id="industries-help-block" class="help-block">Start typing to select an item, then add more. You may also enter your own.</span>
+      <input type="text" class="multi-complete form-control" id="industries" name="industries_csv"
+             aria-describedby="industries-help-block" data-multi-complete-options="<%= ChampionsHelper::INDUSTRIES_OPTIONS %>"
+             value="<%= params[:industries_csv] ? params[:industries_csv] : (@champion.industries.nil? ? '' : @champion.industries.join(', ')) %>">
+    </div>
+
+    <div class="form-group">
+      <%= f.label :studies_csv, "What was your undergraduate and/or graduate fields of study?" %>
+      <span id="studies-help-block" class="help-block">Start typing to select an item, then add more. You may also enter your own.</span>
+      <input type="text" class="multi-complete form-control" id="studies" name="studies_csv"
+             aria-describedby="studies-help-block" data-multi-complete-options="<%= ChampionsHelper::STUDIES_OPTIONS %>"
+             value="<%= params[:studies_csv] ? params[:studies_csv] : (@champion.studies.nil? ? '' : @champion.studies.join(', ')) %>" />
+    </div>
+
+    <fieldset>
+      <legend class="radio-group-legend">All volunteer opportunities are currently virtual. However, Braven knows the power of local connections. If you would like to be informed of volunteer opportunities for a particular region, please indicate which one below. If you have no preference, select National.</legend>
+      <div class="form-group">
+        <% areas = ['Newark, NJ', 'New York City, NY', 'San Francisco Bay Area, San Jose', 'Chicago', 'National'] %>
+        <% areas.each_with_index do |region, idx| %>
+          <div class="radio">
+            <label>
+              <%= f.radio_button :region, region %>
+              <%= region %>
+            </label>
+          </div>
+        <% end %>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend class="radio-group-legend">Are you willing to be contacted by Braven Fellows who are interested in learning more about your career?</legend>
+      <div class="radio">
+        <label><%= f.radio_button :willing_to_be_contacted, :true, required: 'required' %> Yes</label>
+      </div>
+      <div class="radio">
+        <label><%= f.radio_button :willing_to_be_contacted, :false, required: 'required' %> No</label>
+      </div>
+    </fieldset>
+
+    <%= f.submit 'Register', :class => 'btn btn-primary' %>
+  <% end %>
+</div>

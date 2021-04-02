@@ -1,0 +1,45 @@
+<div class="col">
+  <h1>Braven Network</h1>
+
+  <p class="lead">
+    Now, email the Braven Network member and ask them to chat!
+  </p>
+  <br />
+  <p>Here's a template you can use to get started. You'll want to edit it to best suit you, then copy/paste it into your email program to initiate contact. <strong>Be sure to read this and personalize any placeholders in the text before you send the email.</strong></p>
+
+  <p>Tip: after copying the text below, you may try pasting it into your email as plain text by pressing ctrl+shift+v on a PC or cmd+shift+v on a Mac.</p>
+
+  <div class="p-3 border">
+    To: <strong><%= @recipient.full_name %> &lt;<a href="mailto:<%=@cc.champion_email%>"><%= @cc.champion_email %></a>&gt;</strong>
+    <br />
+    Subject: Would love to connect!
+    <br /><br />
+    <div>
+      <p>Hi <%= @recipient.first_name %>,</p>
+
+      <p>Hope you're well! I am a Braven Fellow and I was looking through Braven’s volunteer list for people who work in <%= @hit %> and saw that you do. I would appreciate a chance to ask you some questions about your career. Are you available to chat at any of the following times?</p>
+
+      <p>* &lt;insert date/time/time zone (e.g. Eastern, Pacific, or Central)&gt;<br />
+        * &lt;insert date/time/time zone (e.g. Eastern, Pacific, or Central)&gt;<br />
+        * &lt;insert date/time/time zone (e.g. Eastern, Pacific, or Central)&gt;</p>
+
+      <p>For some background on me, please have a look at my LinkedIn profile here: &lt;Your linked in&gt;</p>
+
+      <p>I look forward to connecting!</p>
+
+      <p>Thank you,<br />
+      <%= current_user.full_name %></p>
+    </div>
+  </div>
+
+  <% if @others.any? %>
+    <div class="text-center">
+    <a class="btn btn-primary" href="<%= contact_champion_path(@others[0], :others => @others[1 .. -1]) %>">Next Network Member</a>
+    </div>
+  <% else %>
+    <div class="text-center">
+    <a class="btn btn-primary" href="<%= connect_champions_path %>">Done</a>
+    </div>
+  <% end %>
+
+</div>

@@ -9,10 +9,15 @@ Rails.application.config.content_security_policy do |policy|
   policy.font_src    :self, :https, :data
   policy.img_src     :self, :https, :data
   policy.object_src  :none
-  policy.script_src  :self, :https
-  # TODO: https://app.asana.com/0/1174274412967132/1185543154920201
-  # Unsafe-inline styles are bad. Remove this once we've migrated modules to Rise 360.
-  policy.style_src   :self, :https, :unsafe_inline
+  policy.script_src  :self, :https,
+    # TODO: Remove this CDN once Braven Network no longer needs jQuery!
+    "https://ajax.googleapis.com"
+  policy.style_src   :self, :https,
+    # TODO: https://app.asana.com/0/1174274412967132/1185543154920201
+    # Unsafe-inline styles are bad. Remove this once we've migrated modules to Rise 360.
+    :unsafe_inline,
+    # TODO: Remove this CDN once Braven Network no longer needs jQuery!
+    "https://code.jquery.com"
   policy.frame_ancestors :self
 
   # Customizable through .env

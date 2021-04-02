@@ -232,6 +232,12 @@ class SalesforceAPI
     )
   end
 
+  # See: https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/dome_upsert.htm
+  def create_or_update_contact(email, fields_to_set)
+     response = patch("#{DATA_SERVICE_PATH}/sobjects/Contact/Email/#{email}", fields_to_set.to_json, JSON_HEADERS)
+     JSON.parse(response.body)
+  end
+
   def find_contact(id:)
     contact = get_contact_info(id)
     SFContact.new(contact['Id'], contact['Email'], contact['FirstName'], contact['LastName'])
@@ -277,17 +283,13 @@ class SalesforceAPI
     patch("#{DATA_SERVICE_PATH}/sobjects/Program__c/#{program_id}", body.to_json, JSON_HEADERS)
   end
 
+  def create_campaign_member(fields_to_set)
+     response = post("#{DATA_SERVICE_PATH}/sobjects/CampaignMember/Id", fields_to_set.to_json, JSON_HEADERS)
+     JSON.parse(response.body)
+  end
 
-# TODO: delete me if we don't need to use a POST for any reason. I figured out how to accept query params in the get after I had implement this.
-# I'm assuming we'll be fine sending the request to SF in a get and not need this, but just in case I"m leaving this around until we've fully
-# implemented the flow and know we won't use it.
-#  # Same as get_participant_data(), but only for the specified course_id
-#  def get_participant_data_for_course(course_id, last_modified_since = nil)
-#    body = {
-#      "courseId" => "#{course_id}",
-#      "last_modified_since" => last_modified_since
-#    }
-#    post("/services/apexrest/participants/currentandfuture/", body.to_json, JSON_HEADERS) # Defined in BZ_ProgramParticipantInfoService apex class in Salesforce
-#  end
+  def update_campaign_member(campaign_member_id, fields_to_set)
+    patch("#{DATA_SERVICE_PATH}/sobjects/CampaignMember/#{campaign_member_id}", fields_to_set.to_json, JSON_HEADERS)
+  end
 
 end

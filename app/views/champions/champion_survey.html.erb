@@ -1,0 +1,46 @@
+<div class="col-sm-12 col-md-8 col-lg-6 champion-flow-survey">
+  <h1>Braven Network Survey</h1>
+
+  <p class="lead">
+    We'd like to know a little about how your interaction went with the Braven Fellow.
+  </p>
+
+  <%= form_for @contact, :url => champion_survey_champion_path do |f| %>
+    <%= hidden_field_tag :nonce, @contact.nonce %>
+    Did you get a chance to talk to <%= @fellow.full_name %>?<br />
+    <div>
+      <%= f.radio_button :champion_get_to_talk_to_fellow, "true" %>
+      <%= f.label :champion_get_to_talk_to_fellow_true, 'Yes' %>
+      <div class="subquestion">
+        How do you feel the conversation went overall?
+          <br />
+          Poorly
+            <label><%= f.radio_button :how_champion_felt_conversaion_went, "1" %> 1</label>
+            <label><%= f.radio_button :how_champion_felt_conversaion_went, "2" %> 2</label>
+            <label><%= f.radio_button :how_champion_felt_conversaion_went, "3" %> 3</label>
+            <label><%= f.radio_button :how_champion_felt_conversaion_went, "4" %> 4</label>
+            <label><%= f.radio_button :how_champion_felt_conversaion_went, "5" %> 5</label>
+          Well
+        <br />
+          <%= f.label :what_did_fellow_do_well, "What did #{@fellow.full_name} do well in your conversation?" %>
+          <%= f.text_area :what_did_fellow_do_well %>
+        <br />
+          <%= f.label :what_could_fellow_improve, "What could #{@fellow.full_name} improve next time?" %>
+          <%= f.text_area :what_could_fellow_improve %>
+      </div>
+      </div>
+      <div>
+      <%= f.radio_button :champion_get_to_talk_to_fellow, "false" %>
+      <%= f.label :champion_get_to_talk_to_fellow_false, 'No' %>
+        <div class="subquestion">
+          <%= f.label :why_not_talk_to_fellow, 'Why not?' %>
+          <%= f.text_area :why_not_talk_to_fellow %>
+        </div>
+      </div>
+      <div>
+        <%= f.label :champion_comments, "Anything else you'd like us to know?" %>
+        <%= f.text_area :champion_comments %>
+      </div>
+    <%= f.submit 'Save', :class => 'btn btn-primary' %>
+  <% end %>
+</div>
