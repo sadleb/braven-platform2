@@ -29,7 +29,7 @@ class Rise360Util
   def self.presigned_url(launch_path)
     bucket = AwsS3Bucket.new
     launch_path.slice!(0) # Remove leading slash
-    bucket.object(launch_path).presigned_url(:get, expires_in: 1.hour.to_i)
+    bucket.object(URI.unescape(launch_path)).presigned_url(:get, expires_in: 1.hour.to_i)
   end
 
   # Publishes an ActiveStorage zipfile (with a "key" attribute)
