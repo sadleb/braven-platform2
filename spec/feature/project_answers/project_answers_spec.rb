@@ -72,6 +72,12 @@ RSpec.describe ProjectSubmissionsController, type: :feature do
     end
 
     it 'saves the input value' do
+      # Wait for data to be fetched so it doesn't overwrite
+      # the answer we set.
+      expect(page).to have_field(project_submission_answers.first.input_name,
+        with: project_submission_answers.first.input_value, wait: 10)
+
+      # Set a new answer.
       input_value = 'test answer'
       find("[name='#{input_name}']").set input_value
       # The save-answer code runs on blur, so click off the element.
@@ -80,9 +86,7 @@ RSpec.describe ProjectSubmissionsController, type: :feature do
       sleep 3
 
       # Check to make sure the answer actually got saved.
-      # For some reason the input value gets messed up somehow...
-      # Maybe fix that some day? In the meantime, just compare with `include`.
-      expect(ProjectSubmissionAnswer.last.input_value).to include(input_value)
+      expect(ProjectSubmissionAnswer.where(input_name: input_name).last.input_value).to include(input_value)
     end
   end
 
