@@ -9,6 +9,7 @@ class CourseRise360ModuleVersionsController < ApplicationController
 
   prepend_before_action :set_model_instance, only: [:publish_latest, :unpublish]
   append_before_action :destroy_interactions, only: [:unpublish]
+  after_action :destroy_states, only: [:publish_latest]
 
   layout 'admin'
 
@@ -47,6 +48,11 @@ private
 
   def version_name
     'rise360_module_version'
+  end
+
+  def destroy_states
+    # Delete states for old module versions, so they don't break module loading.
+    Rise360ModuleState.where(canvas_assignment_id: instance_variable.canvas_assignment_id).destroy_all
   end
 
   def destroy_interactions

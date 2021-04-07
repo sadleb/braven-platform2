@@ -107,6 +107,22 @@ RSpec.describe CourseRise360ModuleVersionsController, type: :controller do
           .once
       end
 
+      it 'deletes all States attached to old versions' do
+        # Matching.
+        create(:rise360_module_state,
+          canvas_assignment_id: course_rise360_module_version.canvas_assignment_id
+        )
+        # Non-matching.
+        create(:rise360_module_state,
+          canvas_assignment_id: course_rise360_module_version.canvas_assignment_id + 1
+        )
+        expect(Rise360ModuleState.count).to eq(2)
+
+        expect {
+          subject
+        }.to change(Rise360ModuleState, :count).by (-1)
+      end
+
       it 'redirects to course edit page' do
         subject
         expect(response).to redirect_to edit_course_path(course)
