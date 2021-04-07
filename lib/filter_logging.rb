@@ -166,6 +166,12 @@ class FilterLogging
     # Note: the SQL logs are filtered at the source. See core_ext/postgresql_adapter.rb and
     # https://github.com/honeycombio/beeline-ruby/blob/585992c1abdc8143ef617b038a5ae87c65a0f428/lib/honeycomb/integrations/active_support.rb
 
+    # Don't send the entire file contents of S3 uploads.
+    # Honeycomb drops events larger than a certain size, and we end up with missing spans.
+    if fields.has_key? 'aws.params.body'
+      fields.delete('aws.params.body')
+    end
+
   rescue => e
     Rails.logger.error(e)
     Sentry.capture_exception(e)
