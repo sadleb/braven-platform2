@@ -110,10 +110,12 @@ RSpec.describe CourseRise360ModuleVersionsController, type: :controller do
       it 'deletes all States attached to old versions' do
         # Matching.
         create(:rise360_module_state,
+          state_id: 'bookmark',
           canvas_assignment_id: course_rise360_module_version.canvas_assignment_id
         )
         # Non-matching.
         create(:rise360_module_state,
+          state_id: 'bookmark',
           canvas_assignment_id: course_rise360_module_version.canvas_assignment_id + 1
         )
         expect(Rise360ModuleState.count).to eq(2)

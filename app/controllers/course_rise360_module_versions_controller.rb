@@ -52,7 +52,10 @@ private
 
   def destroy_states
     # Delete states for old module versions, so they don't break module loading.
-    Rise360ModuleState.where(canvas_assignment_id: instance_variable.canvas_assignment_id).destroy_all
+    Rise360ModuleState.where(
+      canvas_assignment_id: instance_variable.canvas_assignment_id,
+      state_id: 'bookmark',
+    ).destroy_all
   end
 
   def destroy_interactions
