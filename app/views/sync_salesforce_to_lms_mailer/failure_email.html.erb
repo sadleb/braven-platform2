@@ -1,1 +1,63 @@
-<p>The sync process failed</p>
+<% if @exception.is_a?(SyncPortalEnrollmentsForProgram::SyncPortalEnrollmentsForProgramError) && @failed_participants.present? %>
+
+  <% content_for :email_css do %>
+    tr {
+      text-align: left;
+    }
+
+    th {
+      background-color: #2E6D99; <%# $bv-oceanblue-600 %>
+      color: white;
+      padding: 0.5rem 0.75rem 0.5rem 0.25rem;
+    }
+
+    td {
+      padding: 0.75rem 0.75rem 0.25rem 0.25rem;
+    }
+
+    td.error-message {
+      color: #DB2B36; <%# $bv-red-600 %>
+      padding: 0rem;
+      padding-left: 1rem;
+    }
+  <% end %>
+
+  <p>
+    Uh oh! <strong><%= @failed_participants.count %> out of <%= @total_participants_count %></strong>
+    Participants failed to sync to Canvas.
+  </p>
+  <br>
+  <h2>Errors</h2>
+  <table>
+    <tbody>
+    <tr>
+       <th><strong>Name</strong></th>
+       <th><strong>Salesforce Contact ID</strong></th>
+       <th><strong>Email</strong></th>
+    </tr>
+    <% @failed_participants.each do |failure_info| %>
+    <tr>
+      <td><%= "#{failure_info.first_name} #{failure_info.last_name}" %></td>
+      <td><%= failure_info.salesforce_id %></td>
+      <td><%= failure_info.email %></td>
+    </tr>
+    <tr>
+      <td class="error-message" colspan="3"><%= failure_info.error_detail %></td>
+    </tr>
+    <% end %>
+    </tbody>
+  </table>
+
+<% else %>
+
+  <p>The sync process failed completely with the error below</p>
+  <hr>
+
+  <%# This could have been something like Salesforce failing to connect. This is intended to forward to devs  %>
+  <p><strong><%= @exception.class %>: <%= @exception.message %></strong><p>
+
+  <p>Error details (Sentry will have more info)</p>
+  ------------
+  <pre><%= simple_format(@exception.full_message) %></pre>
+
+<% end %>

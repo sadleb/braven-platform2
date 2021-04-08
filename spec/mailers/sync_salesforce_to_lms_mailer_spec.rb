@@ -24,7 +24,8 @@ RSpec.describe SyncSalesforceToLmsMailer, type: :mailer do
 
   describe '#failure_email' do
     let(:recipient) { 'example@example.com' }
-    let(:mail) { SyncSalesforceToLmsMailer.with(email: recipient).failure_email }
+    let(:exception) { StandardError.new "fake exception" }
+    let(:mail) { SyncSalesforceToLmsMailer.with(email: recipient, exception: exception).failure_email }
 
     # before(:each) { mail.deliver_now }
 
@@ -38,6 +39,7 @@ RSpec.describe SyncSalesforceToLmsMailer, type: :mailer do
 
     it 'renders the right body' do
       expect(mail.body.encoded).to match('failed')
+      expect(mail.body.encoded).to match('fake exception')
     end
   end
 

@@ -4,7 +4,9 @@ require 'rails_helper'
 
 RSpec.describe SyncSalesforceProgramToLmsJob, type: :job do
   describe '#perform' do
-    let(:program_portal_enrollments) { double('SyncPortalEnrollmentsForProgram', run: nil) }
+    let(:failed_participants) { [] }
+    let(:count) { failed_participants.count }
+    let(:program_portal_enrollments) { double('SyncPortalEnrollmentsForProgram', run: nil, failed_participants: failed_participants, count: count) }
     let(:delivery) { double('DummyDeliverer', deliver_now: nil) }
     let(:mailer) { double('DummyMailerInstance', success_email: delivery, failure_email: delivery) }
 

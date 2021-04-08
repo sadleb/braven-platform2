@@ -17,6 +17,10 @@ class SyncPortalEnrollmentForAccount
   #
   # Note: canvas_role = [:StudentEnrollment, :TaEnrollment, :DesignerEnrollment, :TeacherEnrollment]
   def run
+    Honeycomb.add_field('user.email', @user.email)
+    Honeycomb.add_field('salesforce.contact.id', @user.salesforce_id)
+    Honeycomb.add_field('salesforce.participant.status', @sf_participant.status)
+
     logger.info("Started sync enrollment for #{sf_participant.email}")
     case sf_participant.status
     when SalesforceAPI::ENROLLED
@@ -102,8 +106,14 @@ class SyncPortalEnrollmentForAccount
     section_name = section_name.blank? ? SectionConstants::DEFAULT_SECTION : section_name
     section = find_or_create_section(canvas_course_id, section_name)
 
+    Honeycomb.add_field('canvas.course.id', canvas_course_id)
+    Honeycomb.add_field('canvas.section.name', section.name)
+    Honeycomb.add_field('canvas.section.id', section.canvas_section_id)
+    Honeycomb.add_field('canvas.section.role', role)
+
     enrollment = find_user_enrollment(canvas_course_id)
     if enrollment.nil?
+      Honeycomb.add_field('sync_portal_enrollment_for_account.new_enrollment', true)
       enroll_user(canvas_course_id, role, section, limit_privileges_to_course_section)
     elsif !enrollment.section_id.eql?(section.canvas_section_id) || !enrollment.type.eql?(role)
       # Section or role has changed.
@@ -113,6 +123,7 @@ class SyncPortalEnrollmentForAccount
       )
 
       # Remove the old enrollment and add the new one.
+      Honeycomb.add_field('sync_portal_enrollment_for_account.new_enrollment', false)
       drop_course_enrollment(canvas_course_id)
       enroll_user(canvas_course_id, role, section, limit_privileges_to_course_section)
 
@@ -125,12 +136,15 @@ class SyncPortalEnrollmentForAccount
         end
       end
 
+      Honeycomb.add_field('sync_portal_enrollment_for_account.new_overrides.count', new_overrides.count)
       if new_overrides.count > 0
         logger.info("Copying assignment overrides: #{new_overrides}")
         canvas_client.create_assignment_overrides(canvas_course_id, new_overrides)
       end
     else
-      logger.warn('Skipping as user enrollment looks fine')
+      # Field shared with sync_portal_enrollments_for_program, hence the name
+      Honeycomb.add_field('sync_portal_enrollment.skip_reason', 'No enrollment changes')
+      logger.info("Skipping sync for #{@user.email} as user enrollment looks fine")
     end
   end
 

@@ -7,6 +7,9 @@ class SyncSalesforceToLmsMailer < ApplicationMailer
   end
 
   def failure_email
+    @exception = params[:exception]
+    @failed_participants = params[:failed_participants]
+    @total_participants_count = params[:total_participants_count]
     mail(to: recipient, subject: 'Sync Failed')
   end
 
