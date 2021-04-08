@@ -99,17 +99,36 @@ class SyncPortalEnrollmentForAccount
 
   # Enroll or update their enrollment in the proper course and section
   def sync_enrollment(canvas_course_id, role, section_name, limit_privileges_to_course_section=true)
-
     section_name = section_name.blank? ? SectionConstants::DEFAULT_SECTION : section_name
     section = find_or_create_section(canvas_course_id, section_name)
+
     enrollment = find_user_enrollment(canvas_course_id)
     if enrollment.nil?
       enroll_user(canvas_course_id, role, section, limit_privileges_to_course_section)
     elsif !enrollment.section_id.eql?(section.canvas_section_id) || !enrollment.type.eql?(role)
       # Section or role has changed.
+      # Fetch assignment overrides, so we can replace ones that get deleted in the next step.
+      assignment_overrides = canvas_client.get_assignment_overrides_for_course(
+        canvas_course_id,
+      )
+
       # Remove the old enrollment and add the new one.
       drop_course_enrollment(canvas_course_id)
       enroll_user(canvas_course_id, role, section, limit_privileges_to_course_section)
+
+      # Add back overrides for this user.
+      new_overrides = []
+      assignment_overrides.each do |override|
+        if override.has_key? 'student_ids' and override['student_ids'].include? user.canvas_user_id
+          override.delete('id')
+          new_overrides << override
+        end
+      end
+
+      if new_overrides.count > 0
+        logger.info("Copying assignment overrides: #{new_overrides}")
+        canvas_client.create_assignment_overrides(canvas_course_id, new_overrides)
+      end
     else
       logger.warn('Skipping as user enrollment looks fine')
     end

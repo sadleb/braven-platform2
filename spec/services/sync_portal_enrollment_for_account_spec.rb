@@ -4,8 +4,9 @@ require 'rails_helper'
 
 RSpec.describe SyncPortalEnrollmentForAccount do
   let(:fellow_canvas_course_id) { 11 }
-  let(:portal_user) { CanvasAPI::LMSUser.new }
   let(:sf_participant) { SalesforceAPI::SFParticipant.new('first', 'last', 'test1@example.com') }
+  # Arbitrary Canvas user ID
+  let(:portal_user) { CanvasAPI::LMSUser.new(10, sf_participant.email) }
   let(:sf_program) { SalesforceAPI::SFProgram.new(432, 'Some Program', 'Some School', fellow_canvas_course_id) }
   let(:lms_section) { CanvasAPI::LMSSection.new(10, "test section") }
   let(:lms_enrollment) { CanvasAPI::LMSEnrollment.new(55, fellow_canvas_course_id, RoleConstants::STUDENT_ENROLLMENT, lms_section.id) }
@@ -19,6 +20,14 @@ RSpec.describe SyncPortalEnrollmentForAccount do
     create(:canvas_assignment_override_section, assignment_id: lms_assignments.first['id'], course_section_id: lms_section.id),
     create(:canvas_assignment_override_section, assignment_id: lms_assignments.last['id'], course_section_id: lms_section.id),
   ] }
+  let(:matching_lms_course_overrides) { [
+    create(:canvas_assignment_override_user, assignment_id: lms_assignments.first['id'], student_ids: [portal_user.id]),
+    create(:canvas_assignment_override_user, assignment_id: lms_assignments.last['id'], student_ids: [portal_user.id]),
+  ] }
+  let(:lms_course_overrides) { [
+    matching_lms_course_overrides,
+    create(:canvas_assignment_override_section, assignment_id: lms_assignments.first['id'], course_section_id: lms_section.id),
+  ].flatten }
   let(:lms_client) { double(
     'CanvasAPI',
     find_enrollment: lms_enrollment,
@@ -28,6 +37,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
     delete_enrollment: nil,
     get_assignments: lms_assignments,
     get_assignment_overrides: lms_overrides,
+    get_assignment_overrides_for_course: lms_course_overrides,
     create_assignment_overrides: nil,
   ) }
   # Create local models, with the assumption that a user that exists on Canvas must already exist locally too.
@@ -35,7 +45,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
   # if anything changes in this code in the future.
   # Note: This reflects Highlander layout, not the fallback used for Booster/Prod
   # (https://app.asana.com/0/1174274412967132/1197893935338145/f)
-  let!(:user) { create(:registered_user, email: sf_participant.email) }
+  let!(:user) { create(:registered_user, email: sf_participant.email, canvas_user_id: portal_user.id) }
   let!(:course) { create(:course, canvas_course_id: lms_enrollment.course_id) }
   let!(:section) { create(:section, course_id: course.id, canvas_section_id: lms_section.id, name: lms_section.name) }
 
@@ -143,6 +153,24 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 
         expect(lms_client).to have_received(:enroll_user_in_course).once
       end
+
+      it 're-creates assignment overrides if section changes' do
+        new_section = CanvasAPI::LMSSection.new(97863)
+        allow(lms_client).to receive(:find_enrollment).and_return(lms_enrollment)
+        allow(lms_client).to receive(:find_section_by).and_return(new_section)
+
+        SyncPortalEnrollmentForAccount
+          .new(portal_user: portal_user,
+               salesforce_participant: sf_participant,
+               salesforce_program: sf_program)
+          .run
+
+        # Note: the id was deleted from the overrides, their hashes modified in-place.
+        expect(lms_client).to have_received(:create_assignment_overrides)
+          .once
+          .with(course.canvas_course_id, matching_lms_course_overrides)
+      end
+
 
       it 'de-enrols a user if role changes' do
         new_enrollment = CanvasAPI::LMSEnrollment.new(82738732, lms_enrollment.course_id, RoleConstants::TA_ENROLLMENT, lms_section.id)

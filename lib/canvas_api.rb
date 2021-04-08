@@ -274,6 +274,15 @@ class CanvasAPI
       .select(&:present?)
   end
 
+  # Returns a list of all assignment overrides in a course.
+  def get_assignment_overrides_for_course(course_id)
+    response = get("/courses/#{course_id}/assignments?include[]=overrides")
+    get_all_from_pagination(response)
+      .select { |a| a['has_overrides'] && a['overrides'].present? }
+      .map { |a| a['overrides'] }
+      .flatten
+  end
+
   # Creates an assignment that will launch an LTI External Tool
   # Note: if you don't specificy a launch_url, you'll have to call
   # back in using update_assignment_lti_launch_url() to set it.
