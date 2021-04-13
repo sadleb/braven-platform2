@@ -166,6 +166,32 @@ class CanvasAPI
     users.length == 1 ? users[0] : nil
   end
 
+  # https://canvas.instructure.com/doc/api/communication_channels.html
+  def get_user_communication_channels(user_id)
+    response = get("/users/#{user_id}/communication_channels")
+    get_all_from_pagination(response)
+  end
+
+  def get_user_email_channel_id(user_id)
+    channels = get_user_communication_channels(user_id)
+    channels.filter { |c| c['type'] == 'email' }.first['id']
+  end
+
+  # https://canvas.instructure.com/doc/api/notification_preferences.html#method.notification_preferences.update_preferences_by_category
+  # For list of categories, see: https://canvas.instructure.com/doc/api/notification_preferences.html#method.notification_preferences.category_index
+  # For list of frequencies, see: https://canvas.instructure.com/doc/api/notification_preferences.html
+  def update_notification_preferences_by_category(user_id, communication_channel_id, category, frequency)
+    response = put("/users/self/communication_channels/#{communication_channel_id}/notification_preference_categories/#{category}?as_user_id=#{user_id}", {
+      'notification_preferences[frequency]': frequency,
+    })
+    JSON.parse(response.body)
+  end
+
+  def disable_user_grading_emails(user_id)
+    channel_id = get_user_email_channel_id(user_id)
+    update_notification_preferences_by_category(user_id, channel_id, 'grading', 'never')
+  end
+
   # Returns an array of enrollments objects for the course.
   # See: https://canvas.instructure.com/doc/api/enrollments.html
   # Example Usage:

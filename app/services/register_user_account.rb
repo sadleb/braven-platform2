@@ -43,6 +43,11 @@ class RegisterUserAccount
       # fix the bug after finding out that they can't see the proper course content.
       sync_canvas_enrollment!
       span.add_field('app.register_user_account.canvas_enrollment_synced', true)
+
+      # Modify user notification settings to be less spammy.
+      # We do this last because it's the least important (in case of failure).
+      # If it fails, just log stuff, don't raise an exception.
+      update_canvas_user_settings
     end
 
     # Note: we actually don't want to roll anything back if there are failures. We wouldn't
@@ -79,6 +84,19 @@ private
       @salesforce_program.timezone
     )
     @new_user.update!(canvas_user_id: canvas_user['id'])
+  end
+
+  def update_canvas_user_settings
+    # Note: Several Canvas API calls are wrapped in this one method.
+    CanvasAPI.client.disable_user_grading_emails(@new_user.canvas_user_id)
+
+  rescue RestClient::Exception => e
+    # The RestClient autoinstrumentation already sends response info.
+    Honeycomb.add_field('error', e.class.name)
+    Honeycomb.add_field('error_detail', e.message)
+    Honeycomb.add_field('alert.register_user_account.update_settings_failed', true)
+    Sentry.capture_exception(e)
+    Rails.logger.warn("Failed to update user notification preferences for #{@new_user.canvas_user_id}: #{e.message}")
   end
 
   # The new user params where Salesforce is the source of truth

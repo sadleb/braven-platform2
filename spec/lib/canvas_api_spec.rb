@@ -62,7 +62,7 @@ RSpec.describe CanvasAPI do
       request_url = "#{CANVAS_API_URL}/accounts/1/users?search_term=#{CGI.escape(email)}&include[]=email"
       response_user = FactoryBot.json(:canvas_user)
       response_json = "[#{response_user}]"
-      stub_request(:get, request_url).to_return( body: response_json ) 
+      stub_request(:get, request_url).to_return( body: response_json )
 
       response = canvas.find_user_in_canvas(email)
 
@@ -73,7 +73,7 @@ RSpec.describe CanvasAPI do
 
     it 'correctly escapes special characters' do
       request_url = "#{CANVAS_API_URL}/accounts/1/users?include[]=email&search_term=test%2Bterm"
-      stub_request(:get, request_url).to_return( body: "[]" ) 
+      stub_request(:get, request_url).to_return( body: "[]" )
 
       response = canvas.find_user_in_canvas('test+term')
 
@@ -95,7 +95,61 @@ RSpec.describe CanvasAPI do
       canvas.enroll_user_in_course(user_id, course_id, canvas_role, section_id)
 
       expect(WebMock).to have_requested(:post, request_url)
-        .with(body: 'enrollment%5Buser_id%5D=100&enrollment%5Btype%5D=StudentEnrollment&enrollment%5Benrollment_state%5D=active&enrollment%5Blimit_privileges_to_course_section%5D=true&enrollment%5Bnotify%5D=false&enrollment%5Bcourse_section_id%5D=50').once   
+        .with(body: 'enrollment%5Buser_id%5D=100&enrollment%5Btype%5D=StudentEnrollment&enrollment%5Benrollment_state%5D=active&enrollment%5Blimit_privileges_to_course_section%5D=true&enrollment%5Bnotify%5D=false&enrollment%5Bcourse_section_id%5D=50').once
+    end
+  end
+
+  describe '#get_user_communication_channels' do
+    let(:user_id) { 100 }
+
+    it 'hits the Canvas API correctly' do
+      request_url = "#{CANVAS_API_URL}/users/#{user_id}/communication_channels"
+      channel = FactoryBot.json(:canvas_communication_channel)
+
+      stub_request(:get, request_url).to_return( body: "[#{channel}]" )
+
+      response = canvas.get_user_communication_channels(user_id)
+
+      expect(WebMock).to have_requested(:get, request_url).once
+      expect(response).to eq([JSON.parse(channel)])
+    end
+  end
+
+  describe '#get_user_email_channel_id' do
+    let(:user_id) { 100 }
+
+    it 'returns first email channel id' do
+      request_url = "#{CANVAS_API_URL}/users/#{user_id}/communication_channels"
+      channels = "[
+        #{FactoryBot.json(:canvas_communication_channel, type: 'sms')},
+        #{FactoryBot.json(:canvas_communication_channel, type: 'email')},
+        #{FactoryBot.json(:canvas_communication_channel, type: 'email')}
+      ]"
+
+      stub_request(:get, request_url).to_return( body: channels )
+
+      id = canvas.get_user_email_channel_id(user_id)
+
+      expect(id).to eq(JSON.parse(channels)[1]['id'])
+    end
+  end
+
+  describe '#update_notification_preferences_by_category' do
+    let(:user_id) { 100 }
+    let(:communication_channel_id) { 132 }
+    let(:category) { 'test-category' }
+    let(:frequency) { 'daily' }
+
+    it 'hits the Canvas API correctly' do
+      request_url = "#{CANVAS_API_URL}/users/self/communication_channels/#{communication_channel_id}/notification_preference_categories/#{category}?as_user_id=#{user_id}"
+
+      stub_request(:put, request_url).to_return( body: "[]" )
+
+      canvas.update_notification_preferences_by_category(user_id, communication_channel_id, category, frequency)
+
+      expect(WebMock).to have_requested(:put, request_url)
+        .with(body: "notification_preferences%5Bfrequency%5D=#{frequency}")
+        .once
     end
   end
 
@@ -236,16 +290,16 @@ RSpec.describe CanvasAPI do
       expect(WebMock).to have_requested(:post, request_url)
         .with(body: 'assignment[name]=Test+Create+Assignment1&assignment[published]=true&assignment[submission_types][]=external_tool&assignment[external_tool_tag_attributes][url]&assignment[external_tool_tag_attributes][new_tab]=true').once
     end
-    
+
     it 'hits the Canvas API correctly with launch_url' do
       request_url = "#{CANVAS_API_URL}/courses/#{course_id}/assignments"
       stub_request(:post, request_url).to_return( body: created_assignment )
-     
-      canvas.create_lti_assignment(course_id, name, 'https://example/url') 
+
+      canvas.create_lti_assignment(course_id, name, 'https://example/url')
 
       expect(WebMock).to have_requested(:post, request_url)
         .with(body: 'assignment[name]=Test+Create+Assignment1&assignment[published]=true&assignment[submission_types][]=external_tool&assignment[external_tool_tag_attributes][url]=https%3A%2F%2Fexample%2Furl&assignment[external_tool_tag_attributes][new_tab]=true').once
-      
+
     end
   end
 
@@ -371,8 +425,8 @@ RSpec.describe CanvasAPI do
 
       expect(WebMock).to have_requested(:get, request_url).once
       expect(rubrics).to eq([
-        CanvasAPI::LMSRubric.new(canvas_new_rubric['id'], canvas_new_rubric['title']), 
-        CanvasAPI::LMSRubric.new(canvas_existing_rubric['id'], canvas_existing_rubric['title']) 
+        CanvasAPI::LMSRubric.new(canvas_new_rubric['id'], canvas_new_rubric['title']),
+        CanvasAPI::LMSRubric.new(canvas_existing_rubric['id'], canvas_existing_rubric['title'])
       ])
     end
 

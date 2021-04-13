@@ -13,7 +13,7 @@ RSpec.describe RegisterUserAccount do
     let(:canvas_user) { create :canvas_user }
     let(:sign_up_params) { {password: 'some_password', password_confirmation: 'some_password', salesforce_id: 'someId'} }
     let(:sf_client) { instance_double(SalesforceAPI, find_participant: salesforce_participant, find_program: SalesforceAPI::SFProgram.new, set_canvas_user_id: nil) }
-    let(:canvas_client) { instance_double(CanvasAPI, create_user: canvas_user) }
+    let(:canvas_client) { instance_double(CanvasAPI, create_user: canvas_user, disable_user_grading_emails: nil) }
     let(:enrollment_process) { instance_double(SyncPortalEnrollmentForAccount, run: nil) }
 
     before do
