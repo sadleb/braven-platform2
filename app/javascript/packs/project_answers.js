@@ -29,6 +29,11 @@ export async function main() {
         return document.querySelectorAll(SUPPORTED_INPUT_ELEMENTS.join(', '));
     }
 
+    function getUnsavedInputs() {
+        const unsaved_selectors = SUPPORTED_INPUT_ELEMENTS.map( e => `${e}.autosave-input-error` );
+        return document.querySelectorAll(unsaved_selectors.join(', '));
+    }
+
     function prefillAnswers() {
 
         const honeySpan = new HoneycombXhrSpan(HONEYCOMB_CONTROLLER_NAME, 'prefillAnswers', {
@@ -75,6 +80,7 @@ export async function main() {
                     } else {
                         input.value = prefill; // Set input value.
                     }
+                    input.dataset.lastSavedValue = prefill;
                 });
             });
 
@@ -87,13 +93,45 @@ export async function main() {
     }
 
     function attachInputListeners() {
-        getAllInputs().forEach(input => { input.onblur = sendAnswer });
+        getAllInputs().forEach(input => {
+          input.onblur = sendAnswer;
+        });
+    }
+
+    // Project autosave feedback.
+    // Remove this if/when we redo in React.
+    function attachInputFeedback() {
+        getAllInputs().forEach(input => {
+            input.insertAdjacentHTML('afterend',
+                '<div class="autosave-alert" role="alert" aria-live="polite"></div>'
+            );
+        });
+    }
+
+    function changeAutoSaveStatus(text, cssClass) {
+        const statusBar = document.getElementById('autosave-status-bar');
+        statusBar.textContent = text;
+        statusBar.classList = cssClass;
     }
 
     function sendAnswer(e) {
         const input = e.target;
+        const lastSavedValue = input.dataset.lastSavedValue;
+
+        // Exit if the value hasn't changed from the last saved one.
+        if (lastSavedValue && input.value == lastSavedValue) return;
+
+        // Ignore it if they clicked into an empty field and did nothing.
+        // Note that we want them to be able to clear out old values, so if
+        // something was already saved then send the empty value.
+        if (!lastSavedValue && !input.value) return;
+
         const inputName = input.name;
         const inputValue = input.value;
+        const inputAlert = input.nextElementSibling; // div.autosave-alert
+
+        // Display saving indicator.
+        changeAutoSaveStatus('Saving...', 'autosave-status-saving');
 
         const data = {
             project_submission_answer: {
@@ -122,9 +160,36 @@ export async function main() {
           },
          )
         .then((response) => {
+            // User feedback.
+            input.classList.remove('autosave-input-error');
+            input.dataset.lastSavedValue = input.value;
+            inputAlert.innerHTML = "";
+            if (getUnsavedInputs().length === 0) {
+                changeAutoSaveStatus('All progress saved.', 'autosave-status-success');
+                projectSubmitButtion.toggleEnabled(true);
+            } else {
+                projectSubmitButtion.toggleEnabled(false);
+                changeAutoSaveStatus('Some answers are still unsaved! Look for those that say "Failed to save answer." and click Retry.', 'autosave-status-error');
+            }
+
+            // Logging.
             honeySpan.addField('response.status', response.status, false);
         })
         .catch((error) => {
+            projectSubmitButtion.toggleEnabled(false);
+
+            // User feedback.
+            input.classList.add('autosave-input-error');
+            inputAlert.innerHTML = "Failed to save answer. <a href='#'>Retry?</a>";
+            inputAlert.querySelector('a').onclick = () => { 
+                // clicking the Retry on any of the failed answers retries them all
+                getUnsavedInputs().forEach((unsavedInput) => {
+                    unsavedInput.dispatchEvent(new Event('blur'));
+                });
+            }
+            changeAutoSaveStatus("Answers failed to save! Check your internet connection. You will lose your work if you continue.", 'autosave-status-error');
+
+            // Logging.
             const errorMsg = `Failed to save answer: [name='${inputName}', value='${inputValue}']`;
             console.error(errorMsg);
             honeySpan.addErrorDetails(errorMsg, error);
@@ -143,6 +208,7 @@ export async function main() {
     // If write-enabled, attach listeners to save intermediate responses
     if (isReadOnly === "false") {
         attachInputListeners();
+        attachInputFeedback();
     }
 }
 

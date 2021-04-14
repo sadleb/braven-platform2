@@ -10,6 +10,9 @@
 
   padding: 1.4rem;
 
+  // Leave space so the autosave status bar doesn't overlap the submit button.
+  padding-bottom: 3rem;
+
   p {
     font-size: 1rem;
   }
@@ -66,7 +69,58 @@
     // For link accessibility
     content: " (Opens in new tab)";
   }
+
+  /* Project autosave feedback */
+  /* Remove this if/when we redo in React. */
+  .autosave-alert {
+    margin-top: -0.5rem; // Reset input margin-bottom in style.css.
+    margin-bottom: 1rem;
+    font-size: 90%;
+    color: $bv-red;
+  }
+
+  .autosave-input-error {
+    border: 2px solid $bv-red;
+  }
+
+  div#autosave-status-bar {
+    bottom: 0;
+    display: none;
+    position: -webkit-sticky; /* Safari */
+    position: sticky;
+    border-radius: 0.5rem;
+    font-style: italic;
+    padding: 0.5rem;
+    text-align: center;
+  }
+
+  div#autosave-status-bar.autosave-status-success,
+  div#autosave-status-bar.autosave-status-saving {
+    display: block;
+    background-color: $bv-silver-300;
+    border: 1px solid $bv-silver-500;
+    color: $bv-oceanblue-800;
+    font-weight: bold;
+  }
+
+  // Note: we do a 5 second overall transition to allow time for screenreaders
+  // to see it since it's set to aria-polite and will finish reading what it's
+  // currently on first.
+  div#autosave-status-bar.autosave-status-success {
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 4s 1s, opacity 4s 1s ease-out;
+  }
+
+  div#autosave-status-bar.autosave-status-error {
+    display: block;
+    background-color: $bv-gold-200;
+    border: 1px solid $bv-red;
+    color: $bv-red-800;
+    font-weight: bold;
+  }
 }
+
 /* End Braven Projects CSS */
 
 // TODO: are there obsolete? I don't know if they are custom content

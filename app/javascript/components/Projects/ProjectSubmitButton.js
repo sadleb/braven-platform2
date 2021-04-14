@@ -20,9 +20,20 @@ class ProjectSubmitButton extends React.Component {
       // this component's lifecycle, this is never unset. 
       hasSubmission: false,
       isSubmitting: false,
+      isEnabled: true,
     };
 
     this._handleSubmit = this._handleSubmit.bind(this);
+
+    // This is pretty hacky. We have a bunch of logic outside of React in project_answers.js
+    // to track when answers fail to save. We need to disable the React submit button in here
+    // when that happens and re-enable it after. This exposes the component on a global var so
+    // we can tell this component from outside to setState({...})
+    window.projectSubmitButtion = this;
+  }
+
+  toggleEnabled(value) {
+    this.setState({isEnabled: value});
   }
 
   _handleSubmit(event) {
@@ -117,7 +128,7 @@ class ProjectSubmitButton extends React.Component {
     return (
       <Button
         block
-        disabled={this.state.isSubmitting}
+        disabled={this.state.isSubmitting || !this.state.isEnabled}
         name="project-submit-button"
         size="lg"
         type="submit">
