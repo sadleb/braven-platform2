@@ -25,6 +25,12 @@ class SyncPortalEnrollmentsForProgram
           span.add_field('app.salesforce.contact.id', participant.contact_id)
           span.add_field('app.salesforce.student.id', participant.student_id)
 
+          # Create local users here before calling SyncPortalEnrollmentForAccount.
+          user = find_or_create_user!(participant)
+          span.add_field('app.user.id', user.id)
+          span.add_field('app.user.confirmed?', user.confirmed?)
+          span.add_field('app.user.registered?', user.registered?)
+
           portal_user = canvas_client.find_user_by(
             email: participant.email,
             salesforce_contact_id: participant.contact_id,
@@ -82,6 +88,33 @@ class SyncPortalEnrollmentsForProgram
            salesforce_participant: participant,
            salesforce_program: sf_program)
       .run
+  end
+
+  def find_or_create_user!(sf_participant)
+    user = User.find_by(salesforce_id: sf_participant.contact_id)
+
+    unless user.present?
+      # NOTE: This can fail if there are duplicate Contacts with the same
+      # email on Salesforce. This should be prevented by Salesforce.
+      user = User.new(
+        salesforce_contact_params(sf_participant)
+          .merge({salesforce_id: sf_participant.contact_id})
+      )
+      # Don't send confirmation email yet; we do that at sign_up time instead.
+      user.skip_confirmation_notification!
+      user.save!
+    end
+
+    user
+  end
+
+  # The new user params where Salesforce is the source of truth
+  def salesforce_contact_params(sf_participant)
+    {
+      email: sf_participant.email,
+      first_name: sf_participant.first_name,
+      last_name: sf_participant.last_name,
+    }
   end
 
   def program_participants

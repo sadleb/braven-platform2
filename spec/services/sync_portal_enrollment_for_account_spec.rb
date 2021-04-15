@@ -4,7 +4,7 @@ require 'rails_helper'
 
 RSpec.describe SyncPortalEnrollmentForAccount do
   let(:fellow_canvas_course_id) { 11 }
-  let(:sf_participant) { SalesforceAPI::SFParticipant.new('first', 'last', 'test1@example.com') }
+  let(:sf_participant) { SalesforceAPI::SFParticipant.new('first', 'last', 'test1@example.com', nil, nil, 'test_salesforce_id') }
   # Arbitrary Canvas user ID
   let(:portal_user) { CanvasAPI::LMSUser.new(10, sf_participant.email) }
   let(:sf_program) { SalesforceAPI::SFProgram.new(432, 'Some Program', 'Some School', fellow_canvas_course_id) }
@@ -45,7 +45,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
   # if anything changes in this code in the future.
   # Note: This reflects Highlander layout, not the fallback used for Booster/Prod
   # (https://app.asana.com/0/1174274412967132/1197893935338145/f)
-  let!(:user) { create(:registered_user, email: sf_participant.email, canvas_user_id: portal_user.id) }
+  let!(:user) { create(:registered_user, email: sf_participant.email, salesforce_id: sf_participant.contact_id, canvas_user_id: portal_user.id) }
   let!(:course) { create(:course, canvas_course_id: lms_enrollment.course_id) }
   let!(:section) { create(:section, course_id: course.id, canvas_section_id: lms_section.id, name: lms_section.name) }
 

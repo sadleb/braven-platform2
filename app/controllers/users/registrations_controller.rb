@@ -8,6 +8,7 @@ class Users::RegistrationsController < Devise::RegistrationsController
   # GET /resource
   def show
     # Show the thank you for registering page.
+    # NOTE: MUST pass in the `u` parameter to this page.
     self.resource = find_user_by_salesforce_id
   end
 
@@ -16,7 +17,8 @@ class Users::RegistrationsController < Devise::RegistrationsController
     super do
       return render :bad_link unless salesforce_id
 
-      if find_user_by_salesforce_id.present?
+      user = find_user_by_salesforce_id
+      if user.present? && user.registered?
         redirect_to cas_login_path(
           u: salesforce_id,
           service: CanvasAPI.client.canvas_url,
@@ -28,16 +30,30 @@ class Users::RegistrationsController < Devise::RegistrationsController
 
   # POST /resource
   def create
-    # Registers the new user in all of our systems and creates the local User record
-    # to send the confirmation email on success
+    # Note the SF ID is stored in user[salesforce_id] in the #new form.
+    # TODO: Use a token instead of SF ID.
+    # https://app.asana.com/0/1174274412967132/1200147504835146
+    user = User.find_by(salesforce_id: params[:user][:salesforce_id])
+
+    # Prevent using this page to reset arbitrary other users passwords.
+    # You can only do this sign_up flow once.
+    if user.present? && user.registered?
+      redirect_to cas_login_path(
+        u: salesforce_id,
+        service: CanvasAPI.client.canvas_url,
+        notice: 'Looks like you have already signed up. Please log in.'
+      ) and return
+    end
+
+    # Register the new user in all of our systems.
     RegisterUserAccount.new(sign_up_params).run do |user|
-      unless user.persisted?
+      if user.errors.any? || !user.persisted?
         self.resource = user
         return render :new
       end
     end
 
-    redirect_to action: :show
+    redirect_to action: :show, u: params[:user][:salesforce_id]
   end
 
   # GET /resource/edit

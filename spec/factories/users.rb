@@ -16,11 +16,16 @@ FactoryBot.define do
     sequence(:email) {|i| "test#{i}@example.com"}
     sequence(:first_name) { |i| names[i % names.size][0] }
     sequence(:last_name) { |i| names[i % names.size][1] }
+
+    factory :unregistered_user do
+      sequence(:salesforce_id) { |i| "003#{i}100001iyv8IAAQ" }
+    end
     
     factory :registered_user do
       sequence(:password) { |i| "password#{i}" }
       sequence(:salesforce_id) { |i| "003#{i}100001iyv8IAAQ" }
       confirmed_at { DateTime.now }
+      registered_at { DateTime.now }
 
       factory :unconfirmed_user do
         confirmed_at { nil }

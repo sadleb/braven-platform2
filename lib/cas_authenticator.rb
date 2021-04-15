@@ -5,7 +5,7 @@ module BravenCAS
     def validate(credentials)
       @user = User.find_by_email!(credentials[:username])
       #valid_password?(credentials[:password]) && active_for_authentication?
-      valid_password?(credentials[:password]) && @user.confirmed?
+      valid_password?(credentials[:password]) && @user.confirmed? && @user.registered?
     rescue ActiveRecord::RecordNotFound
       false
     end

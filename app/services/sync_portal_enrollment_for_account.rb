@@ -9,7 +9,7 @@ class SyncPortalEnrollmentForAccount
     @portal_user = portal_user
     @sf_participant = salesforce_participant
     @sf_program = salesforce_program
-    @user = User.find_by!(email: sf_participant.email)
+    @user = User.find_by!(salesforce_id: sf_participant.contact_id)
   end
 
   # Syncs the Canvas enrollments for the given user in the given course, by unenrolling

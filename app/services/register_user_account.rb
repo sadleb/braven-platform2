@@ -20,15 +20,33 @@ class RegisterUserAccount
     Honeycomb.start_span(name: 'register_user_account.run') do |span|
       span.add_field('app.salesforce.contact.id', @salesforce_participant.contact_id)
 
-      # Need to have the User record saved before the Canvas sync runs since it relies on it.
-      # Essentially do an upsert
-      @new_user = User.find_or_create_by(
+      # Local user record may have already been created during Sync from Salesforce.
+      # OR, it may not exist yet if Sync hasn't run.
+      @new_user = User.find_by(
         salesforce_id: @create_user_params[:salesforce_id]
       )
-      @new_user.update(@create_user_params)
+
+      unless @new_user.present?
+        # NOTE: This can fail if there are duplicate Contacts with the same
+        # email on Salesforce. This should be prevented by Salesforce.
+        @new_user = User.new(
+          salesforce_id: @create_user_params[:salesforce_id]
+        )
+        # Don't send confirmation email yet; we do it explicitly below.
+        @new_user.skip_confirmation_notification!
+      end
+
+      @new_user.update(@create_user_params.merge({
+        registered_at: DateTime.now.utc,
+      }))
       # Allow error handling on model validation when called from a controller.
       yield @new_user if block_given?
+
+      # Add field after user record is created.
       span.add_field('app.user.id', @new_user.id)
+
+      # Send confirmation email.
+      @new_user.send_confirmation_instructions
 
       # Create a user in Canvas.
       create_canvas_user!
@@ -39,7 +57,7 @@ class RegisterUserAccount
                                      @new_user.canvas_user_id)
       span.add_field('app.register_user_account.salesforce_canvas_user_id_set', true)
 
-      # If this fails, there is nothing to rollback. We just need to retry it and/or
+      # If this fails, there is nothing to roll back. We just need to retry it and/or
       # fix the bug after finding out that they can't see the proper course content.
       sync_canvas_enrollment!
       span.add_field('app.register_user_account.canvas_enrollment_synced', true)

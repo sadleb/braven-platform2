@@ -56,7 +56,11 @@ class UsersRolesController < ApplicationController
       params[:role_name].to_sym,
       params[:cohort].strip,
       nil,  # cohort-schedule section, expected to not exist
-      SalesforceAPI::ENROLLED)
+      SalesforceAPI::ENROLLED,
+      @user.first_name,
+      @user.last_name,
+      @user.salesforce_id,
+    )
 
     sf_program = nil
     if params[:role_name].to_sym == RoleConstants::STUDENT_ENROLLMENT
@@ -88,7 +92,15 @@ class UsersRolesController < ApplicationController
 
     portal_user = Mocks::CanvasUser.new(@user.canvas_user_id)
     sf_participant = Mocks::SalesforceParticipant.new(
-      @user.email, @role.name.to_sym, :ignored_section_name, nil, SalesforceAPI::DROPPED)
+      @user.email,
+      @role.name.to_sym,
+      :ignored_section_name,
+      nil,
+      SalesforceAPI::DROPPED,
+      @user.first_name,
+      @user.last_name,
+      @user.salesforce_id,
+    )
 
     # Hacky. If this is a TaEnrollment, the real code assumes it's a Leadership Coach and
     # tries to drop them from both Canvas courses. We're just implementing the ability to
@@ -117,7 +129,16 @@ private
 
     CanvasUser = Struct.new(:id)
 
-    SalesforceParticipant = Struct.new(:email, :platform_role, :cohort, :cohort_schedule, :status) do
+    SalesforceParticipant = Struct.new(
+      :email,
+      :platform_role,
+      :cohort,
+      :cohort_schedule,
+      :status,
+      :first_name,
+      :last_name,
+      :contact_id,
+    ) do
       def role
         case platform_role
         when RoleConstants::STUDENT_ENROLLMENT

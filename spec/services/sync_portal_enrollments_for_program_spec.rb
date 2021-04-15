@@ -53,4 +53,24 @@ RSpec.describe SyncPortalEnrollmentsForProgram do
     end
 
   end
+
+  describe '.find_or_create_user!' do
+    let(:sync_program_service) { SyncPortalEnrollmentsForProgram.new(salesforce_program_id: sf_program.id) }
+    let(:sf_participant) { SalesforceAPI::SFParticipant.new(
+      'first',
+      'last',
+      'test@example.com',
+      :role_ignored,
+      :program_id_ignored,
+      '10',  # contact_id
+    ) }
+
+    it 'does not send confirmation emails' do
+      Devise.mailer.deliveries.clear()
+      expect {
+        sync_program_service.send(:find_or_create_user!, sf_participant)
+      }.to change(User, :count).by(1)
+      expect(Devise.mailer.deliveries.count).to eq 0
+    end
+  end
 end
