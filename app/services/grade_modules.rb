@@ -23,7 +23,7 @@ class GradeModules
         Rails.logger.info("Exit early: no current/future accelerator programs")
         return
       end
-      canvas_course_ids = programs['records'].map { |r| r['Highlander_Accelerator_Course_ID__c'] }
+      canvas_course_ids = programs['records'].map { |r| r['Canvas_Cloud_Accelerator_Course_ID__c'] }
       span.add_field('app.grade_modules.canvas_course_ids', canvas_course_ids)
 
       # Eliminate courses with no module interactions, and exit early if that

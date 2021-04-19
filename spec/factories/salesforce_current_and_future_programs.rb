@@ -26,7 +26,7 @@ FactoryBot.define do
     end
     sequence(:Id) { program_id }
     sequence(:Name) { |i| "TEST: Program#{i}" }
-    sequence(:Highlander_Accelerator_Course_ID__c) { canvas_course_id }
+    sequence(:Canvas_Cloud_Accelerator_Course_ID__c) { canvas_course_id }
     # Leaving out 'attributes' key b/c we don't currently use it.
     initialize_with { attributes.stringify_keys }
   end
@@ -45,7 +45,7 @@ end
 #      },
 #      "Id": "a2Y15555555555UAY",
 #      "Name": "CHI: NLU Summer 2020",
-#      "Highlander_Accelerator_Course_ID__c": "555"
+#      "Canvas_Cloud_Accelerator_Course_ID__c": "555"
 #    },
 #    {
 #      "attributes": {
@@ -54,7 +54,7 @@ end
 #      },
 #      "Id": "a2Y155555555UAI",
 #      "Name": "Braven Tech (TEST) Highlander Spring 2021",
-#      "Highlander_Accelerator_Course_ID__c": "35555"
+#      "Canvas_Cloud_Accelerator_Course_ID__c": "35555"
 #    }
 #  ]
 #}

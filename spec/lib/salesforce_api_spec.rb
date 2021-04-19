@@ -52,20 +52,20 @@ RSpec.describe SalesforceAPI do
       stub_request(:get, request_url_regex).to_return(body: program_json)
       
       accelerator_course_id = SalesforceAPI.client.get_accelerator_course_id_from_lc_playbook_course_id(
-        program['records'][0]['Highlander_LCPlaybook_Course_ID__c'],
+        program['records'][0]['Canvas_Cloud_LC_Playbook_Course_ID__c'],
       )
 
       expect(WebMock).to have_requested(:get, request_url_regex).once
-      expect(accelerator_course_id).to eq(program['records'][0]['Highlander_Accelerator_Course_ID__c'])
+      expect(accelerator_course_id).to eq(program['records'][0]['Canvas_Cloud_Accelerator_Course_ID__c'])
     end
   end
 
   describe '#get_current_and_future_accelerator_programs' do
     let(:request_url) {
       SALESFORCE_DATA_SERVICE_QUERY_URL +
-        "?q=SELECT+Id,+Name,+Highlander_Accelerator_Course_ID__c+FROM+Program__c+" \
+        "?q=SELECT+Id,+Name,+Canvas_Cloud_Accelerator_Course_ID__c+FROM+Program__c+" \
         "WHERE+RecordType.Name+=+'Course'+" \
-          "AND+Highlander_Accelerator_Course_ID__c+<>+NULL+" \
+          "AND+Canvas_Cloud_Accelerator_Course_ID__c+<>+NULL+" \
           "AND+Status__c+IN+('Current',+'Future')"
     }
     it 'calls the correct endpoint' do

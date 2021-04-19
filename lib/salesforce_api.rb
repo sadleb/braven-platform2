@@ -99,8 +99,8 @@ class SalesforceAPI
   # they have a Canvas Course ID set) and are either currently running or will be in the future.
   def get_current_and_future_accelerator_programs()
     soql_query = 
-      "SELECT Id, Name, Highlander_Accelerator_Course_ID__c FROM Program__c " \
-      "WHERE RecordType.Name = 'Course' AND Highlander_Accelerator_Course_ID__c <> NULL AND Status__c IN ('Current', 'Future')"
+      "SELECT Id, Name, Canvas_Cloud_Accelerator_Course_ID__c FROM Program__c " \
+      "WHERE RecordType.Name = 'Course' AND Canvas_Cloud_Accelerator_Course_ID__c <> NULL AND Status__c IN ('Current', 'Future')"
 
     response = get("#{DATA_SERVICE_PATH}/query?q=#{CGI.escape(soql_query)}")
     response_json = JSON.parse(response.body)
@@ -111,7 +111,7 @@ class SalesforceAPI
   # TODO: remove the Qualtrics IDs from here. We don't use them anymore.
   def get_program_info(program_id)
     soql_query = 
-      "SELECT Id, Name, Highlander_Accelerator_Course_ID__c, Highlander_LCPlaybook_Course_ID__c, School__c, " \
+      "SELECT Id, Name, Canvas_Cloud_Accelerator_Course_ID__c, Canvas_Cloud_LC_Playbook_Course_ID__c, School__c, " \
         "Section_Name_in_LMS_Coach_Course__c, Default_Timezone__c, " \
         "Preaccelerator_Qualtrics_Survey_ID__c, Postaccelerator_Qualtrics_Survey_ID__c " \
       "FROM Program__c WHERE Id = '#{program_id}'"
@@ -129,7 +129,7 @@ class SalesforceAPI
   def get_fellow_form_assembly_info(canvas_course_id)
     soql_query = "SELECT Id, FA_ID_Fellow_PostSurvey__c, FA_ID_Fellow_PreSurvey__c, FA_ID_Fellow_Waivers__c " \
                  "FROM Program__c " \
-                 "WHERE Highlander_Accelerator_Course_ID__c = '#{canvas_course_id}'"
+                 "WHERE Canvas_Cloud_Accelerator_Course_ID__c = '#{canvas_course_id}'"
     response = get("#{DATA_SERVICE_PATH}/query?q=#{CGI.escape(soql_query)}")
     JSON.parse(response.body)['records'][0]
   end
@@ -195,12 +195,12 @@ class SalesforceAPI
   # LC Playbook Canvas course ID.
   def get_accelerator_course_id_from_lc_playbook_course_id(lc_playbook_course_id)
     soql_query = 
-      "SELECT Highlander_Accelerator_Course_ID__c " \
-      "FROM Program__c WHERE Highlander_LCPlaybook_Course_ID__c = '#{lc_playbook_course_id}'"
+      "SELECT Canvas_Cloud_Accelerator_Course_ID__c " \
+      "FROM Program__c WHERE Canvas_Cloud_LC_Playbook_Course_ID__c = '#{lc_playbook_course_id}'"
 
     response = get("#{DATA_SERVICE_PATH}/query?q=#{CGI.escape(soql_query)}")
     record = JSON.parse(response.body)['records'][0]
-    return record ? record['Highlander_Accelerator_Course_ID__c'] : nil
+    return record ? record['Canvas_Cloud_Accelerator_Course_ID__c'] : nil
   end
 
   # Recursively pages the API in a SOQL query for a particular column 
@@ -223,8 +223,8 @@ class SalesforceAPI
     raise ProgramNotOnSalesforceError if program.nil?
 
     SFProgram.new(program['Id'], program['Name'], program['SchoolId'],
-              program['Highlander_Accelerator_Course_ID__c'].to_i,
-              program['Highlander_LCPlaybook_Course_ID__c'].to_i,
+              program['Canvas_Cloud_Accelerator_Course_ID__c'].to_i,
+              program['Canvas_Cloud_LC_Playbook_Course_ID__c'].to_i,
               program['Section_Name_in_LMS_Coach_Course__c'],
               program['Default_Timezone__c'].to_sym,
               program['Preaccelerator_Qualtrics_Survey_ID__c'],
@@ -277,8 +277,8 @@ class SalesforceAPI
 
   def set_canvas_course_ids(program_id, canvas_fellow_course_id, canvas_lc_course_id)
     body = {
-      'Highlander_Accelerator_Course_ID__c' => canvas_fellow_course_id,
-      'Highlander_LCPlaybook_Course_ID__c' => canvas_lc_course_id,
+      'Canvas_Cloud_Accelerator_Course_ID__c' => canvas_fellow_course_id,
+      'Canvas_Cloud_LC_Playbook_Course_ID__c' => canvas_lc_course_id,
     }
     patch("#{DATA_SERVICE_PATH}/sobjects/Program__c/#{program_id}", body.to_json, JSON_HEADERS)
   end
