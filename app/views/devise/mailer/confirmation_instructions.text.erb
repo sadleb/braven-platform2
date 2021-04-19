@@ -1,9 +1,10 @@
-Welcome <%= @resource.first_name %>!
+Hi <%= @resource.first_name %>!
 
-Click the link below to finish creating your Braven account:
-
+Click the link below to activate your Braven account with this email address:
 
     <%= confirmation_url(@resource, confirmation_token: @token) %>
 
+
+Going forward, you can log in with <%= @resource.canvas_login_email %> and the password you created.
 
 - The Braven Team

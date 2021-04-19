@@ -98,6 +98,13 @@ class User < ApplicationRecord
     admin? or has_role? RoleConstants::CAN_TAKE_ATTENDANCE_FOR_ALL
   end
 
+  # The email address currently setup in Canvas as the login email.
+  # They may not actually be able to log in b/c they haven't reconfirmed
+  # their email after a change, but this is the email they are setup to use.
+  def canvas_login_email
+    unconfirmed_email || email
+  end
+
   def self.search(query)
     search_str = query.strip
     search_str.downcase!

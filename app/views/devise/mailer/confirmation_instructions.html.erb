@@ -1,3 +1,10 @@
+<%#
+This email is sent when a user first creates their account as part of the sign_up flow,
+BUT it's also sent if a staff member ever changes their email in Salesforce in order to
+update their login to a new address. The language in this has to be vague enough to work
+in both scenarios.
+%>
+
 <!doctype html>
 <html lang="en">
 <!-- Template adapted from here: https://github.com/leemunroe/responsive-html-email-template/blob/master/email.html -->
@@ -101,7 +108,7 @@ table[class=body] .article {
   </head>
   <body class="" style="background-color: #f6f6f6; font-family: georgia,serif; -webkit-font-smoothing: antialiased; font-size: 16px; line-height: 1.4; margin: 0; padding: 0; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;">
     <!-- Some clients will show this text as a preview. --> 
-    <span class="preheader" style="color: transparent; display: none; height: 0; max-height: 0; max-width: 0; opacity: 0; overflow: hidden; mso-hide: all; visibility: hidden; width: 0;">Click here to finish creating your Braven account</span>
+    <span class="preheader" style="color: transparent; display: none; height: 0; max-height: 0; max-width: 0; opacity: 0; overflow: hidden; mso-hide: all; visibility: hidden; width: 0;">Activate your email to log in. Details below.</span>
     <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="body" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #fff; width: 100%;" width="100%" bgcolor="#fff">
       <tr>
         <td style="font-family: georgia,serif; font-size: 16px; vertical-align: top;" valign="top">&nbsp;</td>
@@ -117,9 +124,12 @@ table[class=body] .article {
                   <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;" width="100%">
                     <tr>
                       <td style="font-family: georgia,serif; font-size: 16px; vertical-align: top;" valign="top">
-                        <p style="color: #000000; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0; margin-bottom: 15px;">Welcome <%= @resource.first_name %>!</p>
-                        <p style="color: #000000; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0; margin-bottom: 15px;">Please click the link below to finish creating your Braven account</p>
-                        <br>
+                        <p style="color: #000000; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0; margin-bottom: 15px;">Hi <%= @resource.first_name %>!</p>
+                        <p style="color: #000000; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0; margin-bottom: 10px;">Use this email address to log in to Braven:</p>
+                         <%# Note: Email clients usually convert emails to mailto links. That's why we expclitly put this in a <a> tag and
+                                   link to nowhere. This isn't an email they should be clicking on to actually send an email. %>
+                        <p style="color: #000000; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0; margin-left: 15px; margin-bottom: 20px;"><a style="color: #2E6D99; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0;"><%= @resource.canvas_login_email %></a></p>
+                        <p style="color: #000000; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0; margin-bottom: 20px;">Please <strong>click the button</strong> below to activate your account with this email.</p>
                         <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="btn btn-primary" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; box-sizing: border-box; width: 100%;" width="100%">
                           <tbody>
                             <tr>
@@ -127,7 +137,7 @@ table[class=body] .article {
                                 <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: auto;">
                                   <tbody>
                                     <tr>
-                                      <td style="font-family: georgia,serif; font-size: 16px; vertical-align: top; border-radius: 5px; text-align: center; background-color: #DB2B36;" valign="top" align="center" bgcolor="#DB2B36"> <%= link_to 'Confirm my account', confirmation_url(@resource, confirmation_token: @token), style: "border: solid 1px #DB2B36; border-radius: 5px; box-sizing: border-box; cursor: pointer; display: inline-block; font-family: 'Open Sans Condensed', sans-serif; font-size: 18px; font-weight: normal; letter-spacing: 1px; line-height: 1.333em; margin: 0; padding: 10px 25px; text-decoration: none; text-shadow: none; text-transform: uppercase; background-color: #DB2B36; border-color: #DB2B36; color: #ffffff;" %> </td>
+                                      <td style="font-family: georgia,serif; font-size: 16px; vertical-align: top; border-radius: 5px; text-align: center; background-color: #DB2B36;" valign="top" align="center" bgcolor="#DB2B36"> <%= link_to 'Confirm my email', confirmation_url(@resource, confirmation_token: @token), style: "border: solid 1px #DB2B36; border-radius: 5px; box-sizing: border-box; cursor: pointer; display: inline-block; font-family: 'Open Sans Condensed', sans-serif; font-size: 18px; font-weight: normal; letter-spacing: 1px; line-height: 1.333em; margin: 0; padding: 10px 25px; text-decoration: none; text-shadow: none; text-transform: uppercase; background-color: #DB2B36; border-color: #DB2B36; color: #ffffff;" %> </td>
                                     </tr>
                                   </tbody>
                                 </table>

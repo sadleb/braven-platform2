@@ -166,6 +166,30 @@ class CanvasAPI
     users.length == 1 ? users[0] : nil
   end
 
+  # https://canvas.instructure.com/doc/api/logins.html
+  def get_logins(user_id)
+    response = get("/users/#{user_id}/logins")
+    JSON.parse(response.body)
+  end
+
+  def update_login(login_id, new_email, account_id=DefaultAccountID)
+    response = put("/accounts/#{account_id}/logins/#{login_id}", {
+      'login[unique_id]': new_email,
+    })
+    JSON.parse(response.body)
+  end
+
+  # Assumes there is only one login per user.
+  # This is true unless an admin has manually added more.
+  #
+  # IMPORTANT: login emails are completely separate from the emails that are
+  # used to send Notifications. If you call this, you almost certainly want to
+  # fuss with their communication channels using the methods below.
+  def change_user_login_email(user_id, new_email, account_id=DefaultAccountID)
+    logins = get_logins(user_id)
+    update_login(logins.first['id'], new_email, account_id)
+  end
+
   # https://canvas.instructure.com/doc/api/communication_channels.html
   def get_user_communication_channels(user_id)
     response = get("/users/#{user_id}/communication_channels")
@@ -175,6 +199,25 @@ class CanvasAPI
   def get_user_email_channel_id(user_id)
     channels = get_user_communication_channels(user_id)
     channels.filter { |c| c['type'] == 'email' }.first['id']
+  end
+
+  def get_user_email_channel(user_id, email)
+    channels = get_user_communication_channels(user_id)
+    channels.find { |c| c['type'] == 'email' && c['address'] == email}
+  end
+
+  def create_user_email_channel(user_id, email, skip_confirmation = true)
+    response = post("/users/#{user_id}/communication_channels", {
+      'communication_channel[address]': email,
+      'communication_channel[type]': 'email',
+      'skip_confirmation': skip_confirmation
+    })
+    JSON.parse(response.body)
+  end
+
+  def delete_user_email_channel(user_id, email)
+    response = delete("/users/#{user_id}/communication_channels/email/#{email}")
+    JSON.parse(response.body)
   end
 
   # https://canvas.instructure.com/doc/api/notification_preferences.html#method.notification_preferences.update_preferences_by_category

@@ -1,5 +1,9 @@
 <!-- 
-This is the HTML template I used to generate reset_password_instructions.html.erb
+
+UPDATE: the below template is out of date. The generated email has been updated by hand
+since then. Leaving this here just in case.
+-----
+This is the HTML template I used to generate confirmation_instructions.html.erb
 
 I ran it through the following to inline all the CSS: https://htmlemail.io/inline/
 

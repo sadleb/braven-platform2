@@ -32,10 +32,10 @@ class RegisterUserAccount
         @new_user = User.new(
           salesforce_id: @create_user_params[:salesforce_id]
         )
-        # Don't send confirmation email yet; we do it explicitly below.
-        @new_user.skip_confirmation_notification!
       end
 
+      # Don't send confirmation email yet; we do it explicitly below.
+      @new_user.skip_confirmation_notification!
       @new_user.update(@create_user_params.merge({
         registered_at: DateTime.now.utc,
       }))
@@ -44,9 +44,6 @@ class RegisterUserAccount
 
       # Add field after user record is created.
       span.add_field('app.user.id', @new_user.id)
-
-      # Send confirmation email.
-      @new_user.send_confirmation_instructions
 
       # Create a user in Canvas.
       create_canvas_user!
@@ -66,6 +63,9 @@ class RegisterUserAccount
       # We do this last because it's the least important (in case of failure).
       # If it fails, just log stuff, don't raise an exception.
       update_canvas_user_settings
+
+      # Send confirmation email.
+      @new_user.send_confirmation_instructions
     end
 
     # Note: we actually don't want to roll anything back if there are failures. We wouldn't

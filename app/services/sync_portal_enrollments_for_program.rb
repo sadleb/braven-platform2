@@ -45,7 +45,11 @@ class SyncPortalEnrollmentsForProgram
 
           span.add_field('app.canvas.user.id', portal_user.id)
 
+          # TODO: actually implement this. If we're going to support changing emails in SF and having
+          # that update Platform and Canvas, when there are failures the nightly sync should correct them
+          # https://app.asana.com/0/1174274412967132/1200197329627692
           reconcile_email!(portal_user, participant) if email_inconsistent?(portal_user, participant)
+
           sync_portal_enrollment!(portal_user, participant)
 
           span.add_field('app.sync_portal_enrollments_for_program.sync_participant_complete', true)

@@ -189,8 +189,9 @@ Rails.application.routes.draw do
   end
 
   # Sync to LMS
-  post 'sync_to_lms', to: 'salesforce#sync_to_lms'
-  get 'sync_to_lms', to: 'salesforce#init_sync_to_lms'
+  post '/salesforce/sync_to_lms', to: 'salesforce#sync_to_lms'
+  get '/salesforce/sync_to_lms', to: 'salesforce#init_sync_to_lms'
+  post '/salesforce/update_contacts', to: 'salesforce#update_contacts'
 
   # RubyCAS Routes
   resources :cas, except: [:show]
