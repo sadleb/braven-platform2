@@ -31,12 +31,8 @@ RSpec.describe AccessTokensController, type: :controller do
   # This should return the minimal set of attributes required to create a valid
   # AccessToken. As you add validations to AccessToken, be sure to
   # adjust the attributes here as well.
-  let(:valid_attributes) { attributes_for(:access_token) }
+  let(:valid_attributes) { attributes_for(:access_token).merge(user_id: user.id) }
 
-  let(:invalid_attributes) {
-    {name: access_token.name }
-  }
-  
   let(:access_token) { create :access_token }
 
   # This should return the minimal set of values that should be in the session
@@ -75,20 +71,13 @@ RSpec.describe AccessTokensController, type: :controller do
     context "with valid params" do
       it "creates a new AccessToken" do
         expect {
-          post :create, params: {access_token: valid_attributes}, session: valid_session
+          post :create, params: {access_token: valid_attributes.merge(email: user.email)}, session: valid_session
         }.to change(AccessToken, :count).by(1)
       end
 
       it "redirects to the access_token list" do
-        post :create, params: {access_token: valid_attributes}, session: valid_session
+        post :create, params: {access_token: valid_attributes.merge(email: user.email)}, session: valid_session
         expect(response).to redirect_to(access_tokens_path)
-      end
-    end
-
-    context "with invalid params" do
-      it "returns a success response (i.e. to display the 'new' template)" do
-        post :create, params: {access_token: invalid_attributes}, session: valid_session
-        expect(response).to be_successful
       end
     end
   end
@@ -101,7 +90,7 @@ RSpec.describe AccessTokensController, type: :controller do
 
       it "updates the requested access_token" do
         access_token = AccessToken.create! valid_attributes
-        put :update, params: {id: access_token.to_param, access_token: new_attributes}, session: valid_session
+        put :update, params: {id: access_token.to_param, access_token: new_attributes.merge(email: user.email)}, session: valid_session
         access_token.reload
         
         expect(access_token.name).to eq('turtles')
@@ -109,16 +98,8 @@ RSpec.describe AccessTokensController, type: :controller do
 
       it "redirects to the access_token" do
         access_token = AccessToken.create! valid_attributes
-        put :update, params: {id: access_token.to_param, access_token: valid_attributes}, session: valid_session
+        put :update, params: {id: access_token.to_param, access_token: valid_attributes.merge(email: user.email)}, session: valid_session
         expect(response).to redirect_to(access_tokens_path)
-      end
-    end
-
-    context "with invalid params" do
-      it "returns a success response (i.e. to display the 'edit' template)" do
-        access_token = AccessToken.create! valid_attributes
-        put :update, params: {id: access_token.to_param, access_token: invalid_attributes}, session: valid_session
-        expect(response).to be_successful
       end
     end
   end

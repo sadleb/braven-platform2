@@ -18,10 +18,18 @@
         <%= form.text_field :name, class: 'form-control' %>
       </div>
 
+      <div class="form-group">
+        <%= form.label :email, 'Owner email (for role/authorization)' %>
+        <%= form.text_field :email, value: @owner&.email, class: 'form-control' %>
+      </div>
+
       <div class="actions">
         <%= form.submit %>
         <%= link_to 'Cancel', access_tokens_path, class: 'btn btn-secondary'%>
       </div>
+
+      <p><mark>Important Note:</mark> In the <em>Owner email</em> field, make sure you don't use an admin user! Instead, set up a user with narrower roles so they can only access the resources this token needs.</p>
+
     </div>
   </div>
 <% end %>

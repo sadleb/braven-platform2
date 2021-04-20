@@ -2,51 +2,61 @@
   Access Tokens for API Access
 <% end %>
 
-<% content_for(:headline_buttons) do %>
-  <%= link_to 'New', new_access_token_path, class: 'btn btn-sm btn-outline-secondary' %>
-<% end %>
+<div class="container-fluid">
 
-<p>
-  API access requires the use of an access token in lieu of logging in via SSO.
-  You can generate tokens here for use in external applications.
-</p>
-
-<p><strong>Access tokens can be used to access the API on one of two ways:</strong></p>
-
-<ol>
-  <li>
-    <strong>Parameter:</strong> You can pass the <em>access_key</em> parameter along with your GET request. 
-    This is not recommended, because the access key is more exposed in web traffic and log files.
-  </li>
-  <li>
-    <strong>Header:</strong> You can set the <em>Access-Key</em> header in the request,
-    which is the preferred method.
-  </li>
-</ol>
-
-<div class="row">
-  <div class="col-sm-6">
-    <table class="table table-sm table-striped">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Key</th>
-          <th></th>
-        </tr>
-      </thead>
-
-      <tbody>
-        <% @access_tokens.each do |access_token| %>
-          <tr>
-            <td><%= access_token.name %></td>
-            <td><%= access_token.key %></td>
-            <td class="text-right smaller">
-              <%= link_to 'Edit', edit_access_token_path(access_token) %> |
-              <%= link_to 'Delete', access_token, method: :delete, data: { confirm: 'Are you sure?' } %>
-            </td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
+  <% content_for(:headline_buttons) do %>
+  <div class="col">
+    <%= link_to 'New', new_access_token_path, class: 'btn btn-sm btn-outline-secondary' %>
   </div>
+  <% end %>
+
+  <p>
+    API access requires the use of an access token in lieu of logging in via SSO.
+    You can generate tokens here for use in external applications.
+  </p>
+
+  <p><strong>Access tokens can be used to access the API on one of two ways:</strong></p>
+
+  <ol>
+    <li>
+      <strong>Parameter:</strong> You can pass the <em>access_key</em> parameter along with your GET request.
+      This is not recommended, because the access key is more exposed in web traffic and log files.
+    </li>
+    <li>
+      <strong>Header:</strong> You can set the <em>Access-Key</em> header in the request,
+      which is the preferred method.
+    </li>
+  </ol>
+
+  <div class="row">
+    <div class="col-md-10">
+      <div class="table-responsive">
+        <table class="table table-sm table-striped">
+          <thead>
+            <tr>
+              <th scope="col">Name</th>
+              <th scope="col">Key</th>
+              <th scope="col">Owner</th>
+              <th scope="col"></th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <% @access_tokens.each do |access_token| %>
+              <tr>
+                <th scope="row"><%= access_token.name %></th>
+                <td class="word-wrap"><%= access_token.key %></td>
+                <td><%= access_token.user.email %></td>
+                <td class="text-right smaller">
+                  <%= link_to 'Edit', edit_access_token_path(access_token) %> |
+                  <%= link_to 'Delete', access_token, method: :delete, data: { confirm: 'Are you sure?' } %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
 </div>

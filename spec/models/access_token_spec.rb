@@ -8,6 +8,7 @@ RSpec.describe AccessToken, type: :model do
   describe 'validation' do
     it { should validate_presence_of :name }
     it { should validate_presence_of :key }
+    it { should validate_presence_of :user }
 
     describe 'uniqueness' do
       before { create :access_token }

@@ -20,16 +20,20 @@ class ApplicationController < ActionController::Base
   private
   
   def authenticate_user!
-    super unless authorized_by_token? || cas_ticket?
+    super unless authenticated_by_token? || cas_ticket?
   end
 
-  def authorized_by_token?
+  def authenticated_by_token?
     return false unless request.format.symbol == :json
 
     key = params[:access_key] || request.headers['Access-Key']
     return false if key.nil?
     
-    !!AccessToken.find_by(key: key)
+    access_token = AccessToken.find_by(key: key)
+    return false unless access_token
+
+    sign_in(:user, access_token.user)
+    true
   end
 
   def cas_ticket?

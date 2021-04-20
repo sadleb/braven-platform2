@@ -24,6 +24,8 @@ class User < ApplicationRecord
   has_many :project_submissions
   has_many :projects, :through => :project_submissions
 
+  has_many :access_tokens
+
   validates :email, uniqueness: true
   validates :email, :first_name, :last_name, presence: true
   validates :email, presence: true
@@ -96,6 +98,10 @@ class User < ApplicationRecord
 
   def can_take_attendance_for_all?
     admin? or has_role? RoleConstants::CAN_TAKE_ATTENDANCE_FOR_ALL
+  end
+
+  def can_sync_from_salesforce?
+    admin? or has_role? RoleConstants::CAN_SYNC_FROM_SALESFORCE
   end
 
   # The email address currently setup in Canvas as the login email.

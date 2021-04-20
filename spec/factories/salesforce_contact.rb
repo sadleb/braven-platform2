@@ -9,6 +9,10 @@ FactoryBot.define do
     sequence(:LastName) { |i| "RegionName#{i}" }
     sequence(:Email) { |i| "test#{i}@email.com" }
 
+    factory :salesforce_contact_in_portal, class: Hash do
+      sequence(:Canvas_Cloud_User_ID__c)
+    end
+
     initialize_with { attributes.stringify_keys }
   end
 

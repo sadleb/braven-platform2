@@ -6,6 +6,7 @@ class RoleConstants
   # Global roles.
   ADMIN = :admin
   CAN_TAKE_ATTENDANCE_FOR_ALL = :CanTakeAttendanceForAll
+  CAN_SYNC_FROM_SALESFORCE = :CanSyncFromSalesforce
 
   # Local roles.
   TA_ENROLLMENT = :TaEnrollment

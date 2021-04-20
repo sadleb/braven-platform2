@@ -1,11 +1,12 @@
 class AccessToken < ApplicationRecord
-
-  attr_readonly :key
+  belongs_to :user
 
   validates :name, presence: true, uniqueness: {case_sensitive: false}
   validates :key, presence: true, uniqueness: {case_sensitive: true}, length: {is: 255}
+  validates :user, presence: true
 
   after_initialize :set_key
+  before_update :set_key
 
   class << self
     def generate_key

@@ -1,4 +1,7 @@
 class AccessTokensController < ApplicationController
+  layout 'admin'
+
+  before_action :set_owner, only: [:create, :update, :edit, :show]
 
   # GET /access_tokens
   # GET /access_tokens.json
@@ -25,7 +28,7 @@ class AccessTokensController < ApplicationController
   # POST /access_tokens
   # POST /access_tokens.json
   def create
-    @access_token = AccessToken.new(access_token_params)
+    @access_token = @owner.access_tokens.new(name: access_token_params[:name])
     authorize @access_token
 
     respond_to do |format|
@@ -43,8 +46,9 @@ class AccessTokensController < ApplicationController
   # PATCH/PUT /access_tokens/1.json
   def update
     authorize @access_token
+    new_owner = User.find_by!(email: access_token_params[:email].strip.downcase)
     respond_to do |format|
-      if @access_token.update(access_token_params)
+      if @access_token.update(access_token_params.except(:email).merge(:user_id => new_owner.id))
         format.html { redirect_to access_tokens_path, notice: 'Access Token was successfully updated.' }
         format.json { render :show, status: :ok, location: @access_token }
       else
@@ -68,6 +72,11 @@ class AccessTokensController < ApplicationController
   private
     # Never trust parameters from the scary internet, only allow the white list through.
     def access_token_params
-      params.require(:access_token).permit(:name)
+      params.require(:access_token).permit(:name, :email)
+    end
+
+    def set_owner
+      owner_email = @access_token&.user&.email || access_token_params[:email]&.strip&.downcase
+      @owner = User.find_by!(email: owner_email)
     end
 end

@@ -67,7 +67,7 @@ RSpec.describe CoursesController, type: :controller do
           post(:create,
             params: {
               course: { name: new_course_name },
-              create_from_course_id: source_course.id 
+              create_from_course_id: source_course.id
             },
             session: valid_session
           )
@@ -258,19 +258,48 @@ RSpec.describe CoursesController, type: :controller do
     describe 'JSON requests' do
       let(:access_token) { create :access_token }
 
-      describe "GET #index" do
-        it "allows access token via params" do
-          get :index, params: {access_key: access_token.key, type: 'Course'}, session: valid_session, format: :json
-          expect(response).to be_successful
+      context 'when admin' do
+
+        before(:each) do
+          access_token.user.add_role RoleConstants::ADMIN
         end
 
-        it "allows access token via headers" do
-          request.headers.merge!('Access-Key' => access_token.key)
+        describe "GET #index" do
+          it "allows access token via params" do
+            get :index, params: {access_key: access_token.key, type: 'Course'}, format: :json
+            expect(response).to be_successful
+          end
 
-          get :index, params: {type: 'Course'}, session: valid_session, format: :json
-          expect(response).to be_successful
+          it "allows access token via headers" do
+            request.headers.merge!('Access-Key' => access_token.key)
+
+            get :index, params: {type: 'Course'}, format: :json
+            expect(response).to be_successful
+          end
         end
+
       end
+
+      context 'when not admin' do
+
+        before(:each) do
+          access_token.user.remove_role RoleConstants::ADMIN # Just to be safe
+        end
+
+        describe "GET #index" do
+          it "does not allow access token via params" do
+            expect{ get :index, params: {access_key: access_token.key, type: 'Course'}, format: :json }.to raise_error(Pundit::NotAuthorizedError)
+          end
+
+          it "does not allow access token via headers" do
+            request.headers.merge!('Access-Key' => access_token.key)
+
+            expect{ get :index, params: {type: 'Course'}, format: :json }.to raise_error(Pundit::NotAuthorizedError)
+          end
+        end
+
+      end
+
     end
 
   end

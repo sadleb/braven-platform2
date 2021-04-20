@@ -1,5 +1,7 @@
-<% content_for :headline do %>
+<% content_for(:headline) do %>
   New Access Token
 <% end %>
 
-<%= render 'form', access_token: @access_token %>
+<div class="container-fluid">
+  <%= render 'form', access_token: @access_token %>
+</div>
