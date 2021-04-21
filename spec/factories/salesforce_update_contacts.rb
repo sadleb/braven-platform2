@@ -47,6 +47,7 @@ end
 #            "Braven_Programs_Role__c": "Fellow:Enrolled",
 #            "Canvas_Cloud_User_ID__c": 4321.0,
 #            "Canvas_Deactivated__c": false,
+# NOTE: this is the old Portal ID, it's still in SF until we completely decommision the old Portal
 #            "Canvas_User_ID__c": 1234.0,
 #            "Contact_Funding_Relationship__c": "Prospect",
 #            "Contact_Name__c": "_HL_ENCODED_/0031555555555TOh_HL_Brian xTestHighndrdevDevSandboxFellow2_HL__self_HL_",

@@ -271,7 +271,7 @@ class SalesforceAPI
   end
 
   def set_canvas_user_id(contact_id, canvas_user_id)
-    body = { 'Canvas_User_ID__c' => canvas_user_id }
+    body = { 'Canvas_Cloud_User_ID__c' => canvas_user_id }
     response = patch("#{DATA_SERVICE_PATH}/sobjects/Contact/#{contact_id}", body.to_json, JSON_HEADERS)
   end
 
