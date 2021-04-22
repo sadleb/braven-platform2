@@ -2,10 +2,10 @@
 
 require 'rails_helper'
 
-RSpec.describe SyncSalesforceToLmsMailer, type: :mailer do
+RSpec.describe SyncFromSalesforceProgramMailer, type: :mailer do
   describe '#success_email' do
     let(:recipient) { 'example@example.com' }
-    let(:mail) { SyncSalesforceToLmsMailer.with(email: recipient).success_email }
+    let(:mail) { SyncFromSalesforceProgramMailer.with(email: recipient).success_email }
 
     # before(:each) { mail.deliver_now }
 
@@ -25,7 +25,7 @@ RSpec.describe SyncSalesforceToLmsMailer, type: :mailer do
   describe '#failure_email' do
     let(:recipient) { 'example@example.com' }
     let(:exception) { StandardError.new "fake exception" }
-    let(:mail) { SyncSalesforceToLmsMailer.with(email: recipient, exception: exception).failure_email }
+    let(:mail) { SyncFromSalesforceProgramMailer.with(email: recipient, exception: exception).failure_email }
 
     # before(:each) { mail.deliver_now }
 

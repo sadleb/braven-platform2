@@ -1,17 +1,16 @@
 # frozen_string_literal: true
 
-# Salesforce program sync to lms job
-class SyncSalesforceProgramToLmsJob < ApplicationJob
+class SyncFromSalesforceProgramJob < ApplicationJob
   queue_as :default
 
   def perform(program_id, email)
     sync_service = SyncPortalEnrollmentsForProgram.new(salesforce_program_id: program_id)
     begin
       sync_service.run()
-      SyncSalesforceToLmsMailer.with(email: email).success_email.deliver_now
+      SyncFromSalesforceProgramMailer.with(email: email).success_email.deliver_now
     rescue => exception
       Rails.logger.error(exception)
-      SyncSalesforceToLmsMailer.with(
+      SyncFromSalesforceProgramMailer.with(
         email: email,
         exception: exception,
         failed_participants: sync_service.failed_participants,

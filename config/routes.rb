@@ -1,5 +1,5 @@
 # Needed to use the url_helpers outside of views and controller
-Rails.application.routes.default_url_options[:host] = Rails.application.secrets.application_host 
+Rails.application.routes.default_url_options[:host] = Rails.application.secrets.application_host
 
 Rails.application.routes.draw do
 
@@ -113,7 +113,7 @@ Rails.application.routes.draw do
 
   resources :rise360_module_grades, only: [:show]
 
-  resources :course_custom_content_versions, only: [:create, :update, :destroy] 
+  resources :course_custom_content_versions, only: [:create, :update, :destroy]
 
   resources :course_project_versions, only: [] do
     resources :project_submissions, only: [:new, :edit, :show]
@@ -158,7 +158,7 @@ Rails.application.routes.draw do
   end
 
   resources :waiver_submissions, only: [:new, :create] do
-    collection do 
+    collection do
       get :launch
       get :completed
     end
@@ -188,9 +188,9 @@ Rails.application.routes.draw do
     resources :users_roles, only: [:new, :create, :destroy]
   end
 
-  # Sync to LMS
-  post '/salesforce/sync_to_lms', to: 'salesforce#sync_to_lms'
-  get '/salesforce/sync_to_lms', to: 'salesforce#init_sync_to_lms'
+  # Sync to Canvas
+  post '/salesforce/sync_from_salesforce_program', to: 'salesforce#sync_from_salesforce_program'
+  get '/salesforce/sync_from_salesforce_program', to: 'salesforce#init_sync_from_salesforce_program'
   post '/salesforce/update_contacts', to: 'salesforce#update_contacts'
 
   # RubyCAS Routes

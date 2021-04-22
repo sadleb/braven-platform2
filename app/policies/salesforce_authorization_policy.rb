@@ -1,10 +1,10 @@
 class SalesforceAuthorizationPolicy < ApplicationPolicy
 
-  def init_sync_to_lms?
+  def init_sync_from_salesforce_program?
     user.can_sync_from_salesforce?
   end
 
-  def sync_to_lms?
+  def sync_from_salesforce_program?
     user.can_sync_from_salesforce?
   end
 

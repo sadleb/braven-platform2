@@ -11,16 +11,16 @@ class SalesforceController < ApplicationController
 
   skip_before_action :verify_authenticity_token, only: [:update_contacts]
 
-  def init_sync_to_lms
+  def init_sync_from_salesforce_program
     authorize :SalesforceAuthorization
   end
 
-  def sync_to_lms
+  def sync_from_salesforce_program
     authorize :SalesforceAuthorization
 
     program_id = params[:program_id]
     email = params[:email]
-    SyncSalesforceProgramToLmsJob.perform_later(program_id, email)
+    SyncFromSalesforceProgramJob.perform_later(program_id, email)
     redirect_to root_path, notice: 'The sync process was started. Watch out for an email'
   end
 
