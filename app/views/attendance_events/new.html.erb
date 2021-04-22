@@ -1,14 +1,8 @@
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item ml-3"><%= link_to "Attendance Events", attendance_events_path %></li>
-    <li class="breadcrumb-item active" aria-current="page">Add Attendance Event</li>
-  </ol>
-</nav>
+<% content_for(:breadcrumbs) do %>
+  <li class="breadcrumb-item"><%= link_to "Attendance Events", attendance_events_path %></li>
+  <li class="breadcrumb-item active" aria-current="page">Add Attendance Event</li>
+<% end %>
 
-<div class="container">
-  <div class="row">
-    <div class="col-sm">
-      <%= render partial: "form" %>
-    </div>
-  </div>
+<div class="col">
+  <%= render partial: "form" %>
 </div>

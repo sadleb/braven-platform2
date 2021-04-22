@@ -42,7 +42,7 @@
  * --------
  * Note that input[type=submit]'s are already styled as buttons. These classes
  * let you style other elements, like links and spans, as buttons.
- * 
+ *
  * You can override a submit button's style with the secondary style, but if you
  * try and get fancy, you're probably going to run into this CSS specificity issue:
  * https://stackoverflow.com/questions/14666581/precedence-in-css-selector-specifity-conflicts-type-vs-class-selector
@@ -83,4 +83,15 @@
   position: absolute;
   z-index: 100;
   width: 100%;
+}
+
+/**
+ * Breadcrumbs
+ */
+.breadcrumb {
+  background-color: $bv-silver-100;
+}
+
+.breadcrumb-item {
+  margin-bottom: unset;
 }

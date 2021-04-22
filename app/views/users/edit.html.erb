@@ -1,17 +1,11 @@
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item ml-3"><%= link_to "Users", users_path %></li>
-    <li class="breadcrumb-item active" aria-current="page">Edit User</li>
-  </ol>
-</nav>
+<% content_for(:breadcrumbs) do %>
+  <li class="breadcrumb-item"><%= link_to "Users", users_path %></li>
+  <li class="breadcrumb-item active" aria-current="page">Edit User</li>
+<% end %>
 
-<div class="container">
-  <div class="row">
-    <div class="col-sm-8">
-      <%= render partial: "form", locals: { path: user_path(@user), legend: "Edit #{@user.first_name}'s account", is_new_user: false} %>
-    </div>
-    <div class="col-sm text-danger mt-5">
-      <%= render partial: "errors" %>
-    </div>
-  </div>
+<div class="col-sm-8">
+  <%= render partial: "form", locals: { path: user_path(@user), legend: "Edit #{@user.first_name}'s account", is_new_user: false} %>
+</div>
+<div class="col-sm text-danger mt-5">
+  <%= render partial: "errors" %>
 </div>

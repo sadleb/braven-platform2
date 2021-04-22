@@ -1,26 +1,28 @@
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item ml-3"><%= link_to "Platform", root_path %></li>
-    <li class="breadcrumb-item active" aria-current="page">Attendance Events</li>
-  </ol>
-</nav>
+<% content_for(:breadcrumbs) do %>
+  <li class="breadcrumb-item ml-3"><%= link_to "Home", root_path %></li>
+  <li class="breadcrumb-item active" aria-current="page">Attendance Events</li>
+<% end %>
 
-<div class="container">
-  <div class="d-flex justify-content-end">
-    <%= link_to "Add Attendance Event", new_attendance_event_path, class: "btn btn-primary", role: "button" %>
-  </div>
-    <table class="table mt-2 table-striped">
-        <tbody>
-          <% @attendance_events.each do |attendance_event| %>
-            <tr>
-              <td><%= link_to attendance_event.title %></td>
-              <td class="text-right smaller">
-                <%= link_to 'Delete', attendance_event, method: :delete, data: { confirm: 'Are you sure?' } %> 
-              </td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    </div>
+<% content_for(:headline) do %>
+  Attendance Events Available To Publish
+<% end %>
+
+<% content_for(:headline_buttons) do %>
+  <%= link_to "Add Attendance Event", new_attendance_event_path, class: "btn btn-primary my-1", role: "button" %>
+<% end %>
+
+<div class="col">
+  <table class="table mt-2 table-striped">
+      <tbody>
+        <% @attendance_events.each do |attendance_event| %>
+          <tr>
+            <td><%= link_to attendance_event.title %></td>
+            <td class="text-right smaller">
+              <%= link_to 'Delete', attendance_event, method: :delete, data: { confirm: 'Are you sure?' } %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
   </div>
 </div>

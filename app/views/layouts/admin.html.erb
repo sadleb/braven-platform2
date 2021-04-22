@@ -5,26 +5,52 @@
 <% end %>
 
 <% content_for :content do %>
+  <div class="container">
 
-  <nav class="navbar navbar-expand-lg navbar-light bg-light static-top home-navbar">
-    <div class="container-fluid">
-      <%= link_to root_path, class: "navbar-brand p-0" do %>
-        <%= image_tag 'braven_logo.png', alt: 'logo', height: '50', loading: 'lazy' %>
-      <% end %>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light static-top home-navbar pl-0 border-0">
+      <div class="container-fluid pl-0">
 
-      <ul class="navbar-nav ml-auto">
-        <li class="nav-item">
-          <%= link_to 'Log out', destroy_user_session_path,  method: :delete %>
-        </li>
-      </ul>
+        <%= link_to root_path, class: "navbar-brand p-0" do %>
+          <%= image_tag 'braven_logo.png', alt: 'logo', height: '50', loading: 'lazy' %>
+        <% end %>
+
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <%= link_to 'Log out', destroy_user_session_path,  method: :delete %>
+          </li>
+        </ul>
+
+      </div>
+    </nav>
+
+    <% if content_for?(:breadcrumbs) %>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb pl-3 py-1">
+          <%= yield(:breadcrumbs) %>
+        </ol>
+      </nav>
+    <% end %>
+
+    <hr class="mt-0">
+
+    <% if content_for?(:headline) %>
+      <div class="row">
+        <div class="col"><h1><%= yield(:headline) %></h1></div>
+        <% if content_for?(:headline_buttons) %>
+          <div class="col">
+            <div class="d-flex flex-row-reverse">
+              <%= yield(:headline_buttons) %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <div class="row">
+      <%= yield %>
     </div>
-  </nav>
 
-  <h2><%= content_for?(:headline) ? yield(:headline) : '' %></h2>
-  <%= content_for?(:headline_buttons) ? yield(:headline_buttons) : '' %>
-
-  <%= yield %>
-
+  </div>
 <% end %>
 
 <%= render template: "layouts/application" %>

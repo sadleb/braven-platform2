@@ -1,35 +1,34 @@
-<%= form_with(model: access_token, local: true) do |form| %>
-  <% if access_token.errors.any? %>
-    <div id="error_explanation">
-      <h2><%= pluralize(access_token.errors.count, "error") %> prohibited this access_token from being saved:</h2>
+<div class="col-md-4">
 
-      <ul>
-      <% access_token.errors.full_messages.each do |message| %>
-        <li><%= message %></li>
-      <% end %>
-      </ul>
+  <%= form_with(model: access_token, local: true) do |form| %>
+    <% if access_token.errors.any? %>
+      <div id="error_explanation">
+        <h2><%= pluralize(access_token.errors.count, "error") %> prohibited this access_token from being saved:</h2>
+
+        <ul>
+        <% access_token.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div class="form-group">
+      <%= form.label :name %>
+      <%= form.text_field :name, class: 'form-control' %>
     </div>
+
+    <div class="form-group">
+      <%= form.label :email, 'Owner email (for role/authorization)' %>
+      <%= form.text_field :email, value: @owner&.email, class: 'form-control' %>
+    </div>
+
+    <div class="actions">
+      <%= form.submit %>
+      <%= link_to 'Cancel', access_tokens_path, class: 'btn btn-secondary'%>
+    </div>
+
+    <p><mark>Important Note:</mark> In the <em>Owner email</em> field, make sure you don't use an admin user! Instead, set up a user with narrower roles so they can only access the resources this token needs.</p>
   <% end %>
 
-  <div class="row">
-    <div class="col-sm-4">
-      <div class="form-group">
-        <%= form.label :name %>
-        <%= form.text_field :name, class: 'form-control' %>
-      </div>
-
-      <div class="form-group">
-        <%= form.label :email, 'Owner email (for role/authorization)' %>
-        <%= form.text_field :email, value: @owner&.email, class: 'form-control' %>
-      </div>
-
-      <div class="actions">
-        <%= form.submit %>
-        <%= link_to 'Cancel', access_tokens_path, class: 'btn btn-secondary'%>
-      </div>
-
-      <p><mark>Important Note:</mark> In the <em>Owner email</em> field, make sure you don't use an admin user! Instead, set up a user with narrower roles so they can only access the resources this token needs.</p>
-
-    </div>
-  </div>
-<% end %>
+</div>

@@ -1,14 +1,8 @@
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item ml-3"><%= link_to "Modules", rise360_modules_path %></li>
-    <li class="breadcrumb-item active" aria-current="page">Edit Module </li>
-  </ol>
-</nav>
+<% content_for(:breadcrumbs) do %>
+  <li class="breadcrumb-item"><%= link_to "Modules", rise360_modules_path %></li>
+  <li class="breadcrumb-item active" aria-current="page">Edit Module </li>
+<% end %>
 
-<div class="container">
-  <div class="row">
-    <div class="col-sm">
-      <%= render partial: "attachable/form", locals: { path: rise360_module_path(@rise360_module) } %>
-    </div>
-  </div>
+<div class="col">
+  <%= render partial: "attachable/form", locals: { path: rise360_module_path(@rise360_module) } %>
 </div>

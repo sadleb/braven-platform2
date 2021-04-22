@@ -1,28 +1,30 @@
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item ml-3"><%= link_to "Platform", root_path %></li>
-    <li class="breadcrumb-item active" aria-current="page">Modules</li>
-  </ol>
-</nav>
+<% content_for(:breadcrumbs) do %>
+  <li class="breadcrumb-item"><%= link_to "Home", root_path %></li>
+  <li class="breadcrumb-item active" aria-current="page">Modules</li>
+<% end %>
 
-<div class="container">
-  <div class="d-flex justify-content-end">
-    <%= link_to "Add Module", new_rise360_module_path, class: "btn btn-primary", role: "button" %>
-  </div>
-    <table class="table mt-2 table-striped">
-        <tbody>
-          <% @rise360_modules.each do |rise360_module| %>
-            <tr>
-              <td><%= link_to rise360_module.name %></td>
-              <td class="text-right smaller">
-                <%= link_to 'Preview', rise360_module.launch_url if rise360_module.rise360_zipfile.attached? %> |
-                <%= link_to 'Edit', edit_rise360_module_path(rise360_module) %> |
-                <%= link_to 'Delete', rise360_module, method: :delete, data: { confirm: 'Are you sure?' } %> 
-              </td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    </div>
+<% content_for(:headline) do %>
+  Modules Available For Publishing
+<% end %>
+
+<% content_for(:headline_buttons) do %>
+  <%= link_to "Add Module", new_rise360_module_path, class: "btn btn-primary my-1", role: "button" %>
+<% end %>
+
+<div class="col">
+  <table class="table mt-2 table-striped">
+      <tbody>
+        <% @rise360_modules.each do |rise360_module| %>
+          <tr>
+            <td><%= link_to rise360_module.name %></td>
+            <td class="text-right smaller">
+              <%= link_to 'Preview', rise360_module.launch_url if rise360_module.rise360_zipfile.attached? %> |
+              <%= link_to 'Edit', edit_rise360_module_path(rise360_module) %> |
+              <%= link_to 'Delete', rise360_module, method: :delete, data: { confirm: 'Are you sure?' } %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
   </div>
 </div>

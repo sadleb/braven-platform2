@@ -1,23 +1,17 @@
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item ml-3"><%= link_to "Users", users_path %></li>
+<% content_for(:breadcrumbs) do %>
+    <li class="breadcrumb-item"><%= link_to "Users", users_path %></li>
     <li class="breadcrumb-item active" aria-current="page">Add User</li>
-  </ol>
-</nav>
+<% end %>
 
-<div class="container">
-  <div class="row">
-    <div class="col-sm">
-      <%#
-        Note: This uses admin_users_path, **not** users_path.
-        This lets bypass Devise's redirect to RegistrationsController#create
-        and post to our intended endpoint, UsersControllers#create.
-        See routes.rb for how this is configured.
-      %>
-      <%= render partial: "form", locals: {path: admin_users_path, legend: 'Add user to platform', is_new_user: true} %>
-    </div>
-    <div class="col-sm text-danger mt-5">
-      <%= render partial: "errors" %>
-    </div>
-  </div>
+<div class="col">
+  <%#
+    Note: This uses admin_users_path, **not** users_path.
+    This lets bypass Devise's redirect to RegistrationsController#create
+    and post to our intended endpoint, UsersControllers#create.
+    See routes.rb for how this is configured.
+  %>
+  <%= render partial: "form", locals: {path: admin_users_path, legend: 'Add user to platform', is_new_user: true} %>
+</div>
+<div class="col-sm text-danger mt-5">
+  <%= render partial: "errors" %>
 </div>

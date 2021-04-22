@@ -1,11 +1,9 @@
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item"><%= link_to 'Course Management', courses_path %></li>
-    <li class="breadcrumb-item active" aria-current="page">Course Details</li>
-  </ol>
-</nav>
+<% content_for(:breadcrumbs) do %>
+  <li class="breadcrumb-item"><%= link_to 'Course Management', courses_path %></li>
+  <li class="breadcrumb-item active" aria-current="page">Course Details</li>
+<% end %>
 
-<div class="container">
+<div class="col">
 
   <div class="row">
     <div class="col">

@@ -1,35 +1,46 @@
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item active" aria-current="page">Users</li>
-  </ol>
-</nav>
+<% content_for(:breadcrumbs) do %>
+  <li class="breadcrumb-item"><%= link_to "Home", root_path %></li>
+  <li class="breadcrumb-item active" aria-current="page">Users</li>
+<% end %>
 
-<div class="container">
-  <div class="d-flex justify-content-end">
-    <%= link_to "Add User", new_user_path, class: "btn btn-primary", role: "button" %>
-    <%= form_tag(users_path, method: "get") do |f| %>
-      <%= text_field_tag :search, params[:search], placeholder: "Search", class: "form-control ml-4" %>
-    <% end %>
+<% content_for(:headline) do %>
+  Platform Users
+<% end %>
+
+<% content_for(:headline_buttons) do %>
+  <%= link_to "Add User", new_user_path, class: "btn btn-primary my-1", role: "button" %>
+<% end %>
+
+<div class="col">
+
+  <div class="row">
+    <div class="col-md-4">
+      <%= form_tag(users_path, method: "get") do |f| %>
+        <%= text_field_tag :search, params[:search], placeholder: "Search", class: "form-control" %>
+      <% end %>
+    </div>
   </div>
-    <% if @users.empty? %>
-      [No users found]
-    <% else %>
-      <table class="table mt-2">
-        <tbody>
-        <% @users.each do |user| %>
-          <tr>
-            <td>
-              <%= link_to user_path user do %>
-                <%= user.full_name %>
-              <% end %>
-              <% if user.has_role? :admin %>
-                <span class="badge badge-primary">Admin</span>
-              <% end %>
-              &lt;<%=user.email%>&gt;
-            </td>
-          </tr>
-        <% end %>
-      </table>
-    <% end %>
-<%= will_paginate @users %>
+
+  <% if @users.empty? %>
+    [No users found]
+  <% else %>
+    <table class="table mt-2">
+      <tbody>
+      <% @users.each do |user| %>
+        <tr>
+          <td>
+            <%= link_to user_path user do %>
+              <%= user.full_name %>
+            <% end %>
+            <% if user.has_role? :admin %>
+              <span class="badge badge-primary">Admin</span>
+            <% end %>
+            &lt;<%=user.email%>&gt;
+          </td>
+        </tr>
+      <% end %>
+    </table>
+  <% end %>
+
 </div>
+<%= will_paginate @users %>

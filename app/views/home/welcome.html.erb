@@ -1,11 +1,14 @@
 <% content_for :headline do %>
   Dashboard
 <% end %>
-<div class="list-group w-25 mt-5 ml-4">
-  <%= link_to 'Content Editor', new_custom_content_path, type: "button", class: "list-group-item list-group-item-action" %>
-  <%= link_to 'Module Uploader', rise360_modules_path, type: "button", class: "list-group-item list-group-item-action" %>
-  <%= link_to 'Portal', canvas_url, target: :_blank, type: "button", class: "list-group-item list-group-item-action" %>
-  <%= link_to 'Course Management', courses_path, type: "button", class: "list-group-item list-group-item-action" %>
-  <%= link_to 'Sync To LMS', salesforce_sync_to_lms_path, type: "button", class: "list-group-item list-group-item-action" %>
-  <%= link_to 'Users', users_path, type: "button", class: "list-group-item list-group-item-action" %>
+
+<div class="col-md-4">
+  <div class="list-group">
+    <%= link_to 'Content Editor', new_custom_content_path, type: "button", class: "list-group-item list-group-item-action" %>
+    <%= link_to 'Module Uploader', rise360_modules_path, type: "button", class: "list-group-item list-group-item-action" %>
+    <%= link_to 'Portal', canvas_url, target: :_blank, type: "button", class: "list-group-item list-group-item-action" %>
+    <%= link_to 'Course Management', courses_path, type: "button", class: "list-group-item list-group-item-action" %>
+    <%= link_to 'Sync To LMS', salesforce_sync_to_lms_path, type: "button", class: "list-group-item list-group-item-action" %>
+    <%= link_to 'Users', users_path, type: "button", class: "list-group-item list-group-item-action" %>
+  </div>
 </div>

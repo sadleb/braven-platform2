@@ -1,16 +1,15 @@
-<div>
-  <div class="row">
-    <div class="col-sm-4">
-      <h4>Select a module to add to Canvas course</h4>
-      <%= form_with(url: publish_course_course_rise360_module_versions_path(@course), local: true) do |form| %>
-        <div class="form-group">
-          <div class="row">
-            <%= form.label :name, class: 'col-sm-3' %>
-            <%= form.collection_select :rise360_module_id, @modules, :id, :name, {}, class: 'form-control col-sm-8' %> 
-          </div>
-        </div>   
-        <input type='submit' value='Add' />
-      <% end %>
+<% content_for(:headline) do %>
+  Select a module to add to Canvas course
+<% end %>
+
+<div class="col-md-6">
+  <%= form_with(url: publish_course_course_rise360_module_versions_path(@course), local: true) do |form| %>
+    <div class="form-group">
+      <div class="row">
+        <%= form.label :name, class: 'col-sm-3' %>
+        <%= form.collection_select :rise360_module_id, @modules, :id, :name, {}, class: 'form-control col-sm-8' %>
+      </div>
     </div>
-  </div>
+    <input type='submit' value='Add' />
+  <% end %>
 </div>
