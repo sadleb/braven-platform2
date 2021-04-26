@@ -112,8 +112,12 @@ RSpec.describe UsersController, type: :controller do
     end
 
     describe "PUT #update" do
+      # Oddly enough, the role_ids actually do come through with a single empty string in the array
+      # when none are set.
+      let(:valid_update_attributes) { valid_attributes.merge({ role_ids: [""]}) }
+
       it "returns a success response" do
-        put :update, params: { id: user.to_param, user: valid_attributes }
+        put :update, params: { id: user.to_param, user: valid_update_attributes }
         expect(response).to redirect_to(user_path(user))
       end
     end

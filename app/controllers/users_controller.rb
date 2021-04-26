@@ -51,6 +51,13 @@ class UsersController < ApplicationController
 
     # Don't update the password if it's blank (unchanged).
     filtered_user_params = user_params.reject { |k, v| k == "password" and v.blank? }
+
+    # Don't blow away their non-global roles
+    new_global_role_ids = filtered_user_params[:role_ids]
+    existing_role_ids_minus_global = @user.role_ids.reject { |rid| Role.global.ids.include?(rid) }
+    new_role_ids = new_global_role_ids + existing_role_ids_minus_global
+    filtered_user_params[:role_ids] = new_role_ids
+
     user_changes_persisted = @user.update(filtered_user_params)
 
     if user_changes_persisted

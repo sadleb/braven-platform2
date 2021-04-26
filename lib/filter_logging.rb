@@ -97,7 +97,7 @@ class FilterLogging
     MODELS_TO_FILTER.each do |model_name, attributes_to_filter|
       if log_name.start_with?(model_name)
         binds.each_with_index do |bind, i|
-          if attributes_to_filter.include?(bind.name) && bind.value.present?
+          if bind.respond_to?(:name) && attributes_to_filter.include?(bind.name) && bind.value.present?
             # Don't mess with the underlying objects which are used outside of just logging
             filtered_type_casted_binds = type_casted_binds_lambda.call().deep_dup unless filtered_type_casted_binds
             filtered_type_casted_binds[i] = FILTERED

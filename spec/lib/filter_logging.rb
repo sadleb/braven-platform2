@@ -147,6 +147,18 @@ RSpec.describe FilterLogging do
       expect(bind).not_to have_received(:name)
     end
 
+    context 'with Integer bind' do
+      # No clue how or when this happens, but I ran into it and had to add some duck typing checks
+      let(:bind) { 47 }
+      let(:log_name) { 'LtiLaunch Load' }
+      let(:column_name) { 'state' }
+      let(:column_value) { 'hi' }
+      it 'is a NOOP' do
+        expect{ filtered_binds = FilterLogging.filter_sql(log_name, binds, type_casted_binds_lambda) }.not_to raise_error
+        expect(filtered_binds).to eq(nil)
+      end
+    end
+
     context 'for lti_launches table' do
       let(:log_name) { 'LtiLaunch Load' }
 
