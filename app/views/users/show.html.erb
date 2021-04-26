@@ -21,7 +21,7 @@
         <h6>Roles</h6>
         <ul>
         <% @user.roles.each do |r| %>
-          <li><%= r.name %></li>
+          <li><%= r.name %> <%= "<em>[Canvas Course ID: #{r.resource.course.canvas_course_id}, Section: '#{r.resource.name}']</em>".html_safe if r.resource.present? %></li>
         <% end %>
         </ul>
       </li>
