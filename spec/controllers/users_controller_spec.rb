@@ -25,7 +25,7 @@ require 'rails_helper'
 
 RSpec.describe UsersController, type: :controller do
   render_views
-  
+
   let(:user) { create :admin_user }
 
   # This should return the minimal set of attributes required to create a valid
@@ -39,7 +39,7 @@ RSpec.describe UsersController, type: :controller do
   # in order to pass any filters (e.g. authentication) defined in
   # UsersController. Be sure to keep this updated too.
   let(:valid_session) { {} }
-  
+
   describe 'when logged in' do
     before do
       sign_in user
@@ -61,7 +61,7 @@ RSpec.describe UsersController, type: :controller do
 
     describe "GET #new" do
       it "returns a success response" do
-        get :new, params: { id: user.id } 
+        get :new, params: { id: user.id }
         expect(response).to be_successful
       end
     end
@@ -84,6 +84,11 @@ RSpec.describe UsersController, type: :controller do
         it "automatically confirms the user" do
           post :create, params: { user: valid_attributes }
           expect(User.last.confirmed_at).not_to be(nil)
+        end
+
+        it "automatically registers the user" do
+          post :create, params: { user: valid_attributes }
+          expect(User.last.registered_at).not_to be(nil)
         end
       end
 

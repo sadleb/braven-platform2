@@ -3,27 +3,42 @@
 # seeds file.
 
 # Add the admin users
-User.find_or_create_by email: 'admin@beyondz.org' do |u|
+u1 = User.find_or_create_by email: 'admin@beyondz.org' do |u|
   u.first_name = 'Dev'
   u.last_name = 'Admin(BZ)'
   u.password = "#{ENV['DEV_ENV_USER_PASSWORD']}"
-  u.confirmed_at = DateTime.now
   u.add_role :admin
 end
-User.find_or_create_by email: 'admin@bebraven.org' do |u|
+u1.update!(
+  confirmed_at:  DateTime.now,
+  registered_at: DateTime.now
+)
+
+u2 = User.find_or_create_by email: 'admin@bebraven.org' do |u|
   u.first_name = 'Dev'
   u.last_name = 'Admin(BV)'
   u.password = "#{ENV['DEV_ENV_USER_PASSWORD']}"
   u.confirmed_at = DateTime.now
+  u.registered_at = DateTime.now
   u.add_role :admin
 end
-User.find_or_create_by email: 'booster.admin@bebraven.org' do |u|
+u2.update!(
+  confirmed_at:  DateTime.now,
+  registered_at: DateTime.now
+)
+
+u3 = User.find_or_create_by email: 'booster.admin@bebraven.org' do |u|
   u.first_name = 'Dev'
   u.last_name = 'Admin(Booster)'
   u.password = "#{ENV['DEV_ENV_USER_PASSWORD']}"
   u.confirmed_at = DateTime.now
+  u.registered_at = DateTime.now
   u.add_role :admin
 end
+u3.update!(
+  confirmed_at:  DateTime.now,
+  registered_at: DateTime.now
+)
 
 user_count = User.count
 FactoryBot.create_list(:registered_user, 5) unless user_count > 3

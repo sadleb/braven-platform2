@@ -33,7 +33,7 @@ class UsersController < ApplicationController
 
   def create
     authorize User
-    @user = User.create(user_params.merge(confirmed_at: DateTime.now))
+    @user = User.create(user_params.merge(confirmed_at: DateTime.now, registered_at: DateTime.now))
 
     if @user.persisted?
       redirect_to users_path, notice: 'User was added successfully'
