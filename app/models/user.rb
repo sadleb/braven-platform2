@@ -129,7 +129,7 @@ class User < ApplicationRecord
     # Make sure you update the link in app/controllers/users/passwords_controller.rb too
     sign_up_url = new_user_registration_url(u: salesforce_id, protocol: 'https')
 
-    SendSignUpEmailMailer.with(first_name: first_name, sign_up_url: sign_up_url)
+    SendSignUpEmailMailer.with(email: email, first_name: first_name, sign_up_url: sign_up_url)
       .sign_up_email.deliver_now
   end
 
