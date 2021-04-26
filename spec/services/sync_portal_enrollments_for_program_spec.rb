@@ -23,8 +23,9 @@ RSpec.describe SyncPortalEnrollmentsForProgram do
     end
 
     context 'with failed participants' do
-      let(:portal_user_success) { CanvasAPI::LMSUser.new(767654, sf_participant_success.email) }
-      let(:sf_participant_success) { SalesforceAPI::SFParticipant.new('firstS', 'lastS', 'success1@example.com') }
+      let(:user_success) { create :registered_user }
+      let(:portal_user_success) { CanvasAPI::LMSUser.new(user_success.canvas_user_id, user_success.email) }
+      let(:sf_participant_success) { SalesforceAPI::SFParticipant.new(user_success.first_name, user_success.last_name, user_success.email) }
       let(:sf_participant_fail) { SalesforceAPI::SFParticipant.new('firstF', 'lastF', 'fail1@example.com') }
       # Note the order here matters. fail first, then success
       let(:sf_participants) { [sf_participant_fail, sf_participant_success] }

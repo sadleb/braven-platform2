@@ -53,6 +53,15 @@ RSpec.describe SyncPortalEnrollmentForAccount do
     allow(CanvasAPI).to receive(:client).and_return(lms_client)
   end
 
+  subject(:run_sync) do
+    SyncPortalEnrollmentForAccount
+      .new(user: user,
+           portal_user: portal_user,
+           salesforce_participant: sf_participant,
+           salesforce_program: sf_program
+       ).run
+  end
+
   describe '#run' do
     context 'for enrolled teaching assistant' do
       before(:each) do
@@ -62,11 +71,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 
       it 'enrolls with limit removed' do
         # because TAs need access to all users, not just users in their section.
-        SyncPortalEnrollmentForAccount
-          .new(portal_user: portal_user,
-               salesforce_participant: sf_participant,
-               salesforce_program: sf_program)
-          .run
+        run_sync
         expect(lms_client).to have_received(:enroll_user_in_course).with(
             portal_user.id, fellow_canvas_course_id, RoleConstants::TA_ENROLLMENT, lms_section.id, false
         )
@@ -81,24 +86,14 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 
       it 'creates a section if it does not exists' do
         allow(lms_client).to receive(:find_section_by).and_return(nil)
-
-        SyncPortalEnrollmentForAccount
-          .new(portal_user: portal_user,
-               salesforce_participant: sf_participant,
-               salesforce_program: sf_program)
-          .run
+        run_sync
         expect(lms_client).to have_received(:create_lms_section)
       end
 
 
       it 'creates a default section if no section on salesforce' do
         allow(lms_client).to receive(:find_section_by).and_return(nil)
-
-        SyncPortalEnrollmentForAccount
-          .new(portal_user: portal_user,
-               salesforce_participant: sf_participant,
-               salesforce_program: sf_program)
-          .run
+        run_sync
         expect(lms_client)
           .to have_received(:create_lms_section)
           .with(course_id: fellow_canvas_course_id, name: SectionConstants::DEFAULT_SECTION)
@@ -107,22 +102,12 @@ RSpec.describe SyncPortalEnrollmentForAccount do
       # Add tests for other sections when implemented
 
       it 'does not create a section if it exists' do
-        SyncPortalEnrollmentForAccount
-          .new(portal_user: portal_user,
-               salesforce_participant: sf_participant,
-               salesforce_program: sf_program)
-          .run
-
+        run_sync
         expect(lms_client).not_to have_received(:create_lms_section)
       end
 
       it 'does not re-enroll the user' do
-        SyncPortalEnrollmentForAccount
-          .new(portal_user: portal_user,
-               salesforce_participant: sf_participant,
-               salesforce_program: sf_program)
-          .run
-
+        run_sync
         expect(lms_client).not_to have_received(:enroll_user_in_course)
       end
 
@@ -130,13 +115,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
         new_section = CanvasAPI::LMSSection.new(28374)
         allow(lms_client).to receive(:find_enrollment).and_return(lms_enrollment)
         allow(lms_client).to receive(:find_section_by).and_return(new_section)
-
-        SyncPortalEnrollmentForAccount
-          .new(portal_user: portal_user,
-               salesforce_participant: sf_participant,
-               salesforce_program: sf_program)
-          .run
-
+        run_sync
         expect(lms_client).to have_received(:delete_enrollment).once
       end
 
@@ -144,13 +123,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
         new_section = CanvasAPI::LMSSection.new(97863)
         allow(lms_client).to receive(:find_enrollment).and_return(lms_enrollment)
         allow(lms_client).to receive(:find_section_by).and_return(new_section)
-
-        SyncPortalEnrollmentForAccount
-          .new(portal_user: portal_user,
-               salesforce_participant: sf_participant,
-               salesforce_program: sf_program)
-          .run
-
+        run_sync
         expect(lms_client).to have_received(:enroll_user_in_course).once
       end
 
@@ -159,11 +132,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
         allow(lms_client).to receive(:find_enrollment).and_return(lms_enrollment)
         allow(lms_client).to receive(:find_section_by).and_return(new_section)
 
-        SyncPortalEnrollmentForAccount
-          .new(portal_user: portal_user,
-               salesforce_participant: sf_participant,
-               salesforce_program: sf_program)
-          .run
+        run_sync
 
         # Note: the id was deleted from the overrides, their hashes modified in-place.
         expect(lms_client).to have_received(:create_assignment_overrides)
@@ -175,26 +144,14 @@ RSpec.describe SyncPortalEnrollmentForAccount do
       it 'de-enrols a user if role changes' do
         new_enrollment = CanvasAPI::LMSEnrollment.new(82738732, lms_enrollment.course_id, RoleConstants::TA_ENROLLMENT, lms_section.id)
         allow(lms_client).to receive(:find_enrollment).and_return(new_enrollment)
-
-        SyncPortalEnrollmentForAccount
-          .new(portal_user: portal_user,
-               salesforce_participant: sf_participant,
-               salesforce_program: sf_program)
-          .run
-
+        run_sync
         expect(lms_client).to have_received(:delete_enrollment).once
       end
 
       it 'reenrols the user if role changes' do
         new_enrollment = CanvasAPI::LMSEnrollment.new(928798237, lms_enrollment.course_id, RoleConstants::TA_ENROLLMENT, lms_section.id)
         allow(lms_client).to receive(:find_enrollment).and_return(new_enrollment)
-
-        SyncPortalEnrollmentForAccount
-          .new(portal_user: portal_user,
-               salesforce_participant: sf_participant,
-               salesforce_program: sf_program)
-          .run
-
+        run_sync
         expect(lms_client).to have_received(:enroll_user_in_course).once
       end
     end
@@ -207,13 +164,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 
       it 'it drops the user if user is enrolled' do
         allow(lms_client).to receive(:find_enrollment).and_return(lms_enrollment)
-
-        SyncPortalEnrollmentForAccount
-          .new(portal_user: portal_user,
-               salesforce_participant: sf_participant,
-               salesforce_program: sf_program)
-          .run
-
+        run_sync
         expect(lms_client).to have_received(:delete_enrollment).once
       end
     end
@@ -223,7 +174,8 @@ RSpec.describe SyncPortalEnrollmentForAccount do
     context "when canvas section already exists" do
       it "does not create a Canvas section" do
         SyncPortalEnrollmentForAccount
-          .new(portal_user: portal_user,
+          .new(user: user,
+               portal_user: portal_user,
                salesforce_participant: sf_participant,
                salesforce_program: sf_program)
           .send(:find_or_create_section, fellow_canvas_course_id, lms_section.name)
@@ -233,7 +185,8 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 
       it "returns a local section" do
         local_section = SyncPortalEnrollmentForAccount
-          .new(portal_user: portal_user,
+          .new(user: user,
+               portal_user: portal_user,
                salesforce_participant: sf_participant,
                salesforce_program: sf_program)
           .send(:find_or_create_section, fellow_canvas_course_id, lms_section.name)
@@ -257,7 +210,8 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 
         it "creates the Canvas section" do
           SyncPortalEnrollmentForAccount
-            .new(portal_user: portal_user,
+            .new(user: user,
+                 portal_user: portal_user,
                 salesforce_participant: sf_participant,
                 salesforce_program: sf_program)
             .send(:find_or_create_section, fellow_canvas_course_id, lms_section.name)
@@ -267,7 +221,8 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 
         it "does not do anything with overrides" do
           SyncPortalEnrollmentForAccount
-            .new(portal_user: portal_user,
+            .new(user: user,
+                 portal_user: portal_user,
                 salesforce_participant: sf_participant,
                 salesforce_program: sf_program)
             .send(:find_or_create_section, fellow_canvas_course_id, lms_section.name)
@@ -279,7 +234,8 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 
         it "returns a local section" do
           local_section = SyncPortalEnrollmentForAccount
-            .new(portal_user: portal_user,
+            .new(user: user,
+                portal_user: portal_user,
                 salesforce_participant: sf_participant,
                 salesforce_program: sf_program)
             .send(:find_or_create_section, fellow_canvas_course_id, lms_section.name)
@@ -302,7 +258,8 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 
         it "creates the Canvas section" do
           SyncPortalEnrollmentForAccount
-            .new(portal_user: portal_user,
+            .new(user: user,
+                 portal_user: portal_user,
                 salesforce_participant: sf_participant,
                 salesforce_program: sf_program)
             .send(:find_or_create_section, fellow_canvas_course_id, lms_cohort_section.name)
@@ -312,7 +269,8 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 
         it "copies assignment overrides" do
           SyncPortalEnrollmentForAccount
-            .new(portal_user: portal_user,
+            .new(user: user,
+                portal_user: portal_user,
                 salesforce_participant: sf_participant,
                 salesforce_program: sf_program)
             .send(:find_or_create_section, fellow_canvas_course_id, lms_cohort_section.name)
@@ -324,7 +282,8 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 
         it "returns a local section" do
           local_section = SyncPortalEnrollmentForAccount
-            .new(portal_user: portal_user,
+            .new(user: user,
+                portal_user: portal_user,
                 salesforce_participant: sf_participant,
                 salesforce_program: sf_program)
             .send(:find_or_create_section, fellow_canvas_course_id, lms_cohort_section.name)

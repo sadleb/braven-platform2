@@ -8,7 +8,7 @@ class RegisterUserAccount
 
   def initialize(sign_up_params)
     # We want Salesforce to be the source of truth, especially for their email, to avoid
-    # duplicating user accounts. When they register their user account, we just 
+    # duplicating user accounts. When they register their user account, we just
     # collect their salesforce ID and password and look up the rest of the info
     # they gave us when they signed up / applied.
     @salesforce_participant = sf_client.find_participant(contact_id: sign_up_params[:salesforce_id])
@@ -81,7 +81,8 @@ private
   def sync_canvas_enrollment!
     # TODO: rename Portal to Canvas everywhere.
     SyncPortalEnrollmentForAccount
-      .new(portal_user: CanvasAPI::LMSUser.new(@new_user.canvas_user_id),
+      .new(user: @new_user,
+           portal_user: CanvasAPI::LMSUser.new(@new_user.canvas_user_id),
            salesforce_participant: @salesforce_participant,
            salesforce_program: @salesforce_program)
       .run

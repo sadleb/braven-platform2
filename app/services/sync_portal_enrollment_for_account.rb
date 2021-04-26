@@ -5,11 +5,11 @@
 # enrollment when things change.
 class SyncPortalEnrollmentForAccount
 
-  def initialize(portal_user:, salesforce_participant:, salesforce_program:)
+  def initialize(user:, portal_user:, salesforce_participant:, salesforce_program:)
     @portal_user = portal_user
     @sf_participant = salesforce_participant
     @sf_program = salesforce_program
-    @user = User.find_by!(salesforce_id: sf_participant.contact_id)
+    @user = user
   end
 
   # Syncs the Canvas enrollments for the given user in the given course, by unenrolling
@@ -63,7 +63,7 @@ class SyncPortalEnrollmentForAccount
     end
   end
 
-  # If the CohortName isn't set, get their LL day/time schedule and use a placeholder section 
+  # If the CohortName isn't set, get their LL day/time schedule and use a placeholder section
   # that we setup before they are mapped to their real cohort in the 2nd or 3rd week.
   # This function controlls a lot of the behavior in this service!
   def course_section_name

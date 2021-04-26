@@ -43,6 +43,7 @@ class SyncPortalEnrollmentsForProgram
             salesforce_contact_id: participant.contact_id,
             student_id: participant.student_id
           )
+
           if portal_user.nil?
             # Shared field with sync_portal_enrollment_for_account, hence the more generic name.
             span.add_field('app.sync_portal_enrollment.skip_reason', 'No Canvas user')
@@ -57,7 +58,7 @@ class SyncPortalEnrollmentsForProgram
           # https://app.asana.com/0/1174274412967132/1200197329627692
           reconcile_email!(portal_user, participant) if email_inconsistent?(portal_user, participant)
 
-          sync_portal_enrollment!(portal_user, participant)
+          sync_portal_enrollment!(user, portal_user, participant)
 
           span.add_field('app.sync_portal_enrollments_for_program.sync_participant_complete', true)
         end
@@ -93,9 +94,10 @@ class SyncPortalEnrollmentsForProgram
                       .run
   end
 
-  def sync_portal_enrollment!(portal_user, participant)
+  def sync_portal_enrollment!(user, portal_user, participant)
     SyncPortalEnrollmentForAccount
-      .new(portal_user: portal_user,
+      .new(user: user,
+           portal_user: portal_user,
            salesforce_participant: participant,
            salesforce_program: sf_program)
       .run

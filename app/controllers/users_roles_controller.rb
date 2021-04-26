@@ -12,7 +12,7 @@
 # for these users. You have to go through the real flow and have users connected
 # to a Salesforce Program for those features to work.
 #
-# Notes: 
+# Notes:
 #  - the normal path for UsersRoles management is through Salesforce where
 #    folks are provisioned in Canvas when they are sent an account creation link
 #    and then later have their enrollments adjusted through a nightly Sync To LMS
@@ -74,7 +74,8 @@ class UsersRolesController < ApplicationController
     end
 
     SyncPortalEnrollmentForAccount
-      .new(portal_user: portal_user,
+      .new(user: @user,
+           portal_user: portal_user,
            salesforce_participant: sf_participant,
            salesforce_program: sf_program)
       .run
@@ -111,7 +112,8 @@ class UsersRolesController < ApplicationController
     sf_program = Mocks::SalesforceProgram.new(canvas_course_id, canvas_course_id)
 
     SyncPortalEnrollmentForAccount
-      .new(portal_user: portal_user,
+      .new(user: @user,
+           portal_user: portal_user,
            salesforce_participant: sf_participant,
            salesforce_program: sf_program)
       .run
@@ -121,7 +123,7 @@ class UsersRolesController < ApplicationController
 
 private
 
-  # The SyncPortalEnrollmentForAccount service uses a subset of fields from the 
+  # The SyncPortalEnrollmentForAccount service uses a subset of fields from the
   # Salesforce and Canvas API objects. It's a little hacky, but we're going to mimic
   # a Sync To LMS by just directly calling the service with mock's for the data as
   # though it came from Salesforce/Canvas.
@@ -142,7 +144,7 @@ private
       def role
         case platform_role
         when RoleConstants::STUDENT_ENROLLMENT
-          SalesforceAPI::FELLOW 
+          SalesforceAPI::FELLOW
         when RoleConstants::TA_ENROLLMENT
           SalesforceAPI::LEADERSHIP_COACH
         else
