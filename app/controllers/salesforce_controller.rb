@@ -34,7 +34,7 @@ class SalesforceController < ApplicationController
     end
 
     SyncFromSalesforceProgramJob.perform_later(params[:program_id].strip, params[:email].strip, should_send_sign_up_emails)
-    redirect_to root_path, notice: 'The sync process was started. Watch out for an email'
+    redirect_to salesforce_sync_from_salesforce_program_path, notice: 'The sync process was started. Watch out for an email'
   end
 
   # Sync's Contact information from Salesforce to both Platform and Canvas.

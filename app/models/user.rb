@@ -105,6 +105,10 @@ class User < ApplicationRecord
     admin? or has_role? RoleConstants::CAN_SYNC_FROM_SALESFORCE
   end
 
+  def can_send_new_sign_up_email?
+    admin? or has_role? RoleConstants::CAN_SEND_NEW_SIGN_UP_EMAIL
+  end
+
   # The email address currently setup in Canvas as the login email.
   # They may not actually be able to log in b/c they haven't reconfirmed
   # their email after a change, but this is the email they are setup to use.
@@ -118,7 +122,9 @@ class User < ApplicationRecord
    # sign-up link. It's generic and meant to be sent to any user, Fellow or LC.
   def send_sign_up_email!
 
-    # TODO: use token instead of SF ID.
+    # TODO: use token instead of SF ID. Note that we should raise an error here if the token
+    # has not been generated and stored in SF. It means Sync From Salesforce hasn't run
+    # or the user was created from the Admin dash and there is a bug where it doesn't generate the token.
     # https://app.asana.com/0/1174274412967132/1200147504835146/f
     # Make sure you update the link in app/controllers/users/passwords_controller.rb too
     sign_up_url = new_user_registration_url(u: salesforce_id, protocol: 'https')

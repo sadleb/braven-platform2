@@ -1,0 +1,26 @@
+<% content_for :headline do %>
+  Send New Account Creation sign-up email
+<% end %>
+
+<div class="col">
+
+  <div class="row">
+    <div class="col-md-6">
+      <p>Click the button below to send a new email to</p>
+      <p class="pl-3"><a href="mailto:<%= @user.email %>" target="_blank"><%= @user.email %></a></p>
+      <p>asking them to create their account and log in to Canvas. See email content below.</p>
+
+      <%= form_for(@user, url: send_new_sign_up_email_user_path(@user), html: { method: :post }, local: true) do |f| %>
+        <div class="actions">
+          <%= f.submit "Send New Sign Up Email Now" %>
+      <% end %>
+
+      <p><small><em>Note</em> that the original "Welcome" email with instructions to sign-up and create your Canvas account comes from Campaign Monitor. This button is for when they can't find the "Welcome" email (or deleted it) and need to create their account for Canvas access. It is generic enough to work for both Fellows and LCs but is missing the launch logistics context from the Welcome email.</small></p>
+      <hr>
+    </div>
+  </div>
+
+
+  <%= render partial: 'salesforce/sample_email' %>
+
+</div>

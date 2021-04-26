@@ -7,6 +7,7 @@ class RoleConstants
   ADMIN = :admin
   CAN_TAKE_ATTENDANCE_FOR_ALL = :CanTakeAttendanceForAll
   CAN_SYNC_FROM_SALESFORCE = :CanSyncFromSalesforce
+  CAN_SEND_NEW_SIGN_UP_EMAIL = :CanSendNewSignUpEmail
 
   # Local roles.
   TA_ENROLLMENT = :TaEnrollment

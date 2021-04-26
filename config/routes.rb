@@ -183,6 +183,8 @@ Rails.application.routes.draw do
   resources :users do
     member do
       post 'confirm' => 'users#confirm'
+      get 'send_new_sign_up_email' => 'users#show_send_sign_up_email'
+      post 'send_new_sign_up_email' => 'users#send_sign_up_email'
     end
 
     resources :users_roles, only: [:new, :create, :destroy]
