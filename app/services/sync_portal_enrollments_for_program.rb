@@ -8,9 +8,10 @@ class SyncPortalEnrollmentsForProgram
 
   FailedParticipantInfo = Struct.new(:salesforce_id, :email, :first_name, :last_name, :error_detail, keyword_init: true)
 
-  def initialize(salesforce_program_id:)
+  def initialize(salesforce_program_id:, send_sign_up_emails: false)
     @sf_program_id = salesforce_program_id
     @sf_program = nil
+    @send_sign_up_emails = send_sign_up_emails
     @failed_participants = []
   end
 
@@ -25,6 +26,12 @@ class SyncPortalEnrollmentsForProgram
           span.add_field('app.salesforce.contact.id', participant.contact_id)
           span.add_field('app.salesforce.student.id', participant.student_id)
 
+          # TODO: if we mark a user Enrolled, but then Dropped before "Sync From Salesforce" runs,
+          # this code will create a Platform User and email them a sign-up link. It should only do
+          # that if they are Enrolled. Note that if they were enrolled and have a Platform and Canvas account,
+          # we still need to run the sync to drop them from Canvas.
+          # https://app.asana.com/0/1174274412967132/1200239858551410
+
           # Create local users here before calling SyncPortalEnrollmentForAccount.
           user = find_or_create_user!(participant)
           span.add_field('app.user.id', user.id)
@@ -37,7 +44,7 @@ class SyncPortalEnrollmentsForProgram
             student_id: participant.student_id
           )
           if portal_user.nil?
-            # Shared field with sync_portal_enrollment_for_account, hence the more generic name. 
+            # Shared field with sync_portal_enrollment_for_account, hence the more generic name.
             span.add_field('app.sync_portal_enrollment.skip_reason', 'No Canvas user')
             Rails.logger.debug("no portal account yet for '#{participant.email}'; skipping")
             next
@@ -104,9 +111,24 @@ class SyncPortalEnrollmentsForProgram
         salesforce_contact_params(sf_participant)
           .merge({salesforce_id: sf_participant.contact_id})
       )
+
       # Don't send confirmation email yet; we do that at sign_up time instead.
+      #
+      # Note that there are 4 scenarios where the user gets this email to confirm
+      # and activate their account:
+      # 1) After they get a sign_up link, create their password, and register their account
+      # 2) After they use the password reset link with an account that has never been registered,
+      #    and are sent to create their account instead
+      # 3) After manually requesting a new confirmation email when trying to log in with
+      #    valid credentials for an unconfirmed account.
+      # 4) After a staff member changes their login email (from Salesforce)
       user.skip_confirmation_notification!
       user.save!
+
+      if @send_sign_up_emails
+        user.send_sign_up_email!
+        Honeycomb.add_field('sync_portal_enrollments_for_program.sign_up_email_sent', true)
+      end
     end
 
     user

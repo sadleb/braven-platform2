@@ -2,6 +2,41 @@
  Sync From Salesforce
 <% end %>
 
-<div class="col-md-4">
-  <%= render 'sync_from_salesforce_program_form' %>
+<div class="col">
+
+  <div class="row">
+    <div class="col-md-4">
+      <%= form_with(url: salesforce_sync_from_salesforce_program_path, method: "post", local: true) do |f| %>
+        <div class="form-group">
+          <%= f.label :program_id, "Program ID:" %>
+          <%= f.text_field :program_id, value: params[:program_id], autofocus: true, class: "form-control", required: true, placeholder: "a34scx992...", autocomplete: "salesforce-program-id" %>
+        </div>
+
+        <div class="form-group">
+          <%= f.label :email, "Email to notify when sync completes:" %>
+          <%= f.email_field :email, value: params[:email], class: "form-control", required: true, placeholder: "you@example.com", autocomplete: "email" %>
+        </div>
+
+        <div class="form-check">
+          <%= f.check_box :send_sign_up_emails, { class: "form-check-input" }, "true", "false" %>
+          <%= f.label :send_sign_up_emails, "Send email invitations to Participants to sign-up and create an account?", class: "form-check-label" %>
+        </div>
+
+        <%= f.hidden_field :not_confirmed, value: true %>
+
+        <br>
+
+        <div class="actions">
+          <%= f.submit "Start Sync From Salesforce Process" %>
+        </div>
+      <% end %>
+
+      <p><small><em>Note:</em> if you check off "Send email invitations..." you will see a list of folks who would receive emails on the next page before starting the sync process.</small></p>
+    </div>
+  </div>
+
+  <hr>
+
+  <%= render partial: 'sample_email' %>
+
 </div>

@@ -4,6 +4,7 @@ require 'canvas_api'
 class User < ApplicationRecord
   rolify
   include Devise::Models::DatabaseAuthenticatable
+  include Rails.application.routes.url_helpers
 
   # We're making the user model cas_authenticable, meaning that you need to go through the SSO CAS
   # server configured in config/initializers/devise.rb. However, "that" SSO server is "this" server
@@ -109,6 +110,21 @@ class User < ApplicationRecord
   # their email after a change, but this is the email they are setup to use.
   def canvas_login_email
     unconfirmed_email || email
+  end
+
+   # Normally, users get an email with a sign_up link as part of the "Welcome"
+   # email generated from Campaign Monitor a week or two before program launch.
+   # This email is for folks who missed (or lost) that and need their account creation
+   # sign-up link. It's generic and meant to be sent to any user, Fellow or LC.
+  def send_sign_up_email!
+
+    # TODO: use token instead of SF ID.
+    # https://app.asana.com/0/1174274412967132/1200147504835146/f
+    # Make sure you update the link in app/controllers/users/passwords_controller.rb too
+    sign_up_url = new_user_registration_url(u: salesforce_id, protocol: 'https')
+
+    SendSignUpEmailMailer.with(first_name: first_name, sign_up_url: sign_up_url)
+      .sign_up_email.deliver_now
   end
 
   def self.search(query)

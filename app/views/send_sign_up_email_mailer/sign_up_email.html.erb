@@ -1,0 +1,187 @@
+<%#
+This email is sent when folks are Fully Confirmed late, after the "Welcome"
+email blast from Campaign Monitor a week or two before launch. It contains
+the sign-up link so they can create their account and log in to Canvas.
+It applies to both LCs and Fellows, so it must be generic.
+%>
+
+<!doctype html>
+<html lang="en">
+<!-- Template adapted from here: https://github.com/leemunroe/responsive-html-email-template/blob/master/email.html -->
+  <head>
+    <meta name="viewport" content="width=device-width">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Reset Password Instructions</title>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans+Condensed:wght@700&display=swap" rel="stylesheet">
+    <style>
+@media only screen and (max-width: 620px) {
+  table[class=body] h1 {
+    font-size: 28px !important;
+    margin-bottom: 10px !important;
+  }
+
+  table[class=body] p,
+table[class=body] ul,
+table[class=body] ol,
+table[class=body] td,
+table[class=body] span,
+table[class=body] a {
+    font-size: 16px !important;
+  }
+
+  table[class=body] .wrapper,
+table[class=body] .article {
+    padding: 10px !important;
+  }
+
+  table[class=body] .content {
+    padding: 0 !important;
+  }
+
+  table[class=body] .container {
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  table[class=body] .main {
+    border-left-width: 0 !important;
+    border-radius: 0 !important;
+    border-right-width: 0 !important;
+  }
+
+  table[class=body] .btn table {
+    width: 100% !important;
+  }
+
+  table[class=body] .btn a {
+    width: 100% !important;
+  }
+
+  table[class=body] .img-responsive {
+    height: auto !important;
+    max-width: 100% !important;
+    width: auto !important;
+  }
+}
+@media all {
+  .ExternalClass {
+    width: 100%;
+  }
+
+  .ExternalClass,
+.ExternalClass p,
+.ExternalClass span,
+.ExternalClass font,
+.ExternalClass td,
+.ExternalClass div {
+    line-height: 100%;
+  }
+
+  .apple-link a {
+    color: inherit !important;
+    font-family: inherit !important;
+    font-size: inherit !important;
+    font-weight: inherit !important;
+    line-height: inherit !important;
+    text-decoration: none !important;
+  }
+
+  #MessageViewBody a {
+    color: inherit;
+    text-decoration: none;
+    font-size: inherit;
+    font-family: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+  }
+
+  .btn-primary table td:hover {
+    background-color: #000 !important;
+  }
+
+  .btn-primary a:hover {
+    background-color: #000 !important;
+    border-color: #000 !important;
+  }
+}
+</style>
+  </head>
+  <body class="" style="background-color: #f6f6f6; font-family: georgia,serif; -webkit-font-smoothing: antialiased; font-size: 16px; line-height: 1.4; margin: 0; padding: 0; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;">
+    <!-- Some clients will show this text as a preview. -->
+    <span class="preheader" style="color: transparent; display: none; height: 0; max-height: 0; max-width: 0; opacity: 0; overflow: hidden; mso-hide: all; visibility: hidden; width: 0;">Create your Braven Canvas account. Details below.</span>
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="body" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #fff; width: 100%;" width="100%" bgcolor="#fff">
+      <tr>
+        <td style="font-family: georgia,serif; font-size: 16px; vertical-align: top;" valign="top">&nbsp;</td>
+        <td class="container" style="font-family: georgia,serif; font-size: 16px; vertical-align: top; display: block; max-width: 620px; padding: 10px; width: 620px;" width="620" valign="top">
+          <div class="content" style="box-sizing: border-box; display: block; margin: 0 auto; max-width: 620px; padding: 10px;">
+
+            <!-- START CENTERED WHITE CONTAINER -->
+            <table role="presentation" class="main" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; background: #ffffff; border-radius: 3px; width: 100%;" width="100%">
+
+              <!-- START MAIN CONTENT AREA -->
+              <tr>
+                <td class="wrapper" style="font-family: georgia,serif; font-size: 16px; vertical-align: top; box-sizing: border-box; padding: 10px;" valign="top">
+                  <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;" width="100%">
+                    <tr>
+                      <td style="font-family: georgia,serif; font-size: 16px; vertical-align: top;" valign="top">
+                        <p style="color: #000000; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0; margin-bottom: 15px;">Hi <%= @first_name %>,</p>
+                        <p style="color: #000000; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0; margin-bottom: 20px;">We’re so excited for you to participate in Braven! In order to access the program you must create a Braven Canvas account.</p>
+                        <p style="color: #000000; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0; margin-bottom: 20px;">Please <strong>click the button</strong> below to create your account.</p>
+                        <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="btn btn-primary" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; box-sizing: border-box; width: 100%;" width="100%">
+                          <tbody>
+                            <tr>
+                              <td align="left" style="font-family: georgia,serif; font-size: 16px; vertical-align: top; padding-bottom: 15px;" valign="top">
+                                <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: auto;">
+                                  <tbody>
+                                    <tr>
+                                      <td style="font-family: georgia,serif; font-size: 16px; vertical-align: top; border-radius: 5px; text-align: center; background-color: #DB2B36;" valign="top" align="center" bgcolor="#DB2B36"> <%= link_to 'Create Account', @sign_up_url, style: "border: solid 1px #DB2B36; border-radius: 5px; box-sizing: border-box; cursor: pointer; display: inline-block; font-family: 'Open Sans Condensed', sans-serif; font-size: 18px; font-weight: normal; letter-spacing: 1px; line-height: 1.333em; margin: 0; padding: 10px 25px; text-decoration: none; text-shadow: none; text-transform: uppercase; background-color: #DB2B36; border-color: #DB2B36; color: #ffffff;" %> </td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                        <br>
+                        <ul style="color: #000000; font-family: georgia,serif; font-size: 16px; font-weight: normal; padding-left: 20px; margin: 0; margin-bottom: 20px;">
+                          <li style="color: #000000; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0; margin-bottom: 10px;">You will then receive an email to verify your new account. If you do not receive it, please click the “resend instructions” button.</li>
+                          <li style="color: #000000; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0; margin-bottom: 10px;">If you have any issues creating your account or logging in, please reach out to <a href="mailto:support@bebraven.org" style="color: #2E6D99; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0;">support@bebraven.org</a>.</li>
+                          <li style="color: #000000; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0; margin-bottom: 10px;">You will then access the account by going to this link in the future: <a href="https://braven.instructure.com" style="color: #2E6D99; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0;">https://braven.instructure.com</a></li>
+                        </ul>
+                        <p style="color: #000000; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0; margin-bottom: 5px;">Best,</p>
+                        <p style="color: #000000; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0; margin-bottom: 15px;">- The Braven Team</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+            <!-- END MAIN CONTENT AREA -->
+            </table>
+            <!-- END CENTERED WHITE CONTAINER -->
+
+            <!-- START FOOTER -->
+            <div class="footer" style="clear: both; padding: 10px; text-align: left; width: 100%;">
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;" width="100%">
+                <tr>
+                  <td class="content-block" style="font-family: georgia,serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #999999; font-size: 12px; text-align: left;" valign="top" align="left">
+                    <span class="apple-link" style="color: #999999; font-size: 12px; text-align: left;">Braven<br>100 N. LaSalle Street, Suite 310<br>Chicago IL, 60602<br>
+                    <a href="https://bebraven.org" target="_blank" style="text-decoration: underline; color: #999999; font-size: 12px; text-align: left;">www.bebraven.org </a></span>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="content-block" style="font-family: georgia,serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #999999; font-size: 12px; text-align: left;" valign="top" align="left">
+                    This wasn't you? <a href="mailto:support@bebraven.org" style="text-decoration: underline; color: #999999; font-size: 12px; text-align: left;">Let us know</a>.
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <!-- END FOOTER -->
+
+          </div>
+        </td>
+        <td style="font-family: georgia,serif; font-size: 16px; vertical-align: top;" valign="top">&nbsp;</td>
+      </tr>
+    </table>
+  </body>
+</html>

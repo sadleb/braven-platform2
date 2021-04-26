@@ -29,6 +29,7 @@ class Users::PasswordsController < Devise::PasswordsController
       # password, create their Canvas account, etc instead.
       # TODO: Redirect by a token instead of SF ID.
       # https://app.asana.com/0/1174274412967132/1200147504835146/f
+      # Make sure you update the link in User.send_sign_up_email! as well.
       return redirect_to new_user_registration_path(u: user.salesforce_id)
     else
       super

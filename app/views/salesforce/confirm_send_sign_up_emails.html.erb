@@ -1,0 +1,53 @@
+<% content_for(:headline) do %>
+ Confirm sign-up emails
+<% end %>
+
+<div class="col">
+
+  <div class="row">
+    <div class="col-md-8">
+      <% if @new_participants.present? %>
+
+        <p>These users will receive emails asking them to sign-up and create their Canvas account. If this list looks correct, click the button below to start the sync process for all Participants.</p>
+
+        <div class="table-responsive">
+          <table class="table table-sm table-striped">
+            <thead>
+              <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Email</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <% @new_participants.each do |p| %>
+                <tr>
+                  <th scope="row"><%= "#{p.first_name} #{p.last_name}" %></th>
+                  <td><%= p.email %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+
+      <% else %>
+        <p>No users will receive sign-up emails. All "Fully Confirmed" Participants have already been synced.</p>
+        <p>Go ahead and click the button below to start the sync process.</p>
+      <% end %>
+
+      <%= form_with(url: salesforce_sync_from_salesforce_program_path, method: "post", local: true) do |f| %>
+        <%= f.hidden_field :send_sign_up_emails, value: true %>
+        <%= f.hidden_field :program_id, value: params[:program_id]%>
+        <%= f.hidden_field :email, value: params[:email]%>
+        <div class="actions">
+          <%= f.submit "Start Sync From Salesforce Process" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <%= render partial: 'sample_email' if @new_participants.present? %>
+
+</div>
+
+

@@ -15,12 +15,25 @@ class SalesforceController < ApplicationController
     authorize :SalesforceAuthorization
   end
 
+  # Shows a list of participants that will get email notifications with instructions
+  # for how to sign-up and create their Canvas account. Allows the staff member to
+  # confirm the list before kicking off the actual sync
+  def confirm_send_sign_up_emails
+    authorize :SalesforceAuthorization
+    @new_participants = get_participants_never_synced_before()
+  end
+
   def sync_from_salesforce_program
     authorize :SalesforceAuthorization
 
-    program_id = params[:program_id]
-    email = params[:email]
-    SyncFromSalesforceProgramJob.perform_later(program_id, email)
+    should_send_sign_up_emails = ActiveModel::Type::Boolean.new.cast(params[:send_sign_up_emails])
+
+    if should_send_sign_up_emails && params[:not_confirmed]
+      redirect_to salesforce_confirm_send_sign_up_emails_path(program_id: params[:program_id].strip, email: params[:email].strip)
+      return
+    end
+
+    SyncFromSalesforceProgramJob.perform_later(params[:program_id].strip, params[:email].strip, should_send_sign_up_emails)
     redirect_to root_path, notice: 'The sync process was started. Watch out for an email'
   end
 
@@ -136,6 +149,11 @@ private
     Rails.logger.error("ERROR: Changing email from #{@old_email} to #{@new_email} failed.")
     yield(true)
     raise
+  end
+
+  def get_participants_never_synced_before
+    participants = SalesforceAPI.client.find_participants_by(program_id: params[:program_id])
+    participants.select { |p| p.status == 'Enrolled' && User.find_by(salesforce_id: p.contact_id).nil? }.compact
   end
 
 end
