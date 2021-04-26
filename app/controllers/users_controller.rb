@@ -3,7 +3,7 @@ class UsersController < ApplicationController
   layout 'admin'
 
   # Note that DryCrud takes care of the standard actions
-  before_action :find_user, only: %i[confirm show_send_sign_up_email send_sign_up_email]
+  before_action :find_user, only: %i[confirm register show_send_sign_up_email send_sign_up_email]
 
   def index
     authorize User
@@ -78,6 +78,16 @@ class UsersController < ApplicationController
     end
   end
 
+  def register
+    authorize @user
+
+    if @user.registered_at.present?
+      redirect_to user_path(@user), notice: 'User already registered'
+    else
+      @user.update!(registered_at: DateTime.now)
+      redirect_to user_path(@user), notice: 'User has been registered'
+    end
+  end
   def show_send_sign_up_email
     authorize @user
   end

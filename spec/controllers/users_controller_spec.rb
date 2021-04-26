@@ -104,10 +104,22 @@ RSpec.describe UsersController, type: :controller do
     describe "POST #confirm" do
       let(:user_attributes) { attributes_for(:fellow_user) }
       it "sets the user confirmation time" do
-        user_attributes.delete('confirmed_at')
         post :create, params: { user: user_attributes }
-        post :confirm, params: { id: User.last.id }
-        expect(User.last.confirmed_at).not_to be(nil)
+        user = User.last
+        user.update!(confirmed_at: nil)
+        post :confirm, params: { id: user.id }
+        expect(User.find(user.id).confirmed_at).not_to eq(nil)
+      end
+    end
+
+    describe "POST #register" do
+      let(:user_attributes) { attributes_for(:fellow_user) }
+      it "sets the user registered_at time" do
+        post :create, params: { user: user_attributes }
+        user = User.last
+        user.update!(registered_at: nil)
+        post :register, params: { id: user.id }
+        expect(User.find(user.id).registered_at).not_to eq(nil)
       end
     end
 

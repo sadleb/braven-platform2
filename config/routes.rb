@@ -183,6 +183,7 @@ Rails.application.routes.draw do
   resources :users do
     member do
       post 'confirm' => 'users#confirm'
+      post 'register' => 'users#register'
       get 'send_new_sign_up_email' => 'users#show_send_sign_up_email'
       post 'send_new_sign_up_email' => 'users#send_sign_up_email'
     end
