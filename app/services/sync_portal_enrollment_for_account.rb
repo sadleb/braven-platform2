@@ -3,6 +3,7 @@
 # A helper service to perform the logic that takes folks who are confirmed as participants in the
 # program in Salesforce and creates their Canvas accounts. Also, moves/drops/completes their
 # enrollment when things change.
+# TODO: rename to SyncFromSalesforceParticipant
 class SyncPortalEnrollmentForAccount
 
   def initialize(user:, portal_user:, salesforce_participant:, salesforce_program:)
@@ -17,11 +18,13 @@ class SyncPortalEnrollmentForAccount
   #
   # Note: canvas_role = [:StudentEnrollment, :TaEnrollment, :DesignerEnrollment, :TeacherEnrollment]
   def run
-    Honeycomb.add_field('user.email', @user.email)
     Honeycomb.add_field('salesforce.contact.id', @user.salesforce_id)
     Honeycomb.add_field('salesforce.participant.status', @sf_participant.status)
 
     logger.info("Started sync enrollment for #{sf_participant.email}")
+
+    sync_contact_info!(user, portal_user, sf_participant)
+
     case sf_participant.status
     when SalesforceAPI::ENROLLED
       add_enrollment!
@@ -208,6 +211,37 @@ class SyncPortalEnrollmentForAccount
       canvas_section_id: canvas_section.id
     )
   end
+
+  # Sync's information unique to a Salesforce Contact record to Platform and Canvas.
+  # This is mainly just the email.
+  #
+  # Note: We already support changing an email in Salesforce and having that trigger an
+  # immediate sync of the contact info, but that could fail. Also, a manual change in
+  # Platform or Canvas could make things out of sync.
+  def sync_contact_info!(user, canvas_user, salesforce_participant)
+    if email_inconsistent?(user.email, canvas_user.email, salesforce_participant.email)
+      SyncFromSalesforceContact.new(
+        @user,
+        SalesforceAPI::SFContact.new(
+           salesforce_participant.contact_id,
+           salesforce_participant.email,
+           salesforce_participant.first_name,
+           salesforce_participant.last_name)
+      ).run!
+    end
+  end
+
+  def email_inconsistent?(user_email, canvas_email, salesforce_email)
+    Honeycomb.add_field('user.email', user_email)
+    Honeycomb.add_field('canvas.user.email', canvas_email)
+    Honeycomb.add_field('salesforce.contact.email', salesforce_email)
+    emails_inconsistent = (salesforce_email.downcase != user_email.downcase || salesforce_email.downcase != canvas_email.downcase)
+    if emails_inconsistent
+      Honeycomb.add_field('sync_portal_enrollment_for_account.email_inconsistent', true)
+    end
+    emails_inconsistent
+  end
+
 
   # Returns Canvas section.
   def find_canvas_course_section(canvas_course_id, section_name)

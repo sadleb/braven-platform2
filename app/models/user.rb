@@ -109,10 +109,10 @@ class User < ApplicationRecord
     admin? or has_role? RoleConstants::CAN_SEND_NEW_SIGN_UP_EMAIL
   end
 
-  # The email address currently setup in Canvas as the login email.
-  # They may not actually be able to log in b/c they haven't reconfirmed
-  # their email after a change, but this is the email they are setup to use.
-  def canvas_login_email
+  # The email address to log in with after the confirmation link is clicked.
+  # For the initial account setup, this is just the email. But if the email is
+  # changed, it becomes the unconfirmed_email until they reconfirm
+  def after_confirmation_login_email
     unconfirmed_email || email
   end
 

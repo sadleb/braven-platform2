@@ -49,7 +49,7 @@ class UsersRolesController < ApplicationController
 
     # Mock the info that would be sent by Salesforce and run the normal Sync To LMS
     # and Account Creation logic with it.
-    portal_user = Mocks::CanvasUser.new(@user.canvas_user_id)
+    portal_user = Mocks::CanvasUser.new(@user.canvas_user_id, @user.email)
 
     sf_participant = Mocks::SalesforceParticipant.new(
       @user.email,
@@ -91,7 +91,7 @@ class UsersRolesController < ApplicationController
     @role = Role.find(params[:id])
     authorize @role, policy_class: UsersRolePolicy
 
-    portal_user = Mocks::CanvasUser.new(@user.canvas_user_id)
+    portal_user = Mocks::CanvasUser.new(@user.canvas_user_id, @user.email)
     sf_participant = Mocks::SalesforceParticipant.new(
       @user.email,
       @role.name.to_sym,
@@ -129,7 +129,7 @@ private
   # though it came from Salesforce/Canvas.
   class Mocks
 
-    CanvasUser = Struct.new(:id)
+    CanvasUser = Struct.new(:id, :email)
 
     SalesforceParticipant = Struct.new(
       :email,

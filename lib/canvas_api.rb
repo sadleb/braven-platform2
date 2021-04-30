@@ -172,22 +172,23 @@ class CanvasAPI
     JSON.parse(response.body)
   end
 
+  # Assumes there is only one login per user.
+  #
+  # This is the login object we set up the Canvas user with. Admins could manually add more,
+  # but we don't support that so this could break if that happens.
+  def get_login(user_id)
+    logins = get_logins(user_id)
+    logins.first
+  end
+
+  # IMPORTANT: login emails are completely separate from the emails that are
+  # used to send Notifications. If you call this, you almost certainly want to
+  # fuss with their communication channels using the methods below.
   def update_login(login_id, new_email, account_id=DefaultAccountID)
     response = put("/accounts/#{account_id}/logins/#{login_id}", {
       'login[unique_id]': new_email,
     })
     JSON.parse(response.body)
-  end
-
-  # Assumes there is only one login per user.
-  # This is true unless an admin has manually added more.
-  #
-  # IMPORTANT: login emails are completely separate from the emails that are
-  # used to send Notifications. If you call this, you almost certainly want to
-  # fuss with their communication channels using the methods below.
-  def change_user_login_email(user_id, new_email, account_id=DefaultAccountID)
-    logins = get_logins(user_id)
-    update_login(logins.first['id'], new_email, account_id)
   end
 
   # https://canvas.instructure.com/doc/api/communication_channels.html
@@ -441,9 +442,9 @@ class CanvasAPI
       # TODO: a better way to do this will be to store rubric_ids on the course_custom_content_versions
       # join  model, but that's more work and we need to handle course clone, and this happens rarely (only when
       # designers are publishing new Projects/Survey), so this is a hack for now.
-      # Task to do this properly: 
-      # https://app.asana.com/0/1174274412967132/1198996949946468 
-      already_associated_rubrics = CanvasAPI.client.get_assignments(course_id).map do |ca| 
+      # Task to do this properly:
+      # https://app.asana.com/0/1174274412967132/1198996949946468
+      already_associated_rubrics = CanvasAPI.client.get_assignments(course_id).map do |ca|
         assoc_rubric = ca['rubric_settings']
         CanvasAPI::LMSRubric.new(assoc_rubric['id'], assoc_rubric['title']) if assoc_rubric
       end
