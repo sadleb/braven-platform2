@@ -56,6 +56,7 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
       Honeycomb.add_field('user.email', user.email)
       Honeycomb.add_field('error', user.errors.class.name)
       Honeycomb.add_field('error_detail', user.errors.full_messages)
+      Honeycomb.add_field('error_type', user.errors.first.type) # e.g. confirmation_period_expired
       redirect_to cas_login_path(
           service: CanvasAPI.client.canvas_url,
           notice: 'Your email is either already confirmed or that link was invalid. Please log in.'
@@ -67,7 +68,7 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
     # everything will be setup properly instead of waiting for the nightly sync or a
     # staff member to trigger it. Note: don't do a database transaction to handle the
     # rollback b/c this is a network call that can take time.
-    Honeycomb.add_field('alert.confirmations_controller.confirmation_failed', true)
+    Honeycomb.add_field('alert.confirmations_controller.canvas_api_error', true)
     Rails.logger.error(e.message)
     if user && rollback_params
       user.skip_reconfirmation!

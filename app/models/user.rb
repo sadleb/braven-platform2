@@ -6,19 +6,8 @@ class User < ApplicationRecord
   include Devise::Models::DatabaseAuthenticatable
   include Rails.application.routes.url_helpers
 
-  # We're making the user model cas_authenticable, meaning that you need to go through the SSO CAS
-  # server configured in config/initializers/devise.rb. However, "that" SSO server is "this" server
-  # and the users that it authenticates are created in this database using :database_authenticable
-  # functionality. This article was gold to help get this working:
-  # https://jeremysmith.co/posts/2014-01-24-devise-cas-using-devisecasauthenticatable-and-casino/
-  if ENV['BZ_AUTH_SERVER']
-    # See: config/initializers/devise.rb for what this is all about.
-    devise :cas_authenticatable, :rememberable
-  else
-    # TODO: trackable for more info on sign-in activity.
-    #devise :cas_authenticatable, :rememberable, :registerable, :confirmable, :validatable, :recoverable, :trackable
-    devise :cas_authenticatable, :rememberable, :registerable, :confirmable, :validatable, :recoverable
-  end
+  # Note: there is also a :trackable configuration if we want more info on sign-in activity.
+  devise :cas_authenticatable, :rememberable, :registerable, :confirmable, :validatable, :recoverable
 
   self.per_page = 100
 

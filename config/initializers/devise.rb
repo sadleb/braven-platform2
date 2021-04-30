@@ -9,7 +9,7 @@ Devise.setup do |config|
   # Devise will use the `secret_key_base` as its `secret_key`
   # by default. You can change it below and use your own secret key.
   # config.secret_key = Rails.application.secrets.devise_secret_key
-  
+
   # ==> Controller configuration
   # Configure the parent class to the devise controllers.
   # config.parent_controller = 'DeviseController'
@@ -26,7 +26,7 @@ Devise.setup do |config|
 
   # Configure the parent class responsible to send e-mails.
   config.parent_mailer = 'ActionMailer::Base'
-  
+
   # ==> CAS configuration
   config.cas_create_user = false
   config.cas_logout_url_param = "destination"
@@ -153,7 +153,13 @@ Devise.setup do |config|
   # their account can't be confirmed with the token any more.
   # Default is nil, meaning there is no restriction on how long a user can take
   # before confirming their account.
-  # config.confirm_within = 3.days
+  # For Braven, we're changing the default to 2.5 weeks with the justification that
+  # we send the initial "please sign-up and create your account" email up to 2 weeks
+  # prior to launch and there will be folks that don't fully take all the action needed
+  # to get into Canvas. We don't want expired links adding noise if the did it partially
+  # and are trying to get all the way in the day of launch
+  config.confirm_within = eval(ENV['DEVISE_CONFIRM_WITHIN']) if ENV['DEVISE_CONFIRM_WITHIN']
+  config.confirm_within ||= 2.5.weeks
 
   # If true, requires any email changes to be confirmed (exactly the same way as
   # initial account confirmation) to be applied. Requires additional unconfirmed_email
@@ -227,7 +233,7 @@ Devise.setup do |config|
   # Time interval you can reset your password with a reset password key.
   # Don't put a too small interval or your users won't have the time to
   # change their passwords.
-  config.reset_password_within = 24.hours
+  config.reset_password_within = 3.days
 
   # When set to false, does not sign a user in automatically after their password is
   # reset. Defaults to true, so a user is signed in automatically after a reset.
