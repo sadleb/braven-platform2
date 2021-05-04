@@ -133,7 +133,7 @@ class User < ApplicationRecord
 
     sign_up_url = new_user_registration_url(signup_token: signup_token, protocol: 'https')
 
-    SendSignUpEmailMailer.with(email: email, first_name: first_name, sign_up_url: sign_up_url)
+    SendSignupEmailMailer.with(email: email, first_name: first_name, sign_up_url: sign_up_url)
       .signup_email.deliver_now
   end
 

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class SendSignUpEmailMailer < ApplicationMailer
+class SendSignupEmailMailer < ApplicationMailer
 
   def signup_email
     @first_name = params[:first_name]
