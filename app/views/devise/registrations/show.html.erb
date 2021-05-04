@@ -10,11 +10,10 @@
 </div>
 <div class="row mt-5">
   <div class="col-md-6 offset-md-3" >
-    <%= form_for(resource, as: resource_name, url: confirmation_path(resource_name), html: { method: :post}) do |f| %>
-      <%= render "devise/shared/error_messages", resource: resource %>
+    <%= form_with(model: User, url: user_confirmation_path, html: { method: :post}) do |f| %>
 
       <div class="field">
-        <%= f.hidden_field :salesforce_id, value: params[:u] %>
+        <%= f.hidden_field :uuid, value: params[:uuid] %>
       </div>
 
       <div class="actions">

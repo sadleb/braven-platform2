@@ -4,7 +4,7 @@ FactoryBot.define do
 
   factory :salesforce_contact, class: Hash do
     skip_create # This isn't stored in the DB.
-    sequence(:Id) { |i| "00#{i}170000125IpSAAU"}
+    sequence(:Id) { |i| "003%07d25IpSAAU" % i }
     sequence(:FirstName) { |i| "FirstName#{i}" }
     sequence(:LastName) { |i| "RegionName#{i}" }
     sequence(:Email) { |i| "test#{i}@email.com" }

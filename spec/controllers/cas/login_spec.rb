@@ -84,66 +84,7 @@ RSpec.describe CasController, type: :routing do
       it 'redirects to registration page with confirmation instructions' do
         subject
         expect(current_url).to match(
-          /#{Regexp.escape("/users/registration?login_attempt=true&u=#{unconfirmed_user.salesforce_id}")}/
-        )
-        expect(status_code).to eq(200)
-        expect(page).to have_content("Didn't receive email instructions")
-        expect(find('h1').text).to eq('Please confirm your email address')
-      end
-    end
-  end
-
-  # These specs are for the situation where you try to go to the
-  # /users/sign_up?u=blah endpoint when you've already signed up.
-  # It redirects to login with the 'u' param, but the behavior is
-  # slightly different than the normal login where you have to type
-  # in your email.
-  describe 'GET /cas/login with "u" param' do
-    let(:password) { valid_user.password }
-
-    subject do
-      visit "/cas/login?u=#{valid_user.salesforce_id}&notice=Looks+like+you+have+already+signed+up"
-    end
-
-    it 'shows the message about having already signed up' do
-      subject
-      expect(page).to have_content('Looks like you have already signed up')
-    end
-
-    it 'only shows the password field' do
-      subject
-      expect(page).to have_css('input[type=password][autofocus]')
-      expect(page).not_to have_css('input[type=text]')
-      expect(page).not_to have_css('input[type=email]')
-    end
-
-    it 'has the hidden "u" field' do
-      subject
-      expect(find('input[type=hidden]#u', :visible => false).value).to eq(valid_user.salesforce_id)
-    end
-  end
-
-  describe 'POST /cas/login with "u" param' do
-    let(:password) { valid_user.password }
-
-    subject do
-      visit "/cas/login?u=#{valid_user.salesforce_id}&notice=Looks+like+you+have+already+signed+up"
-      fill_and_submit_password(password)
-    end
-
-    it 'logs you in with just a password' do
-      subject
-      expect(page).to have_content('You have successfully logged in')
-    end
-
-    context "when user hasn't confirmed their email" do
-      let!(:unconfirmed_user) { create(:unconfirmed_user) }
-      let(:valid_user) { unconfirmed_user }
-
-      it 'redirects to registration page with confirmation instructions' do
-        subject
-        expect(current_url).to match(
-          /#{Regexp.escape("/users/registration?login_attempt=true&u=#{unconfirmed_user.salesforce_id}")}/
+          /#{Regexp.escape("/users/registration?login_attempt=true&uuid=#{unconfirmed_user.uuid}")}/
         )
         expect(status_code).to eq(200)
         expect(page).to have_content("Didn't receive email instructions")

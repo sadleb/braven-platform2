@@ -7,14 +7,13 @@ RSpec.describe SyncPortalEnrollmentsForProgram do
   let(:sf_participants) { [] }
   let(:sf_program) { SalesforceAPI::SFProgram.new('00355500001iyvbbbbQ', 'Some Program', 'Some School', fellow_canvas_course_id) }
   let(:lms_client) { double(CanvasAPI, find_user_by: nil) }
-  let(:sf_client) { double(SalesforceAPI) }
+  let(:sf_client) { double(SalesforceAPI, update_contact: nil, find_program: sf_program) }
   let(:sync_account_service) { double(SyncPortalEnrollmentForAccount, run: nil) }
 
   before(:each) do
     allow(SyncPortalEnrollmentForAccount).to receive(:new).and_return(sync_account_service)
     allow(SalesforceAPI).to receive(:client).and_return(sf_client)
     allow(CanvasAPI).to receive(:client).and_return(lms_client)
-    allow(sf_client).to receive(:find_program).and_return(sf_program)
   end
 
   describe '#run' do
@@ -55,7 +54,7 @@ RSpec.describe SyncPortalEnrollmentsForProgram do
 
   end
 
-  describe '.find_or_create_user!' do
+  describe '.find_or_set_up_user!' do
     let(:sync_program_service) { SyncPortalEnrollmentsForProgram.new(salesforce_program_id: sf_program.id) }
     let(:sf_participant) { SalesforceAPI::SFParticipant.new(
       'first',
@@ -63,13 +62,13 @@ RSpec.describe SyncPortalEnrollmentsForProgram do
       'test@example.com',
       :role_ignored,
       :program_id_ignored,
-      '10',  # contact_id
+      '003000000125IpSAAU',  # contact_id
     ) }
 
     it 'does not send confirmation emails' do
       Devise.mailer.deliveries.clear()
       expect {
-        sync_program_service.send(:find_or_create_user!, sf_participant)
+        sync_program_service.send(:find_or_set_up_user!, sf_participant)
       }.to change(User, :count).by(1)
       expect(Devise.mailer.deliveries.count).to eq 0
     end

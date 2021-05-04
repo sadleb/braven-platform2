@@ -9,10 +9,10 @@ class SyncPortalEnrollmentsForProgram
 
   FailedParticipantInfo = Struct.new(:salesforce_id, :email, :first_name, :last_name, :error_detail, keyword_init: true)
 
-  def initialize(salesforce_program_id:, send_sign_up_emails: false)
+  def initialize(salesforce_program_id:, send_signup_emails: false)
     @sf_program_id = salesforce_program_id
     @sf_program = nil
-    @send_sign_up_emails = send_sign_up_emails
+    @send_signup_emails = send_signup_emails
     @failed_participants = []
   end
 
@@ -34,7 +34,8 @@ class SyncPortalEnrollmentsForProgram
           # https://app.asana.com/0/1174274412967132/1200239858551410
 
           # Create local users here before calling SyncPortalEnrollmentForAccount.
-          user = find_or_create_user!(participant)
+          # Also sends signup token to Salesforce, and emails the user a signup link.
+          user = find_or_set_up_user!(participant)
           span.add_field('app.user.id', user.id)
           span.add_field('app.user.confirmed?', user.confirmed?)
           span.add_field('app.user.registered?', user.registered?)
@@ -89,7 +90,7 @@ class SyncPortalEnrollmentsForProgram
       .run
   end
 
-  def find_or_create_user!(sf_participant)
+  def find_or_set_up_user!(sf_participant)
     user = User.find_by(salesforce_id: sf_participant.contact_id)
 
     unless user.present?
@@ -111,15 +112,35 @@ class SyncPortalEnrollmentsForProgram
       #    valid credentials for an unconfirmed account.
       # 4) After a staff member changes their login email (from Salesforce)
       user.skip_confirmation_notification!
+
+      # Save before token generation, just because it makes it clearer
+      # if validations fail.
       user.save!
 
-      if @send_sign_up_emails
-        user.send_sign_up_email!
-        Honeycomb.add_field('sync_portal_enrollments_for_program.sign_up_email_sent', true)
+      # Generate and send the signup token to Salesforce.
+      # Note raw_signup_token will only be set if it wasn't generated previously.
+      raw_signup_token = sync_signup_token!(user)
+
+      if @send_signup_emails
+        user.send_signup_email!(raw_signup_token)
+        Honeycomb.add_field('sync_portal_enrollments_for_program.signup_email_sent', true)
       end
     end
 
     user
+  end
+
+  # Generate token and send to Salesforce.
+  def sync_signup_token!(user)
+    # Only do this process once.
+    return if user.signup_token
+
+    raw_token = user.set_signup_token!
+    user.send_signup_token(raw_token)
+
+    # Return the raw token so we can optionally use it to send
+    # emails without making an extra Salesforce call to fetch it.
+    raw_token
   end
 
   # The new user params where Salesforce is the source of truth

@@ -13,10 +13,10 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
 
   # POST /resource/confirmation
   def create
-    super do
-      self.resource = User.find_by(salesforce_id: params[:user][:salesforce_id])
-      resource.send_confirmation_instructions
-    end
+    # Don't error out, and don't reveal whether the UUID is valid.
+    # Just try to send an email if the user exists.
+    user = User.find_by(uuid: params[:user][:uuid])
+    user&.send_confirmation_instructions
   end
 
   # GET /resource/confirmation?confirmation_token=abcdef
@@ -114,7 +114,7 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
   private
 
   def configure_permitted_parameters
-    devise_parameter_sanitizer.permit(:create, keys: [:salesforce_id])
+    devise_parameter_sanitizer.permit(:create, keys: [:uuid])
   end
 
 end

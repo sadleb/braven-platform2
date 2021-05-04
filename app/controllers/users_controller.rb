@@ -3,7 +3,7 @@ class UsersController < ApplicationController
   layout 'admin'
 
   # Note that DryCrud takes care of the standard actions
-  before_action :find_user, only: %i[confirm register show_send_sign_up_email send_sign_up_email]
+  before_action :find_user, only: %i[confirm register show_send_signup_email send_signup_email]
 
   def index
     authorize User
@@ -88,15 +88,16 @@ class UsersController < ApplicationController
       redirect_to user_path(@user), notice: 'User has been registered'
     end
   end
-  def show_send_sign_up_email
+
+  def show_send_signup_email
     authorize @user
   end
 
-  def send_sign_up_email
+  def send_signup_email
     authorize @user
 
-    @user.send_sign_up_email!
-    redirect_to send_new_sign_up_email_user_path(@user), notice: 'Email sent!'
+    @user.send_signup_email!
+    redirect_to send_new_signup_email_user_path(@user), notice: 'Email sent!'
   end
 
   def destroy

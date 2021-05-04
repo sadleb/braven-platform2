@@ -7,11 +7,11 @@ class UserPolicy < ApplicationPolicy
     update?
   end
 
-  def show_send_sign_up_email?
-    user.can_send_new_sign_up_email?
+  def show_send_signup_email?
+    user.can_send_new_signup_email?
   end
 
-  def send_sign_up_email?
-    user.can_send_new_sign_up_email?
+  def send_signup_email?
+    user.can_send_new_signup_email?
   end
 end

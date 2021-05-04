@@ -6,7 +6,7 @@
   <%= link_to "Forgot your password?", new_password_path(resource_name) %><br />
 <% end %>
 
-<% if false %> <!-- Commented out b/c we don't allow for self registration. We send them a unique link unique to their Salesforce record. -->
+<% if false %> <%# Commented out b/c we don't allow for self registration. We send them a unique link with a single-use token. %>
 
 <%- if devise_mapping.registerable? && controller_name != 'registrations' %>
   <%= link_to "Sign up", new_registration_path(resource_name) %><br />
@@ -26,6 +26,6 @@
   <% end %>
 <% end %>
 
-<!-- end commented out -->
+<%# end commented out %>
 <% end %> 
 

@@ -34,7 +34,6 @@ class CasController < ApplicationController
     # optional params
     @gateway = params['gateway'] == 'true' || params['gateway'] == '1'
     @message = { :type => 'notice', :message => params[:notice] } if params[:notice]
- 
 
     if tgc = request.cookies['tgt']
       tgt, tgt_error = TGT.validate(tgc)
@@ -97,14 +96,6 @@ class CasController < ApplicationController
 
     @lt = lt.ticket
 
-    # This happens if they try and sign-up to create an account a second time. We redirect here with
-    # the "u" param that was in the original /users/sign_up?u=<blah> path. The reason we don't translate
-    # it to a nicer to read "salesforce_id" param is b/c it's an unauthenticated endpoint and we don't
-    # want to help anyone trying to brute force attack this trying to determine which IDs are valid
-    # by identifying more information about what it is which would allow them to reduce the space of IDs
-    # to try. Make them read through the code on github at least :)
-    @salesforce_id = params[:u]
-
     render :login
   end
 
@@ -125,6 +116,7 @@ class CasController < ApplicationController
     credentials_are_valid = false
     extra_attributes = {}
     successful_authenticator = nil
+    last_failed_authenticator = nil
     begin
       @settings[:auth].each do |auth_class, auth_index|
         auth = auth_class.new
@@ -144,6 +136,9 @@ class CasController < ApplicationController
           extra_attributes.merge!(auth.extra_attributes) unless auth.extra_attributes.blank?
           successful_authenticator = auth
           break
+        else
+          # DANGER!! See where this is used below.
+          last_failed_authenticator = auth
         end
       end
 
@@ -175,16 +170,29 @@ class CasController < ApplicationController
             }
           end
         end
-      else
+      # DANGER!! This works for our custom CAS authenticator, but probably
+      # won't work for other auth methods! If we change auth methods, revisit.
+      elsif last_failed_authenticator.respond_to?(:valid_password?) && last_failed_authenticator.valid_password?(@password)
+        # The username/password is correct, but something else is making
+        # this account currently invalid for login. Be careful here.
         user = User.find_by_email(@username)
-        unconfirmed_user = user && user.confirmed? == false
-        if unconfirmed_user
-          logger.warn("Unconfirmed user tried to login: '#{@username}'")
-          redirect_to users_registration_path(u: user.salesforce_id, login_attempt: true) and return
+        if user.present? && user.registered? && !user.confirmed?
+          # The account is fully registered, but UNCONFIRMED.
+          # Give them a button to re-send the confirm email.
+          logger.warn("Unconfirmed user tried to log in: '#{@username}'")
+          redirect_to users_registration_path(uuid: user.uuid, login_attempt: true) and return
         else
-          logger.warn("Invalid credentials given for user '#{@username}'")
+          # Something else is wrong. Act as if credentials are not valid.
+          # Make sure the message/render here always match the ones in the `else` below this.
+          logger.warn("Invalid account for user '#{@username}'")
           @message = { :type => 'mistake', :message => 'Incorrect username or password.' }
+          return render :login, status: :unauthorized
         end
+      else
+        # Credentials not valid.
+        # If you change the message/render here, make sure to change it in the `else` above too.
+        logger.warn("Invalid credentials given for user '#{@username}'")
+        @message = { :type => 'mistake', :message => 'Incorrect username or password.' }
         return render :login, status: :unauthorized
       end
     rescue RubyCAS::Server::Core::AuthenticatorError => e
@@ -357,12 +365,7 @@ class CasController < ApplicationController
   end 
 
   def set_loginpost_params
-    # The username could either be explicitly typed into the form OR it could
-    # be that a hidden salesforce_id is passed in params[:u] if we redirect from
-    # the users/sign_up endpoint b/c they've already signed up.
     @username = params[:username].downcase.strip if params[:username]
-    @username = User.find_by!(salesforce_id: params[:u]).email if params[:u]
-
     @password = params[:password]
     @lt = params[:lt]
   end

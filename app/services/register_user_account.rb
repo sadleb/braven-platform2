@@ -6,53 +6,61 @@
 class RegisterUserAccount
   RegisterUserAccountError = Class.new(StandardError)
 
+  # The params should include `password`, `password_confirmation`, and *either*
+  # `signup_token` OR `reset_password_token`.
   def initialize(sign_up_params)
     # We want Salesforce to be the source of truth, especially for their email, to avoid
-    # duplicating user accounts. When they register their user account, we just
-    # collect their salesforce ID and password and look up the rest of the info
-    # they gave us when they signed up / applied.
-    @salesforce_participant = sf_client.find_participant(contact_id: sign_up_params[:salesforce_id])
+    # duplicating user accounts. When they register their user account, we look up
+    # the local account by the signup or reset token, grab their Salesforce ID, then
+    # look up on Salesforce the rest of the info they gave us when they signed up / applied.
+    @user = find_user_by_tokens(sign_up_params)
+
+    # If the user doesn't exist, we'll error out at this point.
+    # This doesn't expose user enumeration in RegistrationsController#create because
+    # we've already verified the user by token there. But if that changes, or we use
+    # this service elsewhere, be sure to appropriately handle this exception.
+    @salesforce_participant = sf_client.find_participant(contact_id: @user.salesforce_id)
     @salesforce_program = sf_client.find_program(id: @salesforce_participant.program_id)
-    @create_user_params = sign_up_params.merge(salesforce_contact_params)
+
+    # When we update the user, pass in the password and the latest Salesforce info.
+    # (But not the tokens.)
+    @register_user_params = sign_up_params
+      .slice(:password, :password_confirmation)
+      .merge(salesforce_contact_params)
   end
 
   def run
     Honeycomb.start_span(name: 'register_user_account.run') do |span|
-      span.add_field('app.salesforce.contact.id', @salesforce_participant.contact_id)
-
-      # Local user record may have already been created during Sync from Salesforce.
-      # OR, it may not exist yet if Sync hasn't run.
-      @new_user = User.find_by(
-        salesforce_id: @create_user_params[:salesforce_id]
-      )
-
-      unless @new_user.present?
-        # NOTE: This can fail if there are duplicate Contacts with the same
-        # email on Salesforce. This should be prevented by Salesforce.
-        @new_user = User.new(
-          salesforce_id: @create_user_params[:salesforce_id]
-        )
-      end
+      span.add_field('app.salesforce.contact.id', @user.salesforce_id)
+      span.add_field('app.user.id', @user.id)
+      span.add_field('app.user.email', @user.email)
+      span.add_field('app.register_user_account.salesforce_email', @register_user_params[:email])
 
       # Don't send confirmation email yet; we do it explicitly below.
-      @new_user.skip_confirmation_notification!
-      @new_user.update(@create_user_params.merge({
+      @user.skip_confirmation_notification!
+      @user.update(@register_user_params.merge({
+        # Mark the user as fully registered.
         registered_at: DateTime.now.utc,
+        # Clear the signup and reset tokens, regardless of which was used.
+        # https://github.com/heartcombo/devise/blob/57d1a1d3816901e9f2cc26e36c3ef70547a91034/lib/devise/models/recoverable.rb#L83
+        signup_token: nil,
+        signup_token_sent_at: nil,
+        reset_password_token: nil,
+        reset_password_sent_at: nil,
       }))
       # Allow error handling on model validation when called from a controller.
-      yield @new_user if block_given?
-
-      # Add field after user record is created.
-      span.add_field('app.user.id', @new_user.id)
+      yield @user if block_given?
 
       # Create a user in Canvas.
       create_canvas_user!
-      span.add_field('app.canvas.user.id', @new_user.canvas_user_id)
+      span.add_field('app.canvas.user.id', @user.canvas_user_id)
 
-      canvas_user_id_set = sf_client.set_canvas_user_id(
-                                     @salesforce_participant.contact_id,
-                                     @new_user.canvas_user_id)
-      span.add_field('app.register_user_account.salesforce_canvas_user_id_set', true)
+      # Update Salesforce with the signup date and Canvas User ID.
+      sf_client.update_contact(@user.salesforce_id, {
+        'Canvas_Cloud_User_ID__c': @user.canvas_user_id,
+        'Signup_Date__c': DateTime.now.utc,
+      })
+      span.add_field('app.register_user_account.salesforce_updated', true)
 
       # If this fails, there is nothing to roll back. We just need to retry it and/or
       # fix the bug after finding out that they can't see the proper course content.
@@ -65,7 +73,7 @@ class RegisterUserAccount
       update_canvas_user_settings
 
       # Send confirmation email.
-      @new_user.send_confirmation_instructions
+      @user.send_confirmation_instructions
     end
 
     # Note: we actually don't want to roll anything back if there are failures. We wouldn't
@@ -78,11 +86,17 @@ class RegisterUserAccount
 
 private
 
+  # Expects one of {:signup_token => 'TOKEN'} OR {:reset_password_token => 'TOKEN'}.
+  def find_user_by_tokens(params)
+    return User.with_signup_token(params[:signup_token]) if params[:signup_token]
+    return User.with_reset_password_token(params[:reset_password_token]) if params[:reset_password_token]
+  end
+
   def sync_canvas_enrollment!
     # TODO: rename Portal to Canvas everywhere.
     SyncPortalEnrollmentForAccount
-      .new(user: @new_user,
-           portal_user: CanvasAPI::LMSUser.new(@new_user.canvas_user_id),
+      .new(user: @user,
+           portal_user: CanvasAPI::LMSUser.new(@user.canvas_user_id),
            salesforce_participant: @salesforce_participant,
            salesforce_program: @salesforce_program)
       .run
@@ -90,7 +104,7 @@ private
 
   def create_canvas_user!
     unless salesforce_participant_enrolled?
-      raise RegisterUserAccountError, "Salesforce Contact ID not enrolled: #{@new_user.salesforce_id}"
+      raise RegisterUserAccountError, "Salesforce Contact ID not enrolled: #{@user.salesforce_id}"
     end
 
     canvas_user = CanvasAPI.client.create_user(
@@ -102,12 +116,12 @@ private
       @salesforce_participant.student_id,
       @salesforce_program.timezone
     )
-    @new_user.update!(canvas_user_id: canvas_user['id'])
+    @user.update!(canvas_user_id: canvas_user['id'])
   end
 
   def update_canvas_user_settings
     # Note: Several Canvas API calls are wrapped in this one method.
-    CanvasAPI.client.disable_user_grading_emails(@new_user.canvas_user_id)
+    CanvasAPI.client.disable_user_grading_emails(@user.canvas_user_id)
 
   rescue RestClient::Exception => e
     # The RestClient autoinstrumentation already sends response info.
@@ -115,7 +129,7 @@ private
     Honeycomb.add_field('error_detail', e.message)
     Honeycomb.add_field('alert.register_user_account.update_settings_failed', true)
     Sentry.capture_exception(e)
-    Rails.logger.warn("Failed to update user notification preferences for #{@new_user.canvas_user_id}: #{e.message}")
+    Rails.logger.warn("Failed to update user notification preferences for #{@user.canvas_user_id}: #{e.message}")
   end
 
   # The new user params where Salesforce is the source of truth

@@ -11,6 +11,7 @@ module BravenCAS
     end
 
     def valid_password?(password)
+      return false unless @user.present?
       return false if @user.encrypted_password.blank?
       BCrypt::Password.new(@user.encrypted_password) == password
     end

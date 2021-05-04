@@ -5,14 +5,22 @@ require 'rails_helper'
 RSpec.describe RegisterUserAccount do
   describe '#run' do
     let(:enrollment_status) { SalesforceAPI::ENROLLED }
+    let(:salesforce_contact) { create(:salesforce_contact) }
     let(:salesforce_participant) { 
-      sp = SalesforceAPI::SFParticipant.new('firstName', 'lastName', 'email@email.com', nil, nil, 'test_salesforce_id')
+      sp = SalesforceAPI::SFParticipant.new('firstName', 'lastName', 'email@email.com', nil, nil, salesforce_contact['Id'])
       sp.status = enrollment_status
       sp
     }
     let(:canvas_user) { create :canvas_user }
-    let(:sign_up_params) { {password: 'some_password', password_confirmation: 'some_password', salesforce_id: salesforce_participant.contact_id} }
-    let(:sf_client) { instance_double(SalesforceAPI, find_participant: salesforce_participant, find_program: SalesforceAPI::SFProgram.new, set_canvas_user_id: nil) }
+    # Don't set the canvas ID initially, since this service takes care of that.
+    let!(:user) { create(:unregistered_user, salesforce_id: salesforce_contact['Id'], canvas_user_id: nil) }
+    let(:raw_signup_token) { user.set_signup_token! }
+    let(:sign_up_params) { {password: 'some_password', password_confirmation: 'some_password', signup_token: raw_signup_token} }
+    let(:sf_client) { instance_double(SalesforceAPI,
+      find_participant: salesforce_participant,
+      find_program: SalesforceAPI::SFProgram.new,
+      update_contact: nil,
+    ) }
     let(:canvas_client) { instance_double(CanvasAPI, create_user: canvas_user, disable_user_grading_emails: nil) }
     let(:enrollment_process) { instance_double(SyncPortalEnrollmentForAccount, run: nil) }
 
@@ -23,19 +31,11 @@ RSpec.describe RegisterUserAccount do
     end
 
     it 'creates a canvas user if enrolled status' do
-      user = create(:unregistered_user, salesforce_id: sign_up_params[:salesforce_id])
       RegisterUserAccount.new(sign_up_params).run
       expect(canvas_client).to have_received(:create_user).once
     end
 
-    it 'creates local user if it did not exist' do
-      expect {
-        RegisterUserAccount.new(sign_up_params).run
-      }.to change(User, :count).by(1)
-    end
-
-    it 'updates local user if already created' do
-      user = create(:registered_user, salesforce_id: sign_up_params[:salesforce_id])
+    it 'updates local user' do
       expect {
         RegisterUserAccount.new(sign_up_params).run
       }.to change(User, :count).by(0)
@@ -45,27 +45,22 @@ RSpec.describe RegisterUserAccount do
     context 'when not enrolled status' do
       let(:enrollment_status) { SalesforceAPI::DROPPED }
       it 'raises an error' do
-        user = create(:unregistered_user, salesforce_id: sign_up_params[:salesforce_id])
         enrollment_status = SalesforceAPI::DROPPED
         expect { RegisterUserAccount.new(sign_up_params).run }.to raise_error(RegisterUserAccount::RegisterUserAccountError)
       end
     end
 
     it 'updates Salesforce' do
-      user = create(:unregistered_user, salesforce_id: sign_up_params[:salesforce_id])
       RegisterUserAccount.new(sign_up_params).run
-      expect(sf_client).to have_received(:set_canvas_user_id).once
+      expect(sf_client).to have_received(:update_contact).once
     end
 
     it 'enrolls the user in Canvas' do
-      user = create(:unregistered_user, salesforce_id: sign_up_params[:salesforce_id])
       RegisterUserAccount.new(sign_up_params).run
       expect(enrollment_process).to have_received(:run).once
     end
 
     it 'sends confirmation instructions to user when user already existed' do
-      user = create(:unregistered_user, salesforce_id: sign_up_params[:salesforce_id])
-
       Devise.mailer.deliveries.clear()
       RegisterUserAccount.new(sign_up_params).run
       expect(Devise.mailer.deliveries.count).to eq 1

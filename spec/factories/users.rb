@@ -12,18 +12,20 @@ FactoryBot.define do
         ]
       end
     end
-    
+   
+    sequence(:uuid) { SecureRandom.uuid } 
     sequence(:email) {|i| "test#{i}@example.com"}
     sequence(:first_name) { |i| names[i % names.size][0] }
     sequence(:last_name) { |i| names[i % names.size][1] }
+    sequence(:canvas_user_id)
 
     factory :unregistered_user do
-      sequence(:salesforce_id) { |i| "003#{i}100001iyv8IAAQ" }
+      sequence(:salesforce_id) { |i| "003%07diyv8IAAQ" % i }
     end
     
     factory :registered_user do
       sequence(:password) { |i| "password#{i}" }
-      sequence(:salesforce_id) { |i| "003#{i}100001iyv8IAAQ" }
+      sequence(:salesforce_id) { |i| "003%07diyv8IAAQ" % i }
       confirmed_at { DateTime.now }
       registered_at { DateTime.now }
 
@@ -37,7 +39,6 @@ FactoryBot.define do
       end
 
       factory :fellow_user do
-        sequence(:canvas_user_id)
         after :create do |user, options|
           user.add_role RoleConstants::STUDENT_ENROLLMENT, options.section
         end
@@ -47,12 +48,12 @@ FactoryBot.define do
         end
 
         factory :peer_user do
-          sequence(:canvas_user_id)
+          # DEPRECATED: You can just use fellow_user instead now that
+          # canvas_user_id is un-hardcoded.
         end
       end
 
       factory :ta_user do
-        sequence(:canvas_user_id)
         after :create do |user, options|
           user.add_role RoleConstants::TA_ENROLLMENT, options.section
         end
@@ -65,7 +66,6 @@ FactoryBot.define do
       end
 
       factory :lc_playbook_user do
-        sequence(:canvas_user_id)
         after :create do |user, options|
           user.add_role RoleConstants::STUDENT_ENROLLMENT, options.section
         end

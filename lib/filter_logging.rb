@@ -26,6 +26,7 @@ class FilterLogging
     'reset_password_token',
     'linked_in_access_token',
     'confirmation_token',
+    'signup_token',
     'ticket',
     'lt', # stands for login ticket. See cas_controller
     'pgt', # stand for proxy granting ticket. See cas_controller
@@ -33,7 +34,7 @@ class FilterLogging
 
   MODELS_TO_FILTER = {
     'LtiLaunch' => ['state', 'id_token_payload'],
-    'User' => ['encrypted_password', 'reset_password_token', 'linked_in_access_token', 'confirmation_token'],
+    'User' => ['encrypted_password', 'reset_password_token', 'linked_in_access_token', 'confirmation_token', 'signup_token'],
     'RubyCAS::Server::Core::Tickets::LoginTicket' => ['ticket'],
     'RubyCAS::Server::Core::Tickets::ProxyGrantingTicket' => ['ticket'],
     'RubyCAS::Server::Core::Tickets::ServiceTicket' => ['ticket'],

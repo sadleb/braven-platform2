@@ -178,6 +178,15 @@ class SalesforceAPI
     JSON.parse(response.body)
   end
 
+  # Get secret signup token from a Contact record.
+  # This is not included in get_contact_info because there's no need
+  # to fetch this sensitve information in generic contact record requests.
+  def get_contact_signup_token(contact_id)
+    response = get("#{DATA_SERVICE_PATH}/sobjects/Contact/#{contact_id}" \
+      "?fields=Signup_Token__c")
+    JSON.parse(response.body)['Signup_Token__c']
+  end
+
   # Gets a list of all CohortSchedule's for a Program. The names returned are what the Canvas section
   # should be called when setting up placeholder sections until the actual cohorts are mapped.
   def get_cohort_schedule_section_names(program_id)
@@ -235,6 +244,11 @@ class SalesforceAPI
   # See: https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/dome_upsert.htm
   def create_or_update_contact(email, fields_to_set)
      response = patch("#{DATA_SERVICE_PATH}/sobjects/Contact/Email/#{email}", fields_to_set.to_json, JSON_HEADERS)
+     JSON.parse(response.body)
+  end
+
+  def update_contact(id, fields_to_set)
+     response = patch("#{DATA_SERVICE_PATH}/sobjects/Contact/#{id}", fields_to_set.to_json, JSON_HEADERS)
      JSON.parse(response.body)
   end
 

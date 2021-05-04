@@ -1,5 +1,8 @@
+# frozen_string_literal: true
 require 'salesforce_api'
 require 'canvas_api'
+
+class SignupTokenError < StandardError; end
 
 class User < ApplicationRecord
   rolify
@@ -16,9 +19,13 @@ class User < ApplicationRecord
 
   has_many :access_tokens
 
-  validates :email, uniqueness: true
-  validates :email, :first_name, :last_name, presence: true
-  validates :email, presence: true
+  validates :email, :uuid, uniqueness: true
+  validates :salesforce_id, :signup_token, uniqueness: true, allow_blank: true
+  validates :email, :uuid, :first_name, :last_name, presence: true
+  # Enforce full 18-char Salesforce IDs.
+  validates :salesforce_id, length: {is: 18}, allow_blank: true
+
+  before_validation :set_uuid, on: :create
 
   # All sections where this user has any role.
   has_many :sections, -> { distinct }, through: :roles, source: :resource, source_type: 'Section'
@@ -94,8 +101,8 @@ class User < ApplicationRecord
     admin? or has_role? RoleConstants::CAN_SYNC_FROM_SALESFORCE
   end
 
-  def can_send_new_sign_up_email?
-    admin? or has_role? RoleConstants::CAN_SEND_NEW_SIGN_UP_EMAIL
+  def can_send_new_signup_email?
+    admin? or has_role? RoleConstants::CAN_SEND_NEW_SIGNUP_EMAIL
   end
 
   # The email address to log in with after the confirmation link is clicked.
@@ -105,21 +112,29 @@ class User < ApplicationRecord
     unconfirmed_email || email
   end
 
-   # Normally, users get an email with a sign_up link as part of the "Welcome"
-   # email generated from Campaign Monitor a week or two before program launch.
-   # This email is for folks who missed (or lost) that and need their account creation
-   # sign-up link. It's generic and meant to be sent to any user, Fellow or LC.
-  def send_sign_up_email!
+  # Normally, users get an email with a sign_up link as part of the "Welcome"
+  # email generated from Campaign Monitor a week or two before program launch.
+  # This email is for folks who missed (or lost) that and need their account creation
+  # sign-up link. It's generic and meant to be sent to any user, Fellow or LC.
+  # Note passing in the raw token is optional and only serves to reduce SF calls.
+  def send_signup_email!(raw_signup_token=nil)
+    if raw_signup_token.blank?
+      # No token passed in, so let's fetch it from Salesforce.
+      # Raise an error here if the token has not been generated and stored in SF.
+      # It means Sync From Salesforce hasn't run or the user was created from the
+      # Admin dash, which doesn't generate the token.
+      raise SignupTokenError.new('Blank Salesforce ID') if salesforce_id.blank?
+      signup_token = SalesforceAPI.client.get_contact_signup_token(salesforce_id)
+      raise SignupTokenError.new('No signup token found') if signup_token.blank?
+    else
+      # Since we got a token passed in, we don't need to fetch from Salesforce.
+      signup_token = raw_signup_token
+    end
 
-    # TODO: use token instead of SF ID. Note that we should raise an error here if the token
-    # has not been generated and stored in SF. It means Sync From Salesforce hasn't run
-    # or the user was created from the Admin dash and there is a bug where it doesn't generate the token.
-    # https://app.asana.com/0/1174274412967132/1200147504835146/f
-    # Make sure you update the link in app/controllers/users/passwords_controller.rb too
-    sign_up_url = new_user_registration_url(u: salesforce_id, protocol: 'https')
+    sign_up_url = new_user_registration_url(signup_token: signup_token, protocol: 'https')
 
     SendSignUpEmailMailer.with(email: email, first_name: first_name, sign_up_url: sign_up_url)
-      .sign_up_email.deliver_now
+      .signup_email.deliver_now
   end
 
   def self.search(query)
@@ -139,6 +154,34 @@ class User < ApplicationRecord
     end
   end
 
+  # Used during the sign_up / registration process to securely
+  # identify users. Modeled after and uses Devise methods, but not
+  # actually a part of Devise.
+  # https://github.com/heartcombo/devise/blob/5d5636f03ac19e8188d99c044d4b5e90124313af/lib/devise/models/recoverable.rb
+  def set_signup_token!
+    raw, enc = Devise.token_generator.generate(self.class, :signup_token)
+
+    self.signup_token = enc
+    self.signup_token_sent_at = DateTime.now.utc
+    save!
+    raw
+  end
+
+  # Send to Salesforce.
+  # Call it with the raw token, *not* the encoded one from the database.
+  def send_signup_token(token)
+    SalesforceAPI.client.update_contact(self.salesforce_id, {
+      'Signup_Token__c': token,
+    })
+  end
+
+  # Find user by signup_token, if it exists. If not, return nil.
+  # Call it with the raw token, *not* the encoded one from the database.
+  def self.with_signup_token(token)
+    encoded_signup_token = Devise.token_generator.digest(User, :signup_token, token)
+    User.find_by(signup_token: encoded_signup_token)
+  end
+
 protected
 
   # Allow empty passowrds for non-registered users.
@@ -149,6 +192,12 @@ protected
   def password_required?
     return false unless registered?
     super
+  end
+
+private
+
+  def set_uuid
+    self.uuid ||= SecureRandom.uuid()
   end
 
 end

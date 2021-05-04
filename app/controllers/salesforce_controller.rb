@@ -18,7 +18,7 @@ class SalesforceController < ApplicationController
   # Shows a list of participants that will get email notifications with instructions
   # for how to sign-up and create their Canvas account. Allows the staff member to
   # confirm the list before kicking off the actual sync
-  def confirm_send_sign_up_emails
+  def confirm_send_signup_emails
     authorize :SalesforceAuthorization
     @new_participants = get_participants_never_synced_before()
   end
@@ -26,14 +26,14 @@ class SalesforceController < ApplicationController
   def sync_from_salesforce_program
     authorize :SalesforceAuthorization
 
-    should_send_sign_up_emails = ActiveModel::Type::Boolean.new.cast(params[:send_sign_up_emails])
+    should_send_signup_emails = ActiveModel::Type::Boolean.new.cast(params[:send_signup_emails])
 
-    if should_send_sign_up_emails && params[:not_confirmed]
-      redirect_to salesforce_confirm_send_sign_up_emails_path(program_id: params[:program_id].strip, email: params[:email].strip)
+    if should_send_signup_emails && params[:not_confirmed]
+      redirect_to salesforce_confirm_send_signup_emails_path(program_id: params[:program_id].strip, email: params[:email].strip)
       return
     end
 
-    SyncFromSalesforceProgramJob.perform_later(params[:program_id].strip, params[:email].strip, should_send_sign_up_emails)
+    SyncFromSalesforceProgramJob.perform_later(params[:program_id].strip, params[:email].strip, should_send_signup_emails)
     redirect_to salesforce_sync_from_salesforce_program_path, notice: 'The sync process was started. Watch out for an email'
   end
 
@@ -64,7 +64,7 @@ class SalesforceController < ApplicationController
       @salesforce_contact_id = contact[:Id]
 
       # Raise if not found so we don't change anything in Canvas.
-      @user = User.find_by!(canvas_user_id: @canvas_user_id)
+      @user = User.find_by!(salesforce_id: @salesforce_contact_id)
 
       # Error out before making any changes if things are missing
       raise ArgumentError.new("Missing Email for: #{contact}") unless @new_email

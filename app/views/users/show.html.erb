@@ -30,7 +30,7 @@
       <%= link_to "Edit", edit_user_path(@user), class: "card-link btn btn-warning" %>
       <%= link_to "Confirm Account", confirm_user_path(@user), class: "card-link btn btn-success", method: :post if @user.confirmed_at.blank? %>
       <%= link_to "Register Account", register_user_path(@user), class: "card-link btn btn-success", method: :post if @user.registered_at.blank? %>
-      <%= link_to "Send New Sign-up Email", send_new_sign_up_email_user_path(@user), class: "card-link btn btn-success" %>
+      <%= link_to "Send New Sign-up Email", send_new_signup_email_user_path(@user), class: "card-link btn btn-success" %>
       <%= link_to user_path(@user), method: :delete, data: { confirm: "Are you sure you want to delete this user" }, class: "card-link btn btn-danger" do %>
         Delete <%= @user.first_name %>'s account
       <% end %>

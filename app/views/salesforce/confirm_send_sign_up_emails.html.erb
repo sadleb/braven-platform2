@@ -36,7 +36,7 @@
       <% end %>
 
       <%= form_with(url: salesforce_sync_from_salesforce_program_path, method: "post", local: true) do |f| %>
-        <%= f.hidden_field :send_sign_up_emails, value: true %>
+        <%= f.hidden_field :send_signup_emails, value: true %>
         <%= f.hidden_field :program_id, value: params[:program_id]%>
         <%= f.hidden_field :email, value: params[:email]%>
         <div class="actions">

@@ -1,11 +1,9 @@
-<% if params[:u] || params.dig(:user, :salesforce_id) %>
-
 <div class="col-md-6 offset-md-4">
   <h1>Create Account</h1>
   <p>Enter the password you'll use to login to Braven.</p>
 </div>
 <div class="col-md-4 offset-md-4 no-pad">
-  <%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
+  <%= form_with(model: User, url: user_registration_path) do |f| %>
     <%= render "devise/shared/error_messages", resource: resource %>
 
     <div class="field">
@@ -24,7 +22,8 @@
     </div>
 
     <div class="actions">
-      <%= f.hidden_field :salesforce_id, :value => params[:u] ||= params[:user][:salesforce_id] %>
+      <%= f.hidden_field :signup_token, :value => params[:signup_token] if params[:signup_token] %>
+      <%= f.hidden_field :password_reset_token, :value => params[:password_reset_token] if params[:password_reset_token] %>
       <%= f.submit "Create Account" %>
     </div>
   <% end %>
@@ -32,14 +31,3 @@
 <div class="col-md-6 offset-md-3">
 <p><em>Note: If you don't have access to the email you signed up with, please <a href="mailto:support@bebraven.org">contact us here</a>   </em></p>
 <div>
-<% else %>
-
-<%= render "devise/shared/error_messages", resource: resource %>
-<h3>Uh oh. Something went wrong!</h3>
-<div>
-<p>You should have a received a link from Braven after signing up for the program at <a href="https://bebraven.org">bebraven.org</a>.</p>
-<p>If you don't have access to the email you signed up with or didn't receive an email with a link, please <a href="mailto:support@bebraven.org">contact us here</a></p>
-</div>
-
-<% end %>
-
