@@ -31,10 +31,14 @@ class ModuleGradeCalculator
         canvas_assignment_id: canvas_assignment_id,
         user_id: user_id,
       )
+      Honeycomb.add_field('module_grade_calculator.interactions.count', interactions.count)
 
       # If there are no interactions, exit early with a zero grade.
       # exists? is the fastest check when records aren't preloaded.
-      return 0 unless interactions.exists?
+      unless interactions.exists?
+        Honeycomb.add_field('module_grade_calculator.grade', 0)
+        return 0
+      end
 
       # Figure out which due date applies to this user.
       due_date = due_date_for_user(user_id, assignment_overrides)
@@ -43,7 +47,10 @@ class ModuleGradeCalculator
       progressed_interactions = interactions.where(verb: Rise360ModuleInteraction::PROGRESSED)
 
       engagement_grade = grade_module_engagement(progressed_interactions)
+      Honeycomb.add_field('module_grade_calculator.engagement_grade', engagement_grade)
+
       on_time_grade = grade_completed_on_time(progressed_interactions, due_date)
+      Honeycomb.add_field('module_grade_calculator.on_time_grade', on_time_grade)
 
       # Note: a Rise360 package has the same activity ID when you update it and
       # export it again. This means, we can have multiple Rise360ModuleVersions with
@@ -55,13 +62,15 @@ class ModuleGradeCalculator
       rmv = Rise360ModuleVersion.find(crmv.rise360_module_version_id)
       total_quiz_questions = rmv.quiz_questions
 
+      grade = nil
       if total_quiz_questions && total_quiz_questions > 0
         quiz_grade = grade_mastery_quiz(
           interactions.where(verb: Rise360ModuleInteraction::ANSWERED),
           total_quiz_questions,
         )
+        Honeycomb.add_field('module_grade_calculator.quiz_grade', quiz_grade)
 
-        (
+        grade = (
           grade_weights[:module_engagement] * engagement_grade +
           grade_weights[:mastery_quiz] * quiz_grade +
           grade_weights[:on_time] * on_time_grade
@@ -69,11 +78,13 @@ class ModuleGradeCalculator
       else
         # If there are no mastery questions, fold the mastery weight in with the engagement
         # weight, so that engagement is just worth more.
-        (
+        grade = (
           (grade_weights[:module_engagement] + grade_weights[:mastery_quiz]) * engagement_grade +
           grade_weights[:on_time] * on_time_grade
         )
       end
+      Honeycomb.add_field('module_grade_calculator.grade', grade)
+      grade
     end
   end
 

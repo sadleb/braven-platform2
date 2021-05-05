@@ -355,6 +355,7 @@ ActiveRecord::Schema.define(version: 2021_04_30_205153) do
     t.bigint "user_id", null: false
     t.bigint "course_rise360_module_version_id", null: false
     t.string "canvas_results_url"
+    t.boolean "grade_manually_overridden", default: false
     t.index ["course_rise360_module_version_id"], name: "index_rise360_module_grades_on_course_rise360_module_version_id"
     t.index ["user_id", "course_rise360_module_version_id"], name: "index_rise360_module_grades_uniqueness", unique: true
     t.index ["user_id"], name: "index_rise360_module_grades_on_user_id"

@@ -47,20 +47,38 @@ RSpec.describe Rise360ModuleGradesController, type: :controller do
 
     it 'links to the Module itself' do
       get :show, params: {:id => rise360_module_grade.id, :state => state}
-      expect(response.body).to match /<a href="#{Regexp.escape(course_rise360_module_version.canvas_url)}" target="_parent"/  
+      expect(response.body).to match /<a href="#{Regexp.escape(course_rise360_module_version.canvas_url)}" target="_parent"/
     end
 
-    it 'doesnt show a message about the grade being out-of-date' do
-      rise360_module_interaction_graded
-      get :show, params: {:id => rise360_module_grade.id, :state => state}
-      expect(response.body).to match(/Your grade for this Module is at the top of the screen/)
-      expect(response.body).not_to match(/most recent work hasn't been graded yet/)
+    shared_examples "not out-of-date" do
+      it 'doesnt show a message about the grade being out-of-date' do
+        rise360_module_interaction_graded
+        get :show, params: {:id => rise360_module_grade.id, :state => state}
+        expect(response.body).to match(/Your grade for this Module is at the top of the screen/)
+        expect(response.body).not_to match(/most recent work hasn't been graded yet/)
+      end
     end
+
+    it_behaves_like "not out-of-date"
 
     it 'there is a message about the grade being out-of-date' do
       rise360_module_interaction_ungraded
       get :show, params: {:id => rise360_module_grade.id, :state => state}
       expect(response.body).to match(/most recent work hasn't been graded yet/)
+    end
+
+    context 'when manually graded' do
+      let(:rise360_module_grade) {
+        create :rise360_module_grade_overridden, user: user_with_grade, course_rise360_module_version: course_rise360_module_version
+      }
+
+      it_behaves_like "not out-of-date"
+
+      it 'there is a message about it being manually graded' do
+        rise360_module_interaction_graded
+        get :show, params: {:id => rise360_module_grade.id, :state => state}
+        expect(response.body).to match(/has been manually graded/)
+      end
     end
   end
 

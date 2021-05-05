@@ -23,23 +23,25 @@ class GradeModuleForUserJob < ApplicationJob
     # haven't actually processed yet, causing students to get missing or incorrect grades.
     max_id = Rise360ModuleInteraction.maximum(:id)
 
-    # Fetch assignment overrides.
-    assignment_overrides = CanvasAPI.client.get_assignment_overrides(
-      canvas_course_id,
-      canvas_assignment_id
-    )
+    unless GradeModules.grading_disabled_for?(canvas_course_id, canvas_assignment_id, user)
 
-    grade = "#{ModuleGradeCalculator.compute_grade(user.id, canvas_assignment_id, assignment_overrides)}%"
+      assignment_overrides = CanvasAPI.client.get_assignment_overrides(
+        canvas_course_id,
+        canvas_assignment_id
+      )
 
-    Honeycomb.add_field('grade_module_for_user.grade', grade)
-    Rails.logger.info("Graded finished Rise360ModuleVersion[user_id = #{user.id}, canvas_course_id = #{canvas_course_id}, " \
-      "canvas_assignment_id = #{canvas_assignment_id}] " \
-      "- computed grade = #{grade}")
+      grade = "#{ModuleGradeCalculator.compute_grade(user.id, canvas_assignment_id, assignment_overrides)}%"
 
-    result = CanvasAPI.client.update_grade(canvas_course_id, canvas_assignment_id, user.canvas_user_id, grade)
+      Rails.logger.info("Graded finished Rise360ModuleVersion[user_id = #{user.id}, canvas_course_id = #{canvas_course_id}, " \
+        "canvas_assignment_id = #{canvas_assignment_id}] " \
+        "- computed grade = #{grade}")
 
-    Honeycomb.add_field('grade_module_for_user.sent_to_canvas', true)
-    Rails.logger.debug(result)
+      result = CanvasAPI.client.update_grade(canvas_course_id, canvas_assignment_id, user.canvas_user_id, grade)
+
+      Honeycomb.add_field('grade_module_for_user.sent_to_canvas', true)
+      Rails.logger.debug(result)
+
+    end
 
     Rise360ModuleInteraction.where(
       new: true,

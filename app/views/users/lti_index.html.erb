@@ -1,0 +1,30 @@
+<div class="container">
+
+  <div class="d-flex justify-content-end">
+    <%= form_tag(users_path, method: "get") do |f| %>
+      <%= text_field_tag :search, params[:search], placeholder: "Search", class: "form-control ml-4" %>
+    <% end %>
+  </div>
+    <% if @users.empty? %>
+      [No users found]
+    <% else %>
+      <table class="table mt-2">
+        <tbody>
+        <% @users.each do |user| %>
+          <tr>
+            <td>
+              <%= link_to lti_account_edit_path user do %>
+                <%= user.full_name %>
+              <% end %>
+              <% if user.has_role? :admin %>
+                <span class="badge badge-primary">Admin</span>
+              <% end %>
+              &lt;<%=user.email%>&gt;
+            </td>
+          </tr>
+        <% end %>
+      </table>
+    <% end %>
+<%# TODO: tmp for testing %>
+<%# will_paginate @users %>
+</div>

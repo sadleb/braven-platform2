@@ -172,6 +172,70 @@ RSpec.describe CanvasAPI do
     end
   end
 
+  describe "#get_latest_submission" do
+    let(:course_id) { 132 }
+    let(:assignment_id) { latest_submission['assignment_id'] }
+    let(:user_id) { latest_submission['user_id'] }
+    let(:latest_submission) { create(:canvas_submission) }
+
+    it 'GETs the user submission URL' do
+      url = "#{CANVAS_API_URL}/courses/#{course_id}/assignments/#{assignment_id}/submissions/#{user_id}"
+
+      # Stub request
+      stub_request(:get, url).to_return(body: latest_submission.to_json)
+      canvas.get_latest_submission(
+        course_id,
+        assignment_id,
+        user_id,
+      )
+
+      expect(WebMock)
+        .to have_requested(:get, url)
+        .once
+    end
+  end
+
+  describe "#latest_submission_manually_graded?" do
+    let(:course_id) { 132 }
+    let(:assignment_id) { latest_submission['assignment_id'] }
+    let(:user_id) { latest_submission['user_id'] }
+    let(:ta_user) { create(:canvas_user) }
+    let(:api_user) { create(:canvas_user) }
+    let(:grader_id) { api_user['id'] }
+    let(:latest_submission) { create(:canvas_submission, grader_id: grader_id) }
+
+    before(:each) do
+      latest_submission_url = "#{CANVAS_API_URL}/courses/#{course_id}/assignments/#{assignment_id}/submissions/#{user_id}"
+      stub_request(:get, latest_submission_url).to_return(body: latest_submission.to_json)
+      api_user_url = "#{CANVAS_API_URL}/users/self"
+      stub_request(:get, api_user_url).to_return(body: api_user.to_json)
+    end
+
+    context 'when grader_id is different than the current API user' do
+      let(:grader_id) { ta_user['id'] }
+      it 'returns true' do
+        manually_graded = canvas.latest_submission_manually_graded?(course_id, assignment_id, user_id)
+        expect(manually_graded).to eq(true)
+      end
+    end
+
+    context 'when grader_id is the current API user' do
+      let(:grader_id) { api_user['id'] }
+      it 'returns false' do
+        manually_graded = canvas.latest_submission_manually_graded?(course_id, assignment_id, user_id)
+        expect(manually_graded).to eq(false)
+      end
+    end
+
+    context 'when grader_id is nil' do
+      let(:grader_id) { nil }
+      it 'returns false' do
+        manually_graded = canvas.latest_submission_manually_graded?(course_id, assignment_id, user_id)
+        expect(manually_graded).to eq(false)
+      end
+    end
+  end
+
   describe "#update_grades" do
     let(:course_id) { 111 }
     let(:assignment_id) { 222 }
@@ -197,6 +261,33 @@ RSpec.describe CanvasAPI do
         .once
     end
   end
+
+  describe '#api_user_id' do
+    let(:canvas_user) { create(:canvas_user) }
+
+    it 'GETs the current user' do
+      request_url = "#{CANVAS_API_URL}/users/self"
+      stub_request(:get, request_url).to_return(body: canvas_user.to_json)
+
+      user_id = canvas.api_user_id()
+
+      expect(WebMock).to have_requested(:get, request_url).once
+      expect(user_id).to eq(canvas_user['id'])
+    end
+
+    it 'only calls the API once' do
+      request_url = "#{CANVAS_API_URL}/users/self"
+      stub_request(:get, request_url).to_return(body: canvas_user.to_json)
+
+      user_id = canvas.api_user_id()
+      user_id2 = canvas.api_user_id()
+
+      expect(WebMock).to have_requested(:get, request_url).once
+      expect(user_id2).to eq(canvas_user['id'])
+    end
+
+  end
+
 
   describe '#create_course' do
     let(:name) { 'Test Course Name' }

@@ -225,6 +225,12 @@ RSpec.describe GradeModules do
     let!(:user_with_old_interactions) { create(:fellow_user, section: section, canvas_user_id: 2) }
     let!(:module_with_interactions) { create(:course_rise360_module_version, course: course) }
     let!(:module_without_interactions) { create(:course_rise360_module_version, course: course) }
+    let!(:module_grade_for_user_with_new_interactions) {
+      create :rise360_module_grade, course_rise360_module_version: module_with_interactions, user: user_with_new_interactions
+    }
+    let!(:module_grade_for_user_with_old_interactions) {
+      create :rise360_module_grade, course_rise360_module_version: module_with_interactions, user: user_with_old_interactions
+    }
     let(:course_rise360_module_versions) { [
       module_with_interactions,
       module_without_interactions,
@@ -234,44 +240,46 @@ RSpec.describe GradeModules do
       create(:ungraded_progressed_module_interaction,
         canvas_course_id: course.canvas_course_id,
         user: user_with_new_interactions,
-        canvas_assignment_id: module_with_interactions.canvas_assignment_id,
+        canvas_assignment_id: user_with_new_interactions_assignment_id,
         progress: 50,
       ),
       create(:ungraded_progressed_module_interaction,
         canvas_course_id: course.canvas_course_id,
         user: user_with_new_interactions,
-        canvas_assignment_id: module_with_interactions.canvas_assignment_id,
+        canvas_assignment_id: user_with_new_interactions_assignment_id,
         progress: 100,
       ),
       create(:ungraded_answered_module_interaction,
         canvas_course_id: course.canvas_course_id,
         user: user_with_new_interactions,
-        canvas_assignment_id: module_with_interactions.canvas_assignment_id,
+        canvas_assignment_id: user_with_new_interactions_assignment_id,
         success: true,
       ),
       # user_with_old_interactions
       create(:graded_progressed_module_interaction,
         canvas_course_id: course.canvas_course_id,
         user: user_with_old_interactions,
-        canvas_assignment_id: module_with_interactions.canvas_assignment_id,
+        canvas_assignment_id: user_with_old_interactions_assignment_id,
         progress: 50,
         new: false,
       ),
       create(:graded_progressed_module_interaction,
         canvas_course_id: course.canvas_course_id,
         user: user_with_old_interactions,
-        canvas_assignment_id: module_with_interactions.canvas_assignment_id,
+        canvas_assignment_id: user_with_old_interactions_assignment_id,
         progress: 100,
       ),
       create(:graded_answered_module_interaction,
         canvas_course_id: course.canvas_course_id,
         user: user_with_old_interactions,
-        canvas_assignment_id: module_with_interactions.canvas_assignment_id,
+        canvas_assignment_id: user_with_old_interactions_assignment_id,
         success: true,
       ),
     ] }
     # Defaults. Override in context below.
     let(:user_ids) { [ user_with_old_interactions.id ] }
+    let(:user_with_new_interactions_assignment_id) { module_with_interactions.canvas_assignment_id }
+    let(:user_with_old_interactions_assignment_id) { module_with_interactions.canvas_assignment_id }
     let(:canvas_assignment_id) { module_without_interactions.canvas_assignment_id }
     let(:due_date_obj) { 1.day.from_now.utc }
     let(:due_date) { due_date_obj.to_time.iso8601 }
@@ -280,7 +288,6 @@ RSpec.describe GradeModules do
     context "with no matching interactions for assignment" do
       before :each do
         allow(canvas_client).to receive(:get_assignment_overrides)
-
         allow(CanvasAPI).to receive(:client).and_return(canvas_client)
       end
 
@@ -294,10 +301,12 @@ RSpec.describe GradeModules do
 
     context "with matching interactions for assignment" do
       let(:canvas_assignment_id) { module_with_interactions.canvas_assignment_id }
+      let(:manually_graded) { false }
 
       shared_examples "runs pre-compute tasks" do
         before :each do
           allow(canvas_client).to receive(:get_assignment_overrides).and_return(assignment_overrides)
+          allow(canvas_client).to receive(:latest_submission_manually_graded?).and_return(manually_graded)
           allow(canvas_client).to receive(:update_grades)
           allow(CanvasAPI).to receive(:client).and_return(canvas_client)
 
@@ -305,17 +314,32 @@ RSpec.describe GradeModules do
           allow(ModuleGradeCalculator).to receive(:due_date_for_user).and_return(due_date)
         end
 
-        it "calls due_date_for_user correctly for each user" do
-          subject
+        context "when grades manually overridden" do
+          let(:manually_graded) { true }
 
-          expect(ModuleGradeCalculator)
-            .to have_received(:due_date_for_user)
-            .exactly(user_ids.count)
-            .times
-          user_ids.each do |user_id|
+          it "skips users" do
+            subject
+
+            expect(ModuleGradeCalculator).not_to have_received(:due_date_for_user)
+            expect(ModuleGradeCalculator).not_to have_received(:compute_grade)
+          end
+        end
+
+        context "when grades not manually overridden" do
+          let(:manually_graded) { false }
+
+          it "calls due_date_for_user correctly for each user" do
+            subject
+
             expect(ModuleGradeCalculator)
               .to have_received(:due_date_for_user)
-              .with(user_id, assignment_overrides)
+              .exactly(user_ids.count)
+              .times
+            user_ids.each do |user_id|
+              expect(ModuleGradeCalculator)
+                .to have_received(:due_date_for_user)
+                .with(user_id, assignment_overrides)
+            end
           end
         end
       end
@@ -323,6 +347,7 @@ RSpec.describe GradeModules do
       shared_examples "computes and updates grades" do
         before :each do
           allow(canvas_client).to receive(:get_assignment_overrides).and_return(assignment_overrides)
+          allow(canvas_client).to receive(:latest_submission_manually_graded?)
           allow(canvas_client).to receive(:update_grades)
           allow(CanvasAPI).to receive(:client).and_return(canvas_client)
 
@@ -384,6 +409,7 @@ RSpec.describe GradeModules do
 
         it "exits early" do
           allow(canvas_client).to receive(:get_assignment_overrides).and_return(assignment_overrides)
+          allow(canvas_client).to receive(:latest_submission_manually_graded?)
           allow(CanvasAPI).to receive(:client).and_return(canvas_client)
 
           allow(ModuleGradeCalculator).to receive(:compute_grade)
@@ -414,4 +440,82 @@ RSpec.describe GradeModules do
     end
 
   end  # grade_assignment
+
+  describe ".grading_disabled_for?" do
+    let(:user) { create(:fellow_user) }
+    let(:canvas_assignment_id) { course_rise360_module_version.canvas_assignment_id }
+    let(:canvas_course_id) { course_rise360_module_version.course.canvas_course_id }
+    let(:course_rise360_module_version) { create :course_rise360_module_version }
+
+    subject { GradeModules.grading_disabled_for?(canvas_course_id, canvas_assignment_id, user) }
+
+    before :each do
+       allow(canvas_client).to receive(:latest_submission_manually_graded?)
+       allow(CanvasAPI).to receive(:client).and_return(canvas_client)
+    end
+
+    context "when user has never opened the module" do
+      it "returns true" do
+        expect(subject).to eq(true)
+      end
+
+      it "doesn't hit the Canvas API" do
+        subject
+        expect(canvas_client).not_to have_received(:latest_submission_manually_graded?)
+      end
+
+      it "doesn't create a Rise360ModuleGrade" do
+        expect{subject}.to change(Rise360ModuleGrade, :count).by(0)
+      end
+    end
+
+    context "when not manually overridden" do
+      let!(:rise360_module_grade) { create :rise360_module_grade, user: user, course_rise360_module_version: course_rise360_module_version }
+
+      before(:each) do
+        allow(canvas_client).to receive(:latest_submission_manually_graded?).and_return(false)
+      end
+
+      it "returns false" do
+        expect(subject).to eq(false)
+      end
+
+      it "hits the Canvas API to check" do
+        subject
+        expect(canvas_client).to have_received(:latest_submission_manually_graded?).once
+      end
+    end
+
+    context "when detecting manual override" do
+      let!(:rise360_module_grade) { create :rise360_module_grade, user: user, course_rise360_module_version: course_rise360_module_version }
+
+      before(:each) do
+        allow(canvas_client).to receive(:latest_submission_manually_graded?).and_return(true)
+      end
+
+      it "returns true" do
+        expect(subject).to eq(true)
+      end
+
+      it "hits the Canvas API to check" do
+        subject
+        expect(canvas_client).to have_received(:latest_submission_manually_graded?).once
+      end
+    end
+
+    context "when already manually overridden in the past" do
+      let!(:rise360_module_grade) { create :rise360_module_grade_overridden, user: user, course_rise360_module_version: course_rise360_module_version }
+
+      it "returns true" do
+        expect(subject).to eq(true)
+      end
+
+      it "doesn't hit the Canvas API" do
+        subject
+        expect(canvas_client).not_to have_received(:latest_submission_manually_graded?)
+      end
+    end
+
+  end
+
 end

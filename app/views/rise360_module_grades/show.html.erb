@@ -1,10 +1,12 @@
 <% content_for :title, 'About Your Module Grade' %>
 <div class="row mt-2 p-2">
   <div class="col">
- 
+
     <h1 class="mt-4">About your Module grade</h3>
     <p>Your grade for this Module is at the top of the screen.</p>
-    <% unless grade_is_up_to_date? %>
+    <% if @rise360_module_grade.grade_manually_overridden %>
+      <p><mark>This Module has been manually graded. Your grade may not reflect the algorithm below.</mark></p>
+    <% elsif !grade_is_up_to_date? %>
       <p><mark>It looks like your most recent work hasn't been graded yet. It will be graded tonight.</mark></p>
       <%# Note: we consciously made the decision not to add a button that allows folks to
         force the grade to be recalculated. The reason is b/c the Rise360ModuleInteractions
@@ -19,6 +21,7 @@
       <a href="<%= canvas_url %>" target="_parent">
       Click here to go to the Module</a> and continue working on it
     </p>
+
     <hr>
 
     <h2 class="bv-font-size-4">How are Modules graded?</h2>
@@ -42,14 +45,14 @@
         </div>
       </li>
     </ol>
-    
+
     <h3 class="bv-font-size-5 mt-4">How do you get engagement credit?</h3>
     <p>
       You get credit for engagement just by going through the Module.
       If you get to the end then you get full credit for the engagement portion
       of the Module which is 40% of your overall grade.
     </p>
-    
+
     <h3 class="bv-font-size-5"><strong>How do you get credit for mastery quizzes?</strong></h3>
     <p>
       You get credit for mastery quizzes by getting the answers correct. If there are ten
@@ -79,7 +82,7 @@
     <p>so... </p>
     <p><code>68% * 10 points = 6.8 points</code></p>
     <p>You'll see <strong>GRADE: 6.8 / 10</strong> at the top in this example.</p>
-     
+
     <p>
       After the Module's due date, if you go back and finish the module, you will raise
       your engagement score to 100%, but you still will not get the "on time" points.

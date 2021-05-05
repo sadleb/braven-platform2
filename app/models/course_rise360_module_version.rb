@@ -4,6 +4,7 @@ class CourseRise360ModuleVersion < ApplicationRecord
   belongs_to :course
   belongs_to :rise360_module_version
   has_one :rise360_module, :through => :rise360_module_version
+  has_many :rise360_module_grades
 
   validates :canvas_assignment_id, presence: true
   validates :course, :rise360_module_version, presence: true

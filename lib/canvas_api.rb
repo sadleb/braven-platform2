@@ -62,6 +62,14 @@ class CanvasAPI
       url: "#{@api_url}#{path}", payload: body, headers: @global_headers.merge(headers))
   end
 
+  def api_user_id
+    @api_user_id ||= begin
+      response = get('/users/self')
+      api_user = JSON.parse(response.body)
+      api_user['id']
+    end
+  end
+
   def update_course_page(course_id, wiki_page_id, wiki_page_body)
     body = {
       'wiki_page[body]' => PrependHTML + wiki_page_body + AppendHTML,
@@ -82,6 +90,36 @@ class CanvasAPI
     #    'submission[url]' => lti_launch_url
     #  }
     #  post("/courses/#{canvas_course_id}/assignments/#{assignment_id}/submissions", body)
+  end
+
+  # Get the latest submission for a user's assignment.
+  #
+  # Note: despite the REST endpoint seeming like it *may* return a list of submissions
+  # if there are multiple, it doesn't seem to. If they resubmit, it will just have an
+  # "attempts:2" key or something like that. The grader view still shows a list,
+  # but I can't seem to get the list through the API. That seems like a good thing though?
+  def get_latest_submission(course_id, assignment_id, user_id)
+    response = get("/courses/#{course_id}/assignments/#{assignment_id}/submissions/#{user_id}")
+    JSON.parse(response.body)
+  end
+
+  # True if a TA or staff member manually entered a grade rather than our code auto-grading it.
+  def latest_submission_manually_graded?(course_id, assignment_id, user_id)
+    # I thought about use a bulk API call to get the submissions for these users but I'm worried
+    # it'll be buggy and harder to maintain. 1 extra API call per user that has done work and getting
+    # their grade updated nightly seems fine
+    user_submission = get_latest_submission(course_id, assignment_id, user_id)
+
+    # It's hard to implement this by looking for whether the grader was a TA b/c it could
+    # have been an admin or designer or some other role that had permission to edit grades.
+    # The easiest way is just to assume that if it wasn't this API user, it was a manual override.
+    # If we ever change the API user or accidentally set a manual grade that breaks auto-grading,
+    # either write a script or implement an admin tool to fix things up.
+    #
+    # Note: if the submission has been created using LtiScore.new_pending_manual_submission(),
+    # the grader_id will be nil. Don't accidentally treat that as manually graded.
+    graded_by_id = user_submission['grader_id']
+    graded_by_id.present? && graded_by_id != api_user_id
   end
 
   # Batch updates grades for multiple users and one assignment using the Canvas Submissions API:

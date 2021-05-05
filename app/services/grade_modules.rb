@@ -90,8 +90,10 @@ class GradeModules
       # Initialize map of grades[canvas_user_id] = 'X%'.
       grades = Hash.new
 
-      # Skip assignments with zero interactions; they probably haven't opened yet.
+      # Skip assignments with zero interactions; they probably are future ones
       unless Rise360ModuleInteraction.where(canvas_assignment_id: canvas_assignment_id).exists?
+        Honeycomb.add_field('grade_modules.skipped_assignment', true)
+        Honeycomb.add_field('grade_modules.skipped_reason', 'no interactions for any user')
         Rails.logger.info("Skip canvas_assignment_id = #{canvas_assignment_id}; no interactions")
         return
       end
@@ -114,34 +116,55 @@ class GradeModules
 
       # All users in the course, even if they haven't interacted with this assignment.
       user_ids.each do |user_id|
-        # If we're before the due date, and there are no *new* interactions, skip this user.
-        due_date = ModuleGradeCalculator.due_date_for_user(user_id, assignment_overrides)
-        interactions = Rise360ModuleInteraction.where(
-          user_id: user_id,
-          canvas_assignment_id: canvas_assignment_id,
-          new: true,
-        )
-        # Note since we only call exists?, the slow `select *` query implied above never actually runs.
-        if !interactions.exists? && !due_date.nil? && Time.parse(due_date) > Time.now.utc
-          Rails.logger.info("Skip user_id = #{user_id}, canvas_assignment_id = #{canvas_assignment_id}; " \
-              "no interactions and assignment isn't due yet")
-          next
+        Honeycomb.start_span(name: 'grade_modules.grade_user') do
+          Honeycomb.add_field('canvas.assignment.id', canvas_assignment_id)
+          Honeycomb.add_field('user.id', user_id)
+          user = User.find(user_id)
+          Honeycomb.add_field('canvas.user.id', user.canvas_user_id)
+
+          interactions = Rise360ModuleInteraction.where(
+            user: user,
+            canvas_assignment_id: canvas_assignment_id,
+            new: true,
+          )
+          # Note since we only call exists?, the slow `select *` query implied above never actually runs
+          # until we've determined that we need to run ModuleGradeCalculator.compute_grade()
+          has_new_interactions = interactions.exists?
+          Honeycomb.add_field('grade_modules.has_new_interactions', has_new_interactions)
+
+          # If a grade was manually entered in Canvas, that disables all auto-grading logic
+          next if GradeModules.grading_disabled_for?(course.canvas_course_id, canvas_assignment_id, user)
+
+          # TODO: fix bug and grade it even if there are no new interactions IFF the due date would change the grade
+          # How do we do that efficiently? We want to avoid re-grading nightly which is why we only regrade if
+          # there are new interactions. https://app.asana.com/0/1174274412967132/1200247977762040
+
+          # If we're before the due date, and there are no *new* interactions, skip this user.
+          due_date = ModuleGradeCalculator.due_date_for_user(user_id, assignment_overrides)
+          if !has_new_interactions && !due_date.nil? && Time.parse(due_date) > Time.now.utc
+            Honeycomb.add_field('grade_modules.skipped_user', true)
+            Honeycomb.add_field('grade_modules.skipped_reason', 'no interactions and assignment isn''t due yet')
+            Rails.logger.info("Skip user_id = #{user_id}, canvas_assignment_id = #{canvas_assignment_id}; " \
+                "no interactions and assignment isn't due yet")
+            next
+          end
+
+          # If we get here, we're either before the due date and there are new interactions OR
+          # we're after the due date and we grade regardless of interactions so
+          # people who skipped this module get auto-zero grades in Canvas.
+
+          Rails.logger.info("Computing grade for: user_id = #{user_id}, canvas_course_id = #{course.canvas_course_id}, " \
+              "canvas_assignment_id = #{canvas_assignment_id}")
+
+          # Note: we don't actually store the grade on the rise360_module_grade. We always compute it on the fly
+          # b/c there are too many variables that could cause it to change.
+          grades[user.canvas_user_id] =
+            "#{ModuleGradeCalculator.compute_grade(
+              user_id,
+              canvas_assignment_id,
+              assignment_overrides
+            )}%"
         end
-
-        # If we're before the due date and there are new interactions, grade.
-        # If we're after the due date, grade regardless of interactions, so
-        # people who skipped this module get auto-zero grades in Canvas.
-
-        Rails.logger.info("Computing grade for: user_id = #{user_id}, canvas_course_id = #{course.canvas_course_id}, " \
-            "canvas_assignment_id = #{canvas_assignment_id}")
-
-        user = User.find(user_id)
-        grades[user.canvas_user_id] =
-          "#{ModuleGradeCalculator.compute_grade(
-            user_id,
-            canvas_assignment_id,
-            assignment_overrides
-          )}%"
       end
 
       span.add_field('app.grade_modules.grades.count', grades.count)
@@ -167,4 +190,32 @@ class GradeModules
       ).where('id <= ?', max_id).update_all(new: false)
     end
   end
+
+  def self.grading_disabled_for?(canvas_course_id, canvas_assignment_id, user)
+    rise360_module_grade = CourseRise360ModuleVersion.find_by!(canvas_assignment_id: canvas_assignment_id)
+      .rise360_module_grades.find_by(user: user)
+
+    # If they've never opened the module a Rise360ModuleGrade won't exist yet.
+    # All auto-grading logic is disabled circuited until they do.
+    Honeycomb.add_field('grade_modules.module_opened', rise360_module_grade.present?)
+    return true unless rise360_module_grade
+
+    Honeycomb.add_field('grade_modules.grade_manually_overridden', rise360_module_grade.grade_manually_overridden)
+    return true if rise360_module_grade.grade_manually_overridden
+
+    # If a TA or staff member manually sets the grade in Canvas, now that's the grade
+    # and we turn auto-grading off going forward.
+    if CanvasAPI.client
+       .latest_submission_manually_graded?(canvas_course_id, canvas_assignment_id, user.canvas_user_id)
+
+      Honeycomb.add_field('grade_modules.grade_manually_overridden_detected_at', DateTime.now.utc)
+      Honeycomb.add_field('grade_modules.grade_manually_overridden', true)
+      rise360_module_grade.update!(grade_manually_overridden: true)
+      return true
+    else
+      Honeycomb.add_field('grade_modules.grade_manually_overridden', false)
+      return false
+    end
+  end
+
 end
