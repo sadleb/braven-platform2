@@ -96,7 +96,7 @@ private
     # TODO: rename Portal to Canvas everywhere.
     SyncPortalEnrollmentForAccount
       .new(user: @user,
-           portal_user: CanvasAPI::LMSUser.new(@user.canvas_user_id),
+           portal_user: CanvasAPI::LMSUser.new(@user.canvas_user_id, @user.email),
            salesforce_participant: @salesforce_participant,
            salesforce_program: @salesforce_program)
       .run
