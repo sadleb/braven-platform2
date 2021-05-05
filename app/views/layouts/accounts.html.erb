@@ -1,4 +1,4 @@
-<% content_for :title, 'Braven Login'  %>
+<% content_for :title, 'Braven Login' if content_for(:title).blank? %>
 
 <% content_for :head do %>
   <%= stylesheet_link_tag 'layouts/accounts', media: 'all', 'data-turbolinks-track': 'reload' %>

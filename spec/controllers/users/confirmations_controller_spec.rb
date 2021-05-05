@@ -28,4 +28,5 @@
       # Redirected to https://platformweb/users/registration?login_attempt=true&u=0031100001mxTPaAAM
     # I'm not fixing that in this PR b/c that particular code is being changed with the "one-time" token
     # PR. We should fix there: https://github.com/bebraven/platform/pull/685
+    # ---- we went with a different fix, see PR #698.
 

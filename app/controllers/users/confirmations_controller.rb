@@ -11,11 +11,18 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
   #   super
   # end
 
+  # GET /resource/confirmation/show_resend
+  def show_resend
+    # Don't set any self.resource reference, this endpoint should
+    # not reveal any information. The view references params directly
+    # if they are set.
+  end
+
   # POST /resource/confirmation
   def create
-    # Don't error out, and don't reveal whether the UUID is valid.
-    # Just try to send an email if the user exists.
-    user = User.find_by(uuid: params[:user][:uuid])
+    # Don't error out, and don't reveal whether the UUID (or confirmation_token)
+    # was valid. Just try to send an email if the user exists.
+    user = find_user_by_uuid || find_user_by_confirmation_token
     user&.send_confirmation_instructions
   end
 
@@ -49,18 +56,18 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
     else
       # This is most likely for a bad token or a token that's already been consumed or
       # an expired token. Don't reveal any information about the token's validity or the
-      # account tied to it for security purposes. Just send them to the log in page and
-      # if they use valid credentials, then they'll get a message about the problem (e.g.
-      # they have to resend a confirmation email b/c the link expired).
+      # account tied to it for security purposes. Just send them to the #show_resend view so they
+      # get a "re-send confirmation email" button. If the token was attached to a real
+      # account, the button will work. If not, the button will act like it worked but do
+      # nothing.
       Rails.logger.error("Confirmation error for #{user.inspect}. Errors = #{user.errors.full_messages}")
       Honeycomb.add_field('user.email', user.email)
       Honeycomb.add_field('error', user.errors.class.name)
       Honeycomb.add_field('error_detail', user.errors.full_messages)
       Honeycomb.add_field('error_type', user.errors.first.type) # e.g. confirmation_period_expired
-      redirect_to cas_login_path(
-          service: CanvasAPI.client.canvas_url,
-          notice: 'Your email is either already confirmed or that link was invalid. Please log in.'
-        ) and return
+      redirect_to users_confirmation_show_resend_path(
+        confirmation_token: params[:confirmation_token]
+      ) and return
     end
   rescue RestClient::Exception => e
     # This is a CanvasAPI failure. Presumably the API is down (but it could be a bug).
@@ -113,8 +120,18 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
 
   private
 
+  # Note this uses the nested syntax expected in the #create action.
+  def find_user_by_uuid
+    User.find_by(uuid: params[:user][:uuid])
+  end
+
+  # Note this uses the nested syntax expected in the #create action.
+  def find_user_by_confirmation_token
+    User.find_first_by_auth_conditions(confirmation_token: params[:user][:confirmation_token])
+  end
+
   def configure_permitted_parameters
-    devise_parameter_sanitizer.permit(:create, keys: [:uuid])
+    devise_parameter_sanitizer.permit(:create, keys: [:uuid, :confirmation_token])
   end
 
 end

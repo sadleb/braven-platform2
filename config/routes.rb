@@ -35,6 +35,7 @@ Rails.application.routes.draw do
     get 'users/password/check_email', to: "users/passwords#check_email"
     get 'users/registration', to: "users/registrations#show"
     post '/admin/users', to: 'users#create'
+    get 'users/confirmation/show_resend', to: "users/confirmations#show_resend"
   end
 
   get 'home/welcome'
