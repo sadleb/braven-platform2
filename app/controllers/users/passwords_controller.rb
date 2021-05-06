@@ -25,6 +25,8 @@ class Users::PasswordsController < Devise::PasswordsController
       # Since we've verified the token, and we know the user has not done
       # the sign_up flow yet, redirect to RegistrationsController#new to set
       # their initial password, create their Canvas account, etc instead.
+      # Note the reset_password_token may be expired at this point, but
+      # we don't care; that will be validated in RegisterUserAccount.
       return redirect_to user_registration_path(reset_password_token: reset_password_token)
     end
 
@@ -33,10 +35,20 @@ class Users::PasswordsController < Devise::PasswordsController
 
   # PUT /resource/password
   def update
-    # Invalidate signup tokens when the password is reset.
     # https://www.rubydoc.info/github/plataformatec/devise/Devise/PasswordsController#update-instance_method
     super do
+      if resource.errors.any? { |e| e.attribute == :reset_password_token }
+        # If the validation fails on token, whether because the token
+        # didn't match any users, or was expired, redirect to the #new
+        # page with a message explaining the token was invalid and the form
+        # to send a new reset email. Do not reveal what account this token
+        # may have been tied to, or the exact reason for the token failure.
+        return redirect_to new_user_password_path(resend: true)
+      end
+
       if resource.errors.empty?
+        # Invalidate signup tokens when the password is reset.
+        # The reset tokens are already removed in `super`.
         resource.update(
           signup_token: nil,
           signup_token_sent_at: nil,
