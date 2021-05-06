@@ -46,4 +46,5 @@ en:
               blank: "Please enter a password confirmation"
               confirmation: "Passwords don't match"
               too_short: "Password is too short"
-
+            reset_password_token:
+              invalid: "Password link has expired, has already been used, or was invalid"

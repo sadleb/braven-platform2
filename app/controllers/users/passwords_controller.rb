@@ -15,8 +15,10 @@ class Users::PasswordsController < Devise::PasswordsController
 
   # GET /resource/password/edit?reset_password_token=abcdef
   def edit
+    reset_password_token = params[:reset_password_token]
+
     # Don't allow nil tokens. (This would be a password reset bypass.)
-    return super unless params[:reset_password_token]
+    return super unless reset_password_token
 
     user = User.with_reset_password_token(reset_password_token)
     if user.present? && !user.registered?
