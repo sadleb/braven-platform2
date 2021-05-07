@@ -3,7 +3,7 @@
 
     <% if content_for? :instructions_heading %>
     <div class="row justify-content-center">
-      <div class="col-sm-6">
+      <div class="col-md-8">
         <%= yield(:instructions_heading) %>
       </div>
     </div>
@@ -11,7 +11,7 @@
 
     <% if content_for? :instructions_prompt %>
     <div class="row justify-content-center">
-      <div class="col-sm-6">
+      <div class="col-md-8">
         <%= yield(:instructions_prompt) %>
       </div>
     </div>
@@ -19,7 +19,7 @@
 
     <% if content_for? :instructions_call_to_action %>
     <div class="row justify-content-center">
-      <div class="col-sm-6">
+      <div class="col-md-8">
         <%= yield(:instructions_call_to_action) %>
       </div>
     </div>

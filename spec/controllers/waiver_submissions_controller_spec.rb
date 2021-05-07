@@ -52,7 +52,7 @@ RSpec.describe WaiverSubmissionsController, type: :controller do
 
       context 'when waivers are already signed' do
         let(:waivers_submission_result) { build(:lti_result) }
-        it 'redirects to thank you page' do
+        it 'redirects to completed page' do
           expect(response).to redirect_to completed_waiver_submissions_path(state: lti_launch.state)
         end
       end
@@ -162,8 +162,10 @@ RSpec.describe WaiverSubmissionsController, type: :controller do
         expect(lti_advantage_api).to have_received(:create_score).with(lti_score_request).once
       end
 
-      it 'shows the thank you page' do
+      it 'shows the thank you page with message about next steps' do
+        expect(response.body).to match /Waivers Submitted - One More Step/
         expect(response.body).to match /Thank you/
+        expect(response.body).to match /immediately check your email and spam/
       end
     end # '#create'
 
@@ -171,6 +173,11 @@ RSpec.describe WaiverSubmissionsController, type: :controller do
       it 'shows the thank you page' do
         get :completed, params: { state: lti_launch.state }, session: valid_session
         expect(response.body).to match /Thank you/
+      end
+
+      it 'shows message about still needing to do email verification if they didnt' do
+        get :completed, params: { state: lti_launch.state }, session: valid_session
+        expect(response.body).to match(/Please check your email and spam folder for a link to verify your waivers if you haven't already/)
       end
     end # '#completed'
 

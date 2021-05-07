@@ -42,10 +42,10 @@ test('changes the message when found', async () => {
   await formAssembly.main();
 
   expect(document.querySelector('#tfa_esignature-email-warning legend.errMsg').innerHTML)
-    .toBe('<i class="fa fa-envelope" aria-hidden="true"></i> Check your email after submitting');
+    .toBe('<i class="fa fa-envelope" aria-hidden="true"></i> Next step');
 
   expect(document.querySelector('#tfa_esignature-email-warning div.errMsg').innerText)
-    .toBe('Please click the link in the verification email to complete your signature after submitting the signed response below.');
+    .toBe('Immediately check your email and spam for a link to verify the waivers you just signed after submitting the signed response below.');
 });
 
 
