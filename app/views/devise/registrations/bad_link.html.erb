@@ -1,6 +1,9 @@
-<h1>Uh oh. Something went wrong!</h1>
-<div>
-  <p>You should have a received a link from Braven after signing up for the program at <a href="https://bebraven.org">bebraven.org</a>.</p>
-  <p>If you don't have access to the email you signed up with or didn't receive an email with a link, please <a href="mailto:support@bebraven.org">contact us here</a>.</p>
-  <p>If you have already signed up, try <%= link_to "logging in", cas_login_path %> instead.</p>
+<div class="row">
+  <div class="col-md-10">
+    <h1>Uh oh. Something went wrong!</h1>
+    <p>Try logging in instead if you have already signed up.</p>
+    <p> <a class="btn btn-primary" href="<%= cas_login_path(service: CanvasAPI.client.canvas_url) %>">Log in</a></p>
+    <p>If you have not already signed up, you should have a received an email with a signup link from Braven welcoming you to the program.</p>
+    <p>If you did not receive an email with a link, please <a href="mailto:support@bebraven.org">contact us here</a>.</p>
+  </div>
 </div>
