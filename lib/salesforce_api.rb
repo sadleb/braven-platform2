@@ -22,7 +22,7 @@ class SalesforceAPI
                          :pre_accelerator_qualtrics_survey_id,
                          :post_accelerator_qualtrics_survey_id)
 
-  ENROLLED = 'Enrolled' 
+  ENROLLED = 'Enrolled'
   DROPPED = 'Dropped'
   COMPLETED = 'Completed'
   LEADERSHIP_COACH = :'Leadership Coach'
@@ -50,7 +50,7 @@ class SalesforceAPI
 
   def authenticate
     # For authentication against the Salesforce API we use what is called a Session ID token as detailed here:
-    # https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/quickstart_oauth.htm 
+    # https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/quickstart_oauth.htm
     auth_params = {
       :grant_type => 'password',
       :client_id => ENV['SALESFORCE_PLATFORM_CONSUMER_KEY'],
@@ -58,7 +58,7 @@ class SalesforceAPI
       :username => ENV['SALESFORCE_PLATFORM_USERNAME'],
       :password => ENV['SALESFORCE_PLATFORM_PASSWORD'] + ENV['SALESFORCE_PLATFORM_SECURITY_TOKEN']
     }
-  
+
     # TODO: this endpoint is really only supposed to be for dev env testing. Once we figure out how to hookup this stuff
     # to Salesforce, ideally switch to use the JWT/JWK bearer flow:
     #  - https://help.salesforce.com/articleView?id=remoteaccess_oauth_jwt_flow.htm&type=5
@@ -67,9 +67,9 @@ class SalesforceAPI
     token_response = RestClient.post("https://#{ENV['SALESFORCE_HOST']}/services/oauth2/token", auth_params)
     token_response_json = JSON.parse(token_response.body)
 
-    # There are generic Salesforce URLs like: 
+    # There are generic Salesforce URLs like:
     #  - https://login.salesforce.com
-    #  - https://test.salesforce.com 
+    #  - https://test.salesforce.com
     # But when using the API we need to hit the actual instance our Salesforce account is hosted on. E.g.
     #  - https://na74.my.salesforce.com/
     #  - https://bebraven--Staging.cs22.my.salesforce.com
@@ -98,7 +98,7 @@ class SalesforceAPI
   # Gets a list of all Accelerator Programs (not LC Programs) that have been launched (aka
   # they have a Canvas Course ID set) and are either currently running or will be in the future.
   def get_current_and_future_accelerator_programs()
-    soql_query = 
+    soql_query =
       "SELECT Id, Name, Canvas_Cloud_Accelerator_Course_ID__c FROM Program__c " \
       "WHERE RecordType.Name = 'Course' AND Canvas_Cloud_Accelerator_Course_ID__c <> NULL AND Status__c IN ('Current', 'Future')"
 
@@ -110,7 +110,7 @@ class SalesforceAPI
 
   # TODO: remove the Qualtrics IDs from here. We don't use them anymore.
   def get_program_info(program_id)
-    soql_query = 
+    soql_query =
       "SELECT Id, Name, Canvas_Cloud_Accelerator_Course_ID__c, Canvas_Cloud_LC_Playbook_Course_ID__c, School__c, " \
         "Section_Name_in_LMS_Coach_Course__c, Default_Timezone__c, " \
         "Preaccelerator_Qualtrics_Survey_ID__c, Postaccelerator_Qualtrics_Survey_ID__c " \
@@ -145,7 +145,7 @@ class SalesforceAPI
   # for the date, but need to make sure I can convert that to a SOQL query and filter on it.
 
   # The format is the Salesforce database datetime format in GMT. For example:
-  #    2020-04-06T20:19:23.000+0000 
+  #    2020-04-06T20:19:23.000+0000
   # Also, it's only down to the second precision, not millisecond.
   def get_participants(program_id = nil, contact_id = nil, last_modified_since = nil)
     query_params = ''
@@ -153,11 +153,11 @@ class SalesforceAPI
       query_params = '?'
       query_params += "program_id=#{program_id}&" if program_id
       query_params += "contact_id=#{contact_id}&" if contact_id
-      query_params += "last_modified_since=#{CGI.escape(last_modified_since)}&" if last_modified_since 
+      query_params += "last_modified_since=#{CGI.escape(last_modified_since)}&" if last_modified_since
       query_params.chop! # Remove the trailing &
     end
     # Defined in BZ_ProgramParticipantInfoService Apex class in Salesforce
-    response = get("/services/apexrest/participants/currentandfuture/#{query_params}") 
+    response = get("/services/apexrest/participants/currentandfuture/#{query_params}")
     JSON.parse(response.body)
   end
 
@@ -200,10 +200,10 @@ class SalesforceAPI
     recursively_map_soql_column_to_array('Name', [], initial_api_path)
   end
 
-  # Get the associated Accelerator Canvas course ID for the specified 
+  # Get the associated Accelerator Canvas course ID for the specified
   # LC Playbook Canvas course ID.
   def get_accelerator_course_id_from_lc_playbook_course_id(lc_playbook_course_id)
-    soql_query = 
+    soql_query =
       "SELECT Canvas_Cloud_Accelerator_Course_ID__c " \
       "FROM Program__c WHERE Canvas_Cloud_LC_Playbook_Course_ID__c = '#{lc_playbook_course_id}'"
 
@@ -212,7 +212,7 @@ class SalesforceAPI
     return record ? record['Canvas_Cloud_Accelerator_Course_ID__c'] : nil
   end
 
-  # Recursively pages the API in a SOQL query for a particular column 
+  # Recursively pages the API in a SOQL query for a particular column
   # builds up an array of the results. The initial call to this should be with the query path
   # and then this calls itself with the next path if necessary.
   #
@@ -248,8 +248,7 @@ class SalesforceAPI
   end
 
   def update_contact(id, fields_to_set)
-     response = patch("#{DATA_SERVICE_PATH}/sobjects/Contact/#{id}", fields_to_set.to_json, JSON_HEADERS)
-     JSON.parse(response.body)
+     patch("#{DATA_SERVICE_PATH}/sobjects/Contact/#{id}", fields_to_set.to_json, JSON_HEADERS)
   end
 
   def find_contact(id:)
