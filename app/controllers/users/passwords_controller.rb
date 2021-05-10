@@ -27,7 +27,7 @@ class Users::PasswordsController < Devise::PasswordsController
       # their initial password, create their Canvas account, etc instead.
       # Note the reset_password_token may be expired at this point, but
       # we don't care; that will be validated in RegisterUserAccount.
-      return redirect_to user_registration_path(reset_password_token: reset_password_token)
+      return redirect_to new_user_registration_path(reset_password_token: reset_password_token)
     end
 
     super
