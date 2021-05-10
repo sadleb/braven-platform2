@@ -50,6 +50,8 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
 
       Honeycomb.add_field('confirmations_controller.auto_sign_in', true)
       Rails.logger.debug("Signing #{user.email} in using CAS SSO.")
+      # Must set self.resource before calling sign_in_and_get_redirect_path.
+      self.resource = user
       redirect_path_for_user = sign_in_and_get_redirect_path
       set_flash_message!(:notice, :confirmed)
       redirect_to redirect_path_for_user and return
