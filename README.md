@@ -47,36 +47,6 @@ Add a `127.0.0.1   platformweb` to your `/etc/hosts` file to access the Platform
 We have an [nginx-dev
 container](https://github.com/beyond-z/nginx-dev) that will allow you to access the app over SSL and without specifying the port number.
 
-### Join server
-There are current two modes we can run in for how we can authenticate. By default, we authenticate against the local database. But
-you can toggle this and authenticate against the Join server by uncommenting `BZ_AUTH_SERVER` in your `.env`. If you do, you'll need
-the Join server to be running locally at http://joinweb. Look at the `server` config value in `config/rubycas.yml` for where that comes from.
-If you do this, you can login with any user that exists in the Join server's database and admins are anyone with an `@bebraven.org` email.
-See the section below on setting up the join server.
-
-**TODO: get rid of the fork flow. Just clone...**
-
-Fork the [development](https://github.com/beyond-z/development) and [beyondz-platform](https://github.com/beyond-z/beyondz-platform) repositories from the [beyondz project](https://github.com/beyond-z).
-
-Clone the repositories, with `beyondz-platform` under `development`:
-
-    git clone https://github.com/[your_username]/development.git development
-    cd development/
-    git clone https://github.com/[your_username]/beyondz-platform.git beyondz-platform
-
-Now build the Docker environment:
-
-    cd beyondz-platform/
-    docker-compose up -d
-
-And set up the database in your Join server's dev environment:
-
-    docker-compose exec joinweb bundle run rake db:create && ./docker-compose/scripts/dbrefresh.sh
-
-(These commands are from `development/setup.sh`. Search for `$join_src_path` to see what it's doing.)
-
-Add `127.0.0.1   joinserver` to your `/etc/hosts` and access via http://platformweb:3020/.
-
 ### Salesforce
 
 If you need to work on anything that hits the Salesforce API, you'll need to setup the following
@@ -92,10 +62,10 @@ environment variables in your `~/.bash_profile`.
 
 The values to use come from the Connected App in the Salesforce environment you are working against and
 for the user that setup that connected app. To create them in a given Salesforce environment (prod, staging, dev)
-first ask someone to create a Salesforce account for you (or get the admin account). 
+first ask someone to create a Salesforce account for you (or get the admin account).
 
 1. Login and go to Setup (the little gear in the top right)
-2. In the Quick Find type "App Manager". 
+2. In the Quick Find type "App Manager".
 3. Under App Manager, you can create a "New Connected App" in the top right.
 4. Enable OAuth settings, put in anything for the callback URL (since we don't currently use it), and give it Full Access scope.
 
@@ -107,12 +77,12 @@ will be emailed to that user in an email titled "Your new Salesforce security to
 ### Canvas
 
 #### Create a course
-Create a course in Canvas as your sandbox/development environment. Call it `Playground - <insert your name>`. Publish it. 
+Create a course in Canvas as your sandbox/development environment. Call it `Playground - <insert your name>`. Publish it.
 
 #### Create test users
-In your Canvas course, select **People** in navigation and add test users to your course by email. 
+In your Canvas course, select **People** in navigation and add test users to your course by email.
 
-Your test user's email address will be your Braven email with a suffix identifying the user. 
+Your test user's email address will be your Braven email with a suffix identifying the user.
 
 For example:
 
@@ -124,12 +94,12 @@ After adding your test users, they need to accept their course invitations. Ther
  - Email: check your email, click on the link to accept the invitation.
  - Canvas: go to **People**, select the user, then click **Act as User**. You will either automatically enroll, or be prompted by Canvas to join the course.
 
-You also need to add your test user to your development database with the same email and Canvas ID. 
+You also need to add your test user to your development database with the same email and Canvas ID.
 
-To locate a user's Canvas ID, go to **People**, and hover over the user's name. The ID will appear in the URL. 
-For example: `https://braven.instructure.com/courses/48/users/78`. The user's Canvas ID is 78. 
+To locate a user's Canvas ID, go to **People**, and hover over the user's name. The ID will appear in the URL.
+For example: `https://braven.instructure.com/courses/48/users/78`. The user's Canvas ID is 78.
 
-In you development directory, run `devc`, and add your test user in the Rails console. 
+In you development directory, run `devc`, and add your test user in the Rails console.
 
 Edit the **email** and **canvas_id** in the following to match those of your test user:
 
@@ -158,7 +128,7 @@ We add functionality to our [online Portal](https://braven.instructure.com) (aka
 
 [Configure and deploy an LTI extension](https://docs.google.com/document/d/1sLFnqo8-lr556EwyIUHy_jLWOwzGEkub6nFKDWPO58Y/edit#heading=h.pce3b8uoohrj) that will only work on your computer and hit your local development environment as follows (screenshots in the link):
 1. Navigate to [Admin -> Developer Keys](https://braven.instructure.com/accounts/1/developer_keys) in the Portal.
-1. Click `+ Developer Key -> + LTI Key` 
+1. Click `+ Developer Key -> + LTI Key`
 1. Open one of the other developer's keys in a new tab and copy all the setting's from theirs, except adjust the names to your own and in the `Public JWK URL` field, enter your own ngrok URL. E.g. `https://<insertyourname>platform.ngrok.io/public_jwk`
 1. Grab the Client ID, e.g. `160050000000000012`
 1. Deploy the LTI extension only to your Playground course by navigating to `Playground Course -> Settings -> Apps -> View App Configurations` OR just use the URL: `https://braven.instructure.com/courses/[YOUR_COURSE_ID]/settings/configurations
@@ -253,21 +223,21 @@ TODO: write an overview of how we deploy, how we've configured CI, Booster vs Br
 
 #### Continuous Integration
 
-The platform pipeline in Heroku runs [continuous integration (CI) tests](https://dashboard.heroku.com/pipelines/0017371f-020c-434b-b666-c5b9870468ea/tests/1763) using the configuration in [app.json](https://devcenter.heroku.com/articles/heroku-ci#configuring-your-test-environment). 
+The platform pipeline in Heroku runs [continuous integration (CI) tests](https://dashboard.heroku.com/pipelines/0017371f-020c-434b-b666-c5b9870468ea/tests/1763) using the configuration in [app.json](https://devcenter.heroku.com/articles/heroku-ci#configuring-your-test-environment).
 
-Most specs should run as part of the CI suite, so merging is blocked until tests pass. 
+Most specs should run as part of the CI suite, so merging is blocked until tests pass.
 
 However, if you have a flaky test (e.g., one that communicates with external services outside of VCR), you can [tag](https://relishapp.com/rspec/rspec-core/v/2-4/docs/command-line/tag-option) it with `ci_exclude`:
 
   it "flaky test", ci_exclude: true do; end
 
-and it won't run as part of continuous integration. 
+and it won't run as part of continuous integration.
 
 #### Sentry
 TODO: talk about this
 
 #### Honeycomb
-We've instrumented our server-side and client-side code to send traces and spans to [Honeycomb](https://ui.honeycomb.io/braven/datasets) 
+We've instrumented our server-side and client-side code to send traces and spans to [Honeycomb](https://ui.honeycomb.io/braven/datasets)
 so we can troubleshoot and analyze it. While the auto-instrumentation is very useful, when writing new code you should
 always ask yourself *"Is there information here that may be useful if problems arise and I need to troubleshoot?"* and
 *"Am I worried this may have a performance impact?"* If the answer is yes to either, you should add some manual Honeycomb
@@ -294,14 +264,14 @@ end
 On the client-side, use the wrapper classes in `honeycomb.js` to add manual instrumentation. E.g.
 ```
 const honey_span = new HoneycombXhrSpan('controller.name', 'action.name', {
-    'field1.to.add': 'value1', 
+    'field1.to.add': 'value1',
     'field2.to.add': 'value2'});
 ```
-To get an overall view of the user experience on a page including the Javascript that runs, group by 
-`trace.trace_id` in Honeycomb and click on the trace you want to see. 
+To get an overall view of the user experience on a page including the Javascript that runs, group by
+`trace.trace_id` in Honeycomb and click on the trace you want to see.
 
 #### Codacy - Static Code Analysis (aka linter)
-We use Codacy to run static code analysis. Everytime you push a branch to the repo it runs. 
+We use Codacy to run static code analysis. Everytime you push a branch to the repo it runs.
 
 **You can see [status here](https://app.codacy.com/manual/bebraven/platform/dashboard)**
 
@@ -484,14 +454,14 @@ Or, for example you can inspect one such as the `@current_user` by writing `inst
 We also have the pry and rescue gems so that you can break and debug code. Here is an example for how to debug
 a spec that is throwing an exception.
 
-    bundle exec rescue rspec spec/a_failing_spec.rb --format documentation   
+    bundle exec rescue rspec spec/a_failing_spec.rb --format documentation
 
 See [this FANTASTIC article](https://supergood.software/a-ruby-gem-debugging-strategy/) for some general advice around
 debugging and troubleshooting things if you're new to RoR development.
 
 Of specific note, if you need to debug the code inside a gem, our gems are installed
-at `vendor/bundle` inside the container. If you attach to the container you can dig down in there and add a 
-some logging inside the gem code. You have to restart the container for the change to be picked up and if you 
+at `vendor/bundle` inside the container. If you attach to the container you can dig down in there and add a
+some logging inside the gem code. You have to restart the container for the change to be picked up and if you
 make a mess of things and want to blow it away you need to remove the vendor-bundle volume using:
 
     docker volume rm platform_vendor-bundle

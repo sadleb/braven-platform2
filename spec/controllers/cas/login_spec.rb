@@ -76,6 +76,9 @@ RSpec.describe CasController, type: :routing do
       end
     end
 
+# TODO: check reconfirmation email user too
+# TODO: check that after confirmation, the user can log in
+
     context "when user hasn't confirmed their email" do
       let!(:unconfirmed_user) { create(:unconfirmed_user) }
       let(:username) { unconfirmed_user.email }

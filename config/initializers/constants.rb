@@ -1,5 +1,8 @@
 # frozen_string_literal: true
+
+###################
 # Global constants
+##################
 
 # Roles
 class RoleConstants
@@ -35,3 +38,10 @@ class LtiConstants
   # Note: if you change this, keep it in sync with: app/javascript/packs/project_answers.js
   AUTH_HEADER_PREFIX = 'LtiState'
 end
+
+# Canvas
+class CanvasConstants
+  CANVAS_URL = Rails.application.secrets.canvas_url.freeze
+  CAS_LOGIN_URL = "#{CANVAS_URL}/login/cas".freeze
+end
+

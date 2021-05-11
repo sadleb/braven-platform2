@@ -28,7 +28,7 @@ class Users::RegistrationsController < Devise::RegistrationsController
       user = find_user_by_signup_token || find_user_by_reset_password_token
       if user.present? && user.registered?
         redirect_to cas_login_path(
-          service: CanvasAPI.client.canvas_url,
+          service: CanvasConstants::CANVAS_URL,
           notice: 'Looks like you have already signed up. Please log in.'
         ) and return
       end
@@ -154,6 +154,6 @@ class Users::RegistrationsController < Devise::RegistrationsController
   # The path used after sign up for inactive accounts.
   # This shows a thank you page and let's them know to go confirm their account.
   def after_inactive_sign_up_path_for(resource)
-    users_registration_path(:signup_token => resource.signup_token)    
+    users_registration_path(:signup_token => resource.signup_token)
   end
 end

@@ -7,7 +7,7 @@ require 'lti_resource_link_request_message'
 # Note: these are only available for LTI resources added using the Assignment Selection
 # placement. See the notes under "Limitations" here: https://canvas.instructure.com/doc/api/file.link_selection_placement.html
 #
-# See: 
+# See:
 # - https://www.imsglobal.org/spec/lti-ags/v2p0/#introduction
 # - https://canvas.instructure.com/doc/api/line_items.html
 # - https://canvas.instructure.com/doc/api/score.html
@@ -17,7 +17,7 @@ require 'lti_resource_link_request_message'
 # - https://www.imsglobal.org/spec/security/v1p0/#using-oauth-2-0-client-credentials-grant
 class LtiAdvantageAPI
 
-  OAUTH_ACCESS_TOKEN_URL = "#{Rails.application.secrets.canvas_cloud_url}/login/oauth2/token"
+  OAUTH_ACCESS_TOKEN_URL = "#{Rails.application.secrets.canvas_url}/login/oauth2/token"
   JSON_HEADERS = {content_type: :json, accept: :json}
 
   # The assignment_lti_launch should be an LtiLaunch of an already Deep Linked assignment
@@ -26,7 +26,7 @@ class LtiAdvantageAPI
     validate_param(assignment_lti_launch)
 
     @iss = assignment_lti_launch.braven_iss
-    @client_id = assignment_lti_launch.client_id 
+    @client_id = assignment_lti_launch.client_id
     @scope = parse_scope(assignment_lti_launch)
     @line_items_url = assignment_lti_launch.request_message.line_items_url
     @line_item_url = assignment_lti_launch.request_message.line_item_url
@@ -39,7 +39,7 @@ class LtiAdvantageAPI
   # to Canvas so it shows up in the gradebook. See: https://canvas.instructure.com/doc/api/score.html
   #
   # Usage:
-  # LtiAdvantageAPI.new(<the_launch>).create_score( LtiScore.generate(...) ) 
+  # LtiAdvantageAPI.new(<the_launch>).create_score( LtiScore.generate(...) )
   def create_score(lti_score)
     response = post("#{@line_item_url}/scores", lti_score)
     JSON.parse(response.body)
@@ -91,8 +91,8 @@ private
     }.to_json
   end
 
-  # Payload of JWT used as Bearer token authenticating this server as being allowed to 
-  # request an OAuth access token. 
+  # Payload of JWT used as Bearer token authenticating this server as being allowed to
+  # request an OAuth access token.
   # See: https://www.imsglobal.org/spec/security/v1p0/#using-json-web-tokens-with-oauth-2-0-client-credentials-grant
   def bearer_token_payload
     {
@@ -107,7 +107,7 @@ private
 
   def validate_param(assignment_lti_launch)
     req_msg = assignment_lti_launch.request_message
-    raise ArgumentError.new, 'Wrong LTI launch message type. Must be a launch of a resource.' unless req_msg.is_a?(LtiResourceLinkRequestMessage) 
+    raise ArgumentError.new, 'Wrong LTI launch message type. Must be a launch of a resource.' unless req_msg.is_a?(LtiResourceLinkRequestMessage)
     raise ArgumentError.new, 'Missing scope. Needed to get an access token for LTI Advantage access' unless req_msg.scope.present?
     raise ArgumentError.new, 'Missing lineitem. Needed to send a score back for this resource.' unless req_msg.line_item_url.present?
   end

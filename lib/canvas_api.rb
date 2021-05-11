@@ -33,7 +33,7 @@ class CanvasAPI
 
   # Use this to get an instance of the API client with authentication info setup.
   def self.client
-    @client_instance ||= new(ENV['CANVAS_URL'], ENV['CANVAS_TOKEN'])
+    @client_instance ||= new(Rails.application.secrets.canvas_url, Rails.application.secrets.canvas_token)
   end
 
   def initialize(canvas_url, canvas_token)

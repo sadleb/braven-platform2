@@ -3,7 +3,7 @@ require 'lti_advantage_api'
 require 'lti_score'
 
 RSpec.describe LtiAdvantageAPI do
-  let(:canvas_cloud_url) { Rails.application.secrets.canvas_cloud_url }
+  let(:canvas_cloud_url) { Rails.application.secrets.canvas_url }
   let(:access_token) { FactoryBot.json(:lti_advantage_access_token) }
   let(:access_token_value) { JSON.parse(access_token)['access_token'] }
   let(:assignment_lti_launch) { create(:lti_launch_assignment) }
@@ -33,7 +33,7 @@ RSpec.describe LtiAdvantageAPI do
       expect(WebMock).to have_requested(:get, assignment_lti_launch.request_message.line_items_url)
         .with(headers: {'Authorization'=>'Bearer ' + access_token_value}).once
     end
-    
+
   end
 
   describe '#create_score' do
@@ -44,12 +44,12 @@ RSpec.describe LtiAdvantageAPI do
       # Note that Canvas's parsing is pretty good for the scores. Integers, floats, and strings all work.
       lti_score = LtiScore.generate('55',10.0,10.0, LtiScore::STARTED, LtiScore::FULLY_GRADED, 'some comments')
       api.create_score(lti_score)
-      expect(WebMock).to have_requested(:post, score_service_url).with(body: lti_score) 
+      expect(WebMock).to have_requested(:post, score_service_url).with(body: lti_score)
     end
 
     # Note: the course seems to need to be published and the userId be for a student in the course.
     # Write tests for this if we run into this situation in the wild.
-    
+
   end
 
   describe "#get_result" do
