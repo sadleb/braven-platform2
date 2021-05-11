@@ -4,6 +4,7 @@ class Users::RegistrationsController < Devise::RegistrationsController
   layout 'accounts'
   before_action :configure_sign_up_params, only: [:create]
   # before_action :configure_account_update_params, only: [:update]
+  before_action :set_tokens, only: [:new, :create]
 
   # GET /resource
   def show
@@ -110,6 +111,11 @@ class Users::RegistrationsController < Devise::RegistrationsController
 
   def reset_password_token
     params[:reset_password_token] || params.dig(:user, :reset_password_token)
+  end
+
+  def set_tokens
+    @signup_token = signup_token
+    @reset_password_token = reset_password_token
   end
 
   def uuid_param

@@ -21,9 +21,10 @@
       <%= f.password_field :password_confirmation, class: 'form-control', required: true, autocomplete: "new-password" %>
     </div>
 
+    <%= f.hidden_field :signup_token, :value => @signup_token if @signup_token %>
+    <%= f.hidden_field :reset_password_token, :value => @reset_password_token if @reset_password_token %>
+
     <div class="actions">
-      <%= f.hidden_field :signup_token, :value => params[:signup_token] if params[:signup_token] %>
-      <%= f.hidden_field :password_reset_token, :value => params[:password_reset_token] if params[:password_reset_token] %>
       <%= f.submit "Create Account" %>
     </div>
   <% end %>
