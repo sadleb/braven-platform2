@@ -49,8 +49,16 @@ class UsersController < ApplicationController
   def update
     authorize @user
 
-    # Don't update the password if it's blank (unchanged).
-    filtered_user_params = user_params.reject { |k, v| k == "password" and v.blank? }
+    # Don't update the password or salesforce_id if it's blank (unchanged).
+    # The SF ID has a uniqueness validation that fails if we set it to an empty
+    # string vs leaving it null
+    filtered_user_params = user_params.reject { |k, v|
+      if v.blank?
+        k == 'password' or k == 'salesforce_id'
+      else
+        false
+      end
+    }
 
     # Don't blow away their non-global roles
     new_global_role_ids = filtered_user_params[:role_ids]
