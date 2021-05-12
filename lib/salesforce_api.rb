@@ -134,8 +134,9 @@ class SalesforceAPI
     JSON.parse(response.body)['records'][0]
   end
 
-  # Gets a list of all Participants in the Program. These are folks who are
-  # enrolled and should have Portal access.
+  # Gets a list of ALL Participants in the Program regardless of Status. Use find_participants_by(program_id)
+  # to get an easier to process list of SFParticipant structs for only those with a Status that may require
+  # sync'ing (aka filters out the empty Status folks).
   #
   # program_id: if specified, filters the Participants returned down to only that Program. E.g. a2Y1J000000YpQFUA0
   # contact_id: if specified, filters the Participants returned down to only that Contact. E.g. 0037A00000RUoz4QAD
@@ -256,16 +257,20 @@ class SalesforceAPI
     SFContact.new(contact['Id'], contact['Email'], contact['FirstName'], contact['LastName'])
   end
 
+  # Gets a list SFParticipant structs for Participant records that have a Status set.
   def find_participants_by(program_id:)
     participants = get_participants(program_id)
 
-    participants.map do |participant|
-      SFParticipant.new(participant['FirstName'], participant['LastName'],
-                      participant['Email'], participant['Role'].to_sym,
-                      participant['ProgramId'], participant['ContactId'],
-                      participant['ParticipantStatus'], participant['StudentId'],
-                      participant['CohortName'], participant['CohortScheduleDayTime'])
+    ret = participants.map do |participant|
+      if (participant['ParticipantStatus'].present?)
+        SFParticipant.new(participant['FirstName'], participant['LastName'],
+                          participant['Email'], participant['Role'].to_sym,
+                          participant['ProgramId'], participant['ContactId'],
+                          participant['ParticipantStatus'], participant['StudentId'],
+                          participant['CohortName'], participant['CohortScheduleDayTime'])
+      end
     end
+    ret.compact()
   end
 
 

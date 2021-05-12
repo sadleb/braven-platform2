@@ -9,10 +9,10 @@ RSpec.describe SalesforceAPI do
     ENV['SALESFORCE_PLATFORM_CONSUMER_KEY'] = 'testkey'
     ENV['SALESFORCE_PLATFORM_CONSUMER_SECRET'] = 'testsecret'
     ENV['SALESFORCE_PLATFORM_USERNAME'] = 'testuser@example.com'
-    ENV['SALESFORCE_PLATFORM_PASSWORD'] = 'testpassword' 
+    ENV['SALESFORCE_PLATFORM_PASSWORD'] = 'testpassword'
     ENV['SALESFORCE_PLATFORM_SECURITY_TOKEN'] = 'testtoken'
     SALESFORCE_LOGIN_URL = "https://#{ENV['SALESFORCE_HOST']}"
-    SALESFORCE_INSTANCE_URL = 'https://test--staging22.bebraven.org'  
+    SALESFORCE_INSTANCE_URL = 'https://test--staging22.bebraven.org'
     SALESFORCE_DATA_SERVICE_URL = "#{SALESFORCE_INSTANCE_URL}#{SalesforceAPI::DATA_SERVICE_PATH}"
     SALESFORCE_DATA_SERVICE_QUERY_URL = "#{SALESFORCE_DATA_SERVICE_URL}/query"
 
@@ -40,7 +40,7 @@ RSpec.describe SalesforceAPI do
       expect(WebMock).to have_requested(:get, "#{SALESFORCE_INSTANCE_URL}/test")
         .with(headers: {'Authorization'=>'Bearer test-token'}).once
     end
-    
+
   end
 
   describe '#get_accelerator_course_id_from_lc_playbook_course_id' do
@@ -50,7 +50,7 @@ RSpec.describe SalesforceAPI do
       program = JSON.parse(program_json)
 
       stub_request(:get, request_url_regex).to_return(body: program_json)
-      
+
       accelerator_course_id = SalesforceAPI.client.get_accelerator_course_id_from_lc_playbook_course_id(
         program['records'][0]['Canvas_Cloud_LC_Playbook_Course_ID__c'],
       )
@@ -114,21 +114,58 @@ RSpec.describe SalesforceAPI do
     let(:contact_id) { '004170000125IpSAOX' }
 
     context 'with program_id only' do
-      it 'calls the correct endpoint' do
-        request_url = "#{SALESFORCE_INSTANCE_URL}/services/apexrest/participants/currentandfuture/?program_id=#{program_id}" 
-        participant_json = "[#{FactoryBot.json(:salesforce_participant_fellow)}]"
+      let(:request_url) { "#{SALESFORCE_INSTANCE_URL}/services/apexrest/participants/currentandfuture/?program_id=#{program_id}" }
+      let(:participant_json) { "[#{FactoryBot.json(:salesforce_participant_fellow)}]" }
+
+      before(:each) do
         stub_request(:get, request_url).to_return(body: participant_json)
+      end
 
+      it 'calls the correct endpoint' do
         response = SalesforceAPI.client.get_participants(program_id)
-
         expect(WebMock).to have_requested(:get, request_url).once
         expect(response).to eq(JSON.parse(participant_json))
+      end
+
+      # This is a wrapper function for get_participants()
+      describe '#find_participants_by' do
+        context 'with Enrolled participants' do
+          let(:participant_json) { "[#{FactoryBot.json(:salesforce_participant_fellow, :ParticipantStatus => 'Enrolled')}]" }
+          it 'returns the Enrolled participants as a SFParticipant struct' do
+            response = SalesforceAPI.client.find_participants_by(program_id: program_id)
+            expect(response.first.is_a?(SalesforceAPI::SFParticipant))
+          end
+        end
+
+        context 'with Dropped participants' do
+          let(:participant_json) { "[#{FactoryBot.json(:salesforce_participant_fellow, :ParticipantStatus => 'Dropped')}]" }
+          it 'returns the Enrolled participants as a SFParticipant struct' do
+            response = SalesforceAPI.client.find_participants_by(program_id: program_id)
+            expect(response.first.is_a?(SalesforceAPI::SFParticipant))
+          end
+        end
+
+        context 'with Completed participants' do
+          let(:participant_json) { "[#{FactoryBot.json(:salesforce_participant_fellow, :ParticipantStatus => 'Completed')}]" }
+          it 'returns the Enrolled participants as a SFParticipant struct' do
+            response = SalesforceAPI.client.find_participants_by(program_id: program_id)
+            expect(response.first.is_a?(SalesforceAPI::SFParticipant))
+          end
+        end
+
+        context 'with Status: nil participants' do
+          let(:participant_json) { "[#{FactoryBot.json(:salesforce_participant_fellow, :ParticipantStatus => nil )}]" }
+          it 'does not return the participant' do
+            response = SalesforceAPI.client.find_participants_by(program_id: program_id)
+            expect(response.count).to be(0)
+          end
+        end
       end
     end
 
     context 'with program_id and contact_id' do
       it 'calls the correct endpoint' do
-        request_url = "#{SALESFORCE_INSTANCE_URL}/services/apexrest/participants/currentandfuture/?program_id=#{program_id}&contact_id=#{contact_id}" 
+        request_url = "#{SALESFORCE_INSTANCE_URL}/services/apexrest/participants/currentandfuture/?program_id=#{program_id}&contact_id=#{contact_id}"
         participant_json = "[#{FactoryBot.json(:salesforce_participant_fellow)}]"
         stub_request(:get, request_url).to_return(body: participant_json)
 
@@ -217,7 +254,7 @@ RSpec.describe SalesforceAPI do
         expect(response).to eq([JSON.parse(cohort_schedule1)['DayTime__c'], JSON.parse(cohort_schedule2)['DayTime__c'], JSON.parse(cohort_schedule3)['DayTime__c'] ])
       end
     end
-    
+
   end
 
   describe '#get_cohort_names(program_id)' do
@@ -263,7 +300,7 @@ RSpec.describe SalesforceAPI do
         expect(response).to eq([JSON.parse(cohort1)['Name'], JSON.parse(cohort2)['Name'], JSON.parse(cohort3)['Name'] ])
       end
     end
-    
+
   end
 
   describe '#get_contact_info(contact_id)' do
