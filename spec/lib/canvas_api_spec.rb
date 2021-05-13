@@ -51,6 +51,43 @@ RSpec.describe CanvasAPI do
     end
   end
 
+  # Note that this assumes there is only 1 login even though there could be more
+  # if an admin adds one. We don't handle that and just use the first.
+  describe '#get_login' do
+    let(:login) { create :canvas_login }
+    let(:user_id) { login['user_id'] }
+
+    it 'GETs the user login URL' do
+      request_url = "#{CANVAS_API_URL}/users/#{user_id}/logins"
+      response_json = "[#{login.to_json}]"
+      stub_request(:get, request_url).to_return( body: response_json )
+
+      response = canvas.get_login(user_id)
+
+      expect(WebMock).to have_requested(:get, request_url).once
+      expect(response).to eq(login)
+    end
+  end
+
+  describe '#update_login' do
+    let(:new_login_email) { 'fake.new.login.email@fake.com' }
+    let(:login) { create :canvas_login, unique_id: new_login_email }
+    let(:login_id) { login['id'] }
+
+    it 'PUTs the new email to the edit login URL' do
+      request_url = "#{CANVAS_API_URL}/accounts/#{CanvasAPI::DefaultAccountID}/logins/#{login_id}"
+      response_json = login.to_json
+      stub_request(:put, request_url).to_return( body: response_json )
+
+      response = canvas.update_login(login_id, new_login_email)
+
+      expect(WebMock).to have_requested(:put, request_url)
+        .with(body: "login%5Bunique_id%5D=#{CGI.escape(new_login_email)}")
+        .once
+      expect(response).to eq(login)
+    end
+  end
+
   describe '#find_user_in_canvas' do
     let(:email) { 'test+email@bebraven.org' }
     let(:course_id) { 71 }
@@ -104,7 +141,7 @@ RSpec.describe CanvasAPI do
 
     it 'hits the Canvas API correctly' do
       request_url = "#{CANVAS_API_URL}/users/#{user_id}/communication_channels"
-      channel = FactoryBot.json(:canvas_communication_channel)
+      channel = FactoryBot.json(:canvas_communication_channel, user_id: user_id)
 
       stub_request(:get, request_url).to_return( body: "[#{channel}]" )
 
@@ -121,9 +158,9 @@ RSpec.describe CanvasAPI do
     it 'returns first email channel id' do
       request_url = "#{CANVAS_API_URL}/users/#{user_id}/communication_channels"
       channels = "[
-        #{FactoryBot.json(:canvas_communication_channel, type: 'sms')},
-        #{FactoryBot.json(:canvas_communication_channel, type: 'email')},
-        #{FactoryBot.json(:canvas_communication_channel, type: 'email')}
+        #{FactoryBot.json(:canvas_communication_channel, type: 'sms', user_id: user_id)},
+        #{FactoryBot.json(:canvas_communication_channel, type: 'email', user_id: user_id)},
+        #{FactoryBot.json(:canvas_communication_channel, type: 'email', user_id: user_id)}
       ]"
 
       stub_request(:get, request_url).to_return( body: channels )
@@ -131,6 +168,63 @@ RSpec.describe CanvasAPI do
       id = canvas.get_user_email_channel_id(user_id)
 
       expect(id).to eq(JSON.parse(channels)[1]['id'])
+    end
+  end
+
+  describe '#get_user_email_channel' do
+    let(:user_id) { matching_channel['user_id'] }
+    let(:email) { 'fake.comm.channel.email@fake.com' }
+    let(:matching_channel) { create :canvas_communication_channel, type: 'email', address: email }
+
+    it 'returns the channel with matching email' do
+      request_url = "#{CANVAS_API_URL}/users/#{user_id}/communication_channels"
+      channels = "[
+        #{FactoryBot.json(:canvas_communication_channel, type: 'sms', user_id: user_id)},
+        #{FactoryBot.json(:canvas_communication_channel, type: 'email', user_id: user_id)},
+        #{matching_channel.to_json}
+      ]"
+
+      stub_request(:get, request_url).to_return( body: channels )
+
+      channel = canvas.get_user_email_channel(user_id, email)
+
+      expect(channel).to eq(matching_channel)
+    end
+  end
+
+  describe '#create_user_email_channel' do
+    let(:user_id) { new_channel['user_id'] }
+    let(:email) { 'fake.channel.email@fake.com' }
+    let(:new_channel) { create :canvas_communication_channel, type: 'email', address: email }
+
+    it 'POSTs to the create channel URL' do
+      request_url = "#{CANVAS_API_URL}/users/#{user_id}/communication_channels"
+
+      stub_request(:post, request_url).to_return(body: new_channel.to_json)
+
+      response = canvas.create_user_email_channel(user_id, email)
+
+      expect(WebMock).to have_requested(:post, request_url)
+        .with(body: "communication_channel%5Baddress%5D=#{CGI.escape(email)}&communication_channel%5Btype%5D=email&skip_confirmation=true").once
+
+      expect(response).to eq(new_channel)
+    end
+  end
+
+  describe '#delete_user_email_channel' do
+    let(:user_id) { deleted_channel['user_id'] }
+    let(:email) { 'fake.deleted.channel.email@fake.com' }
+    let(:deleted_channel) { create :canvas_communication_channel, type: 'email', address: email }
+
+    it 'Sends DELETE to the email channel URL' do
+      request_url = "#{CANVAS_API_URL}/users/#{user_id}/communication_channels/email/#{email}"
+
+      stub_request(:delete, request_url).to_return(body: deleted_channel.to_json)
+
+      response = canvas.delete_user_email_channel(user_id, email)
+
+      expect(WebMock).to have_requested(:delete, request_url).once
+      expect(response).to eq(deleted_channel)
     end
   end
 

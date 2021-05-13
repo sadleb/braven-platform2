@@ -3,17 +3,17 @@ FactoryBot.define do
     transient do
       names do
         [
-          ['Aaron', 'Anderson'], ['Anthony', 'Anderson'], ['Barry', 'Boswick'], ['Bill', 'Boswick'], 
-          ['Bob', 'Boswick'], ['Cara', 'Clark'], ['Candice', 'Clark'], ['Carmen', 'Clark'], 
-          ['Diana', 'Davis'], ['Daisy', 'Davis'], ['Deirdre', 'Davis'], ['Fred', 'Fox'], 
-          ['Fran', 'Fox'], ['Gertie', 'Gray'], ['Greg', 'Gray'], ['Henry', 'Hill'], 
-          ['Harrieta', 'Hill'], ['Harvey', 'Hill'], ['Jack', 'Jones'], ['Jenny', 'Jones'], 
+          ['Aaron', 'Anderson'], ['Anthony', 'Anderson'], ['Barry', 'Boswick'], ['Bill', 'Boswick'],
+          ['Bob', 'Boswick'], ['Cara', 'Clark'], ['Candice', 'Clark'], ['Carmen', 'Clark'],
+          ['Diana', 'Davis'], ['Daisy', 'Davis'], ['Deirdre', 'Davis'], ['Fred', 'Fox'],
+          ['Fran', 'Fox'], ['Gertie', 'Gray'], ['Greg', 'Gray'], ['Henry', 'Hill'],
+          ['Harrieta', 'Hill'], ['Harvey', 'Hill'], ['Jack', 'Jones'], ['Jenny', 'Jones'],
           ['John', 'Jones'], ['Jeff', 'Jones']
         ]
       end
     end
-   
-    sequence(:uuid) { SecureRandom.uuid } 
+
+    sequence(:uuid) { SecureRandom.uuid }
     sequence(:email) {|i| "test#{i}@example.com"}
     sequence(:first_name) { |i| names[i % names.size][0] }
     sequence(:last_name) { |i| names[i % names.size][1] }
@@ -22,7 +22,7 @@ FactoryBot.define do
     factory :unregistered_user do
       sequence(:salesforce_id) { |i| "003%07diyv8IAAQ" % i }
     end
-    
+
     factory :registered_user do
       sequence(:password) { |i| "password#{i}" }
       sequence(:salesforce_id) { |i| "003%07diyv8IAAQ" % i }
@@ -31,6 +31,14 @@ FactoryBot.define do
 
       factory :unconfirmed_user do
         confirmed_at { nil }
+      end
+
+      # A user whose email was changed and it needs to be reconfirmed
+      # before it can be used
+      factory :reconfirmation_user do
+        confirmed_at { 1.day.ago }
+        sequence(:confirmation_token) { |i| "13m9XK%09d" % i }
+        unconfirmed_email { "#{email}.unconfirmed" }
       end
 
       # section only used in child factory callbacks.

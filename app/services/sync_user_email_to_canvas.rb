@@ -1,22 +1,24 @@
 # frozen_string_literal: true
 require 'canvas_api'
 
-class ConfirmUserAccount
+# This service handles sync'ing the User.email to Canvas so that they are in sync
+# and login works.
+#
+# Paths to handle:
+# 1. Normal sign-up and confirmation. Email should match and this will be a NOOP,
+#    BUT it could have been manually changed so make sure it matches and change if necessary.
+# 2. Nightly 'Sync From Salesforce' detects an email inconsistency and sets it to the Salesforce
+#    value generating a reconfirmation email. Old login continues to work until they confirm the new one.
+# 3. Staff manually trigger a 'Sync From Salesforce' and the emails don't match.
+# 4. Email changes on the Salesforce Contact record which triggers an update. Behavior as #2.
+#
+# Note: Doesn't handle the lower level Devise related stuff, like the token not matching or having already been consumed.
+class SyncUserEmailToCanvas
 
   def initialize(user)
     @user = user
   end
 
-  # This service handles any confirmation steps required to keep our systems in sync.
-  # Paths to handle:
-  # 1. Normal sign-up and confirmation. Email should match and this will be a NOOP,
-  #    BUT it could have been manually changed so make sure it matches and change if necessary.
-  # 2. Nightly Sync From Salesforce detects an email inconsistency and sets it to the Salesforce
-  #    value generating a reconfirmation email. Old login continues to work until they confirm the new one.
-  # 3. Staff manually trigger a Sync From Salesforce and the emails don't match.
-  # 4. Email change in the Salesforce triggers an update. Behavior as #2.
-  #
-  # Note: Doesn't handle the lower level Devise related stuff, like the token not matching or having already been consumed.
   def run!
     Honeycomb.add_field('user.email', @user.email)
 
@@ -32,7 +34,7 @@ class ConfirmUserAccount
     end
 
     Honeycomb.add_field('confirm_user_account.success', true)
-    Rails.logger.info("Account confirmed for #{@user.inspect}.")
+    Rails.logger.info("Finished account confirmation for #{@user.inspect}.")
   end
 
 private
@@ -42,8 +44,9 @@ private
   # We need to do both.
   def change_canvas_email()
     Honeycomb.start_span(name: 'confirm_user_account.change_canvas_email') do |span|
+      skip_confirmation_email = true
       CanvasAPI.client.update_login(@canvas_login['id'], @user.email)
-      CanvasAPI.client.create_user_email_channel(@user.canvas_user_id, @user.email)
+      CanvasAPI.client.create_user_email_channel(@user.canvas_user_id, @user.email, skip_confirmation_email)
       begin
         CanvasAPI.client.delete_user_email_channel(@user.canvas_user_id, @canvas_login_email)
       rescue RestClient::NotFound => e_ok

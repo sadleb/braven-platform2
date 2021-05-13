@@ -7,10 +7,10 @@ FactoryBot.define do
     skip_create # This isn't stored in the DB.
 
     sequence(:id)
-    address { 'test@example.com' }
+    sequence(:address) { |i| "test#{i}@example.com" }
     type { 'email' }
     position { 1 }
-    user_id { 100 }
+    sequence(:user_id)
     workflow_state { 'active' }
 
     initialize_with { attributes.stringify_keys }

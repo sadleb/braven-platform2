@@ -16,10 +16,10 @@ RSpec.describe User, type: :model do
 
   describe 'validating uniqueness' do
     before { create :registered_user }
-    
+
     it { should validate_uniqueness_of(:email).case_insensitive }
   end
-  
+
   ###########
   # Callbacks
   ###########
@@ -40,7 +40,7 @@ RSpec.describe User, type: :model do
 
   describe 'full_name' do
     let(:user) { build :registered_user }
-    
+
     subject { user.full_name }
     it { should eq("#{user.first_name} #{user.last_name}") }
   end
@@ -91,7 +91,7 @@ RSpec.describe User, type: :model do
   describe '#ta_for?' do
     let(:course) { create :course }
     let(:section) { create :section, course: course }
-    
+
     subject { user.ta_for?(target_user, course) }
 
     context 'target user is not a Fellow in the course' do
@@ -323,6 +323,22 @@ RSpec.describe User, type: :model do
         let(:user) { create :admin_user }
         it { should eq(false) }
       end
+    end
+  end
+
+  # Used to display the email you should log in with after clicking the button in
+  # the confirmation email to activate your account
+  describe '#after_confirmation_login_email' do
+    subject { user.after_confirmation_login_email }
+
+    context 'user hasnt changed their email' do
+      let(:user) { build :registered_user }
+      it { should eq(user.email) }
+    end
+
+    context 'user with unconfirmed email change' do
+      let(:user) { create :reconfirmation_user }
+      it { should eq(user.unconfirmed_email) }
     end
   end
 end

@@ -33,7 +33,7 @@ class SyncPortalEnrollmentForAccount
     when SalesforceAPI::COMPLETED
       complete_enrollment!
     else
-      logger.warn("Doing nothing! Got #{sf.participant.status} from SF")
+      logger.warn("Doing nothing! Got #{sf_participant.status} from SF")
     end
   end
 

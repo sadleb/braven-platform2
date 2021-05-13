@@ -4,9 +4,11 @@ require 'rails_helper'
 
 RSpec.describe SyncPortalEnrollmentForAccount do
   let(:fellow_canvas_course_id) { 11 }
-  let(:sf_participant) { SalesforceAPI::SFParticipant.new('first', 'last', 'test1@example.com', nil, nil, 'test_salesforce_id') }
+  let(:sf_email) { 'test1@example.com' }
+  let(:sf_participant) { SalesforceAPI::SFParticipant.new('first', 'last', sf_email, nil, nil, 'test_salesforce_id') }
   # Arbitrary Canvas user ID
-  let(:portal_user) { CanvasAPI::LMSUser.new(10, sf_participant.email) }
+  let(:canvas_email) { sf_email }
+  let(:portal_user) { CanvasAPI::LMSUser.new(10, canvas_email) }
   let(:sf_program) { SalesforceAPI::SFProgram.new(432, 'Some Program', 'Some School', fellow_canvas_course_id) }
   let(:lms_section) { CanvasAPI::LMSSection.new(10, "test section") }
   let(:lms_enrollment) { CanvasAPI::LMSEnrollment.new(55, fellow_canvas_course_id, RoleConstants::STUDENT_ENROLLMENT, lms_section.id) }
@@ -29,7 +31,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
     create(:canvas_assignment_override_section, assignment_id: lms_assignments.first['id'], course_section_id: lms_section.id),
   ].flatten }
   let(:lms_client) { double(
-    'CanvasAPI',
+    CanvasAPI,
     find_enrollment: lms_enrollment,
     find_section_by: lms_section,
     enroll_user_in_course: nil,
@@ -40,16 +42,19 @@ RSpec.describe SyncPortalEnrollmentForAccount do
     get_assignment_overrides_for_course: lms_course_overrides,
     create_assignment_overrides: nil,
   ) }
+  let(:sync_from_salesforce_service) { double(SyncFromSalesforceContact) }
   # Create local models, with the assumption that a user that exists on Canvas must already exist locally too.
   # This all falls apart if that assumption is untrue (the tests will pass, but the code won't work), so be careful
   # if anything changes in this code in the future.
   # Note: This reflects Highlander layout, not the fallback used for Booster/Prod
   # (https://app.asana.com/0/1174274412967132/1197893935338145/f)
-  let!(:user) { create(:registered_user, email: sf_participant.email, salesforce_id: sf_participant.contact_id, canvas_user_id: portal_user.id) }
+  let(:platform_email) { sf_email }
+  let!(:user) { create(:registered_user, email: platform_email, salesforce_id: sf_participant.contact_id, canvas_user_id: portal_user.id) }
   let!(:course) { create(:course, canvas_course_id: lms_enrollment.course_id) }
   let!(:section) { create(:section, course_id: course.id, canvas_section_id: lms_section.id, name: lms_section.name) }
 
   before(:each) do
+    allow(SyncFromSalesforceContact).to receive(:new).and_return(sync_from_salesforce_service)
     allow(CanvasAPI).to receive(:client).and_return(lms_client)
   end
 
@@ -166,6 +171,97 @@ RSpec.describe SyncPortalEnrollmentForAccount do
         allow(lms_client).to receive(:find_enrollment).and_return(lms_enrollment)
         run_sync
         expect(lms_client).to have_received(:delete_enrollment).once
+      end
+    end
+
+    context 'when Platform email doesnt match Salesforce email' do
+      let(:sf_email) { 'salesforce.email.no.match@example.com' }
+      let(:platform_email) { 'platform.email.no.match@example.com' }
+
+      it 'calls SyncFromSalesforceContact service' do
+        expect(sync_from_salesforce_service).to receive(:run!).once
+        run_sync
+      end
+    end
+
+    context 'when Platform email matches Salesforce email exactly' do
+      let(:sf_email) { 'exact_match@example.com' }
+      let(:platform_email) { 'exact_match@example.com' }
+
+      it 'doesnt call SyncFromSalesforceContact service' do
+        expect(sync_from_salesforce_service).not_to receive(:run!)
+        run_sync
+      end
+    end
+
+    context 'when Platform email matches Salesforce email case-insensitively' do
+      let(:sf_email) { 'caseInsensitiveMatch@example.com' }
+      let(:platform_email) { 'caseinsensitivematch@example.com' }
+
+      it 'doesnt call SyncFromSalesforceContact service' do
+        expect(sync_from_salesforce_service).not_to receive(:run!)
+        run_sync
+      end
+    end
+
+    context 'when Canvas email doesnt match Salesforce email' do
+      let(:sf_email) { 'salesforce.email.no.match@example.com' }
+      let(:canvas_email) { 'canvas.email.no.match@example.com' }
+
+      it 'calls SyncFromSalesforceContact service' do
+        expect(sync_from_salesforce_service).to receive(:run!).once
+        run_sync
+      end
+    end
+
+    context 'when Canvas email matches Salesforce email exactly' do
+      let(:sf_email) { 'exact_match@example.com' }
+      let(:canvas_email) { 'exact_match@example.com' }
+
+      it 'doesnt call SyncFromSalesforceContact service' do
+        expect(sync_from_salesforce_service).not_to receive(:run!)
+        run_sync
+      end
+    end
+
+    context 'when Canvas email matches Salesforce email case-insensitively' do
+      let(:sf_email) { 'caseInsensitiveMatch@example.com' }
+      let(:canvas_email) { 'caseinsensitivematch@example.com' }
+
+      it 'doesnt call SyncFromSalesforceContact service' do
+        expect(sync_from_salesforce_service).not_to receive(:run!)
+        run_sync
+      end
+    end
+
+    context 'when Canvas email doesnt match Platform email' do
+      let(:platform_email) { 'platform.email.no.match@example.com' }
+      let(:canvas_email) { 'canvas.email.no.match@example.com' }
+
+      it 'calls SyncFromSalesforceContact service' do
+        expect(sync_from_salesforce_service).to receive(:run!).once
+        run_sync
+      end
+    end
+
+    context 'when Canvas email matches Platform email exactly' do
+      let(:platform_email) { sf_email }
+      let(:canvas_email) { sf_email }
+
+      it 'doesnt call SyncFromSalesforceContact service' do
+        expect(sync_from_salesforce_service).not_to receive(:run!)
+        run_sync
+      end
+    end
+
+    context 'when Canvas email matches Platform email case-insensitively' do
+      let(:sf_email) { 'SFEmail@example.com' }
+      let(:platform_email) { sf_email }
+      let(:canvas_email) { 'sfemail@example.com' }
+
+      it 'doesnt call SyncFromSalesforceContact service' do
+        expect(sync_from_salesforce_service).not_to receive(:run!)
+        run_sync
       end
     end
   end

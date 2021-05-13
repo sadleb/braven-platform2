@@ -42,11 +42,12 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
     # Note: we're explicity not using the Devise "resource" attribute b/c we don't
     # render a view and Devise ends up disclosing information we shouldn't be
     # in other Devise paths that we've been stripping out.
+    # Also note that confirm_by_token() returns a new empty User with errors set
+    # if the token was invalid.
     user = User.confirm_by_token(params[:confirmation_token])
 
     if user.errors.empty?
-
-      ConfirmUserAccount.new(user).run!
+      SyncUserEmailToCanvas.new(user).run!
 
       Honeycomb.add_field('confirmations_controller.auto_sign_in', true)
       Rails.logger.debug("Signing #{user.email} in using CAS SSO.")

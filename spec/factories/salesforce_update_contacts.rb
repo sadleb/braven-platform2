@@ -11,12 +11,15 @@ FactoryBot.define do
     factory :salesforce_update_registered_contact, class: Hash do
       transient do
         fellow_user { build :fellow_user }
+        new_email { nil }
       end
       contacts {
         [
           build(:salesforce_contact_in_portal,
-            :Email => fellow_user.email,
+            :Email => (new_email || fellow_user.email),
             :Id => fellow_user.salesforce_id,
+            :FirstName => fellow_user.first_name,
+            :LastName => fellow_user.last_name,
             :Canvas_Cloud_User_ID__c => fellow_user.canvas_user_id
           )
         ]

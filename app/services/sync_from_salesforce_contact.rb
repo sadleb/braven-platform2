@@ -1,6 +1,4 @@
 # frozen_string_literal: true
-require 'canvas_api'
-require 'salesforce_api'
 
 class SyncFromSalesforceContact
 
@@ -14,10 +12,8 @@ class SyncFromSalesforceContact
   # The Salesforce Contact is the source of truth for their email (and name). This service
   # updates Platform to match if the email changes.
   #
-  # Note that we also update their name IFF we have to change the email, but leave it alone on Canvas
-  # for now. They can change it there if they want. We haven't implemented the ability for a name
-  # change alone (email stays the same) to be synced. The reason to update it locally is so that our
-  # comms are correct if we made a mistake and change it later.
+  # Note: we don't also update the Canvas email here b/c we want the old email to work
+  # until they confirm the new email in case it was an accident or mistake.
   def run!
     Honeycomb.add_field('user.email', @user.email)
     Honeycomb.add_field('user.unconfirmed_email', @user.unconfirmed_email)
