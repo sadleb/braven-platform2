@@ -175,6 +175,12 @@ class User < ApplicationRecord
     })
   end
 
+  # https://github.com/heartcombo/devise/blob/57d1a1d3816901e9f2cc26e36c3ef70547a91034/lib/devise/models/recoverable.rb#L77
+  def signup_period_valid?
+    # Note we reuse the confirm_within value from Devise global config.
+    signup_token_sent_at && signup_token_sent_at.utc >= User.confirm_within.ago.utc
+  end
+
   # Find user by signup_token, if it exists. If not, return nil.
   # Call it with the raw token, *not* the encoded one from the database.
   def self.with_signup_token(token)

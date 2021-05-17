@@ -13,7 +13,10 @@ class RegisterUserAccount
     # duplicating user accounts. When they register their user account, we look up
     # the local account by the signup or reset token, grab their Salesforce ID, then
     # look up on Salesforce the rest of the info they gave us when they signed up / applied.
+    # Note the tokens may be expired here, we don't check that until later.
     @user = find_user_by_tokens(sign_up_params)
+    # Keep a reference to the params so we know which token(s) to check for expiry.
+    @sign_up_params = sign_up_params
 
     # If the user doesn't exist, we'll error out at this point.
     # This doesn't expose user enumeration in RegistrationsController#create because
@@ -35,6 +38,23 @@ class RegisterUserAccount
       span.add_field('app.user.id', @user.id)
       span.add_field('app.user.email', @user.email)
       span.add_field('app.register_user_account.salesforce_email', @register_user_params[:email])
+
+      # Mimic Devise's reset_password_by_token behavior for expired tokens.
+      # https://github.com/heartcombo/devise/blob/57d1a1d3816901e9f2cc26e36c3ef70547a91034/lib/devise/models/recoverable.rb#L145
+      # Note if someone tries to use both tokens at once (why??) and one is expired but
+      # the other isn't, we act the same as if both were expired. Because that's easier.
+      if @sign_up_params[:signup_token].present? && !@user.signup_period_valid?
+        span.add_field('app.register_user.signup_token_expired', true)
+        @user.errors.add(:signup_token, :expired)
+        yield @user if block_given?
+        return
+      end
+      if @sign_up_params[:reset_password_token].present? && !@user.reset_password_period_valid?
+        span.add_field('app.register_user.reset_password_token_expired', true)
+        @user.errors.add(:reset_password_token, :expired)
+        yield @user if block_given?
+        return
+      end
 
       # Don't send confirmation email yet; we do it explicitly below.
       @user.skip_confirmation_notification!

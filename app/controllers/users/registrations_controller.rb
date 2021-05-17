@@ -42,21 +42,17 @@ class Users::RegistrationsController < Devise::RegistrationsController
     # to be secure.
     user = find_user_by_signup_token || find_user_by_reset_password_token
 
-    # If the account is already registered, don't try to register again.
-    # Redirect to login, but still don't reveal anything about which account
-    # was tied to the token.
-    if user.present? && user.registered?
-      redirect_to cas_login_path(
-        service: CanvasAPI.client.canvas_url,
-        notice: 'Looks like you have already signed up. Please log in.'
-      ) and return
-    end
-
     # If the token was valid, run account registration.
     if user.present?
       # Register the new user in all of our systems.
       RegisterUserAccount.new(sign_up_params).run do |user|
         if user.errors.any? || !user.persisted?
+          if user.errors.any? { |e| [:reset_password_token, :signup_token].include? e.attribute }
+            # If the token expired, act the same as we do for invalid
+            # tokens below. Don't reveal the exact reason for failure.
+            return render :bad_link
+          end
+
           # At this point, it is safe to expose a reference to the user,
           # because the token is valid.
           # It is also necessary to expose a reference to the user, because

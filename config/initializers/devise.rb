@@ -158,6 +158,7 @@ Devise.setup do |config|
   # prior to launch and there will be folks that don't fully take all the action needed
   # to get into Canvas. We don't want expired links adding noise if the did it partially
   # and are trying to get all the way in the day of launch
+  # Note we reuse this configuration as a "sign_up_within" too, because it's easier.
   config.confirm_within = eval(ENV['DEVISE_CONFIRM_WITHIN']) if ENV['DEVISE_CONFIRM_WITHIN']
   config.confirm_within ||= 2.5.weeks
 
