@@ -42,12 +42,21 @@ class Users::RegistrationsController < Devise::RegistrationsController
     # to be secure.
     user = find_user_by_signup_token || find_user_by_reset_password_token
 
+    # Act the same as #new, just in case someone tried to register again
+    # with a tab that was open before or something.
+    if user.present? && user.registered?
+      redirect_to cas_login_path(
+        service: CanvasConstants::CANVAS_URL,
+        notice: 'Looks like you have already signed up. Please log in.'
+      ) and return
+    end
+
     # If the token was valid, run account registration.
     if user.present?
       # Register the new user in all of our systems.
-      RegisterUserAccount.new(sign_up_params).run do |user|
-        if user.errors.any? || !user.persisted?
-          if user.errors.any? { |e| [:reset_password_token, :signup_token].include? e.attribute }
+      RegisterUserAccount.new(sign_up_params).run do |updated_user|
+        if updated_user.errors.any? || !updated_user.persisted?
+          if updated_user.errors.any? { |e| [:reset_password_token, :signup_token].include? e.attribute }
             # If the token expired, act the same as we do for invalid
             # tokens below. Don't reveal the exact reason for failure.
             return render :bad_link
@@ -57,7 +66,7 @@ class Users::RegistrationsController < Devise::RegistrationsController
           # because the token is valid.
           # It is also necessary to expose a reference to the user, because
           # we need to be able to render the errors on that object.
-          self.resource = user
+          self.resource = updated_user
           return render :new
         end
       end

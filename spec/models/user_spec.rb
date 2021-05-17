@@ -18,8 +18,13 @@ RSpec.describe User, type: :model do
     before { create :registered_user }
 
     it { should validate_uniqueness_of(:email).case_insensitive }
+    it { should validate_uniqueness_of(:salesforce_id) }
+    it { should validate_uniqueness_of(:signup_token) }
+    it { should validate_uniqueness_of(:uuid) }
   end
 
+  it { should validate_length_of(:salesforce_id).is_equal_to(18) }
+  
   ###########
   # Callbacks
   ###########
@@ -32,7 +37,15 @@ RSpec.describe User, type: :model do
     let(:canvas_api_client) { instance_double(CanvasAPI, :find_user_in_canvas => nil, :get_user_enrollments => nil, :get_sections => []) }
     let!(:canvas_api) { class_double(CanvasAPI, :client => canvas_api_client).as_stubbed_const(:transfer_nested_constants => true) }
 
+    it 'sets uuid' do
+      user = build(:user, uuid: nil)
+      expect(user.uuid).to eq(nil)
+      user.save!
+      expect(user.uuid).not_to eq(nil)
+      expect(user.uuid.length).to eq(SecureRandom.uuid.length)
+    end
   end
+
 
   ##################
   # Instance methods
@@ -341,4 +354,154 @@ RSpec.describe User, type: :model do
       it { should eq(user.unconfirmed_email) }
     end
   end
+
+  describe '.send_signup_email!' do
+    let(:user) { create(:registered_user) }
+    let(:token) { 'TestToken' }
+    let(:sf_client) { double(SalesforceAPI, get_contact_signup_token: token) }
+    let(:mailer_mail) { double(nil, deliver_now: nil) }
+    let(:mailer) { double(nil, signup_email: mailer_mail) }
+
+    context 'with raw token passed in' do
+      subject { user.send_signup_email!(token) }
+
+      before :each do
+        allow(SalesforceAPI).to receive(:client).and_return(sf_client)
+        allow(SendSignupEmailMailer).to receive(:with).and_return(mailer)
+      end
+
+      it 'does not call salesforce' do
+        subject
+        expect(sf_client).not_to have_received(:get_contact_signup_token)
+      end
+
+      it 'calls signup mailer' do
+        subject
+        expect(mailer).to have_received(:signup_email)
+      end
+    end
+
+    context 'with nothing passed in' do
+      subject { user.send_signup_email! }
+
+      before :each do
+        allow(SalesforceAPI).to receive(:client).and_return(sf_client)
+        allow(SendSignupEmailMailer).to receive(:with).and_return(mailer)
+      end
+
+      it 'calls salesforce' do
+        subject
+        expect(sf_client).to have_received(:get_contact_signup_token)
+      end
+
+      it 'calls signup mailer' do
+        subject
+        expect(mailer).to have_received(:signup_email)
+      end
+    end
+  end
+
+  describe '.set_signup_token!' do
+    subject { user.set_signup_token! }
+
+    let(:user) { create(:registered_user) }
+
+    it 'sets token/sent_at' do
+      expect(user.signup_token).to eq(nil)
+      expect(user.signup_token_sent_at).to eq(nil)
+      subject
+      expect(user.signup_token).not_to eq(nil)
+      expect(user.signup_token_sent_at).not_to eq(nil)
+    end
+
+    it 'runs validations' do
+      user.email = ''
+      expect {
+        subject
+      }.to raise_error(ActiveRecord::RecordInvalid)
+    end
+
+    it 'returns raw token' do
+      raw_token = subject
+      expect(raw_token).not_to eq(nil)
+      expect(user.signup_token).to eq(Devise.token_generator.digest(User, :signup_token, raw_token))
+    end
+  end
+
+  describe '.send_signup_token' do
+    subject { user.send_signup_token(token) }
+
+    let(:user) { create(:registered_user) }
+    let(:token) { 'TestToken' }
+    let(:sf_client) { double(SalesforceAPI, update_contact: nil) }
+
+    before :each do
+      allow(SalesforceAPI).to receive(:client).and_return(sf_client)
+    end
+
+    it 'calls salesforceapi' do
+      subject
+      expect(sf_client).to have_received(:update_contact)
+        .with(user.salesforce_id, {'Signup_Token__c': token})
+        .once
+    end
+  end
+
+  describe '.signup_period_valid?' do
+    subject { user.signup_period_valid? }
+
+    let(:user) { create(:registered_user) }
+
+    context 'with expired token' do
+      before :each do
+        user.set_signup_token!
+        user.update!(signup_token_sent_at: 5.weeks.ago)
+      end
+
+      it 'returns false' do
+        expect(subject).to eq(false)
+      end
+    end
+
+    context 'with unexpired token' do
+      before :each do
+        user.set_signup_token!
+        user.update!(signup_token_sent_at: 1.weeks.ago)
+      end
+
+      it 'returns true' do
+        expect(subject).to eq(true)
+      end
+    end
+  end
+
+  describe 'self.with_signup_token' do
+    subject { User.with_signup_token(@token) }
+
+    context 'with match' do
+      let(:user) { create(:registered_user) }
+
+      before :each do
+        @token = user.set_signup_token!
+      end
+
+      it 'finds by the encoded token' do
+        expect(subject).to eq(user)
+      end
+    end
+
+    context 'without match' do
+      let(:user) { create(:registered_user) }
+
+      before :each do
+        user.set_signup_token!
+        @token = 'non-matching token'
+      end
+
+      it 'returns nil' do
+        expect(subject).to eq(nil)
+      end
+    end
+  end
+
 end

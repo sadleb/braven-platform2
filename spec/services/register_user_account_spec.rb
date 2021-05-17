@@ -74,5 +74,105 @@ RSpec.describe RegisterUserAccount do
       user = User.find_by_canvas_user_id!(canvas_user['id'])
       expect(user.confirmation_sent_at).not_to be(nil)
     end
+
+    context 'with valid signup token' do
+      let(:sign_up_params) { {} }
+      let(:user) { create(:unregistered_user) }
+
+      before :each do
+        sign_up_params[:signup_token] = user.set_signup_token!
+        allow(SalesforceAPI).to receive(:client).and_return(sf_client)
+        allow(CanvasAPI).to receive(:client).and_return(canvas_client)
+        allow(SyncPortalEnrollmentForAccount).to receive(:new).and_return(enrollment_process)
+      end
+
+      it 'clears all signup/reset tokens' do
+        # Clear all tokens for security reasons.
+        RegisterUserAccount.new(sign_up_params).run do |u|
+          expect(u.errors.any?).to eq(false)
+        end
+        user.reload
+        expect(user.signup_token).to eq(nil)
+        expect(user.signup_token_sent_at).to eq(nil)
+        expect(user.reset_password_token).to eq(nil)
+        expect(user.reset_password_sent_at).to eq(nil)
+      end
+    end
+
+    context 'with valid reset token' do
+      let(:sign_up_params) { {} }
+      let(:user) { create(:unregistered_user) }
+
+      before :each do
+        sign_up_params[:reset_password_token] = user.send(:set_reset_password_token)
+        allow(SalesforceAPI).to receive(:client).and_return(sf_client)
+        allow(CanvasAPI).to receive(:client).and_return(canvas_client)
+        allow(SyncPortalEnrollmentForAccount).to receive(:new).and_return(enrollment_process)
+      end
+
+      it 'clears all signup/reset tokens' do
+        # Clear all tokens for security reasons.
+        RegisterUserAccount.new(sign_up_params).run do |u|
+          expect(u.errors.any?).to eq(false)
+        end
+        user.reload
+        expect(user.signup_token).to eq(nil)
+        expect(user.signup_token_sent_at).to eq(nil)
+        expect(user.reset_password_token).to eq(nil)
+        expect(user.reset_password_sent_at).to eq(nil)
+      end
+    end
+
+    context 'with expired signup_token' do
+      let(:sign_up_params) { {} }
+      let(:user) { create(:unregistered_user) }
+
+      before :each do
+        sign_up_params[:signup_token] = user.set_signup_token!
+        user.update!(signup_token_sent_at: 5.weeks.ago)
+        allow(SalesforceAPI).to receive(:client).and_return(sf_client)
+        allow(CanvasAPI).to receive(:client).and_return(canvas_client)
+        allow(SyncPortalEnrollmentForAccount).to receive(:new).and_return(enrollment_process)
+      end
+
+      it 'yields error and returns' do
+        errors = []
+        RegisterUserAccount.new(sign_up_params).run do |u|
+          errors = u.errors
+        end
+        user.reload
+        expect(errors.count).to eq(1)
+        expect(errors.first.attribute).to eq(:signup_token)
+        expect(errors.first.type).to eq(:expired)
+        # Verify it returned before updating user.
+        expect(user.signup_token).not_to eq(nil)
+      end
+    end
+
+    context 'with expired reset token' do
+      let(:sign_up_params) { {} }
+      let(:user) { create(:unregistered_user) }
+
+      before :each do
+        sign_up_params[:reset_password_token] = user.send(:set_reset_password_token)
+        user.update!(reset_password_sent_at: 5.days.ago)
+        allow(SalesforceAPI).to receive(:client).and_return(sf_client)
+        allow(CanvasAPI).to receive(:client).and_return(canvas_client)
+        allow(SyncPortalEnrollmentForAccount).to receive(:new).and_return(enrollment_process)
+      end
+
+      it 'yields error and returns' do
+        errors = []
+        RegisterUserAccount.new(sign_up_params).run do |u|
+          errors = u.errors
+        end
+        user.reload
+        expect(errors.count).to eq(1)
+        expect(errors.first.attribute).to eq(:reset_password_token)
+        expect(errors.first.type).to eq(:expired)
+        # Verify it returned before updating user.
+        expect(user.reset_password_token).not_to eq(nil)
+      end
+    end
   end
 end

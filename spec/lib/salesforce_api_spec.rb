@@ -345,4 +345,35 @@ RSpec.describe SalesforceAPI do
       expect(WebMock).to have_requested(:patch, request_url_regex).once
     end
   end
+
+  describe '.get_contact_signup_token' do
+    let(:contact_id) { '003170000125IpSAAU' }
+    let(:contact_obj) { { Signup_Token__c: 'test' } }
+
+    it 'calls the correct endpoint' do
+      request_url_regex = /#{SALESFORCE_INSTANCE_URL}#{SalesforceAPI::DATA_SERVICE_PATH}\/sobjects\/Contact\/#{contact_id}.*/
+      stub_request(:get, request_url_regex).to_return(body: contact_obj.to_json  )
+
+      response = SalesforceAPI.client.get_contact_signup_token(contact_id)
+
+      expect(WebMock).to have_requested(:get, request_url_regex).once
+      expect(response).to eq(contact_obj[:Signup_Token__c])
+    end
+  end
+
+  describe '.update_contact' do
+    let(:contact_id) { '003170000125IpSAAU' }
+    let(:contact_obj) { { some_field: 'some_value' } }
+
+    it 'calls the correct endpoint' do
+      request_url_regex = /#{SALESFORCE_INSTANCE_URL}#{SalesforceAPI::DATA_SERVICE_PATH}\/sobjects\/Contact\/#{contact_id}/
+      stub_request(:patch, request_url_regex)
+
+      response = SalesforceAPI.client.update_contact(contact_id, contact_obj)
+
+      expect(WebMock).to have_requested(:patch, request_url_regex)
+        .with(body: contact_obj.to_json)
+        .once
+    end
+  end
 end

@@ -94,6 +94,18 @@ RSpec.describe CasController, type: :routing do
         expect(find('h1').text).to eq('Please confirm your email address')
       end
     end
+
+    context "when user hasn't confirmed their email and uses incorrect password" do
+      let!(:unconfirmed_user) { create(:unconfirmed_user) }
+      let(:username) { unconfirmed_user.email }
+      let(:password) { 'NotTheRightPassword' }
+
+      it "fails to log in" do
+        subject
+        # Ensure that the login was failed
+        expect(page).to have_content("Incorrect username or password")
+      end
+    end
   end
 
 end
