@@ -15,6 +15,9 @@ class FilterLogging
   FILTERED_AUTH_QUERY_PARAM = "auth=#{FILTERED}"
   FILTERED_AUTH_QUERY_PARAM_ENCODED = "auth%3D#{FILTERED}"
   FILTERED_TICKET_QUERY_PARAM = "ticket=#{FILTERED}"
+  FILTERED_RESET_PASSWORD_TOKEN_QUERY_PARAM = "reset_password_token=#{FILTERED}"
+  FILTERED_CONFIRMATION_TOKEN_QUERY_PARAM = "confirmation_token=#{FILTERED}"
+  FILTERED_SIGNUP_TOKEN_QUERY_PARAM = "signup_token=#{FILTERED}"
 
   # These are the parameters where the entire value should be filtered out.
   FILTER_ENTIRE_ATTRIBUTE_NAMES = [
@@ -78,6 +81,9 @@ class FilterLogging
         value.gsub!(/auth\=([^&" ]+)/, FILTERED_AUTH_QUERY_PARAM)
         value.gsub!(/auth%3D([^&" ]+)/, FILTERED_AUTH_QUERY_PARAM_ENCODED)
         value.gsub!(/ticket\=([^&" ]+)/, FILTERED_TICKET_QUERY_PARAM)
+        value.gsub!(/reset_password_token=([^&" ]+)/, FILTERED_RESET_PASSWORD_TOKEN_QUERY_PARAM)
+        value.gsub!(/confirmation_token=([^&" ]+)/, FILTERED_CONFIRMATION_TOKEN_QUERY_PARAM)
+        value.gsub!(/signup_token=([^&" ]+)/, FILTERED_SIGNUP_TOKEN_QUERY_PARAM)
       end
 
       value
@@ -146,8 +152,8 @@ class FilterLogging
 
     # RestClient
     if fields['name'].start_with?('restclient')
-      if fields.has_key?('restclient.headers') && fields['restclient.headers']['Authorization']
-        fields['restclient.headers']['Authorization'] = FILTERED
+      if fields.has_key?('restclient.request.header') && fields['restclient.request.header']['Authorization']
+        fields['restclient.request.header']['Authorization'] = FILTERED
       end
     end
 
@@ -169,8 +175,15 @@ class FilterLogging
 
     # Don't send the entire file contents of S3 uploads.
     # Honeycomb drops events larger than a certain size, and we end up with missing spans.
-    if fields.has_key? 'aws.params.body'
+    if fields.has_key?('aws.params.body')
       fields.delete('aws.params.body')
+    end
+
+    # Don't send email bodies from ActionMailer.
+    # These often include sensitive information like tokens, and are hard to reliably
+    # filter, since they're MIME-encoded.
+    if fields.has_key?('deliver.action_mailer.mail')
+      fields.delete('deliver.action_mailer.mail')
     end
 
   rescue => e
