@@ -12,6 +12,12 @@ class User < ApplicationRecord
   # Note: there is also a :trackable configuration if we want more info on sign-in activity.
   devise :cas_authenticatable, :rememberable, :registerable, :confirmable, :validatable, :recoverable
 
+  # Add secret fields here to exclude them from serialization/printing.
+  Devise::Models::Authenticatable::UNSAFE_ATTRIBUTES_FOR_SERIALIZATION += [
+    :signup_token, :signup_token_sent_at,
+    :linked_in_access_token, :linked_in_state,
+  ]
+
   self.per_page = 100
 
   has_many :project_submissions
