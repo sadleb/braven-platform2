@@ -26,6 +26,8 @@ class Users::RegistrationsController < Devise::RegistrationsController
       # to be secure. Still don't reveal anything about which account was
       # tied to the token.
       user = find_user_by_signup_token || find_user_by_reset_password_token
+      add_honeycomb_context(user)
+
       if user.present? && user.registered?
         redirect_to cas_login_path(
           service: CanvasConstants::CANVAS_URL,
@@ -41,6 +43,8 @@ class Users::RegistrationsController < Devise::RegistrationsController
     # route allows setting a password for the account, and we need it
     # to be secure.
     user = find_user_by_signup_token || find_user_by_reset_password_token
+    add_honeycomb_context(user)
+    Honeycomb.add_field('registrations_controller.bad_link', false)
 
     # Act the same as #new, just in case someone tried to register again
     # with a tab that was open before or something.
@@ -59,6 +63,7 @@ class Users::RegistrationsController < Devise::RegistrationsController
           if updated_user.errors.any? { |e| [:reset_password_token, :signup_token].include? e.attribute }
             # If the token expired, act the same as we do for invalid
             # tokens below. Don't reveal the exact reason for failure.
+            Honeycomb.add_field('registrations_controller.bad_link', true)
             return render :bad_link
           end
 
@@ -76,6 +81,7 @@ class Users::RegistrationsController < Devise::RegistrationsController
       # that never existed to begin with.
       # Note that this means a bad-actor can check for valid tokens
       # by simply POSTing to this action.
+      Honeycomb.add_field('registrations_controller.bad_link', true)
       return render :bad_link
     end
 
@@ -161,4 +167,14 @@ class Users::RegistrationsController < Devise::RegistrationsController
   def after_inactive_sign_up_path_for(resource)
     users_registration_path(:signup_token => resource.signup_token)
   end
+
+  private
+
+  def add_honeycomb_context(user)
+    Honeycomb.add_field('user.id', user&.id)
+    Honeycomb.add_field('user.email', user&.email)
+    Honeycomb.add_field('user.present?', user&.present?)
+    Honeycomb.add_field('user.registered?', user&.registered?)
+  end
+
 end

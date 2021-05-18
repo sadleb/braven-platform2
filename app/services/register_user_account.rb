@@ -68,6 +68,7 @@ class RegisterUserAccount
         reset_password_token: nil,
         reset_password_sent_at: nil,
       }))
+      span.add_field('app.register_user.user_update_errors', @user.errors.to_json)
       # Allow error handling on model validation when called from a controller.
       yield @user if block_given?
 
