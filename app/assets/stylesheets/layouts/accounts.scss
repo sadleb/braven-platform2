@@ -14,6 +14,19 @@
 
 @import "shared/variables";
 
+/* Container/footer */
+/* https://stackoverflow.com/a/20352949/12432170 */
+body > div.container-fluid {
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+
+div.container-fluid > footer {
+  margin-top:auto;
+}
+
+/* accounts */
 section {
   border: 0;
   display: block;
