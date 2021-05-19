@@ -186,6 +186,14 @@ class FilterLogging
       fields.delete('deliver.action_mailer.mail')
     end
 
+    # Rewrite field names that are automatically added by the beeline's Warden
+    # integration. They show up in the root namespace, which we don't want.
+    # See https://github.com/honeycombio/beeline-ruby/blob/585992c1abdc8143ef617b038a5ae87c65a0f428/lib/honeycomb/integrations/warden.rb#L6
+    warden_fields = Honeycomb::Warden::COMMON_USER_FIELDS.map { |f| "user.#{f}" }
+    warden_fields.each do |field|
+      fields["app.#{field}"] = fields.delete(field) if fields.has_key?(field)
+    end
+
   rescue => e
     Rails.logger.error(e)
     Sentry.capture_exception(e)
