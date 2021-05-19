@@ -2,6 +2,8 @@
 class UsersController < ApplicationController
   layout 'admin'
 
+  UserAdminError = Class.new(StandardError)
+
   # Note that DryCrud takes care of the standard actions
   before_action :find_user, only: %i[confirm register show_send_signup_email send_signup_email]
 
@@ -94,10 +96,12 @@ class UsersController < ApplicationController
 
   def show_send_signup_email
     authorize @user
+    raise UserAdminError.new('Cannot send sign-up email to already registered user') if @user.registered_at.present?
   end
 
   def send_signup_email
     authorize @user
+    raise UserAdminError.new('Cannot send sign-up email to already registered user') if @user.registered_at.present?
 
     @user.send_signup_email!
     redirect_to send_new_signup_email_user_path(@user), notice: 'Email sent!'

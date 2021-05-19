@@ -28,7 +28,7 @@ class SalesforceController < ApplicationController
 
     should_send_signup_emails = ActiveModel::Type::Boolean.new.cast(params[:send_signup_emails])
 
-    if should_send_signup_emails && params[:not_confirmed]
+    if should_send_signup_emails && params[:not_confirmed].present?
       redirect_to salesforce_confirm_send_signup_emails_path(program_id: params[:program_id].strip, email: params[:email].strip)
       return
     end

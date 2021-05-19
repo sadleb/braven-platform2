@@ -24,7 +24,7 @@ RSpec.describe User, type: :model do
   end
 
   it { should validate_length_of(:salesforce_id).is_equal_to(18) }
-  
+
   ###########
   # Callbacks
   ###########

@@ -263,11 +263,7 @@ class SalesforceAPI
 
     ret = participants.map do |participant|
       if (participant['ParticipantStatus'].present?)
-        SFParticipant.new(participant['FirstName'], participant['LastName'],
-                          participant['Email'], participant['Role'].to_sym,
-                          participant['ProgramId'], participant['ContactId'],
-                          participant['ParticipantStatus'], participant['StudentId'],
-                          participant['CohortName'], participant['CohortScheduleDayTime'])
+        SalesforceAPI.participant_to_struct(participant)
       end
     end
     ret.compact()
@@ -281,8 +277,13 @@ class SalesforceAPI
     # TODO: Figure out the criteria for in case of many participants
     participant = participants.first
 
+    SalesforceAPI.participant_to_struct(participant)
+  end
+
+  # Turns a Participant hash as returned by Salesforce into an SFParticipant struct
+  def self.participant_to_struct(participant)
     SFParticipant.new(participant['FirstName'], participant['LastName'],
-                      participant['Email'], participant['Role'].to_sym,
+                      participant['Email'], participant['Role']&.to_sym,
                       participant['ProgramId'], participant['ContactId'],
                       participant['ParticipantStatus'], participant['StudentId'],
                       participant['CohortName'], participant['CohortScheduleDayTime'])

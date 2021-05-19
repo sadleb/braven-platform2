@@ -19,7 +19,7 @@
 
         <div class="form-check">
           <%= f.check_box :send_signup_emails, { class: "form-check-input" }, "true", "false" %>
-          <%= f.label :send_signup_emails, "Send email invitations to Participants to sign up and create an account?", class: "form-check-label" %>
+          <%= f.label :send_signup_emails, "Send email invitations to newly added Participants to sign up and create an account?", class: "form-check-label" %>
         </div>
 
         <%= f.hidden_field :not_confirmed, value: true %>
@@ -30,10 +30,10 @@
           <%= f.submit "Start Sync From Salesforce Process" %>
         </div>
       <% end %>
-
-      <p><small><em>Note:</em> if you check off "Send email invitations..." you will see a list of folks who would receive emails on the next page before starting the sync process.</small></p>
     </div>
   </div>
+
+  <p><small><em>Note:</em> if you check off "Send email invitations..." you will see a list of folks who would receive emails on the next page before starting the sync process. This feature is ONLY for Participants who have never been synced before. It's meant to be used if you're scrambling to get a last minute Participant access without waiting for the normal nightly sync and Campaign Monitor "welcome email" process. E.g. imagine you're in-person at the first learning lab with a Fellow not already setup and you're trying to get them access.</small></p>
 
   <hr>
 

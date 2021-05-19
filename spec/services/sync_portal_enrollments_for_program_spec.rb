@@ -21,6 +21,75 @@ RSpec.describe SyncPortalEnrollmentsForProgram do
       allow(sf_client).to receive(:find_participants_by).with(program_id: sf_program.id).and_return(sf_participants)
     end
 
+    # These are Participants where we are running Sync From Salesforce for the first time since they
+    # were added to the Program. We create a new User record. The primary motivation for this
+    # is so that we can allow them to use the password reset flow to sign up and create an
+    # account if they lost, can't find, or don't think to look for their welcome email asking
+    # them to create an account.
+    context 'with new participants' do
+      let(:new_sf_participant) { SalesforceAPI::SFParticipant.new('firstNa', 'lastNa', 'new.user.email@example.com') }
+      let(:sf_participants) { [new_sf_participant] }
+      let(:new_user) { double(User).as_null_object }
+
+      before(:each) do
+        expect(User).to receive(:new).and_return(new_user)
+      end
+
+      subject(:run_sync) do
+        SyncPortalEnrollmentsForProgram.new(salesforce_program_id: sf_program.id).run
+      end
+
+      it 'creates a new User record' do
+        expect(new_user).to receive(:save!).once
+        run_sync
+      end
+
+      it 'doesnt send a confirmation email' do
+        expect(new_user).to receive(:skip_confirmation_notification!).once
+        run_sync
+      end
+
+      it 'generates signup token' do
+        allow(new_user).to receive(:signup_token).and_return(nil)
+        expect(new_user).to receive(:set_signup_token!).once
+        run_sync
+      end
+
+      it 'sends the signup token to Salesforce' do
+        fake_token = 'fake_token'
+        allow(new_user).to receive(:signup_token).and_return(nil)
+        allow(new_user).to receive(:set_signup_token!).and_return(fake_token)
+        expect(new_user).to receive(:send_signup_token).with(fake_token).once
+        run_sync
+      end
+
+      # These emails are supposed to come in a welcome email blast a couple weeks before launch.
+      # The signup_emails sent from Platform are meant to help staff support issues with getting
+      # account access through the normal flow. These are essentially "backup" signup emails that
+      # we send in one-off cases.
+      it 'defaults to not sending sign-up emails' do
+        expect(new_user).not_to receive(:send_signup_email!)
+        run_sync
+      end
+
+      # The "send_signup_emails" mode is intended to be used by support staff scrambling
+      # to get last minute folks access to Canvas. For example, at the first Learning Lab
+      # a couple friends show up wanting to do Braven b/c they just heard about it.
+      # The staff member would use Salesforce to fully confirm them and create an Enrolled
+      # Participant. Then they would run "Sync From Salesforce" with the checkbox to send
+      # sign-up emails. That is how they would get the sign-up link to these folks right
+      # then and there allowing them to create an account and log in to Canvas.
+      context 'when sending sign-up emails is turned on' do
+        it 'sends the sign-up email' do
+          fake_token = 'fake_token'
+          allow(new_user).to receive(:signup_token).and_return(nil)
+          allow(new_user).to receive(:set_signup_token!).and_return(fake_token)
+          expect(new_user).to receive(:send_signup_email!).with(fake_token).once
+          SyncPortalEnrollmentsForProgram.new(salesforce_program_id: sf_program.id, send_signup_emails: true).run
+        end
+      end
+    end
+
     context 'with failed participants' do
       let(:user_success) { create :registered_user }
       let(:portal_user_success) { CanvasAPI::LMSUser.new(user_success.canvas_user_id, user_success.email) }
@@ -54,23 +123,4 @@ RSpec.describe SyncPortalEnrollmentsForProgram do
 
   end
 
-  describe '.find_or_set_up_user!' do
-    let(:sync_program_service) { SyncPortalEnrollmentsForProgram.new(salesforce_program_id: sf_program.id) }
-    let(:sf_participant) { SalesforceAPI::SFParticipant.new(
-      'first',
-      'last',
-      'test@example.com',
-      :role_ignored,
-      :program_id_ignored,
-      '003000000125IpSAAU',  # contact_id
-    ) }
-
-    it 'does not send confirmation emails' do
-      Devise.mailer.deliveries.clear()
-      expect {
-        sync_program_service.send(:find_or_set_up_user!, sf_participant)
-      }.to change(User, :count).by(1)
-      expect(Devise.mailer.deliveries.count).to eq 0
-    end
-  end
 end
