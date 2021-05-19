@@ -54,14 +54,17 @@ class SalesforceController < ApplicationController
     begin
       contact = params[:contacts].first
 
-      @canvas_user_id = contact[:Canvas_Cloud_User_ID__c].to_i # Sent by SF as: 12345.0
+      # Note that the format of the JSON sent is defined in the BZ_SyncContactsToCanvas::SyncContactJson
+      # class here: https://github.com/beyond-z/salesforce/blob/master/src/classes/BZ_SyncContactsToCanvas.apxc
+
+      @canvas_user_id = contact[:CanvasUserId]
       Honeycomb.add_field('user.canvas_user_id', @canvas_user_id)
 
       @new_email = contact[:Email]
       # Note: we don't send these to Canvas. Rely on users do update their own names.
       @first_name = contact[:FirstName]
       @last_name = contact[:LastName]
-      @salesforce_contact_id = contact[:Id]
+      @salesforce_contact_id = contact[:ContactId]
 
       # Raise if not found so we don't change anything in Canvas.
       @user = User.find_by!(salesforce_id: @salesforce_contact_id)
