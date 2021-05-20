@@ -5,17 +5,27 @@ require 'rubycas-server-core/tickets'
 require 'rubycas-server-core/tickets/validations'
 require 'rubycas-server-core/tickets/generations'
 
+# IMPORTANT: this controller is complicated, ugly, and handles a ton of permutations
+# of tricky stuff. A new dev or someone that hasn't spent a LOT of time going through
+# all the various registration, confirmation, password reset, account creation / mgmt
+# features should AVOID working on this. You're very likely to expose security vulnerabilities.
+# Try to push back on whoever is very nicely asking for some seemingly simple enhancement to
+# make it easier to log in and tell them it's dangerous without spending a ton of time
+# getting up to speed. We spent about a month getting this all working in a way that we
+# think helps get folks access to their account without opening a support ticket AND
+# also doesn't expose security issues that a bad-actor could use to exploit our systems.
+
 class CasController < ApplicationController
   layout 'accounts'
   skip_before_action :authenticate_user!
   # Skip the verify_authorized callback for this controller, since we won't be logged in
   # and thus get no benefit from authorization.
   skip_after_action :verify_authorized
-  
+
   before_action :set_settings
   before_action :set_request_client
   before_action :set_params
-  before_action :set_loginpost_params, only: [:loginpost] 
+  before_action :set_loginpost_params, only: [:loginpost]
 
   # Note that the following helper classes in this controller come from this module
   # TGT = Ticket Granting Ticket
@@ -112,8 +122,15 @@ class CasController < ApplicationController
 
     # Don't log out the entire @settings variable, it has sensitive info.
     logger.debug("Logging in with username: #{@username} using a login ticket for service: #{@service}")
+    Honeycomb.add_field('cas_controller.username', @username)
 
     credentials_are_valid = false
+    credentials = {
+      :username => @username,
+      :password => @password,
+      :service => @service,
+      :request => request.env
+    }
     extra_attributes = {}
     successful_authenticator = nil
     last_failed_authenticator = nil
@@ -126,21 +143,17 @@ class CasController < ApplicationController
         # it splace in the authenticator queue
         auth.configure(auth_config.merge('auth_index' => auth_index))
 
-        credentials_are_valid = auth.validate(
-          :username => @username,
-          :password => @password,
-          :service => @service,
-          :request => request.env
-        )
+        credentials_are_valid = auth.validate(credentials)
         if credentials_are_valid
           extra_attributes.merge!(auth.extra_attributes) unless auth.extra_attributes.blank?
           successful_authenticator = auth
           break
         else
-          # DANGER!! See where this is used below.
+          # DANGER!! See where this is used below to allow a very special flow to see a page that requires log in.
           last_failed_authenticator = auth
         end
       end
+      Honeycomb.add_field('cas_controller.valid_credentials?', credentials_are_valid)
 
       if credentials_are_valid
         logger.info("Credentials for username '#{@username}' successfully validated using #{successful_authenticator.class.name}.")
@@ -172,13 +185,28 @@ class CasController < ApplicationController
         end
       # DANGER!! This works for our custom CAS authenticator, but probably
       # won't work for other auth methods! If we change auth methods, revisit.
-      elsif last_failed_authenticator.respond_to?(:valid_password?) && last_failed_authenticator.valid_password?(@password)
+      # PLEASE, see the note at the top of this controller about doing everything possible to avoid
+      # making changes to this controller and the below behavior unless you REALLY know what
+      # you're doing and have through through all the ways a bad actor could try and exploit
+      # whatever enhancement you're trying to make to get access to our systems.
+      elsif (
+              last_failed_authenticator.respond_to?(:valid_password?) &&
+              last_failed_authenticator.valid_password?(credentials)
+            ) or (
+              last_failed_authenticator.respond_to?(:valid_password_for_unconfirmed_email?) &&
+              last_failed_authenticator.valid_password_for_unconfirmed_email?(credentials)
+            )
         # The username/password is correct, but something else is making
-        # this account currently invalid for login. Be careful here.
-        user = User.find_by_email(@username)
-        if user.present? && user.registered? && !user.confirmed?
+        # this account currently invalid for login. Note that this could be a valid username/password
+        # for an unconfirmed email. Be careful here.
+        user = last_failed_authenticator.user
+        add_honeycomb_context(user)
+
+        if user.present? && user.registered? &&
+           (!user.confirmed? || user.unconfirmed_email == @username)
           # The account is fully registered, but UNCONFIRMED.
           # Give them a button to re-send the confirm email.
+          Honeycomb.add_field('cas_controller.valid_credentials?', true)
           logger.warn("Unconfirmed user tried to log in: '#{@username}'")
           redirect_to users_registration_path(uuid: user.uuid, login_attempt: true) and return
         else
@@ -191,12 +219,17 @@ class CasController < ApplicationController
       else
         # Credentials not valid.
         # If you change the message/render here, make sure to change it in the `else` above too.
+        add_honeycomb_context(last_failed_authenticator.user)
         logger.warn("Invalid credentials given for user '#{@username}'")
         @message = { :type => 'mistake', :message => 'Incorrect username or password.' }
         return render :login, status: :unauthorized
       end
     rescue RubyCAS::Server::Core::AuthenticatorError => e
       logger.error(e)
+      Honeycomb.add_field('error', e.class.name)
+      Honeycomb.add_field('error_detail', e.message)
+      Honeycomb.add_field('alert.cas_controller.login_failed', true)
+      Sentry.capture_exception(e)
       # generate another login ticket to allow for re-submitting the form
       @lt = LT.create!(@request_client).ticket
       @message = {:type => 'mistake', :message => e.to_s}
@@ -263,7 +296,7 @@ class CasController < ApplicationController
     logger.error('Tried to use login ticket dispenser with get method!')
     render :json => {:response => 'To generate a login ticket, you must make a POST request.'}, status: :unprocessable_entity
   end
-  
+
   # Renders a page with a login ticket (and only the login ticket)
   # in the response body.
   def loginTicketPost
@@ -284,7 +317,7 @@ class CasController < ApplicationController
 
     render(json: {success: @success, user: @username})
   end
-  
+
   def serviceValidate
     @pgt_url = params['pgtUrl']
 
@@ -303,7 +336,7 @@ class CasController < ApplicationController
 
     render :service_validate, formats: [:xml]
   end
-  
+
   def proxyValidate
     @pgt_url = params['pgtUrl']
 
@@ -346,7 +379,7 @@ class CasController < ApplicationController
     include RubyCAS::Server::Core::Tickets::Validations
   end
 
-  private
+private
 
   def set_request_client
     @request_client = request.env['HTTP_X_FORWARDED_FOR'] || request.env['REMOTE_HOST'] || request.env['REMOTE_ADDR']
@@ -362,12 +395,21 @@ class CasController < ApplicationController
     @ticket = params['ticket'] || nil
     @renew = params['renew'] || nil
     @extra_attributes = {}
-  end 
+  end
 
   def set_loginpost_params
     @username = params[:username].downcase.strip if params[:username]
     @password = params[:password]
     @lt = params[:lt]
+  end
+
+  def add_honeycomb_context(user)
+    Honeycomb.add_field('user.id', user&.id)
+    Honeycomb.add_field('user.email', user&.email)
+    Honeycomb.add_field('user.unconfirmed_email', user&.unconfirmed_email)
+    Honeycomb.add_field('user.present?', user&.present?)
+    Honeycomb.add_field('user.registered?', user&.registered?)
+    Honeycomb.add_field('user.confirmed?', user&.confirmed?)
   end
 end
 
