@@ -86,7 +86,7 @@ section:after {
 // Uncomment to have activerecord validation failures add a red border around the field.
 // Right now, we only have the password creation form which we would want to turn this off
 // for since it's only two fields there and they don't need to be highlighted.
-// See: app/views/devise/registrations/new.html.erb 
+// See: app/views/devise/registrations/new.html.erb
 //.field_with_errors input {
 //  border: 2px solid red;
 //}
@@ -144,7 +144,6 @@ section:after {
 #footer_bottom.braven_section {
   background: $bv-black;
   width: 100%;
-  z-index: -1;
 }
 
 #footer_menu .footer_widget {
@@ -195,11 +194,6 @@ section:after {
 
 .braven-cc a:hover {
   color: white;
-}
-
-.info_footer_link:before {
-  content: 'Contact us:';
-  display: block;
 }
 
 .footer_widget {
