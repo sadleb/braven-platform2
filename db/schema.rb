@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_04_30_205153) do
+ActiveRecord::Schema.define(version: 2021_05_25_183430) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
@@ -622,4 +622,6 @@ ActiveRecord::Schema.define(version: 2021_04_30_205153) do
   add_foreign_key "survey_submission_answers", "survey_submissions"
   add_foreign_key "survey_submissions", "course_custom_content_versions"
   add_foreign_key "survey_submissions", "users"
+  add_foreign_key "users_roles", "roles"
+  add_foreign_key "users_roles", "users"
 end
