@@ -5,18 +5,20 @@ RSpec.describe PeerReviewSubmissionsController, type: :controller do
 
   let(:course) { create :course }
   let(:section) { create :section, course: course }
+  let(:sf_client) { double(SalesforceAPI, get_accelerator_course_id_from_lc_playbook_course_id: nil) }
 
   before(:each) do
     @lti_launch = create(
       :lti_launch_assignment,
       canvas_user_id: user.canvas_user_id,
     )
+    allow(SalesforceAPI).to receive(:client).and_return(sf_client)
   end
 
   describe 'GET #show' do
     let(:user) { create :fellow_user, section: section }
 
-    # This creates the submission for the Fellow for that peer_review
+    # This creates the submission for the current_user for that peer_review
     # The peer_review_submission has to be created here so it doesn't interfere with
     # the POST #create PeerReviewSubmission counts
     let(:peer_review_submission) { create(
@@ -59,10 +61,10 @@ RSpec.describe PeerReviewSubmissionsController, type: :controller do
       end
     end
 
-    shared_examples 'no peers to review' do
+    shared_examples 'no one to review' do
       scenario 'displays a message' do
         subject
-        expect(response.body).to include("You have no peers to review.")
+        expect(response.body).to include("You have no one to review.")
       end
 
       scenario 'does not have a form' do
@@ -75,7 +77,7 @@ RSpec.describe PeerReviewSubmissionsController, type: :controller do
       let!(:fellow_user) { create :fellow_user, section: section }
 
       it_behaves_like 'valid request'
-      it_behaves_like 'no peers to review'
+      it_behaves_like 'no one to review'
     end
 
     context 'as non-fellow (TA) user' do
@@ -83,14 +85,14 @@ RSpec.describe PeerReviewSubmissionsController, type: :controller do
       let!(:fellow_user) { create :fellow_user, section: section }
 
       it_behaves_like 'valid request'
-      it_behaves_like 'no peers to review'
+      it_behaves_like 'no one to review'
     end
 
     context 'as the only Fellow user in section' do
       let!(:user) { create :fellow_user, section: section }
 
       it_behaves_like 'valid request'
-      it_behaves_like 'no peers to review'
+      it_behaves_like 'no one to review'
     end
 
     context 'as a Fellow with peers in section' do
@@ -103,6 +105,40 @@ RSpec.describe PeerReviewSubmissionsController, type: :controller do
         subject
         expect(response.body).to include("</form>")
         expect(response.body).to include(peer_user.full_name)
+        expect(response.body).not_to include (user.full_name)
+      end
+
+      it 'redirects to #show if there is a previous submission' do
+        PeerReviewSubmission.create!(
+          user: user,
+          course: course,
+        )
+        subject
+        expect(response).to redirect_to peer_review_submission_path(
+          PeerReviewSubmission.last,
+          state: @lti_launch.state,
+        )
+      end
+    end
+
+    context 'as an LC in an LC Playbook course with Fellows in section' do
+      let!(:student_course) { create :course }
+      let!(:student_section) { create :section, course: student_course }
+      let(:sf_client) { double(SalesforceAPI, get_accelerator_course_id_from_lc_playbook_course_id: student_course.canvas_course_id) }
+      let!(:user) { create :ta_user, section: student_section }
+      let!(:eval_user) { create :fellow_user, section: student_section }
+
+      before :each do
+        # Enroll the LC in the LC Playbook course as a Student.
+        user.add_role RoleConstants::STUDENT_ENROLLMENT, section
+      end
+
+      it_behaves_like 'valid request'
+
+      it 'shows form with Fellow' do
+        subject
+        expect(response.body).to include("</form>")
+        expect(response.body).to include(eval_user.full_name)
         expect(response.body).not_to include (user.full_name)
       end
 

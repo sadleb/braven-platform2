@@ -15,7 +15,7 @@ class PeerReviewsController < ApplicationController
   #  - GROUP PROJECT: Capstone Challenge
   #  - GROUP PROJECT: Capstone Challenge: Teamwork
   #  - GROUP PROJECT: Complete Peer Evaluations
-  PEER_REVIEWS_ASSIGNMENT_NAME = 'GROUP PROJECT: Complete Peer Evaluations'
+  PEER_REVIEWS_ASSIGNMENT_NAME = 'GROUP PROJECT: Complete Capstone Evaluations'
 
   def assignment_name
     PEER_REVIEWS_ASSIGNMENT_NAME

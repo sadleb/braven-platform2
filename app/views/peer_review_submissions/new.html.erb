@@ -3,18 +3,25 @@
 <% content_for :additional_container_css, 'peer-review-container' %>
 
 <h2 id="cohort-teamwork-evaluation">Cohort Teamwork Evaluation</h2>
-<p>As you know, as part of your Capstone Challenge Project grade, you will be evaluated by your peers and your
-Leadership Coach for your contributions to your team throughout the Challenge. This means you'll need to spend a few
-minutes right now reflecting on your teammates and evaluating them. Your evaluation will be averaged with all the
-others, resulting in a final Teamwork score for each Fellow in your cohort.</p>
+<% if @lc_mode %>
+  <p>As part of your Fellows' Capstone Challenge Project grade, they will be evaluated by their peers and you
+  as their Leadership Coach for their contributions to your team throughout the Challenge. At the end of the
+  Challenge, please reflect on your Fellows and evaluate them here. Your evaluation will be averaged with all
+  the others each Fellow receives, resulting in a final Teamwork score for each Fellow in your cohort.</p>
+<% else %>
+  <p>As you know, as part of your Capstone Challenge Project grade, you will be evaluated by your peers and your
+  Leadership Coach for your contributions to your team throughout the Challenge. This means you'll need to spend a few
+  minutes right now reflecting on your teammates and evaluating them. Your evaluation will be averaged with all the
+  others, resulting in a final Teamwork score for each Fellow in your cohort.</p>
+<% end %>
 
-<% unless @peer_users.present? %>
-  <p>You have no peers to review.</p>
+<% unless @eval_users.present? %>
+  <p>You have no one to review.</p>
   <p>If you think this is wrong, please reach out to support@bebraven.org.</p>
 <% else %>
   <%= form_with(url: course_peer_review_submissions_path, method: "post", local: true) do |form| %>
 
-    <% @peer_users.each do |user| %>
+    <% @eval_users.each do |user| %>
 
       <fieldset class="single-peer-review-wrapper">
         <legend class="peer-review-full-name">
