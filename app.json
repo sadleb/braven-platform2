@@ -9,6 +9,12 @@
       "scripts": {
         "test-setup": "yarn install",
         "test": "bundle exec rspec --tag ~@ci_exclude && yarn test && ./scripts/post_ci_results.sh"
+      },
+      "formation": {
+          "test": {
+            "quantity": 1,
+            "size": "performance-l"
+          }
       }
     },
     "review": {
