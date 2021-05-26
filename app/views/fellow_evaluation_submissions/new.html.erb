@@ -1,6 +1,6 @@
 <% content_for :title, 'Fellow Evaluations' %>
 
-<% content_for :additional_container_css, 'peer-review-container' %>
+<% content_for :additional_container_css, 'capstone-evaluation-container' %>
 
 <h2 id="cohort-teamwork-evaluation">Accelerator Fellow Evaluation</h2>
 <p>Thank you for being a Leadership Coach this semester! We really appreciate all the work and time you’ve dedicated to helping and teaching our Fellows. As we continue to grow as an organization, we've found that feedback from Coaches (who know their Fellows better than we do), has been crucial in helping us tailor post-course programming to meet Fellows' needs. So, we'd like to get some feedback on the Fellows in your cohort. Your responses will be used by Braven staff only (to better understand strengths and growth areas for Fellows and our program overall) and will not be reported back to your cohort members.</p>
@@ -13,8 +13,8 @@
   <%= form_with(url: course_fellow_evaluation_submissions_path, method: "post", local: true) do |form| %>
 
     <% @fellow_users.each do |user| %>
-      <fieldset class="single-peer-review-wrapper">
-        <legend class="peer-review-full-name">
+      <fieldset class="single-capstone-evaluation-wrapper">
+        <legend class="capstone-evaluation-full-name">
           <%= user.full_name %>
         </legend>
         <%= render partial: "radio_question", locals: {
@@ -65,8 +65,8 @@
           question_name: 'weakness',
         } %>
 
-        <fieldset class="peer-review-question-wrapper">
-          <legend class="peer-review-question">
+        <fieldset class="capstone-evaluation-question-wrapper">
+          <legend class="capstone-evaluation-question">
             Is there anything additional about this Fellow’s readiness for the workplace, or any general comments about this Fellow, you’d like to share with us?
           </legend>
           <textarea class="form-control" name="<%= "fellow_evaluation[#{user.id}][other-fellow-comments-from-lc]" %>"></textarea>

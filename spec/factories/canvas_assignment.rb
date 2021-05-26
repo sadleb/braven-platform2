@@ -10,7 +10,7 @@ FactoryBot.define do
       sequence(:lti_launch_url) { |i| "https://platformweb/some/lti_launch/endpoint/#{i}" }
     end
 
-    sequence(:id) 
+    sequence(:id)
     description { '<p>The text in the editor box</p>' }
     due_at { '2020-09-26T03:59:59Z' }
     unlock_at { nil }
@@ -18,8 +18,8 @@ FactoryBot.define do
     sequence(:points_possible) { |i| i.to_f }
     grading_type { 'points' }
     sequence(:assignment_group_id)
-    created_at { "2020-10-14T16:25:09Z" } 
-    updated_at { "2020-10-14T16:26:10Z" } 
+    created_at { "2020-10-14T16:25:09Z" }
+    updated_at { "2020-10-14T16:26:10Z" }
     sequence(:position)
     omit_from_final_grade { false }
     allowed_attempts { -1 } # infinite
@@ -28,15 +28,15 @@ FactoryBot.define do
     submission_types { ['external_tool'] }
     has_submitted_submissions { false }
     workflow_state { 'published' }
-    sequence(:external_tool_tag_attributes) { |i| 
-      { 
+    sequence(:external_tool_tag_attributes) { |i|
+      {
         'url' => lti_launch_url,
         'new_tab' => false,
         'resource_link_id' => "b4793177cdff4db60af282b4d9eb789ed2ccc3#{i}",
         'external_data' => '',
-        'content_type' => 'ContextExternalTool', 
+        'content_type' => 'ContextExternalTool',
         'content_id' => i
-      } 
+      }
     }
     muted { false }
     html_url { "https://braven.instructure.com/courses/#{course_id}/assignments/#{id}" }
@@ -135,8 +135,8 @@ end
 #  "external_tool_tag_attributes": null,
 #  // Boolean indicating if peer reviews are required for this assignment
 #  "peer_reviews": false,
-#  // Boolean indicating peer reviews are assigned automatically. If false, the
-#  // teacher is expected to manually assign peer reviews.
+#  // Boolean indicating capstone evaluations are assigned automatically. If false, the
+#  // teacher is expected to manually assign capstone evaluations.
 #  "automatic_peer_reviews": false,
 #  // Integer representing the amount of reviews each user is assigned. NOTE: This
 #  // key is NOT present unless you have automatic_peer_reviews set to true.
@@ -147,7 +147,7 @@ end
 #  // present unless you have automatic_peer_reviews set to true.
 #  "peer_reviews_assign_at": "2012-07-01T23:59:00-06:00",
 #  // Boolean representing whether or not members from within the same group on a
-#  // group assignment can be assigned to peer review their own group's work
+#  // group assignment can be assigned to capstone evaluation their own group's work
 #  "intra_group_peer_reviews": false,
 #  // The ID of the assignment’s group set, if this is a group assignment. For
 #  // group discussions, set group_category_id on the discussion topic, not the

@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe PeerReviewsController, type: :controller do
+RSpec.describe CapstoneEvaluationsController, type: :controller do
   render_views
 
   let(:canvas_client) { double(CanvasAPI) }
@@ -12,7 +12,7 @@ RSpec.describe PeerReviewsController, type: :controller do
     allow(CanvasAPI).to receive(:client).and_return(canvas_client)
   end
 
-  shared_examples 'updates Peer Review assignment for the template' do
+  shared_examples 'updates Capstone Evaluation assignment for the template' do
     scenario 'calls the Canvas API' do
       expect(canvas_client)
         .to have_received(canvas_api_call)
@@ -39,7 +39,7 @@ RSpec.describe PeerReviewsController, type: :controller do
       post :publish, params: { course_id: course.id }
     end
 
-    it_behaves_like 'updates Peer Review assignment for the template'
+    it_behaves_like 'updates Capstone Evaluation assignment for the template'
   end
 
   describe 'DELETE #unpublish' do
@@ -49,6 +49,6 @@ RSpec.describe PeerReviewsController, type: :controller do
       delete :unpublish, params: { course_id: course.id, canvas_assignment_id: 123 }
     end
 
-    it_behaves_like 'updates Peer Review assignment for the template'
+    it_behaves_like 'updates Capstone Evaluation assignment for the template'
   end
 end

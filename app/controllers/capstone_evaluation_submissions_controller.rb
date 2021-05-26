@@ -1,4 +1,4 @@
-class PeerReviewSubmissionsController < ApplicationController
+class CapstoneEvaluationSubmissionsController < ApplicationController
   include DryCrud::Controllers::Nestable
   # Controller actions are defined in Submittable.
   include Submittable
@@ -48,14 +48,14 @@ private
   end
 
   def set_questions
-    @questions = PeerReviewQuestion.all
+    @questions = CapstoneEvaluationQuestion.all
   end
 
   # Called by Submittable.create.
   def answers_params_hash
-    peer_review_params = params.require(:peer_review)
+    capstone_evaluation_params = params.require(:capstone_evaluation)
     # Only allow submitting capstone evals for this Fellow's peers, or this LC's Fellows.
-    peer_review_params.permit!.to_h.filter do |user_id|
+    capstone_evaluation_params.permit!.to_h.filter do |user_id|
       @eval_users.any? { |u| u.id.to_s == user_id }
     end
   end

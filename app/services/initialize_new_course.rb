@@ -66,8 +66,8 @@ private
     end
 
     # Peer review
-    if canvas_assignment_info.canvas_peer_reviews_assignment_id
-      initialize_new_peer_review(canvas_assignment_info.canvas_peer_reviews_assignment_id)
+    if canvas_assignment_info.canvas_capstone_evaluations_assignment_id
+      initialize_new_capstone_evaluation(canvas_assignment_info.canvas_capstone_evaluations_assignment_id)
     end
 
     # Fellow evalution
@@ -138,11 +138,11 @@ private
     )
   end
 
-  def initialize_new_peer_review(canvas_assignment_id)
+  def initialize_new_capstone_evaluation(canvas_assignment_id)
     CanvasAPI.client.update_assignment_lti_launch_url(
       @new_course.canvas_course_id,
       canvas_assignment_id,
-      new_course_peer_review_submission_url(@new_course, protocol: 'https'),
+      new_course_capstone_evaluation_submission_url(@new_course, protocol: 'https'),
     )
   end
 

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class PeerReviewsController < ApplicationController
+class CapstoneEvaluationsController < ApplicationController
   include DryCrud::Controllers::Nestable
 
   # Adds the #publish and #unpublish actions
@@ -22,7 +22,7 @@ class PeerReviewsController < ApplicationController
   end
 
   def lti_launch_url
-    new_course_peer_review_submission_url(@course, protocol: 'https')
+    new_course_capstone_evaluation_submission_url(@course, protocol: 'https')
   end
 
 end

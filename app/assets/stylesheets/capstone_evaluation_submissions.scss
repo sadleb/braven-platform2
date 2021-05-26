@@ -1,10 +1,10 @@
-// Place all the styles related to the peer_review_submissions controller here.
+// Place all the styles related to the capstone_evaluation_submissions controller here.
 // They will automatically be included in lti_canvas.css.
 // You can use Sass (SCSS) here: http://sass-lang.com/
 
 @import "shared/variables";
 
-div.peer-review-container {
+div.capstone-evaluation-container {
 
   // This was chosen b/c 1366px is a common size for smaller sized laptops
   // which (empirically) give us about 752px of real-estate to work with
@@ -17,12 +17,12 @@ div.peer-review-container {
 
   // Switch to vertical layout
   @media (max-width: 752px){ 
-    .peer-review-radios {
+    .capstone-evaluation-radios {
       display: block; 
     }
   }
 
-  fieldset.single-peer-review-wrapper {
+  fieldset.single-capstone-evaluation-wrapper {
     border: 1px solid $bv-black;
     border-radius: 0.2rem;
     padding: 1.25rem 1rem 1.25rem;
@@ -34,22 +34,22 @@ div.peer-review-container {
     padding: 0 0.5rem;
   }
 
-  .peer-review-question-wrapper {
+  .capstone-evaluation-question-wrapper {
     padding: 0 0.5rem 1rem 0.5rem;
   }
 
-  .peer-review-question-wrapper input {
+  .capstone-evaluation-question-wrapper input {
     margin-left: 0.5rem;
     margin-right: 0.25rem;
   }
 
-  .peer-review-full-name {
+  .capstone-evaluation-full-name {
     color: $bv-skyblue-800;
     font-family: $headings-font-family;
     font-size: 2rem;
   }
 
-  .peer-review-question {
+  .capstone-evaluation-question {
     font-family: $headings-font-family;
     font-size: 1.4rem;
     font-weight: normal;

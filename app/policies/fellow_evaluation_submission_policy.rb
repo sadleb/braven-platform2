@@ -18,11 +18,11 @@ class FellowEvaluationSubmissionPolicy < ApplicationPolicy
   end
 
   def new?
-    # Admins can always submit peer reviews.
+    # Admins can always submit capstone evaluations.
     # This might be weird, so revisit if we decide we don't want this.
     return true if user.admin?
 
-    # Anyone enrolled can see the peer review form
+    # Anyone enrolled can see the capstone evaluation form
     return true if is_enrolled?
 
     false

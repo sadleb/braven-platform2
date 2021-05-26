@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # "Submittable" behavior for controllers like SurveySubmissionsController
-# and PeerReviewSubmissionsController.
+# and CapstoneEvaluationSubmissionsController.
 #
 # This concern heavily depends on DryCrud::Controllers::Nestable, and requires
 # the including controller to be nested under one parent.
@@ -24,7 +24,7 @@
 # that takes in the answers_params_hash and saves the submission answers. Note
 # that this concern doesn't care what the hash looks like, it just has to match
 # what the model's `save_answers!` method accepts. For example, the answers hashes
-# for SurveySubmission and PeerReviewSubmission look completely different.
+# for SurveySubmission and CapstoneEvaluationSubmission look completely different.
 
 require 'lti_advantage_api'
 require 'lti_score'
@@ -108,7 +108,7 @@ private
     instance_variable_get("@#{parent_variable_name}")
   end
 
-  # E.g. peer_review_submission_path(instance, ...).
+  # E.g. capstone_evaluation_submission_path(instance, ...).
   def instance_path(instance)
     self.send(
       "#{instance_variable_name}_path",

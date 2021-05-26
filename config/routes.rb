@@ -73,7 +73,7 @@ Rails.application.routes.draw do
       delete :unpublish, on: :member
     end
 
-    resources :peer_review_submissions, only: [:new, :create]
+    resources :capstone_evaluation_submissions, only: [:new, :create]
     resources :fellow_evaluation_submissions, only: [:new, :create]
 
     resources :waivers, only: [] do
@@ -83,7 +83,7 @@ Rails.application.routes.draw do
       end
     end
 
-    resources :peer_reviews, only: [] do
+    resources :capstone_evaluations, only: [] do
       collection do
         post :publish
         delete :unpublish
@@ -130,7 +130,7 @@ Rails.application.routes.draw do
   end
 
   resources :survey_submissions, only: [:show]
-  resources :peer_review_submissions, only: [:show]
+  resources :capstone_evaluation_submissions, only: [:show]
 
   resources :attendance_event_submissions, only: [:edit, :update] do
     collection do

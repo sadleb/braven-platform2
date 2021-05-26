@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe PeerReviewSubmissionsController, type: :controller do
+RSpec.describe CapstoneEvaluationSubmissionsController, type: :controller do
   render_views
 
   let(:course) { create :course }
@@ -18,11 +18,11 @@ RSpec.describe PeerReviewSubmissionsController, type: :controller do
   describe 'GET #show' do
     let(:user) { create :fellow_user, section: section }
 
-    # This creates the submission for the current_user for that peer_review
-    # The peer_review_submission has to be created here so it doesn't interfere with
-    # the POST #create PeerReviewSubmission counts
-    let(:peer_review_submission) { create(
-      :peer_review_submission,
+    # This creates the submission for the current_user for that capstone_evaluation
+    # The capstone_evaluation_submission has to be created here so it doesn't interfere with
+    # the POST #create CapstoneEvaluationSubmission counts
+    let(:capstone_evaluation_submission) { create(
+      :capstone_evaluation_submission,
       user: user,
       course: course,
     ) }
@@ -32,7 +32,7 @@ RSpec.describe PeerReviewSubmissionsController, type: :controller do
         :show,
         params: {
           course_id: course.id,
-          id: peer_review_submission.id,
+          id: capstone_evaluation_submission.id,
           state: @lti_launch.state,
         },
       )
@@ -109,13 +109,13 @@ RSpec.describe PeerReviewSubmissionsController, type: :controller do
       end
 
       it 'redirects to #show if there is a previous submission' do
-        PeerReviewSubmission.create!(
+        CapstoneEvaluationSubmission.create!(
           user: user,
           course: course,
         )
         subject
-        expect(response).to redirect_to peer_review_submission_path(
-          PeerReviewSubmission.last,
+        expect(response).to redirect_to capstone_evaluation_submission_path(
+          CapstoneEvaluationSubmission.last,
           state: @lti_launch.state,
         )
       end
@@ -143,13 +143,13 @@ RSpec.describe PeerReviewSubmissionsController, type: :controller do
       end
 
       it 'redirects to #show if there is a previous submission' do
-        PeerReviewSubmission.create!(
+        CapstoneEvaluationSubmission.create!(
           user: user,
           course: course,
         )
         subject
-        expect(response).to redirect_to peer_review_submission_path(
-          PeerReviewSubmission.last,
+        expect(response).to redirect_to capstone_evaluation_submission_path(
+          CapstoneEvaluationSubmission.last,
           state: @lti_launch.state,
         )
       end
@@ -160,7 +160,7 @@ RSpec.describe PeerReviewSubmissionsController, type: :controller do
     let(:user) { create :fellow_user }
     let(:lti_advantage_api) { double(LtiAdvantageAPI) }
     let(:peer_user) { create(:peer_user, section: section) }
-    let(:question) { create(:peer_review_question) }
+    let(:question) { create(:capstone_evaluation_question) }
 
     before(:each) do
       allow(LtiAdvantageAPI).to receive(:new).and_return(lti_advantage_api)
@@ -173,7 +173,7 @@ RSpec.describe PeerReviewSubmissionsController, type: :controller do
         :create,
         params: {
           course_id: course.id,
-          peer_review: {
+          capstone_evaluation: {
             peer_user.id.to_s => {
               question.id.to_s => 'My answer value',
             },
@@ -184,15 +184,15 @@ RSpec.describe PeerReviewSubmissionsController, type: :controller do
     }
 
     it 'redirects to #show' do
-      expect(subject).to redirect_to peer_review_submission_path(PeerReviewSubmission.last, state: @lti_launch.state)
+      expect(subject).to redirect_to capstone_evaluation_submission_path(CapstoneEvaluationSubmission.last, state: @lti_launch.state)
     end
 
-    it 'creates a peer_review submission' do
-      expect { subject }.to change(PeerReviewSubmission, :count).by(1)
+    it 'creates a capstone_evaluation submission' do
+      expect { subject }.to change(CapstoneEvaluationSubmission, :count).by(1)
     end
 
     it 'saves the submitted answer' do
-      expect { subject }.to change(PeerReviewSubmissionAnswer, :count).by(1)
+      expect { subject }.to change(CapstoneEvaluationSubmissionAnswer, :count).by(1)
     end
 
     it 'updates the Canvas assignment' do

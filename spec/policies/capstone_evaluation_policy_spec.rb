@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe PeerReviewPolicy, type: :policy do
+RSpec.describe CapstoneEvaluationPolicy, type: :policy do
   let(:user) { create :registered_user }
 
   subject { described_class }

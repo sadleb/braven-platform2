@@ -13,7 +13,7 @@ class FetchCanvasAssignmentsInfo
               :canvas_waivers_url, :canvas_waivers_assignment_id,
               :canvas_preaccelerator_survey_url, :canvas_preaccelerator_survey_assignment_id,
               :canvas_postaccelerator_survey_url, :canvas_postaccelerator_survey_assignment_id,
-              :canvas_peer_reviews_url, :canvas_peer_reviews_assignment_id,
+              :canvas_capstone_evaluations_url, :canvas_capstone_evaluations_assignment_id,
               :canvas_fellow_evaluation_url, :canvas_fellow_evaluation_assignment_id,
               :course_project_versions, :course_survey_versions,
               :course_custom_content_versions_mapping,  # Maps the fetched canvas assignment ID to the cccv.
@@ -33,8 +33,8 @@ class FetchCanvasAssignmentsInfo
     @canvas_postaccelerator_survey_url = nil
     @canvas_postaccelerator_survey_assignment_id  = nil
 
-    @canvas_peer_reviews_url = nil
-    @canvas_peer_reviews_assignment_id = nil
+    @canvas_capstone_evaluations_url = nil
+    @canvas_capstone_evaluations_assignment_id = nil
 
     @canvas_fellow_evaluation_url = nil
     @canvas_fellow_evaluation_assignment_id = nil
@@ -99,11 +99,11 @@ private
       return
     end
 
-    # We don't use new_**course**_peer_review_submission_path here because
+    # We don't use new_**course**_capstone_evaluation_submission_path here because
     # InitializeNewCourse needs to be able to detect the LTI launch URL that
     # was copied containing the old course ID
-    peer_review_submission_path = 'peer_review_submissions/new'
-    add_peer_review_info(canvas_assignment) and return if lti_launch_url =~ /#{peer_review_submission_path}/
+    capstone_evaluation_submission_path = 'capstone_evaluation_submissions/new'
+    add_capstone_evaluation_info(canvas_assignment) and return if lti_launch_url =~ /#{capstone_evaluation_submission_path}/
 
     fellow_evaluation_submission_path = 'fellow_evaluation_submissions/new'
     add_fellow_evaluation_info(canvas_assignment) and return if lti_launch_url =~ /#{fellow_evaluation_submission_path}/
@@ -148,14 +148,14 @@ private
     end
   end
 
-  def add_peer_review_info(canvas_assignment)
-    if @canvas_peer_reviews_url
-      raise FetchCanvasAssignmentsInfoError, "Duplicate Peer Reviews assignment found."\
-        "First[#{@canvas_peer_reviews_url}]. "\
+  def add_capstone_evaluation_info(canvas_assignment)
+    if @canvas_capstone_evaluations_url
+      raise FetchCanvasAssignmentsInfoError, "Duplicate Capstone Evaluations assignment found."\
+        "First[#{@canvas_capstone_evaluations_url}]. "\
         "Second[#{canvas_assignment['html_url']}]."
     end
-    @canvas_peer_reviews_url = canvas_assignment['html_url']
-    @canvas_peer_reviews_assignment_id = canvas_assignment['id']
+    @canvas_capstone_evaluations_url = canvas_assignment['html_url']
+    @canvas_capstone_evaluations_assignment_id = canvas_assignment['id']
   end
 
   def add_fellow_evaluation_info(canvas_assignment)

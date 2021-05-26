@@ -116,7 +116,7 @@ RSpec.describe FellowEvaluationSubmissionsController, type: :controller do
     let(:user) { create :lc_playbook_user, section: lc_playbook_section }
     let(:fellow_user) { create :fellow_user, section: accelerator_section }
     let(:lti_advantage_api) { double(LtiAdvantageAPI) }
-    
+
     before(:each) do
       user.add_role RoleConstants::TA_ENROLLMENT, accelerator_section
       allow(LtiAdvantageAPI).to receive(:new).and_return(lti_advantage_api)
@@ -140,7 +140,7 @@ RSpec.describe FellowEvaluationSubmissionsController, type: :controller do
     }
 
     context 'as LC submitting' do
-      it 'creates a peer_review submission' do
+      it 'creates a submission' do
         expect { subject }.to change(FellowEvaluationSubmission, :count).by(1)
       end
 

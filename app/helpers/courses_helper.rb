@@ -12,16 +12,16 @@ module CoursesHelper
     @canvas_assignment_info.canvas_waivers_assignment_id
   end
 
-  def has_peer_reviews_assignment?
-    !!@canvas_assignment_info.canvas_peer_reviews_url
+  def has_capstone_evaluations_assignment?
+    !!@canvas_assignment_info.canvas_capstone_evaluations_url
   end
 
-  def canvas_peer_reviews_url
-    @canvas_assignment_info.canvas_peer_reviews_url
+  def canvas_capstone_evaluations_url
+    @canvas_assignment_info.canvas_capstone_evaluations_url
   end
 
-  def canvas_peer_reviews_assignment_id
-    @canvas_assignment_info.canvas_peer_reviews_assignment_id
+  def canvas_capstone_evaluations_assignment_id
+    @canvas_assignment_info.canvas_capstone_evaluations_assignment_id
   end
 
   def has_preaccelerator_survey?

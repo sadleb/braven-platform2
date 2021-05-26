@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :peer_review_submission do
+  factory :capstone_evaluation_submission do
     course
     association :user, factory: :registered_user
     transient do

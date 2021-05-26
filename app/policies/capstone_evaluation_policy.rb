@@ -1,4 +1,4 @@
-class PeerReviewPolicy < ApplicationPolicy
+class CapstoneEvaluationPolicy < ApplicationPolicy
   def publish?
     edit?
   end

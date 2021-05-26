@@ -19,13 +19,13 @@
 <% input_name = "fellow_evaluation[#{user.id}][#{question_name}]" %>
 <% input_id_prefix = "checkbox-#{user.id}-#{question_name}" %>
 
-<fieldset class="peer-review-question-wrapper">
-  <legend class="peer-review-question">
+<fieldset class="capstone-evaluation-question-wrapper">
+  <legend class="capstone-evaluation-question">
     <%= question %>
   </legend>
 
   <div class="container-fluid p-0">
-    <div class="peer-review-radios">
+    <div class="capstone-evaluation-radios">
       <% checkboxes.each do |label, value| %>
         <% checkbox_id = "#{input_id_prefix}-#{value}" %>
           <div class="col-sm pr-0">

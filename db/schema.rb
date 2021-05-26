@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_05_25_183430) do
+ActiveRecord::Schema.define(version: 2021_05_25_214248) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
@@ -81,6 +81,33 @@ ActiveRecord::Schema.define(version: 2021_05_25_183430) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.string "event_type"
+  end
+
+  create_table "capstone_evaluation_questions", force: :cascade do |t|
+    t.string "text", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "capstone_evaluation_submission_answers", force: :cascade do |t|
+    t.bigint "capstone_evaluation_submission_id", null: false
+    t.bigint "for_user_id", null: false
+    t.string "input_value"
+    t.bigint "capstone_evaluation_question_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["capstone_evaluation_question_id"], name: "index_capstone_eval_answers_questions_1"
+    t.index ["capstone_evaluation_submission_id"], name: "index_peer_review_submission_answers_on_submission_id"
+    t.index ["for_user_id"], name: "index_capstone_evaluation_submission_answers_on_for_user_id"
+  end
+
+  create_table "capstone_evaluation_submissions", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "course_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["course_id"], name: "index_capstone_evaluation_submissions_on_course_id"
+    t.index ["user_id"], name: "index_capstone_evaluation_submissions_on_user_id"
   end
 
   create_table "champion_contacts", force: :cascade do |t|
@@ -270,33 +297,6 @@ ActiveRecord::Schema.define(version: 2021_05_25_183430) do
     t.datetime "updated_at", precision: 6, null: false
     t.boolean "sessionless", default: false
     t.index ["state"], name: "index_lti_launches_on_state", unique: true
-  end
-
-  create_table "peer_review_questions", force: :cascade do |t|
-    t.string "text", null: false
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-  end
-
-  create_table "peer_review_submission_answers", force: :cascade do |t|
-    t.bigint "peer_review_submission_id", null: false
-    t.bigint "for_user_id", null: false
-    t.string "input_value"
-    t.bigint "peer_review_question_id"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.index ["for_user_id"], name: "index_peer_review_submission_answers_on_for_user_id"
-    t.index ["peer_review_question_id"], name: "index_peer_review_submission_answers_on_peer_review_question_id"
-    t.index ["peer_review_submission_id"], name: "index_peer_review_submission_answers_on_submission_id"
-  end
-
-  create_table "peer_review_submissions", force: :cascade do |t|
-    t.bigint "user_id", null: false
-    t.bigint "course_id", null: false
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.index ["course_id"], name: "index_peer_review_submissions_on_course_id"
-    t.index ["user_id"], name: "index_peer_review_submissions_on_user_id"
   end
 
   create_table "project_submission_answers", force: :cascade do |t|
@@ -581,6 +581,11 @@ ActiveRecord::Schema.define(version: 2021_05_25_183430) do
   add_foreign_key "attendance_event_submission_answers", "users", column: "for_user_id"
   add_foreign_key "attendance_event_submissions", "course_attendance_events"
   add_foreign_key "attendance_event_submissions", "users"
+  add_foreign_key "capstone_evaluation_submission_answers", "capstone_evaluation_questions"
+  add_foreign_key "capstone_evaluation_submission_answers", "capstone_evaluation_submissions"
+  add_foreign_key "capstone_evaluation_submission_answers", "users", column: "for_user_id"
+  add_foreign_key "capstone_evaluation_submissions", "courses"
+  add_foreign_key "capstone_evaluation_submissions", "users"
   add_foreign_key "course_attendance_events", "attendance_events"
   add_foreign_key "course_attendance_events", "courses"
   add_foreign_key "course_custom_content_versions", "courses"
@@ -594,11 +599,6 @@ ActiveRecord::Schema.define(version: 2021_05_25_183430) do
   add_foreign_key "fellow_evaluation_submission_answers", "users", column: "for_user_id"
   add_foreign_key "fellow_evaluation_submissions", "courses"
   add_foreign_key "fellow_evaluation_submissions", "users"
-  add_foreign_key "peer_review_submission_answers", "peer_review_questions"
-  add_foreign_key "peer_review_submission_answers", "peer_review_submissions"
-  add_foreign_key "peer_review_submission_answers", "users", column: "for_user_id"
-  add_foreign_key "peer_review_submissions", "courses"
-  add_foreign_key "peer_review_submissions", "users"
   add_foreign_key "project_submission_answers", "project_submissions"
   add_foreign_key "project_submissions", "course_custom_content_versions"
   add_foreign_key "project_submissions", "users"

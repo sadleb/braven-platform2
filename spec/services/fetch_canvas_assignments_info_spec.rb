@@ -21,7 +21,7 @@ RSpec.describe FetchCanvasAssignmentsInfo do
       lti_launch_url: lti_launch_url,
     ) }
     let(:assignments) { [ assignment ] }
-    
+
     it 'detects a fellow evaluation assignment' do
       assignments_info = FetchCanvasAssignmentsInfo.new(course.canvas_course_id).run
       expect(assignments_info.canvas_fellow_evaluation_url).to match(/\/courses\/#{course.canvas_course_id}\/assignments\/#{assignment['id']}/)
@@ -29,20 +29,20 @@ RSpec.describe FetchCanvasAssignmentsInfo do
     end
   end
 
-  context 'for peer reviews' do
-    let(:peer_reviews_lti_launch_url) { new_course_peer_review_submission_path(course) }
-    let(:peer_reviews_assignment) { create(
+  context 'for capstone evaluations' do
+    let(:capstone_evaluations_lti_launch_url) { new_course_capstone_evaluation_submission_path(course) }
+    let(:capstone_evaluations_assignment) { create(
       :canvas_assignment,
-      name: PeerReviewsController::PEER_REVIEWS_ASSIGNMENT_NAME,
+      name: CapstoneEvaluationsController::PEER_REVIEWS_ASSIGNMENT_NAME,
       course_id: course.canvas_course_id,
-      lti_launch_url: peer_reviews_lti_launch_url,
+      lti_launch_url: capstone_evaluations_lti_launch_url,
     ) }
-    let(:assignments) { [ peer_reviews_assignment ] }
-    
-    it 'detects a peer review assignment' do
+    let(:assignments) { [ capstone_evaluations_assignment ] }
+
+    it 'detects a capstone evaluation assignment' do
       assignments_info = FetchCanvasAssignmentsInfo.new(course.canvas_course_id).run
-      expect(assignments_info.canvas_peer_reviews_url).to match(/\/courses\/#{course.canvas_course_id}\/assignments\/#{peer_reviews_assignment['id']}/)
-      expect(assignments_info.canvas_peer_reviews_assignment_id).to eq(peer_reviews_assignment['id'])
+      expect(assignments_info.canvas_capstone_evaluations_url).to match(/\/courses\/#{course.canvas_course_id}\/assignments\/#{capstone_evaluations_assignment['id']}/)
+      expect(assignments_info.canvas_capstone_evaluations_assignment_id).to eq(capstone_evaluations_assignment['id'])
     end
   end
 

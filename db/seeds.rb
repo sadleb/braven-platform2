@@ -17,11 +17,11 @@ if User.count == 0
   bv_admin.add_role :admin
 end
 
-if PeerReviewQuestion.count == 0
-  PeerReviewQuestion.create!(text: "Actively contributed to team success")
-  PeerReviewQuestion.create!(text: "Met deadlines and fulfilled responsibilities in a timely manner")
-  PeerReviewQuestion.create!(text: "Gave feedback to others to help them be more successful and productiver")
-  PeerReviewQuestion.create!(text: "Embraced different perspectives on the team with openness and a sense of possibility")
+if CapstoneEvaluationQuestion.count == 0
+  CapstoneEvaluationQuestion.create!(text: "Actively contributed to team success")
+  CapstoneEvaluationQuestion.create!(text: "Met deadlines and fulfilled responsibilities in a timely manner")
+  CapstoneEvaluationQuestion.create!(text: "Gave feedback to others to help them be more successful and productiver")
+  CapstoneEvaluationQuestion.create!(text: "Embraced different perspectives on the team with openness and a sense of possibility")
 end
 
 if ChampionSearchSynonym.count == 0

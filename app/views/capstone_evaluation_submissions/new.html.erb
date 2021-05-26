@@ -1,6 +1,6 @@
-<% content_for :title, 'Peer Reviews' %>
+<% content_for :title, 'Capstone Evaluations' %>
 
-<% content_for :additional_container_css, 'peer-review-container' %>
+<% content_for :additional_container_css, 'capstone-evaluation-container' %>
 
 <h2 id="cohort-teamwork-evaluation">Cohort Teamwork Evaluation</h2>
 <% if @lc_mode %>
@@ -19,26 +19,26 @@
   <p>You have no one to review.</p>
   <p>If you think this is wrong, please reach out to support@bebraven.org.</p>
 <% else %>
-  <%= form_with(url: course_peer_review_submissions_path, method: "post", local: true) do |form| %>
+  <%= form_with(url: course_capstone_evaluation_submissions_path, method: "post", local: true) do |form| %>
 
     <% @eval_users.each do |user| %>
 
-      <fieldset class="single-peer-review-wrapper">
-        <legend class="peer-review-full-name">
+      <fieldset class="single-capstone-evaluation-wrapper">
+        <legend class="capstone-evaluation-full-name">
           <%= user.full_name %>
         </legend>
 
         <% @questions.each do |question| %>
-          <% input_name = "peer_review[#{user.id}][#{question.id}]" %>
+          <% input_name = "capstone_evaluation[#{user.id}][#{question.id}]" %>
           <% input_id_prefix = "radio-#{user.id}-#{question.id}" %>
 
-          <fieldset class="peer-review-question-wrapper">
-            <legend class="peer-review-question">
+          <fieldset class="capstone-evaluation-question-wrapper">
+            <legend class="capstone-evaluation-question">
               <%= question.text %>
             </legend>
 
             <div class="container-fluid p-0">
-              <div class="row peer-review-radios">
+              <div class="row capstone-evaluation-radios">
                 <div class="col-sm pr-0">
                   <input id="<%= input_id_prefix %>-10" type="radio" value="10"
                          name="<%= input_name %>" required>

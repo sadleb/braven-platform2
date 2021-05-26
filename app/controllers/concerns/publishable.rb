@@ -2,7 +2,7 @@
 
 # "Publishable" behavior for controllers that modify Assignments in a Canvas
 # course, for example:
-#   - PeerReviewsController
+#   - CapstoneEvaluationsController
 #   - WaiversController
 #   - Course{Project, Survey, Rise360Module}VersionsControllers
 #
@@ -17,7 +17,7 @@
 # You can choose which of these actions your controller exposes by configuring
 # them in config/routes.rb.
 #
-# For example, {PeerReviews,Waivers}Controllers do not currently support
+# For example, {CapstoneEvaluations,Waivers}Controllers do not currently support
 # #publish_latest. However, the Course*VersionsControllers do.
 #
 # This concern heavily depends on DryCrud::Controllers::Nestable, and requires
@@ -71,7 +71,7 @@ module Publishable
   end
 
   def publish
-    # We can't use `model_class` here because we don't have a PeerReview model
+    # We can't use `model_class` here because we don't have a CapstoneEvaluation model
     authorize controller_path.classify.to_sym
 
     assignment = CanvasAPI.client.create_lti_assignment(
@@ -124,7 +124,7 @@ module Publishable
   end
 
   def unpublish
-    # We can't use `model_class` here because we don't have a PeerReview model
+    # We can't use `model_class` here because we don't have a CapstoneEvaluation model
     authorize controller_path.classify.to_sym
 
     Honeycomb.add_field('canvas.course.id', @course.canvas_course_id)
