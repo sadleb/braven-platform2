@@ -23,13 +23,30 @@ module CasHelper
   def resource_name
     @resource_name ||= :user
   end
-  
+
   def resource
     @resource ||= resource_name.to_s.classify.constantize.new
   end
-  
+
   def devise_mapping
     @devise_mapping ||= Devise.mappings[resource_name]
+  end
+
+  # If we can't determine which login service_url to use, this is the default for
+  # the user. If there is no user, use the Canvas service since that is the main
+  # application most users will be trying to access. This happens if someone tries
+  # to login directly to the platform cas/login path for example (also maybe on logout
+  # or in other situations where the session has expired)
+  #
+  # Note: keep the logic for which service to use for SSO auth in sync with
+  # the logic for which homepage to send them to after login in:
+  # CasSessionsController#after_sign_in_path_for(user)
+  def default_service_url_for(user)
+     login_service_url = CanvasConstants::CAS_LOGIN_URL
+     if user&.admin?
+       login_service_url = ::Devise.cas_service_url(request.url, devise_mapping)
+     end
+     login_service_url
   end
 
   # Only allow redirects to services we own.

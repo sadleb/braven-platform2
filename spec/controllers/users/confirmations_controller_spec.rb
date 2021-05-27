@@ -4,6 +4,77 @@ require 'rubycas-server-core/util'
 RSpec.describe Users::ConfirmationsController, type: :controller do
   render_views
 
+  # Responsible for showing the page that lets a user resend the confirmation link
+  describe '#create' do
+    let(:params) { nil }
+    let!(:user) { create :unconfirmed_user }
+
+    shared_examples 'resends confirmation link' do
+      subject(:run_create) do
+        post :create, params: params
+      end
+
+      it 'sends the confirmation instructions email' do
+        Devise.mailer.deliveries.clear()
+        expect(Devise.mailer.deliveries.count).to eq 0
+        subject
+        expect(Devise.mailer.deliveries.count).to eq 1
+      end
+
+      it 'redirects to page telling them to check their email' do
+        subject
+        expect(response).to redirect_to(new_user_confirmation_path)
+      end
+    end
+
+    shared_examples 'does not resend confirmation link' do
+      subject(:run_create) do
+        post :create, params: params
+      end
+
+      it 'does not send a confirmation instructions email' do
+        Devise.mailer.deliveries.clear()
+        expect(Devise.mailer.deliveries.count).to eq 0
+        subject
+        expect(Devise.mailer.deliveries.count).to eq 0
+      end
+
+      # Behave that same as though the request was valid for security purposes
+      it 'redirects to page telling them to check their email' do
+        subject
+        expect(response).to redirect_to(new_user_confirmation_path)
+      end
+    end
+
+    context 'with confirmation_token' do
+      let(:params) { {user: {confirmation_token: token}} }
+
+      context 'for valid token' do
+        let(:token) { user.confirmation_token }
+        it_behaves_like 'resends confirmation link'
+      end
+
+      context 'for invalid token' do
+        let(:token) { 'invalid_token' }
+        it_behaves_like 'does not resend confirmation link'
+      end
+    end
+
+    context 'with uuid' do
+      let(:params) { {user: {uuid: uuid}} }
+
+      context 'for valid uuid' do
+        let(:uuid) { user.uuid }
+        it_behaves_like 'resends confirmation link'
+      end
+
+      context 'for invalid uuid' do
+        let(:uuid) { 'fake_uuid' }
+        it_behaves_like 'does not resend confirmation link'
+      end
+    end
+  end
+
   # Note that #show is the endpoint that actually consumes a valid confirmation link
   # and confirms them. It's a bit non-intuitive.
   describe '#show' do

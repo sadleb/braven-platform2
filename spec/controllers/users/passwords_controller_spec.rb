@@ -70,6 +70,17 @@ RSpec.describe Users::PasswordsController, type: :controller do
         expect(user.signup_token).to eq(nil)
         expect(user.signup_token_sent_at).to eq(nil)
       end
+
+      it 'redirects to log in page' do
+        subject
+        expect(response.status).to eq(302)
+        expect(response.location).to match(/#{Regexp.escape(cas_login_url)}?.*notice=Password reset successfully/)
+      end
+
+      it 'does not log you in' do
+        subject
+        expect(controller.current_user).to eq(nil)
+      end
     end
   end
 end

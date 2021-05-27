@@ -9,46 +9,6 @@ RSpec.describe CasController, type: :routing do
   let(:valid_user_creds) {{ email: valid_user.email, password: valid_user.password }}
   let(:invalid_user_creds) {{ email: 'bad_user', password: 'bad_pass' }}
 
-  describe "/cas/login without service url" do
-    before(:each) do
-      visit "/cas/login"
-      fill_and_submit_login(username, password)
-    end
-
-    shared_examples 'login' do
-      context "when username and password are valid" do
-        let(:username) { valid_user_creds[:email] }
-        let(:password) { valid_user_creds[:password] }
-
-        it "logs in successfully" do
-          # Ensure that the login was successful
-          # Implies that both registered_at and confirmed_at are also set.
-          expect(page).to have_content("You have successfully logged in")
-        end
-      end
-
-      context "when username and password are invalid" do
-        let(:username) { invalid_user_creds[:email] }
-        let(:password) { invalid_user_creds[:password] }
-
-        it "fails to log in" do
-          # Ensure that the login was failed
-          expect(page).to have_content("Incorrect username or password")
-        end
-      end
-    end
-
-    context 'for registered user' do
-      let!(:valid_user) { create(:registered_user) }
-      it_behaves_like 'login'
-    end
-
-    context 'for user needed reconfirmation of new email' do
-      let!(:valid_user) { create(:reconfirmation_user) }
-      it_behaves_like 'login'
-    end
-  end
-
   describe "/cas/login with service url" do
     let(:return_service) { 'http://braven/cas/login' }
 

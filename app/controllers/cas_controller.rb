@@ -35,6 +35,8 @@ class CasController < ApplicationController
   # PT = Proxy Ticket
   include RubyCAS::Server::Core::Tickets
 
+  GENERIC_LOGIN_FAILED_ERROR_MESSAGE = { :type => 'mistake', :message => 'Incorrect username or password.' }
+
   def login
     # make sure there's no caching
     request.headers['Pragma'] = 'no-cache'
@@ -156,34 +158,41 @@ class CasController < ApplicationController
       Honeycomb.add_field('cas_controller.valid_credentials?', credentials_are_valid)
 
       if credentials_are_valid
+        user = successful_authenticator.user
+        add_honeycomb_context(user)
         logger.info("Credentials for username '#{@username}' successfully validated using #{successful_authenticator.class.name}.")
         logger.debug("Authenticator provided additional user attributes: #{extra_attributes.inspect}") unless extra_attributes.blank?
 
         tgt = TGT.create! @username, @request_client, false, extra_attributes
         response.set_cookie('tgt', tgt.to_s)
-
         logger.debug("Ticket granting cookie granted to #{@username.inspect}")
 
+        Honeycomb.add_field('cas_controller.service_param_blank?', @service.blank?)
         if @service.blank?
-          logger.info("Successfully authenticated user '#{@username}' at '#{tgt.client_hostname}'. No service param was given, so we will not redirect.")
-          @message = {:type => 'confirmation', :message => 'You have successfully logged in.'}
-        else
-          @st = ST.create! @service, @username, tgt, @request_client
-
-          begin
-            logger.info("Redirecting authenticated user '#{@username}' at '#{@st.client_hostname}' to service '#{@service}'")
-            # Devise tends to flash a "You need to sign in or sign up before continuing." alert.
-            flash.delete(:alert)
-            redirect_to Utils.build_ticketed_url(@service, @st) and return
-          rescue URI::InvalidURIError
-            logger.error("The service '#{@service}' is not a valid URI!")
-            @message = {
-              :type => 'mistake',
-              :message => 'The target service your browser supplied appears to be invalid. Please contact your system administrator for help.'
-            }
-          end
+          @service = helpers.default_service_url_for(user)
+          logger.info("No service param was given, setting it to default for this user: #{@service}.")
         end
-      # DANGER!! This works for our custom CAS authenticator, but probably
+
+        Honeycomb.add_field('cas_controller.service', @service)
+        @st = ST.create! @service, @username, tgt, @request_client
+        begin
+          logger.info("Redirecting authenticated user '#{@username}' at '#{@st.client_hostname}' to service '#{@service}'")
+          # Devise tends to flash a "You need to sign in or sign up before continuing." alert.
+          flash.delete(:alert)
+          redirect_to Utils.build_ticketed_url(@service, @st) and return
+        rescue URI::InvalidURIError
+          logger.error("The service '#{@service}' is not a valid URI!")
+          @message = {
+            :type => 'mistake',
+            :message => 'The target service your browser supplied appears to be invalid. Please contact your system administrator for help.'
+          }
+        end
+
+      # DANGER!! The username/password is correct, but something else is making
+      # this account currently invalid for login. Note that this could be a valid
+      # username/password for an unconfirmed email. Be careful here!
+      #
+      # This works for our custom CAS authenticator, but probably
       # won't work for other auth methods! If we change auth methods, revisit.
       # PLEASE, see the note at the top of this controller about doing everything possible to avoid
       # making changes to this controller and the below behavior unless you REALLY know what
@@ -196,9 +205,7 @@ class CasController < ApplicationController
               last_failed_authenticator.respond_to?(:valid_password_for_unconfirmed_email?) &&
               last_failed_authenticator.valid_password_for_unconfirmed_email?(credentials)
             )
-        # The username/password is correct, but something else is making
-        # this account currently invalid for login. Note that this could be a valid username/password
-        # for an unconfirmed email. Be careful here.
+
         user = last_failed_authenticator.user
         add_honeycomb_context(user)
 
@@ -211,19 +218,24 @@ class CasController < ApplicationController
           redirect_to users_registration_path(uuid: user.uuid, login_attempt: true) and return
         else
           # Something else is wrong. Act as if credentials are not valid.
-          # Make sure the message/render here always match the ones in the `else` below this.
           logger.warn("Invalid account for user '#{@username}'")
-          @message = { :type => 'mistake', :message => 'Incorrect username or password.' }
+
+          # Make sure the message/render here always match the ones in the `else` below this
+          # so that a bad-actor can't use this behavior to determine if they have found valid credentials
+          @message = GENERIC_LOGIN_FAILED_ERROR_MESSAGE
           return render :login, status: :unauthorized
         end
+
+      # Credentials not valid.
       else
-        # Credentials not valid.
-        # If you change the message/render here, make sure to change it in the `else` above too.
         add_honeycomb_context(last_failed_authenticator.user)
         logger.warn("Invalid credentials given for user '#{@username}'")
-        @message = { :type => 'mistake', :message => 'Incorrect username or password.' }
+
+        # This message/render MUST match the one in the above `else` for security purposes
+        @message = GENERIC_LOGIN_FAILED_ERROR_MESSAGE
         return render :login, status: :unauthorized
       end
+
     rescue RubyCAS::Server::Core::AuthenticatorError => e
       logger.error(e)
       Honeycomb.add_field('error', e.class.name)

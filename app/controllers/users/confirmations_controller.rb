@@ -19,11 +19,15 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
   end
 
   # POST /resource/confirmation
+  # This is used to re-send confirmation instructions if they lost the email
+  # or if the token is invalid.
   def create
     # Don't error out, and don't reveal whether the UUID (or confirmation_token)
-    # was valid. Just try to send an email if the user exists.
+    # was valid. Just try to send an email if the user exists and then tell them
+    # to check their email.
     user = find_user_by_uuid || find_user_by_confirmation_token
     user&.send_confirmation_instructions
+    redirect_to new_user_confirmation_path
   end
 
   # GET /resource/confirmation?confirmation_token=abcdef
@@ -104,11 +108,7 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
   # auto-log them in there, otherwise do it here in the platform.
   def sign_in_and_get_redirect_path
      username = resource.email
-     if resource.canvas_user_id
-       login_service_url = CanvasConstants::CAS_LOGIN_URL
-     else
-       login_service_url = ::Devise.cas_service_url(request.url, devise_mapping)
-     end
+     login_service_url = helpers.default_service_url_for(resource)
 
      # TGT = Ticket Granting Ticket helper, ST = Service Ticket helper. See: lib/rubycas-server-core/tickets.rb
      tgt = TGT.create! username, ::Devise.cas_client
