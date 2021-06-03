@@ -48,14 +48,23 @@ RSpec.describe SyncUserEmailToCanvas do
     context 'when Platform email doesnt match Canvas login email' do
       let(:canvas_email) { 'canvas.email@example.com' }
       let(:platform_email) { 'platform.email@example.com' }
+      let(:canvas_email_channel) { create :canvas_communication_channel, address: canvas_email}
 
       before(:each) do
         allow(canvas_client).to receive(:update_login)
+        allow(canvas_client).to receive(:get_user_communication_channels)
+        allow(canvas_client).to receive(:get_user_email_channel)
         allow(canvas_client).to receive(:create_user_email_channel)
         allow(canvas_client).to receive(:delete_user_email_channel)
       end
 
       shared_examples 'changes Canvas login and communication email' do
+        before(:each) do
+          allow(canvas_client).to receive(:get_user_email_channel)
+            .with(user.canvas_user_id, canvas_email, anything)
+            .and_return(canvas_email_channel)
+        end
+
         it 'updates the Canvas login email to match' do
           expect(canvas_client).to receive(:update_login).with(canvas_login['id'], platform_email).once
           SyncUserEmailToCanvas.new(user).run!
@@ -75,15 +84,24 @@ RSpec.describe SyncUserEmailToCanvas do
       it_behaves_like 'changes Canvas login and communication email'
 
       context 'when no communication channel for old login email found' do
-        before(:each) do
-          allow(canvas_client).to receive(:delete_user_email_channel).and_raise(RestClient::NotFound)
+        it 'doesnt try to delete it' do
+          allow(canvas_client).to receive(:get_user_email_channel).and_return([])
+          expect(canvas_client).not_to receive(:delete_user_email_channel)
+          SyncUserEmailToCanvas.new(user).run!
         end
+      end
 
-        it 'ignores the error' do
-          expect{ SyncUserEmailToCanvas.new(user).run! }.not_to raise_error
+      # Can happen if a staff member manually changes the Canvas login email
+      context 'when communication channel already exists for platform email' do
+        let(:canvas_email_channel) { create :canvas_communication_channel, address: platform_email}
+
+        it 'doesnt try to create it' do
+          allow(canvas_client).to receive(:get_user_email_channel)
+            .with(user.canvas_user_id, platform_email, anything)
+            .and_return(canvas_email_channel)
+          expect(canvas_client).not_to receive(:create_user_email_channel)
+          SyncUserEmailToCanvas.new(user).run!
         end
-
-        it_behaves_like 'changes Canvas login and communication email'
       end
     end
 

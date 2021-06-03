@@ -177,7 +177,8 @@ class CanvasAPI
     user = find_user_in_canvas(email)
     raise UserNotOnCanvas, "Email: #{email}" if user.nil?
 
-    LMSUser.new(user['id'], user['email'])
+    # See comment in find_user_by() about login_id vs email
+    LMSUser.new(user['id'], user['login_id'])
   end
 
   def find_user_by(email:, salesforce_contact_id:, student_id:)
@@ -190,7 +191,10 @@ class CanvasAPI
 
     return nil if user.nil?
 
-    LMSUser.new(user['id'], user['email'])
+    # login_id is the email they use to login which may be different from the email they
+    # use for notifications. We care about their login email since that is what matches
+    # Salesforce and Platform email fields.
+    LMSUser.new(user['id'], user['login_id'])
   end
 
   def find_user_in_canvas(search_term)
@@ -235,13 +239,13 @@ class CanvasAPI
     get_all_from_pagination(response)
   end
 
-  def get_user_email_channel_id(user_id)
-    channels = get_user_communication_channels(user_id)
+  def get_user_email_channel_id(user_id, comm_channels = nil)
+    channels = comm_channels || get_user_communication_channels(user_id)
     channels.filter { |c| c['type'] == 'email' }.first['id']
   end
 
-  def get_user_email_channel(user_id, email)
-    channels = get_user_communication_channels(user_id)
+  def get_user_email_channel(user_id, email, comm_channels = nil)
+    channels = comm_channels || get_user_communication_channels(user_id)
     channels.find { |c| c['type'] == 'email' && c['address'] == email}
   end
 

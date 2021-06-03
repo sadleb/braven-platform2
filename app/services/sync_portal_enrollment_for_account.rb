@@ -147,7 +147,7 @@ class SyncPortalEnrollmentForAccount
     else
       # Field shared with sync_portal_enrollments_for_program, hence the name
       Honeycomb.add_field('sync_portal_enrollment.skip_reason', 'No enrollment changes')
-      logger.info("Skipping sync for #{@user.email} as user enrollment looks fine")
+      logger.info("Skipping sync enrollment for #{@user.email}. No enrollment changes.")
     end
   end
 

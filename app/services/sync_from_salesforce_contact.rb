@@ -12,8 +12,11 @@ class SyncFromSalesforceContact
   # The Salesforce Contact is the source of truth for their email (and name). This service
   # updates Platform to match if the email changes.
   #
-  # Note: we don't also update the Canvas email here b/c we want the old email to work
-  # until they confirm the new email in case it was an accident or mistake.
+  # Note: if the change was in Salesforce, we don't also update the Canvas email
+  # here b/c we want the old email to work until they confirm the new email in
+  # case it was an accident or mistake. We only update Canvas if both Salesforce
+  # and Platform are in sync but somehow the Canvas login email get out of sync
+  # (most likely an admin or engineer messing it up).
   def run!
     Honeycomb.add_field('user.email', @user.email)
     Honeycomb.add_field('user.unconfirmed_email', @user.unconfirmed_email)
@@ -25,6 +28,9 @@ class SyncFromSalesforceContact
       return
     elsif @user.email.downcase == @salesforce_contact.email.downcase
       Honeycomb.add_field('sync_from_salesforce_contact.email_changed', false)
+      # Ensure that even if Salesforce and Platform are in sync, the Canvas login email
+      # is as well. NOOP if they are.
+      SyncUserEmailToCanvas.new(@user).run!
       return
     end
 

@@ -52,6 +52,7 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
 
     if user.errors.empty?
       SyncUserEmailToCanvas.new(user).run!
+      Rails.logger.info("Finished account confirmation for #{user.inspect}.")
 
       Honeycomb.add_field('confirmations_controller.auto_sign_in', true)
       Rails.logger.debug("Signing #{user.email} in using CAS SSO.")

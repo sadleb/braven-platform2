@@ -4,6 +4,11 @@ require 'rails_helper'
 
 RSpec.describe SyncFromSalesforceContact do
   describe '#run' do
+    let(:sync_user_email_to_canvas_service) { instance_double(SyncUserEmailToCanvas, :run! => nil) }
+
+    before(:each) do
+      allow(SyncUserEmailToCanvas).to receive(:new).and_return(sync_user_email_to_canvas_service)
+    end
 
     subject(:run_sync) do
       sf_contact = SalesforceAPI::SFContact.new(
@@ -31,6 +36,11 @@ RSpec.describe SyncFromSalesforceContact do
             Devise.mailer.deliveries.clear()
             run_sync
             expect(Devise.mailer.deliveries.count).to eq 0
+          end
+
+          it 'makes sure the Canvas email matches too' do
+            expect(sync_user_email_to_canvas_service).to receive(:run!)
+            run_sync
           end
         end
 
@@ -74,6 +84,7 @@ RSpec.describe SyncFromSalesforceContact do
           expect(user.email).to eq(salesforce_email)
         end
       end
+
     end
 
     # Make sure and define salesforce_email, platform_email, and a user with their
