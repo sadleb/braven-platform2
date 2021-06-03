@@ -151,6 +151,20 @@ section:after {
   width: 25%;
 }
 
+#footer_menu #footer_help_link {
+  background-color: $bv-red-700;
+  border-radius: 0.2rem;
+  border-width: 0.1rem;
+  color: white;
+  padding: 0.25rem;
+}
+
+#footer_menu #footer_help_link:hover,
+#footer_menu #footer_help_link:focus {
+  background-color: $bv-oceanblue-700;
+  border-color: $bv-silver-300;
+}
+
 .fb_fico a {
   background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAQAAAD8x0bcAAABQUlEQVQokW2SXyuDYRjGn8lmTWkknDpgTrD4CFtWsoTxDdTKkW8hy58NXwBb42uoCYcspMQRSxOO1c/1svfZ85buk/e97l/X/e8xmFZ0sEKZOxqKW45ZJuTnfGSaC6V2SJFQpCkKr5F0oXne2SBuXb3oo0CTrA9N8cVqAPAjz6fnZohwxWYgFaXb9rOtNsJG7T7SY4GIirxRZ6D1H+eJJcOJ6LbLIHCtyaJWKVExmiLlFFoXVGOOLqvNUDfayqgVhngQ9M0lMaslaAShEJOCTtW4caBXr1zakYYFHQVmzXjlquw60oigagDao2zIaci44/TCgYP08syCIax1bTldxbSrNlTknE7vI6nl5/89yxofTPgHzurABZ3UBfrl32TWP/CfW01zlrS6MUWGfe45Y5zAe/K6yWn4+u+ju+GQxbbrD4aWkJRuvrDpAAAAAElFTkSuQmCC) no-repeat 0 center;
   opacity: .9;
