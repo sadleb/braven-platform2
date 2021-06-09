@@ -36,6 +36,7 @@ RSpec.describe CourseRise360ModuleVersionsController, type: :controller do
 
   describe 'PUT #publish_latest' do
     let(:new_rise360_module_name) { 'UPDATED! Rise360 Module Name' }
+    let(:other_params) { {} }
 
     subject {
       # Update the Rise360Module first
@@ -43,7 +44,7 @@ RSpec.describe CourseRise360ModuleVersionsController, type: :controller do
       put :publish_latest, params: {
         course_id: course.id,
         id: course_rise360_module_version.id,
-      }
+      }.merge(other_params)
     }
 
     context 'Canvas API exception' do
@@ -136,14 +137,27 @@ RSpec.describe CourseRise360ModuleVersionsController, type: :controller do
         subject
         expect(response).to redirect_to edit_course_path(course)
       end
-    end
 
-    context 'with student data' do
-      it 'redirects to before_publish_latest page to show a message' do
-        create(:rise360_module_grade, course_rise360_module_version: course_rise360_module_version)
-        subject
-        expect(course_rise360_module_version.has_student_data?).to eq(true)
-        expect(response).to redirect_to before_publish_latest_course_course_rise360_module_version_path
+      context 'with student data' do
+        let!(:rise360_module_grade) { create(:rise360_module_grade, course_rise360_module_version: course_rise360_module_version) }
+
+        it 'redirects to before_publish_latest page to show a message' do
+          subject
+          expect(course_rise360_module_version.has_student_data?).to eq(true)
+          expect(response).to redirect_to before_publish_latest_course_course_rise360_module_version_path
+        end
+
+        context 'when force delete param is sent' do
+          let(:other_params) { {:force_delete_student_data => true} }
+
+          it 'purges student data' do
+            expect{ subject }.to change(Rise360ModuleGrade, :count).by(-1)
+          end
+
+          it 'publishes latest' do
+            expect { subject }.to change(Rise360ModuleVersion, :count).by(1)
+          end
+        end
       end
     end
   end
@@ -156,9 +170,14 @@ RSpec.describe CourseRise360ModuleVersionsController, type: :controller do
       }
     }
 
-    it 'shows a message saying they cant publish_latest because there is student data' do
+    it 'shows a message warning them that student data will be purged' do
       subject
-      expect(response.body).to include('Unable to Publish Latest')
+      expect(response.body).to include('DANGER: Fellows have started working on this Module')
+    end
+
+    it 'adds the hidden force_delete_student_data param to the form' do
+      subject
+      expect(response.body).to include('<input value="true" type="hidden" name="force_delete_student_data" id="force_delete_student_data" />')
     end
   end
 
@@ -226,6 +245,8 @@ RSpec.describe CourseRise360ModuleVersionsController, type: :controller do
   end
 
   describe 'DELETE #unpublish' do
+    let(:other_params) { {} }
+
     before(:each) do
       allow(CanvasAPI).to receive(:client).and_return(canvas_client)
       allow(canvas_client)
@@ -236,7 +257,7 @@ RSpec.describe CourseRise360ModuleVersionsController, type: :controller do
       delete :unpublish, params: {
         course_id: course.id,
         id: course_rise360_module_version.id,
-      }
+      }.merge(other_params)
     }
 
     it 'deletes the join table entry' do
@@ -290,11 +311,24 @@ RSpec.describe CourseRise360ModuleVersionsController, type: :controller do
     end
 
     context 'with student data' do
+      let!(:rise360_module_grade) { create(:rise360_module_grade, course_rise360_module_version: course_rise360_module_version) }
+
       it 'redirects to before_unpublish to show a message' do
-        create(:rise360_module_grade, course_rise360_module_version: course_rise360_module_version)
         subject
         expect(course_rise360_module_version.has_student_data?).to eq(true)
         expect(response).to redirect_to before_unpublish_course_course_rise360_module_version_path
+      end
+
+      context 'when force delete param is sent' do
+        let(:other_params) { {:force_delete_student_data => true} }
+
+        it 'purges student data' do
+          expect{ subject }.to change(Rise360ModuleGrade, :count).by(-1)
+        end
+
+        it 'deletes the join table entry' do
+          expect { subject }.to change(CourseRise360ModuleVersion, :count).by(-1)
+        end
       end
     end
   end
@@ -307,9 +341,14 @@ RSpec.describe CourseRise360ModuleVersionsController, type: :controller do
       }
     }
 
-    it 'shows a message saying they cant unpublish because there is student data' do
+    it 'shows a message warning them that student data will be purged' do
       subject
-      expect(response.body).to include('Unable to Unpublish')
+      expect(response.body).to include('DANGER: Fellows have started working on this Module')
+    end
+
+    it 'adds the hidden force_delete_student_data param to the form' do
+      subject
+      expect(response.body).to include('<input value="true" type="hidden" name="force_delete_student_data" id="force_delete_student_data" />')
     end
   end
 end

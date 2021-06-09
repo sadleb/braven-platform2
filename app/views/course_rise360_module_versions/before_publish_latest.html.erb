@@ -1,5 +1,5 @@
 <% content_for(:headline) do %>
-  Unable to Publish Latest
+  DANGER: Fellows have started working on this Module
 <% end %>
 
 <% content_for(:breadcrumbs) do %>
@@ -8,7 +8,36 @@
   <li class="breadcrumb-item active" aria-current="page">Publishing Latest</li>
 <% end %>
 
-<div class="col-md-6">
-Students enrolled in the course (aka Fellows) have already opened this Module.
-We can't publish a new version without blowing all of their work.
+<div class="col-md-8">
+<p>The following Fellows have already opened this Module. If you choose to continue, <strong><mark>THEIR WORK WILL BE BLOWN AWAY</mark></strong> and they will have to start over.</p>
+<div class="table-responsive">
+  <table class="table table-sm table-striped">
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Email</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <% @course_rise360_module_version.students_with_data.each do |student| %>
+        <tr>
+          <th scope="row"><%= student.full_name %></th>
+          <td><%= student.email %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+<br>
+<%= form_with(url: publish_latest_course_course_rise360_module_version_path(@course_rise360_module_version.course, @course_rise360_module_version.id),
+              method: "put", local: true) do |f| %>
+
+  <%= f.hidden_field :force_delete_student_data, value: true %>
+  <div class="actions">
+    <%= f.submit "BLOW AWAY WORK and Publish Latest" %>
+  </div>
+
+<% end %>
+<p>This is permanent and cannot be undone.</p>
 </div>

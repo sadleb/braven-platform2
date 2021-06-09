@@ -7,6 +7,7 @@ class CourseRise360ModuleVersionsController < ApplicationController
   # Adds the #publish, #publish_latest, #unpublish actions
   include Publishable
 
+  prepend_before_action :force_destroy_references, only: [:publish_latest, :unpublish]
   prepend_before_action :set_model_instance, only: [:before_publish_latest, :publish_latest, :unpublish, :before_unpublish]
 
   layout 'admin'
@@ -18,16 +19,15 @@ class CourseRise360ModuleVersionsController < ApplicationController
 
   # Publishes the latest Rise360ModuleVersion for this Module to the Canvas assignment.
   #
-  # Note that if there is student data associated with this assignment, we redirect to
-  # to before_publish_latest instead since we can't safely publish without purging all
-  # references. This is because Rise360ModuleState objects are opaque to us and can cause
+  # Note that we can't safely publish latest without purging all references.
+  # This is because Rise360ModuleState objects are opaque to us and can cause
   # the newly published package to hang if we use the old ones. Also b/c the content of
   # the package could have changed such that the existing grades would be incorrect.
   def publish_latest
     authorize @course_rise360_module_version
     if can_publish_latest?
-      super
       destroy_references
+      super
     else
       redirect_to before_publish_latest_course_course_rise360_module_version_path and return
     end
@@ -35,23 +35,16 @@ class CourseRise360ModuleVersionsController < ApplicationController
 
   # Shows any messages related to publish_latest that that caller may have to act on before
   # allowing it.
-  #
-  # TODO: instead of just saying that you can't publish, show a list of students whose data
-  # would get blown away and provide a button to publish anyway and purge that data.
-  # https://app.asana.com/0/1174274412967132/1200410628872768
   def before_publish_latest
     authorize @course_rise360_module_version
   end
 
   # Unpublishes the Rise360ModuleVersion as a Canvas assignment.
-  #
-  # Note that if there is student data associated with this assignment, we redirect to
-  # to before_unpublish instead since it would get blown away
   def unpublish
     authorize @course_rise360_module_version
     if can_unpublish?
-      super
       destroy_references
+      super
     else
       redirect_to before_unpublish_course_course_rise360_module_version_path and return
     end
@@ -108,6 +101,11 @@ private
   end
 
   # END: For Publishable
+
+  # Need to do this before the Publishable before_action's run so that they work
+  def force_destroy_references
+    destroy_references if params[:force_delete_student_data]
+  end
 
   # Destroys all data the references this @course_rise360_module_version so that
   # we're back into a pristine state as though it was just freshly published
