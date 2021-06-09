@@ -147,17 +147,23 @@ RSpec.describe CoursesController, type: :controller do
       let(:course_launched) { create(:course_launched, valid_course_launched_attributes) }
 
       describe "GET #edit" do
-        it "raises an error" do
+        it "returns a success response with a warning message" do
           allow(canvas_client).to receive(:get_assignments).and_return([])
-          expect { get :edit, params: {id: course_launched.to_param }, session: valid_session }
-            .to raise_error(Course::CourseEditError)
+          get :edit, params: {id: course_launched.to_param }, session: valid_session
+          expect(response).to be_successful
+          expect(response.body).to match(/Caution! You are editing a launched course/)
         end
       end
 
       describe "DELETE #destroy" do
+        # In the future would could implement the ability to delete a launched course by only allowing it
+        # if students hadn't done any work or providing a list of what would be blown away. Not important
+        # at the moment b/c A) the only valid use-case I know of would be to delete test launched courses
+        # B) delete doesn't currently really even work since it needs to cascade delete all foreign key
+        # references which it doesn't do.
         it "raises an error" do
           expect { delete :destroy, params: {id: course_launched.to_param }, session: valid_session }
-            .to raise_error(Course::CourseEditError)
+            .to raise_error(CoursesController::CourseAdminError)
         end
       end
 

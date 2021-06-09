@@ -44,7 +44,7 @@
 #   # Used by #publish_latest to get the instance to call create_version! on
 #   def versionable_instance
 #     (typically coursemodelversion.version.model)
-#   end 
+#   end
 #
 #   # Used by publish_latest determine the parameter to pass to update!() with
 #   # the new version
@@ -52,7 +52,7 @@
 #     (typically model_version)
 #   end
 #
-# If you want to associate your Model to a particular Canvas assignment, you 
+# If you want to associate your Model to a particular Canvas assignment, you
 # will need to implement a Model with the `canvas_assignment_id` attribute.
 #
 # If you want to have versioning history for your content, you will need to
@@ -62,9 +62,9 @@ require 'canvas_api'
 
 module Publishable
   extend ActiveSupport::Concern
+  PublishableError = Class.new(StandardError)
 
   included do
-    before_action :verify_can_edit!, only: [:publish, :publish_latest, :unpublish]
     before_action :create_model_instance,  only: [:publish]
     before_action :update_model_instance,  only: [:publish_latest]
     after_action  :destroy_model_instance, only: [:unpublish]
@@ -99,9 +99,13 @@ module Publishable
   end
 
   def publish_latest
+    unless can_publish_latest?
+      raise PublishableError.new 'Failed to publish_latest because there is student data associated with this model'
+    end
+
     # Update the Canvas assignment name and LTI launch URL
     # This doubles as a check that the assignment exists in Canvas, so we don't
-    # fail silently (e.g., we think we're updating an assignment, but nothing 
+    # fail silently (e.g., we think we're updating an assignment, but nothing
     # changes in Canvas).
     CanvasAPI.client.update_assignment_name(
       @course.canvas_course_id,
@@ -126,6 +130,10 @@ module Publishable
   def unpublish
     # We can't use `model_class` here because we don't have a CapstoneEvaluation model
     authorize controller_path.classify.to_sym
+
+    unless can_unpublish?
+      raise PublishableError.new 'Failed to unpublish because there is student data associated with this model'
+    end
 
     Honeycomb.add_field('canvas.course.id', @course.canvas_course_id)
     Honeycomb.add_field('canvas.assignment.id', canvas_assignment_id)
@@ -166,19 +174,19 @@ private
   def update_model_instance
     return unless model_class
     authorize instance_variable
-    instance_variable.update!({
-      version_name => versionable_instance.create_version!(current_user),
-    })
+    if can_publish_latest?
+      instance_variable.update!({
+        version_name => versionable_instance.create_version!(current_user),
+      })
+    end
   end
 
   def destroy_model_instance
     return unless model_class
     authorize instance_variable
-    instance_variable.destroy!
-  end
-
-  def verify_can_edit!
-    @course.verify_can_edit!
+    if can_unpublish?
+      instance_variable.destroy!
+    end
   end
 
   def redirect_path
@@ -194,6 +202,16 @@ private
       return instance_variable.canvas_assignment_id
     end
     params.require(:canvas_assignment_id)
+  end
+
+  # Override me in the controller if there is logic that would prevent publish_latest
+  def can_publish_latest?
+    true
+  end
+
+  # Override me in the controller if there is logic that would prevent unpublish
+  def can_unpublish?
+    true
   end
 
   def method_missing(name, *args, &block)

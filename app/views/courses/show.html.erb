@@ -4,14 +4,9 @@
 <% end %>
 
 <div class="col">
-
   <div class="row">
     <div class="col">
-      <% if @course.can_edit? %>
-        <p><%= link_to 'Edit', edit_course_path(@course), class: 'btn btn-secondary' %></p>
-      <% else %>
-        <p><em>Note: Launched Courses aren't editable at the moment.</em></p>
-      <% end %>
+      <p><%= link_to 'Edit', edit_course_path(@course), class: 'btn btn-secondary' %></p>
     </div>
     <div class="col">
       <p><%= link_to 'Create Template', new_course_path(:params => { create_from_course_id: @course.id }), class: 'btn btn-secondary' %>
@@ -19,27 +14,7 @@
   </div>
 
   <h3>Settings</h3>
-  <div class="row">
-    <div class="col-sm-6">
-      <table class="table table-sm">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Canvas Course ID</th>
-            <th>Course Resources</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><%= link_to @course.name, @course.canvas_url %></td>
-            <td><%= @course.canvas_course_id %></td>
-            <td><%= @course.course_resource&.name %></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
+  <%= render :partial => 'show_settings' %>
   <br/>
 
   <h3>Modules</h3>

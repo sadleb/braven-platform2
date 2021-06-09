@@ -19,7 +19,7 @@ class Rise360ModuleVersionsController < ApplicationController
   # Eventually, we'll use an endpoint on CourseRise360ModuleVersionsController
   # to render this content.
   # TODO: Convert this to use a static endpoint for LTI launch
-  # https://app.asana.com/0/1174274412967132/1199352155608256 
+  # https://app.asana.com/0/1174274412967132/1199352155608256
   def show
     authorize Rise360ModuleVersion
     @rise360_module_version = Rise360ModuleVersion.find(params[:id])
@@ -35,6 +35,9 @@ private
   # Whenever a student starts working on a Module, we need to ensure that a
   # placeholder submission is there so that if they go to the Grades page,
   # we can show them information about their Module grade.
+  #
+  # IMPORTANT: if you change this logic, revisit CourseRise360ModuleVersion.has_student_data?
+  # which relies on this
   #
   # Note: we have to create this using LtiAdvantage in the context of an
   # LtiLaunch and not using the CanvasAPI from the grade_modules.rake task

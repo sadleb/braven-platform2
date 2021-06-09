@@ -65,7 +65,9 @@ Rails.application.routes.draw do
     resources :course_rise360_module_versions, only: [:new] do
       post :publish, on: :collection
       put :publish_latest, on: :member
+      get :before_publish_latest, on: :member
       delete :unpublish, on: :member
+      get :before_unpublish, on: :member
     end
 
     resources :course_attendance_events, only: [:new] do

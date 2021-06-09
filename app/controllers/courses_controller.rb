@@ -2,6 +2,7 @@
 
 class CoursesController < ApplicationController
   layout 'admin'
+  CourseAdminError = Class.new(StandardError)
 
   before_action :fetch_canvas_assignment_info, only: [:edit]
 
@@ -28,7 +29,6 @@ class CoursesController < ApplicationController
   # GET /courses/1/edit
   def edit
     authorize @course
-    @course.verify_can_edit!
   end
 
   # Creates a new Course Template from an existing Course (launched or not).
@@ -63,7 +63,7 @@ class CoursesController < ApplicationController
   # DELETE /courses/1
   def destroy
     authorize @course
-    @course.verify_can_edit!
+    raise CourseAdminError.new 'Cannot delete a launched course' if @course.is_launched
     @course.destroy
     respond_to do |format|
       format.html { redirect_to courses_url, notice: 'Course was successfully deleted.' }

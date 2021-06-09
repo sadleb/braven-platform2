@@ -1,0 +1,18 @@
+<div class="row">
+  <div class="col-sm-6">
+    <table class="table table-sm">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Canvas Course ID</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><%= link_to @course.name, @course.canvas_url %></td>
+          <td><%= @course.canvas_course_id %></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

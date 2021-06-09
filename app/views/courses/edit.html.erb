@@ -4,31 +4,151 @@
 <% end %>
 
 <div class="col">
-<%= form_with(model: @course, local: true) do |form| %>
-  <% if @course.errors.any? %>
-    <div id="error_explanation">
-      <h2><%= pluralize(@course.errors.count, "error") %> prohibited this Course from being saved:</h2>
 
-      <ul>
-      <% @course.errors.full_messages.each do |message| %>
-        <li><%= message %></li>
-      <% end %>
-      </ul>
+<% if @course.is_template? %>
+  <h3>Settings</h3>
+  <%= form_with(model: @course, local: true) do |form| %>
+    <% if @course.errors.any? %>
+      <div id="error_explanation">
+        <h2><%= pluralize(@course.errors.count, "error") %> prohibited this Course from being saved:</h2>
+
+        <ul>
+        <% @course.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div class="row">
+      <div class="col-md-6">
+        <div class="form-group">
+          <%= form.label :name %>
+          <%= form.text_field :name, class: 'form-control' %>
+        </div>
+
+        <div class="form-group">
+          <%= form.label :canvas_course_id, 'Canvas Course ID' %>
+          <%= form.number_field :canvas_course_id, class: 'form-control col-md-8' %>
+        </div>
+
+        <div class="form-group">
+          <div class="row">
+            <span class="col-md-3"><p>Waivers</p></span>
+            <span class="col-md-9 align-right"><small><em>Note: which waivers are shown is controlled by Salesforce</em></small></span>
+          </div>
+          <div class="row">
+            <% if has_waivers? %>
+              <%= link_to 'View Waivers', canvas_waivers_url, class: 'col-md-10' %>
+              <%= link_to 'Delete', unpublish_course_waivers_path(@course, :canvas_assignment_id => canvas_waivers_assignment_id),
+                                    method: :delete, class: 'btn btn-secondary col-md-2 my-0',
+                                    data: { confirm: 'Are you sure you want to delete the waivers?' } %>
+            <% else %>
+              <span class="col-md-10"><em>No Waivers Assignment</em></span>
+              <%= link_to 'Add', publish_course_waivers_path(@course), method: :post, class: 'btn btn-secondary col-md-2 my-0' %>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="row">
+            <span class="col-md-3"><p>Capstone Evaluations</p></span>
+            <span class="col-md-9 align-right"><small><em>Note: peers/Fellows in cohort are controlled by Salesforce</em></small></span>
+          </div>
+          <div class="row">
+            <% if has_capstone_evaluations_assignment? %>
+              <%= link_to 'View Capstone Evaluations', canvas_capstone_evaluations_url, class: 'col-md-10' %>
+              <%= link_to 'Delete', unpublish_course_capstone_evaluations_path(@course, canvas_assignment_id: canvas_capstone_evaluations_assignment_id),
+                                    method: :delete, class: 'btn btn-secondary col-md-2 my-0',
+                                    data: { confirm: 'Are you sure you want to delete the Capstone Evaluations assignment?' } %>
+            <% else %>
+              <span class="col-md-10"><em>No Capstone Evaluations Assignment</em></span>
+              <%= link_to 'Add', publish_course_capstone_evaluations_path(@course), method: :post, class: 'btn btn-secondary col-md-2 my-0' %>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="row">
+            <span class="col-md-3"><p>Pre-Accelerator Survey</p></span>
+            <span class="col-md-9 align-right"><small><em>Note: surveys are controlled by Salesforce</em></small></span>
+          </div>
+          <div class="row">
+            <% if has_preaccelerator_survey? %>
+              <%= link_to 'View Pre-Accelerator Survey', canvas_preaccelerator_survey_url, class: 'col-md-10' %>
+              <%= link_to 'Delete', unpublish_course_preaccelerator_surveys_path(@course, canvas_assignment_id: canvas_preaccelerator_survey_assignment_id),
+                                    method: :delete, class: 'btn btn-secondary col-md-2 my-0',
+                                    data: { confirm: 'Are you sure you want to delete the Pre-Accelerator Survey assignment?' } %>
+            <% else %>
+              <span class="col-md-10"><em>No Pre-Accelerator Survey Assignment</em></span>
+              <%= link_to 'Add', publish_course_preaccelerator_surveys_path(@course), method: :post, class: 'btn btn-secondary col-md-2 my-0' %>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="row">
+            <span class="col-md-3"><p>Post-Accelerator Survey</p></span>
+            <span class="col-md-9 align-right"><small><em>Note: surveys are controlled by Salesforce</em></small></span>
+          </div>
+          <div class="row">
+            <% if has_postaccelerator_survey? %>
+              <%= link_to 'View Post-Accelerator Survey', canvas_postaccelerator_survey_url, class: 'col-md-10' %>
+              <%= link_to 'Delete', unpublish_course_postaccelerator_surveys_path(@course, canvas_assignment_id: canvas_postaccelerator_survey_assignment_id),
+                                    method: :delete, class: 'btn btn-secondary col-md-2 my-0',
+                                    data: { confirm: 'Are you sure you want to delete the Post-Accelerator Survey assignment?' } %>
+            <% else %>
+              <span class="col-md-10"><em>No Post-Accelerator Survey Assignment</em></span>
+              <%= link_to 'Add', publish_course_postaccelerator_surveys_path(@course), method: :post, class: 'btn btn-secondary col-md-2 my-0' %>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="row">
+            <span class="col-md-3">Fellow Evaluation</span>
+            <span class="col-md-9 align-right"><small><em>Note: add this to LC Playbook (not Accelerator) courses</em></small></span>
+          </div>
+          <div class="row">
+            <% if has_fellow_evaluation? %>
+              <%= link_to 'View Fellow Evaluation', canvas_fellow_evaluation_url, class: 'col-md-10' %>
+              <%= link_to 'Delete', unpublish_course_fellow_evaluations_path(@course, canvas_assignment_id: canvas_fellow_evaluation_assignment_id),
+                                    method: :delete, class: 'btn btn-secondary col-md-2 my-0',
+                                    data: { confirm: 'Are you sure you want to delete the Fellow Evaluation assignment?' } %>
+            <% else %>
+              <span class="col-md-10"><em>No Fellow Evaluation Assignment</em></span>
+              <%= link_to 'Add', publish_course_fellow_evaluations_path(@course), method: :post, class: 'btn btn-secondary col-md-2 my-0' %>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="actions">
+          <%= form.submit 'Update Settings', class: 'btn btn-secondary' %>
+          <%= link_to 'Cancel', courses_path, class: 'btn btn-secondary'%>
+        </div>
+      </div>
     </div>
   <% end %>
-
+<% else %>
+  <p><mark>Caution! You are editing a launched course and need to consider how these edits will impact the Fellows/LCs/TAs in the course.</mark></p>
+  <%#
+    We haven't put any thought into what can go wrong if you edit any of the things in the Settings
+    section for a launched course, with real users already in it, so we're just disabling this section
+    until we have a need and can think through the various scenarios we have to account for.
+  %>
   <h3>Settings</h3>
-  <div class="row">
-    <div class="col-md-6">
-      <div class="form-group">
-        <%= form.label :name %>
-        <%= form.text_field :name, class: 'form-control' %>
-      </div>
+  <p><em>Note: Editing Course Settings for a launched course isn't implemented yet.</em></p>
+  <%= render :partial => 'show_settings' %>
+<% end %>
 
-      <div class="form-group">
-        <%= form.label :canvas_course_id, 'Canvas Course ID' %>
-        <%= form.number_field :canvas_course_id, class: 'form-control col-md-8' %>
-      </div>
+<br/>
+<h3>Edit Resources</h3>
+<div class="row">
+  <div class="col-md-6">
+    <%= form_with(model: @course, local: true) do |form| %>
+      <% if @course.errors.any? %>
+        <%= render :partial => 'shared/form_errors', locals: { object: @course, message: 'Course Resources failed to update'} %>
+      <% end %>
 
       <div class="form-group">
         <div class="row">
@@ -39,125 +159,31 @@
           <%= link_to 'Add new', :new_course_resource, class: 'btn btn-secondary col-md-2 my-0 px-2' %>
         </div>
       </div>
-
-      <div class="form-group">
-        <div class="row">
-          <span class="col-md-3"><p>Waivers</p></span>
-          <span class="col-md-9 align-right"><small><em>Note: which waivers are shown is controlled by Salesforce</em></small></span>
-        </div>
-        <div class="row">
-          <% if has_waivers? %>
-            <%= link_to 'View Waivers', canvas_waivers_url, class: 'col-md-10' %>
-            <%= link_to 'Delete', unpublish_course_waivers_path(@course, :canvas_assignment_id => canvas_waivers_assignment_id),
-                                  method: :delete, class: 'btn btn-secondary col-md-2 my-0',
-                                  data: { confirm: 'Are you sure you want to delete the waivers?' } %>
-          <% else %>
-            <span class="col-md-10"><em>No Waivers Assignment</em></span>
-            <%= link_to 'Add', publish_course_waivers_path(@course), method: :post, class: 'btn btn-secondary col-md-2 my-0' %>
-          <% end %>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <div class="row">
-          <span class="col-md-3"><p>Capstone Evaluations</p></span>
-          <span class="col-md-9 align-right"><small><em>Note: peers/Fellows in cohort are controlled by Salesforce</em></small></span>
-        </div>
-        <div class="row">
-          <% if has_capstone_evaluations_assignment? %>
-            <%= link_to 'View Capstone Evaluations', canvas_capstone_evaluations_url, class: 'col-md-10' %>
-            <%= link_to 'Delete', unpublish_course_capstone_evaluations_path(@course, canvas_assignment_id: canvas_capstone_evaluations_assignment_id),
-                                  method: :delete, class: 'btn btn-secondary col-md-2 my-0',
-                                  data: { confirm: 'Are you sure you want to delete the Capstone Evaluations assignment?' } %>
-          <% else %>
-            <span class="col-md-10"><em>No Capstone Evaluations Assignment</em></span>
-            <%= link_to 'Add', publish_course_capstone_evaluations_path(@course), method: :post, class: 'btn btn-secondary col-md-2 my-0' %>
-          <% end %>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <div class="row">
-          <span class="col-md-3"><p>Pre-Accelerator Survey</p></span>
-          <span class="col-md-9 align-right"><small><em>Note: surveys are controlled by Salesforce</em></small></span>
-        </div>
-        <div class="row">
-          <% if has_preaccelerator_survey? %>
-            <%= link_to 'View Pre-Accelerator Survey', canvas_preaccelerator_survey_url, class: 'col-md-10' %>
-            <%= link_to 'Delete', unpublish_course_preaccelerator_surveys_path(@course, canvas_assignment_id: canvas_preaccelerator_survey_assignment_id),
-                                  method: :delete, class: 'btn btn-secondary col-md-2 my-0',
-                                  data: { confirm: 'Are you sure you want to delete the Pre-Accelerator Survey assignment?' } %>
-          <% else %>
-            <span class="col-md-10"><em>No Pre-Accelerator Survey Assignment</em></span>
-            <%= link_to 'Add', publish_course_preaccelerator_surveys_path(@course), method: :post, class: 'btn btn-secondary col-md-2 my-0' %>
-          <% end %>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <div class="row">
-          <span class="col-md-3"><p>Post-Accelerator Survey</p></span>
-          <span class="col-md-9 align-right"><small><em>Note: surveys are controlled by Salesforce</em></small></span>
-        </div>
-        <div class="row">
-          <% if has_postaccelerator_survey? %>
-            <%= link_to 'View Post-Accelerator Survey', canvas_postaccelerator_survey_url, class: 'col-md-10' %>
-            <%= link_to 'Delete', unpublish_course_postaccelerator_surveys_path(@course, canvas_assignment_id: canvas_postaccelerator_survey_assignment_id),
-                                  method: :delete, class: 'btn btn-secondary col-md-2 my-0',
-                                  data: { confirm: 'Are you sure you want to delete the Post-Accelerator Survey assignment?' } %>
-          <% else %>
-            <span class="col-md-10"><em>No Post-Accelerator Survey Assignment</em></span>
-            <%= link_to 'Add', publish_course_postaccelerator_surveys_path(@course), method: :post, class: 'btn btn-secondary col-md-2 my-0' %>
-          <% end %>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <div class="row">
-          <span class="col-md-3">Fellow Evaluation</span>
-          <span class="col-md-9 align-right"><small><em>Note: add this to LC Playbook (not Accelerator) courses</em></small></span>
-        </div>
-        <div class="row">
-          <% if has_fellow_evaluation? %>
-            <%= link_to 'View Fellow Evaluation', canvas_fellow_evaluation_url, class: 'col-md-10' %>
-            <%= link_to 'Delete', unpublish_course_fellow_evaluations_path(@course, canvas_assignment_id: canvas_fellow_evaluation_assignment_id),
-                                  method: :delete, class: 'btn btn-secondary col-md-2 my-0',
-                                  data: { confirm: 'Are you sure you want to delete the Fellow Evaluation assignment?' } %>
-          <% else %>
-            <span class="col-md-10"><em>No Fellow Evaluation Assignment</em></span>
-            <%= link_to 'Add', publish_course_fellow_evaluations_path(@course), method: :post, class: 'btn btn-secondary col-md-2 my-0' %>
-          <% end %>
-        </div>
-      </div>
-
       <div class="actions">
-        <%= form.submit 'Update Settings', class: 'btn btn-secondary' %>
-        <%= link_to 'Cancel', courses_path, class: 'btn btn-secondary'%>
+        <%= form.submit 'Update Resources', class: 'btn btn-secondary' %>
       </div>
-    </div>
+    <% end %>
   </div>
+</div>
+<br/>
 
-  <br/>
+<h3>Edit Modules</h3>
+<%= link_to 'Add Module', new_course_course_rise360_module_version_path(@course), class: 'btn btn-sm btn-secondary' %>
+<%= render :partial => 'course_rise360_module_versions/list', locals: {course_rise360_module_versions: @course.course_rise360_module_versions} %>
 
-  <h3>Edit Modules</h3>
-  <%= link_to 'Add Module', new_course_course_rise360_module_version_path(@course), class: 'btn btn-sm btn-secondary' %>
-  <span class="col-md align-right"><small><em>Note: if Fellows have already started working on a Module, "Publish Latest" will mess up their grade.</em></small></span>
-  <%= render :partial => 'course_rise360_module_versions/list', locals: {course_rise360_module_versions: @course.course_rise360_module_versions} %>
+<h3>Edit Projects</h3>
+<%= link_to 'Add Project', new_course_course_project_version_path(@course), class: 'btn btn-sm btn-secondary' %>
+<%= render :partial => 'course_custom_content_versions/list', locals: {course_custom_content_versions: @course.course_project_versions} %>
 
-  <h3>Edit Projects</h3>
-  <%= link_to 'Add Project', new_course_course_project_version_path(@course), class: 'btn btn-sm btn-secondary' %>
-  <%= render :partial => 'course_custom_content_versions/list', locals: {course_custom_content_versions: @course.course_project_versions} %>
+<h3>Edit Impact Surveys</h3>
+<%= link_to 'Add Impact Survey', new_course_course_survey_version_path(@course), class: 'btn btn-sm btn-secondary' %>
+<%= render :partial => 'course_custom_content_versions/list', locals: {course_custom_content_versions: @course.course_survey_versions} %>
 
-  <h3>Edit Impact Surveys</h3>
-  <%= link_to 'Add Impact Survey', new_course_course_survey_version_path(@course), class: 'btn btn-sm btn-secondary' %>
-  <%= render :partial => 'course_custom_content_versions/list', locals: {course_custom_content_versions: @course.course_survey_versions} %>
+<h3>Edit Attendance Events</h3>
+<%= link_to 'Add Attendance Event', new_course_course_attendance_event_path(@course), class: 'btn btn-sm btn-secondary' %>
+<%= link_to 'Create New Attendance Event', new_attendance_event_path(:redirect_to_course => @course.id), class: 'btn btn-sm btn-secondary' %>
 
-  <h3>Edit Attendance Events</h3>
-  <%= link_to 'Add Attendance Event', new_course_course_attendance_event_path(@course), class: 'btn btn-sm btn-secondary' %>
-  <%= link_to 'Create New Attendance Event', new_attendance_event_path(:redirect_to_course => @course.id), class: 'btn btn-sm btn-secondary' %>
+<%= render :partial => 'course_attendance_events/list', locals: {course_attendance_events: @course.course_attendance_events} %>
 
-  <%= render :partial => 'course_attendance_events/list', locals: {course_attendance_events: @course.course_attendance_events} %>
-<% end %>
-
-  <p><small><em><b>Hint:</b> Cmd-Click "View On Canvas" to open in new tab</em></small></p>
+<p><small><em><b>Hint:</b> Cmd-Click "View On Canvas" to open in new tab</em></small></p>
 </div>

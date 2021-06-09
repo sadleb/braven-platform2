@@ -1,5 +1,4 @@
 class Course < ApplicationRecord
-  CourseEditError = Class.new(StandardError)
   belongs_to :course_resource, optional: true
 
   scope :launched_courses, -> { where is_launched: true }
@@ -43,6 +42,13 @@ class Course < ApplicationRecord
     attributes.slice('name')
   end
 
+  # A Course Template is a Course that has not been launched. Templates are meant for Designers
+  # to iterate on and then launch running courses from. Once it's launched, we need to be more
+  # careful with what is allowed since actual users may have already used it and done work.
+  def is_template?
+    !is_launched
+  end
+
   def rise360_modules
     rise360_module_versions.map { |m| m.rise360_module }
   end
@@ -65,15 +71,5 @@ class Course < ApplicationRecord
 
   def canvas_rubrics_url
     "#{Rails.application.secrets.canvas_url}/courses/#{canvas_course_id}/rubrics"
-  end
-
-  def verify_can_edit!
-    unless can_edit?
-      raise CourseEditError, "Only editing Course Templates is currently supported, not an already launched Course[#{inspect}]"
-    end
-  end
-
-  def can_edit?
-    self.is_launched == false
   end
 end

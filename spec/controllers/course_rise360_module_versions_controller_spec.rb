@@ -125,10 +125,40 @@ RSpec.describe CourseRise360ModuleVersionsController, type: :controller do
         }.to change(Rise360ModuleState, :count).by (-1)
       end
 
+      it 'deletes all related Interactions' do
+        create(:progressed_module_interaction, canvas_assignment_id: course_rise360_module_version.canvas_assignment_id)
+        create(:answered_module_interaction, canvas_assignment_id: course_rise360_module_version.canvas_assignment_id)
+        create(:progressed_module_interaction, canvas_assignment_id: course_rise360_module_version.canvas_assignment_id + 1)
+        expect { subject }.to change(Rise360ModuleInteraction, :count).by(-2)
+      end
+
       it 'redirects to course edit page' do
         subject
         expect(response).to redirect_to edit_course_path(course)
       end
+    end
+
+    context 'with student data' do
+      it 'redirects to before_publish_latest page to show a message' do
+        create(:rise360_module_grade, course_rise360_module_version: course_rise360_module_version)
+        subject
+        expect(course_rise360_module_version.has_student_data?).to eq(true)
+        expect(response).to redirect_to before_publish_latest_course_course_rise360_module_version_path
+      end
+    end
+  end
+
+  describe 'GET #before_publish_latest' do
+    subject {
+      get :before_publish_latest, params: {
+        course_id: course.id,
+        id: course_rise360_module_version.id,
+      }
+    }
+
+    it 'shows a message saying they cant publish_latest because there is student data' do
+      subject
+      expect(response.body).to include('Unable to Publish Latest')
     end
   end
 
@@ -220,6 +250,24 @@ RSpec.describe CourseRise360ModuleVersionsController, type: :controller do
       expect { subject }.to change(Rise360ModuleInteraction, :count).by(-2)
     end
 
+    it 'deletes all States attached' do
+      # Matching.
+      create(:rise360_module_state,
+        state_id: 'bookmark',
+        canvas_assignment_id: course_rise360_module_version.canvas_assignment_id
+      )
+      # Non-matching.
+      create(:rise360_module_state,
+        state_id: 'bookmark',
+        canvas_assignment_id: course_rise360_module_version.canvas_assignment_id + 1
+      )
+      expect(Rise360ModuleState.count).to eq(2)
+
+      expect {
+        subject
+      }.to change(Rise360ModuleState, :count).by (-1)
+    end
+
     it 'deletes the Canvas assignment' do
       subject
       expect(canvas_client)
@@ -239,6 +287,29 @@ RSpec.describe CourseRise360ModuleVersionsController, type: :controller do
     it 'redirects to course edit page' do
       subject
       expect(response).to redirect_to edit_course_path(course)
+    end
+
+    context 'with student data' do
+      it 'redirects to before_unpublish to show a message' do
+        create(:rise360_module_grade, course_rise360_module_version: course_rise360_module_version)
+        subject
+        expect(course_rise360_module_version.has_student_data?).to eq(true)
+        expect(response).to redirect_to before_unpublish_course_course_rise360_module_version_path
+      end
+    end
+  end
+
+  describe 'GET #before_unpublish' do
+    subject {
+      get :before_unpublish, params: {
+        course_id: course.id,
+        id: course_rise360_module_version.id,
+      }
+    }
+
+    it 'shows a message saying they cant unpublish because there is student data' do
+      subject
+      expect(response.body).to include('Unable to Unpublish')
     end
   end
 end
