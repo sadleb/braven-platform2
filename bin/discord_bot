@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+$LOAD_PATH << 'lib'
+
+require 'discord_bot'
+
+bot = DiscordBot.new
+bot.run

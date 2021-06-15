@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'logger'
+
 # Prepend this module to RestClient::Request in order to instrument
 # calls to `execute` with Honeycomb tracing and error logging.
 #
@@ -8,9 +10,16 @@ module RestClientInstrumentation
   def execute &block
     ret_val = nil
 
+    # Use Rails.logger if present, otherwise make our own.
+    if defined?(Rails) && Rails.respond_to?(:logger)
+      logger = Rails.logger
+    else
+      logger = Logger.new(STDOUT)
+    end
+
     # Go up the stack looking for the first file not in the restclient gem
     # (starting at caller of this, aka the 2nd index, and searching a max of 5 levels)
-    calling_file_path = caller_locations(2,5).find {|cl| cl.path.exclude?('restclient')}.path
+    calling_file_path = caller_locations(2,5).find {|cl| !cl.path.include?('restclient')}.path
     calling_class = File.basename(calling_file_path, '.rb').camelize
 
     # I'm trying to mimic what normal Rails request's send:
@@ -25,14 +34,14 @@ module RestClientInstrumentation
         ret_val = super(&block)
         span.add_field('restclient.response.status_code', ret_val.code)
       rescue RestClient::Exception => e
-        Rails.logger.error("{\"Error\":\"#{e.message}\"}")
+        logger.error("{\"Error\":\"#{e.message}\"}")
         error_response = e.http_body
-        Rails.logger.error(error_response)
+        logger.error(error_response)
         span.add_field('restclient.response.status_code', e.http_code)
         span.add_field('restclient.response.body', error_response)
 
         if e.is_a?(RestClient::BadRequest) and error_response =~ /JWS signature invalid/
-          Rails.logger.error('TROUBLESHOOTING HINT: Copy/pasta the "Public JWK URL" from the Developer Key ' \
+          logger.error('TROUBLESHOOTING HINT: Copy/pasta the "Public JWK URL" from the Developer Key ' \
                              'in Canvas into the browser and make sure it returns a valid list of keys.')
         end
 

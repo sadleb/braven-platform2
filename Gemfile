@@ -132,3 +132,5 @@ gem 'rails_same_site_cookie'
 # authorization
 gem "pundit"
 gem "rolify"
+
+gem "discordrb", git: 'https://github.com/shardlab/discordrb', branch: 'main', require: false

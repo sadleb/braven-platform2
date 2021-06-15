@@ -7,6 +7,9 @@
 # click "Filter logs", and add it there too. We can't control the heroku/router logging
 # and it sends query params in GET requests, so we just tell Papertrail to drop logs with
 # those params. It's the filter that looks like: heroku\/router.*(state=|auth=|...)
+
+require 'active_support/parameter_filter'
+
 class FilterLogging
 
   FILTERED = '[FILTERED]'

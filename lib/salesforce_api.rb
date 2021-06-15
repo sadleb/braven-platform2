@@ -2,6 +2,10 @@
 
 require 'rest-client'
 
+# TODO: Get rid of ActiveSupport dependency in this lib.
+require "active_support"
+require "active_support/core_ext/object"
+
 # Allows you to call into the Salesforce API and retrieve information.
 # Example Usage:
 # contact_info = SalesforceAPI.client.get_contact_info('some_sf_contact_id')
@@ -15,7 +19,7 @@ class SalesforceAPI
   SFContact = Struct.new(:id, :email, :first_name, :last_name)
   SFParticipant = Struct.new(:first_name, :last_name, :email, :role,
                              :program_id, :contact_id, :status, :student_id,
-                             :cohort, :cohort_schedule)
+                             :cohort, :cohort_schedule, :id, :discord_invite_code)
   SFProgram = Struct.new(:id, :name, :school_id, :fellow_course_id,
                          :leadership_coach_course_id,
                          :leadership_coach_course_section_name, :timezone,
@@ -112,7 +116,7 @@ class SalesforceAPI
   def get_program_info(program_id)
     soql_query =
       "SELECT Id, Name, Canvas_Cloud_Accelerator_Course_ID__c, Canvas_Cloud_LC_Playbook_Course_ID__c, School__c, " \
-        "Section_Name_in_LMS_Coach_Course__c, Default_Timezone__c, " \
+        "Section_Name_in_LMS_Coach_Course__c, Default_Timezone__c, Discord_Server_ID__c, " \
         "Preaccelerator_Qualtrics_Survey_ID__c, Postaccelerator_Qualtrics_Survey_ID__c " \
       "FROM Program__c WHERE Id = '#{program_id}'"
 
@@ -170,6 +174,28 @@ class SalesforceAPI
     participant_record ? participant_record['Id'] : nil
   end
 
+  # Special convenience method for Discord Bot.
+  def get_participant_info_by(discord_invite_code:)
+    # Clean the invite code first, since there's no parameterization here :(
+    discord_invite_code = discord_invite_code.gsub(/[^a-zA-Z0-9]/, '')
+    soql_query = "SELECT Id, Contact__c, Program__c FROM Participant__c " \
+                 "WHERE Discord_Invite_Code__c = '#{discord_invite_code}'"
+    response = get("#{DATA_SERVICE_PATH}/query?q=#{CGI.escape(soql_query)}")
+    participant_record = JSON.parse(response.body)['records'][0]
+    if participant_record
+      info = get_participants(participant_record['Program__c'], participant_record['Contact__c'])
+      if info
+        participant = SalesforceAPI.participant_to_struct(info[0])
+        participant.id = participant_record['Id']
+        participant
+      end
+    end
+  end
+
+  def update_participant(id, fields_to_set)
+     patch("#{DATA_SERVICE_PATH}/sobjects/Participant__c/#{id}", fields_to_set.to_json, JSON_HEADERS)
+  end
+
   # Get information about a Contact record
   def get_contact_info(contact_id)
     response = get("#{DATA_SERVICE_PATH}/sobjects/Contact/#{contact_id}" \
@@ -199,6 +225,21 @@ class SalesforceAPI
   def get_cohort_names(program_id)
     initial_api_path = "#{DATA_SERVICE_PATH}/query?q=SELECT+Name+FROM+Cohort__c+WHERE+Program__r.Id='#{program_id}'"
     recursively_map_soql_column_to_array('Name', [], initial_api_path)
+  end
+
+  def get_cohort_lcs(cohort_name)
+    # TODO: Fix SQLi!
+    soql_query =
+      "SELECT FirstName__c, LastName__c " \
+        "FROM Participant__c " \
+        "WHERE RecordTypeId IN (" \
+        "  SELECT Id FROM RecordType WHERE Name = 'Leadership Coach'" \
+        ") AND Cohort__c IN (" \
+        "  SELECT Id from Cohort__c WHERE Name = '#{cohort_name}'" \
+        ")"
+
+    response = get("#{DATA_SERVICE_PATH}/query?q=#{CGI.escape(soql_query)}")
+    JSON.parse(response.body)['records']
   end
 
   # Get the associated Accelerator Canvas course ID for the specified
@@ -286,7 +327,9 @@ class SalesforceAPI
                       participant['Email'], participant['Role']&.to_sym,
                       participant['ProgramId'], participant['ContactId'],
                       participant['ParticipantStatus'], participant['StudentId'],
-                      participant['CohortName'], participant['CohortScheduleDayTime'])
+                      participant['CohortName'], participant['CohortScheduleDayTime'],
+                      # TODO: Update this once we fetch Participant ID.
+                      nil, participant['DiscordInviteCode'])
   end
 
   def set_canvas_user_id(contact_id, canvas_user_id)
