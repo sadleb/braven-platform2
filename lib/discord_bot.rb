@@ -237,9 +237,15 @@ class DiscordBot
         @invites[server.id][invite.code] = invite.uses
 
         # If we found more than one used invite, alert and exit without configuring member.
+        # See the linked article above for why we do this; in short, we can't tell what
+        # Participant is linked to this Member if multiple Invites were used at the
+        # same time.
         if found_invite
           LOGGER.warn "Multiple invites used, not sure who's who! Please fix members manually."
           Honeycomb.add_field('alert.multiple_invites_used', [found_invite.code, invite.code])
+          # Force-refresh the cache, to make sure we're back up to speed with
+          # current invite uses.
+          init_invite_uses_cache
           return
         end
 
@@ -319,8 +325,8 @@ class DiscordBot
       # Always fetch latest info from SF, don't rely on a cache, so we're guaranteed to
       # have the latest name/role info at the time this runs.
       participant = SalesforceAPI.client.get_participant_info_by(discord_invite_code: invite.code)
-      Honeycomb.add_field('participant.id', participant.id)
-      Honeycomb.add_field('contact.id', participant.contact_id)
+      Honeycomb.add_field('participant.id', participant&.id)
+      Honeycomb.add_field('contact.id', participant&.contact_id)
       # If no Participant was found, warn and exit without configuring member.
       if participant.nil?
         LOGGER.warn "Invite not assigned to any known Participant!"
@@ -366,12 +372,12 @@ class DiscordBot
       roles = []
 
       # All but the Cohort roles are already created in the server.
-      [participant_role, cohort_schedule_role].compact.each do |role_name|
+      [participant_role_name, cohort_schedule_role_name].compact.each do |role_name|
         roles << DiscordBot.get_role(member.server, role_name)
       end
 
       # Cohort roles and channels may already exist, or we may have to create them.
-      cohort_role = DiscordBot.get_or_create_cohort_role(member.server, cohort_role)
+      cohort_role = DiscordBot.get_or_create_cohort_role(member.server, cohort_role_name)
       if cohort_role
         roles << cohort_role
         DiscordBot.configure_cohort_channel(member, participant, cohort_role)
@@ -428,6 +434,7 @@ class DiscordBot
       # to 32 characters. This probably won't happen outside of test users?
       nick = "#{contact['Preferred_First_Name__c']}".slice(0, 32)
     end
+    nick
   end
 
   # Participant role name
@@ -464,6 +471,9 @@ class DiscordBot
   def self.compute_cohort_role(participant)
     return unless participant.cohort
 
+    # 'Tuesday, 6pm' -> 'Tuesday'
+    ll_day = (participant.cohort_schedule || '').split(',').first
+
     cohort_lcs = SalesforceAPI.client.get_cohort_lcs(participant.cohort)
     if cohort_lcs.count == 1
       cohort_role_name = "Cohort: #{cohort_lcs.first['FirstName__c']} #{cohort_lcs.first['LastName__c']} #{ll_day}".strip
@@ -491,17 +501,17 @@ class DiscordBot
   # Create the roles on the fly if they do not already exist on the given server.
   def self.get_or_create_cohort_role(server, role_name)
     Honeycomb.start_span(name: 'bot.get_or_create_cohort_role') do |span|
-      Honeycomb.add_field('role.name', name)
+      Honeycomb.add_field('role.name', role_name)
       LOGGER.debug "Fetching/creating role"
 
       # Fetch the role if it already exists.
-      role = server.roles.find { |r| r.name == name }
+      role = server.roles.find { |r| r.name == role_name }
 
       # Otherwise, try to create it.
       unless role
         # TODO: Factor out contsants.
         template_role = server.roles.find { |r| r.name == 'Cohort: Template' }
-        role = server.create_role(name: name, permissions: template_role.permissions)
+        role = server.create_role(name: role_name, permissions: template_role.permissions)
       end
 
       LOGGER.debug "Role fetched/created"
@@ -577,6 +587,7 @@ class DiscordBot
       # the private Cohort channel, to give them additional management permissions in
       # the channel. (We can't just have cohort-channel:LC-role permissions, because we
       # don't want LCs to have management permissions in all Cohort channels, only their own.)
+      # TODO: Fix so this doesn't run for CPs.
       if participant.role == :"Leadership Coach"
         # Same as channel:role stuff above, we copy from a template permissions overwrite
         # to create a new channel:member permissions overwrite.
@@ -589,7 +600,7 @@ class DiscordBot
         lc_template_overwrite.type = :member
         # Change the overwrite ID from the template role to the current member.
         lc_template_overwrite.id = member.id
-        permission_overwrites ||= channel.permission_overwrites
+        permission_overwrites = channel.permission_overwrites if permission_overwrites.empty?
         permission_overwrites[lc_template_overwrite.id] = Discordrb::Overwrite.from_other(lc_template_overwrite)
       end
 

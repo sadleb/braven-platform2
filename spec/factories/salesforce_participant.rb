@@ -5,12 +5,18 @@ FactoryBot.define do
   factory :salesforce_participant, class: Hash do
     skip_create # This isn't stored in the DB.
 
+    transient do
+      sequence(:program_id) { |i| "a2Y1700000#{i}WLxqAUX" }
+      sequence(:discord_invite_code) { |i| "code#{i}" }
+      cohort_schedule_day { 'Monday' }
+    end
+
     # Note: some things that aren't a sequence use it as a hack b/c we can't use Uppercase
     # attribute names
     sequence(:CandidateStatus) { 'Fully Confirmed' }
-    sequence(:CohortScheduleDayTime) { |i| "TEST Mondays, #{i} pm" }
+    sequence(:CohortScheduleDayTime) { |i| "#{cohort_schedule_day}, #{i} pm" }
     sequence(:CohortName) { |i| "TEST Cohort#{i}" }
-    sequence(:ProgramId) { |i| "a2Y1700000#{i}WLxqAUX" }
+    sequence(:ProgramId) { program_id }
     sequence(:ContactId) { |i| "a2Y1700000#{i}WLxqEAG" }
     sequence(:Email) { |i| "test#{i}@example.com" }
     sequence(:FirstName) { |i| "TestFirstName#{i}" }
@@ -18,6 +24,7 @@ FactoryBot.define do
     sequence(:LastModifiedDate) { "2020-04-10T13:27:2{i}.000Z" }
     sequence(:ParticipantStatus) { 'Enrolled' }
     sequence(:StudentId) { |i| "TestSisId#{i}" }
+    sequence(:DiscordInviteCode) { discord_invite_code }
 
     factory :salesforce_participant_fellow do
       sequence(:Role) { :Fellow }
@@ -25,6 +32,10 @@ FactoryBot.define do
 
     factory :salesforce_participant_lc do
       sequence(:Role) { :'Leadership Coach' }
+    end
+
+    factory :salesforce_participant_ta do
+      sequence(:Role) { :'Teaching Assistant' }
     end
 
     initialize_with { attributes.stringify_keys }

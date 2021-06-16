@@ -17,6 +17,7 @@ FactoryBot.define do
     skip_create # This isn't stored in the DB.
     transient do
       sequence(:program_id) { |i| "a2Y1700000#{i}WLxqEAG" }
+      sequence(:discord_server_id) { |i| "#{i}" }
     end
     Default_Timezone__c { 'America/Los_Angeles' }
     sequence(:Docusign_Template_ID__c) { |i| "TestDocusignTemplate#{i}" }
@@ -28,6 +29,7 @@ FactoryBot.define do
     sequence(:School__c) { |i| "0011700001#{i}xF2cAAE" }
     sequence(:Section_Name_in_LMS_Coach_Course__c) { |i| "Test - LC Section#{i}" }
     sequence(:Canvas_Cloud_Accelerator_Course_ID__c)
+    sequence(:Discord_Server_ID__c) { discord_server_id }
     # Leaving out 'attributes' key b/c we don't currently use it.
     initialize_with { attributes.stringify_keys }
   end
