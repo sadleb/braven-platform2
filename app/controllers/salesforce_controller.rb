@@ -27,13 +27,17 @@ class SalesforceController < ApplicationController
     authorize :SalesforceAuthorization
 
     should_send_signup_emails = ActiveModel::Type::Boolean.new.cast(params[:send_signup_emails])
+    should_force_zoom_update = ActiveModel::Type::Boolean.new.cast(params[:force_zoom_update])
 
     if should_send_signup_emails && params[:not_confirmed].present?
-      redirect_to salesforce_confirm_send_signup_emails_path(program_id: params[:program_id].strip, email: params[:email].strip)
-      return
+      redirect_to salesforce_confirm_send_signup_emails_path(
+        program_id: params[:program_id].strip,
+        email: params[:email].strip,
+        force_zoom_update: should_force_zoom_update,
+      ) and return
     end
 
-    SyncFromSalesforceProgramJob.perform_later(params[:program_id].strip, params[:email].strip, should_send_signup_emails)
+    SyncFromSalesforceProgramJob.perform_later(params[:program_id].strip, params[:email].strip, should_send_signup_emails, should_force_zoom_update)
     redirect_to salesforce_sync_from_salesforce_program_path, notice: 'The sync process was started. Watch out for an email'
   end
 

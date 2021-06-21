@@ -1,7 +1,10 @@
 # frozen_string_literal: true
+require 'salesforce_api'
 
 # Syncs all folks from the specific Salesforce Program to Canvas.
-# TODO: rename to SyncFromSalesforceProgram
+# TODO: rename to SyncWithSalesforceProgram or SyncSalesforceProgram (since it now syncs
+# more stuff than just enrollments and it's not just "from" Salesforce anymore,
+# it syncs stuff back to the Program / Participants like Zoom links and signup_tokens)
 class SyncPortalEnrollmentsForProgram
   attr_reader :sf_program_id, :failed_participants, :count
 
@@ -9,10 +12,11 @@ class SyncPortalEnrollmentsForProgram
 
   FailedParticipantInfo = Struct.new(:salesforce_id, :email, :first_name, :last_name, :error_detail, keyword_init: true)
 
-  def initialize(salesforce_program_id:, send_signup_emails: false)
+  def initialize(salesforce_program_id:, send_signup_emails: false, force_zoom_update: false)
     @sf_program_id = salesforce_program_id
     @sf_program = nil
     @send_signup_emails = send_signup_emails
+    @force_zoom_update = force_zoom_update
     @failed_participants = []
   end
 
@@ -27,18 +31,18 @@ class SyncPortalEnrollmentsForProgram
           span.add_field('app.salesforce.contact.id', participant.contact_id)
           span.add_field('app.salesforce.student.id', participant.student_id)
 
-          # TODO: if we mark a user Enrolled, but then Dropped before "Sync From Salesforce" runs,
-          # this code will create a Platform User and email them a sign-up link. It should only do
-          # that if they are Enrolled. Note that if they were enrolled and have a Platform and Canvas account,
-          # we still need to run the sync to drop them from Canvas.
-          # https://app.asana.com/0/1174274412967132/1200239858551410
-
           # Create local users here before calling SyncPortalEnrollmentForAccount.
           # Also sends signup token to Salesforce, and emails the user a signup link.
           user = find_or_set_up_user!(participant)
+
+          # Can happen if they were marked Dropped or Completed before having ever created their User
+          next if user.blank?
+
           span.add_field('app.user.id', user.id)
           span.add_field('app.user.confirmed?', user.confirmed?)
           span.add_field('app.user.registered?', user.registered?)
+
+          SyncZoomLinksForParticipant.new(participant, @force_zoom_update).run
 
           portal_user = canvas_client.find_user_by(
             email: participant.email,
@@ -93,7 +97,14 @@ class SyncPortalEnrollmentsForProgram
   def find_or_set_up_user!(sf_participant)
     user = User.find_by(salesforce_id: sf_participant.contact_id)
 
-    unless user.present?
+    if user.blank?
+      unless sf_participant.status == SalesforceAPI::ENROLLED
+        # Shared field with sync_portal_enrollment_for_account, hence the more generic name.
+        Honeycomb.add_field('sync_portal_enrollment.skip_reason', 'Not Enrolled and never synced before')
+        Rails.logger.debug("No platform User and not Enrolled for '#{sf_participant.email}'; skipping")
+        return user
+      end
+
       # NOTE: This can fail if there are duplicate Contacts with the same
       # email on Salesforce. This should be prevented by Salesforce.
       user = User.new(

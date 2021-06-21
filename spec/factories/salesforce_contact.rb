@@ -4,11 +4,11 @@ FactoryBot.define do
 
   factory :salesforce_contact, class: Hash do
     skip_create # This isn't stored in the DB.
-    sequence(:Id) { |i| "003%07d25IpSAAU" % i }
+    sequence(:Id) { |i| "003a%011dAAQ" % i }
     sequence(:FirstName) { |i| "FirstName#{i}" }
     sequence(:LastName) { |i| "LastName#{i}" }
-    sequence(:Email) { |i| "test#{i}@email.com" }
     sequence(:Preferred_First_Name__c) { |i| "PrefFirstName#{i}" }
+    sequence(:Email) { |i| "testcontact#{i}@email.com" }
 
     factory :salesforce_contact_in_portal, class: Hash do
       sequence(:Canvas_Cloud_User_ID__c)

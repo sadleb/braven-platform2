@@ -19,7 +19,11 @@ class SalesforceAPI
   SFContact = Struct.new(:id, :email, :first_name, :last_name)
   SFParticipant = Struct.new(:first_name, :last_name, :email, :role,
                              :program_id, :contact_id, :status, :student_id,
-                             :cohort, :cohort_schedule, :id, :discord_invite_code)
+                             :cohort, :cohort_schedule, :id, :discord_invite_code,
+                             :volunteer_role, :zoom_prefix,
+                             :zoom_meeting_id_1, :zoom_meeting_id_2,
+                             :zoom_meeting_link_1, :zoom_meeting_link_2,
+                            )
   SFProgram = Struct.new(:id, :name, :school_id, :fellow_course_id,
                          :leadership_coach_course_id,
                          :leadership_coach_course_section_name, :timezone,
@@ -29,6 +33,7 @@ class SalesforceAPI
   ENROLLED = 'Enrolled'
   DROPPED = 'Dropped'
   COMPLETED = 'Completed'
+  COACH_PARTNER = 'Coach Partner'
   LEADERSHIP_COACH = :'Leadership Coach'
   FELLOW = :Fellow
   TEACHING_ASSISTANT = :'Teaching Assistant'
@@ -321,6 +326,14 @@ class SalesforceAPI
     SalesforceAPI.participant_to_struct(participant)
   end
 
+  def update_zoom_links(id, link1, link2)
+    # We probably want to cutover the Salesforce fields from "Webinar" to "Zoom" at some point.
+    # That was just what they were called for Braven Booster. We call everything Zoom in the
+    # platform code b/c that's what it is. Also, they are actually "Meetings" and not
+    # Zoom "Webinars"
+    update_participant(id, { 'Webinar_Access_1__c' => link1, 'Webinar_Access_2__c' => link2 })
+  end
+
   # Turns a Participant hash as returned by Salesforce into an SFParticipant struct
   def self.participant_to_struct(participant)
     SFParticipant.new(participant['FirstName'], participant['LastName'],
@@ -328,8 +341,11 @@ class SalesforceAPI
                       participant['ProgramId'], participant['ContactId'],
                       participant['ParticipantStatus'], participant['StudentId'],
                       participant['CohortName'], participant['CohortScheduleDayTime'],
-                      # TODO: Update this once we fetch Participant ID.
-                      nil, participant['DiscordInviteCode'])
+                      participant['Id'], participant['DiscordInviteCode'],
+                      participant['VolunteerRole'], participant['ZoomPrefix'],
+                      participant['ZoomMeetingId1'], participant['ZoomMeetingId2'],
+                      participant['ZoomMeetingLink1'], participant['ZoomMeetingLink2'],
+                     )
   end
 
   def set_canvas_user_id(contact_id, canvas_user_id)
@@ -354,4 +370,23 @@ class SalesforceAPI
     patch("#{DATA_SERVICE_PATH}/sobjects/CampaignMember/#{campaign_member_id}", fields_to_set.to_json, JSON_HEADERS)
   end
 
+  # Returns true if a SFParticipant struct is for an LC
+  #
+  # Note: other volunteer roles, like Coach Partner, use a Leadership Coach record type
+  # in Salesforce and that's where "role" comes from, so we need to check the Volunteer_Role__c
+  # as well.
+  def self.is_lc?(salesforce_participant)
+    salesforce_participant.role&.to_sym == SalesforceAPI::LEADERSHIP_COACH &&
+      salesforce_participant.volunteer_role.blank?
+  end
+
+  # Returns true if a SFParticipant struct is for a Coach Partner
+  #
+  # Note: Coach Partner's are a Leadership Coach record type in Salesforce and
+  # that's where "role" comes from, so we need to check the Volunteer_Role__c
+  # as well.
+  def self.is_coach_partner?(salesforce_participant)
+    salesforce_participant.role&.to_sym == SalesforceAPI::LEADERSHIP_COACH &&
+      salesforce_participant.volunteer_role == SalesforceAPI::COACH_PARTNER
+  end
 end

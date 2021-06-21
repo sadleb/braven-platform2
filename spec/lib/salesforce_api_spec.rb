@@ -209,7 +209,19 @@ RSpec.describe SalesforceAPI do
     end
   end
 
+  describe '#update_zoom_links' do
+    let(:id) { 'a2X11000050lakXEAQ' }
+    let(:link1) { 'https://zoom.link1' }
+    let(:link2) { 'https://zoom.link2' }
+    let(:request_url) { SALESFORCE_DATA_SERVICE_URL + "\/sobjects\/Participant__c\/#{id}" }
 
+    it 'calls the correct endpoint' do
+      stub_request(:patch, request_url)
+      response = SalesforceAPI.client.update_zoom_links(id, link1, link2)
+      expect(WebMock).to have_requested(:patch, request_url)
+        .with(body: '{"Webinar_Access_1__c":"https://zoom.link1","Webinar_Access_2__c":"https://zoom.link2"}').once
+    end
+  end
 
   describe '#get_cohort_schedule_section_names(program_id)' do
     let(:program_id) { '003170000125IpSAAU' }

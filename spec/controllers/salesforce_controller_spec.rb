@@ -27,9 +27,11 @@ RSpec.describe SalesforceController, type: :controller do
     end # POST #sync_from_salesforce_program
 
     describe 'GET #confirm_send_signup_emails' do
+      let(:base_params) { { program_id: sf_program.id } }
+      let(:other_params) { {} }
 
       subject(:show_confirm_emails) do
-        get :confirm_send_signup_emails, params: { program_id: sf_program.id }
+        get :confirm_send_signup_emails, params: base_params.merge(other_params)
       end
 
       shared_examples 'confirm recipients before running sync' do
@@ -46,6 +48,22 @@ RSpec.describe SalesforceController, type: :controller do
         it 'starts the sync for the proper program' do
           show_confirm_emails
           expect(response.body).to match(/#{Regexp.escape("<input value=\"#{sf_program.id}\" type=\"hidden\" name=\"program_id\" id=\"program_id\"")}/)
+        end
+
+        context 'with force_zoom_update' do
+          let(:other_params) { {force_zoom_update: true} }
+          it 'sets hidden param to true' do
+            show_confirm_emails
+            expect(response.body).to match(/#{Regexp.escape('<input value="true" type="hidden" name="force_zoom_update" id="force_zoom_update"')}/)
+          end
+        end
+
+        context 'without force_zoom_update' do
+          let(:other_params) { {force_zoom_update: false} }
+          it 'sets hidden param to false' do
+            show_confirm_emails
+            expect(response.body).to match(/#{Regexp.escape('<input value="false" type="hidden" name="force_zoom_update" id="force_zoom_update"')}/)
+          end
         end
 
         # This isn't really a great test b/c the param is just missing, aka false. Putting it here just to signal the intention
@@ -89,8 +107,9 @@ RSpec.describe SalesforceController, type: :controller do
 
     describe 'POST #sync_from_salesforce_program' do
       let(:send_signup_emails) { false }
+      let(:force_zoom_update) { false }
       let(:staff_email) { 'user.running.sync@bebraven.org' }
-      let(:base_params) { { program_id: sf_program.id, email: staff_email, send_signup_emails: send_signup_emails } }
+      let(:base_params) { { program_id: sf_program.id, email: staff_email, send_signup_emails: send_signup_emails, force_zoom_update: force_zoom_update } }
       let(:params) { base_params }
 
       subject(:run_sync_from_salesforce) do
@@ -99,7 +118,7 @@ RSpec.describe SalesforceController, type: :controller do
 
       shared_examples 'runs the sync' do
         it 'starts the sync in "send signup emails" mode for the proper program' do
-          expect(SyncFromSalesforceProgramJob).to receive(:perform_later).with(sf_program.id, staff_email, send_signup_emails).once
+          expect(SyncFromSalesforceProgramJob).to receive(:perform_later).with(sf_program.id, staff_email, send_signup_emails, force_zoom_update).once
           run_sync_from_salesforce
         end
 
@@ -119,7 +138,9 @@ RSpec.describe SalesforceController, type: :controller do
           let(:params) { base_params.merge({not_confirmed: true}) }
           it 'requires confirmation' do
             run_sync_from_salesforce
-            expect(response).to redirect_to(salesforce_confirm_send_signup_emails_path(program_id: sf_program.id, email: staff_email))
+            expect(response).to redirect_to(
+              salesforce_confirm_send_signup_emails_path(program_id: sf_program.id, email: staff_email, force_zoom_update: force_zoom_update)
+            )
           end
         end
 
@@ -134,6 +155,16 @@ RSpec.describe SalesforceController, type: :controller do
         let(:params) { base_params.merge({not_confirmed: true}) }
 
         # No confirmation page needed, it just runs it.
+        it_behaves_like 'runs the sync'
+      end
+
+      context 'when forcing Zoom update' do
+        let(:force_zoom_update) { true }
+        it_behaves_like 'runs the sync'
+      end
+
+      context 'when not forcing Zoom update' do
+        let(:force_zoom_update) { false }
         it_behaves_like 'runs the sync'
       end
     end # POST #sync_from_salesforce_program

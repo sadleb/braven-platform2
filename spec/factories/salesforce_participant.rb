@@ -13,11 +13,15 @@ FactoryBot.define do
 
     # Note: some things that aren't a sequence use it as a hack b/c we can't use Uppercase
     # attribute names
+    sequence(:Id) { |i| "a2Xz%011dEAA" % i }
     sequence(:CandidateStatus) { 'Fully Confirmed' }
+    sequence(:CandidateId) { |i| "a2Ua%011dEAC" % i }
     sequence(:CohortScheduleDayTime) { |i| "#{cohort_schedule_day}, #{i} pm" }
+    sequence(:CohortScheduleId) { |i| "a33a%011dAAS" % i }
     sequence(:CohortName) { |i| "TEST Cohort#{i}" }
+    sequence(:CohortId) { |i| "a2UVa%011dEAA" % i }
     sequence(:ProgramId) { program_id }
-    sequence(:ContactId) { |i| "a2Y1700000#{i}WLxqEAG" }
+    sequence(:ContactId) { |i| "003z%011dAAQ" % i }
     sequence(:Email) { |i| "test#{i}@example.com" }
     sequence(:FirstName) { |i| "TestFirstName#{i}" }
     sequence(:LastName) { |i| "TestLastName#{i}" }
@@ -25,6 +29,11 @@ FactoryBot.define do
     sequence(:ParticipantStatus) { 'Enrolled' }
     sequence(:StudentId) { |i| "TestSisId#{i}" }
     sequence(:DiscordInviteCode) { discord_invite_code }
+    sequence(:ZoomPrefix) { |i| "ZoomPrefix#{1}" }
+    sequence(:ZoomMeetingId1) { |i| "%010d" % i}
+    sequence(:ZoomMeetingLink1) { nil }
+    sequence(:ZoomMeetingId2) { |i| "%010d" % (i + 10000)}
+    sequence(:ZoomMeetingLink2) { nil }
 
     factory :salesforce_participant_fellow do
       sequence(:Role) { :Fellow }
@@ -36,6 +45,11 @@ FactoryBot.define do
 
     factory :salesforce_participant_ta do
       sequence(:Role) { :'Teaching Assistant' }
+    end
+
+    factory :salesforce_participant_cp do
+      sequence(:Role) { :'Leadership Coach' }
+      sequence(:VolunteerRole) { 'Coach Partner' }
     end
 
     initialize_with { attributes.stringify_keys }

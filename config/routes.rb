@@ -194,11 +194,15 @@ Rails.application.routes.draw do
     resources :users_roles, only: [:new, :create, :destroy]
   end
 
-  # Sync to Canvas
+  # Sync from Salesforce to Canvas
   post '/salesforce/sync_from_salesforce_program', to: 'salesforce#sync_from_salesforce_program'
   get '/salesforce/confirm_send_signup_emails', to: 'salesforce#confirm_send_signup_emails'
   get '/salesforce/sync_from_salesforce_program', to: 'salesforce#init_sync_from_salesforce_program'
   post '/salesforce/update_contacts', to: 'salesforce#update_contacts'
+
+  # Generate Zoom Links for a meeting
+  get 'generate_zoom_links', to: 'zoom#init_generate_zoom_links'
+  post 'generate_zoom_links', to: 'zoom#generate_zoom_links'
 
   # RubyCAS Routes
   resources :cas, except: [:show]

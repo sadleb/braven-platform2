@@ -1,0 +1,47 @@
+<% content_for(:headline) do %>
+  Generate Zoom links
+<% end %>
+
+<% content_for(:breadcrumbs) do %>
+  <li class="breadcrumb-item ml-3"><%= link_to "Home", root_path %></li>
+  <li class="breadcrumb-item active" aria-current="page">Generate Zoom Links</li>
+<% end %>
+
+    <div class="col-md-8">
+      <p class="lead">Before using this tool, follow these instructions to set up a Zoom Meeting first.</p>
+      <ul>
+        <li>Go <a href="https://zoom.us/meeting/schedule" target="_blank">schedule a Zoom Meeting here</a>.</li>
+        <li>You MUST do this with a licensed Zoom Pro account. Free accounts won't work.</li>
+        <li>For the "Registration" option it MUST be set to "Required".</li>
+        <li>After scheduling it, under the "Email Settings" of the "Registration" section go set it to "No Confirmation Email Sent to Registrants". Otherwise, Zoom will email them when this runs.</li>
+      </ul>
+      <p>Then, copy/paste the Meeting ID from the URL into the below field. E.g. if the meeting URL is:<br><code class="ml-3">https://us02web.zoom.us/meeting/85617845555</code><br>then you would enter<br><code class="ml-3">85617845555</code></p>
+      <p>Finally, upload a .csv of participants to generate links for with the following columns:</p>
+      <pre>    <strong>email</strong>,<strong>first_name</strong>,<strong>last_name</strong></pre>
+      <p>OR <a href="generate_zoom_links_template.csv" download>download the template and populate it</a></p>
+
+      <div class="row pt-3">
+        <div class="col-md-5">
+          <%= form_with(url: generate_zoom_links_path, method: "post", local: true) do |form| %>
+            <div class="form-group">
+              <%= form.label :meeting_id, "Meeting ID:" %>
+              <%= form.text_field :meeting_id, class: "form-control", required: true, placeholder: "8960564609", autocomplete: "meeting_id" %>
+            </div>
+            <div class="form-group">
+              <%= form.label :participants, "Meeting Participants:" %>
+              <%= form.file_field :participants, class: "form-control-file", required: true %>
+            </div>
+            <div class="form-group">
+              <%= form.label :email, "Email to send links to in a .csv format:" %>
+              <%= form.email_field :email, class: "form-control", required: true, placeholder: "you@example.com", autocomplete: "email" %>
+            </div>
+
+            <div class="actions">
+              <%= form.submit "Generate Links", class: "btn btn-primary" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <p><em>Note:</em> this tool is <strong>NOT</strong> for generating the links in Salesforce. That is done using the Salesforce sync.</p>
+    </div>
