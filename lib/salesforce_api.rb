@@ -108,7 +108,7 @@ class SalesforceAPI
   # they have a Canvas Course ID set) and are either currently running or will be in the future.
   def get_current_and_future_accelerator_programs()
     soql_query =
-      "SELECT Id, Name, Canvas_Cloud_Accelerator_Course_ID__c FROM Program__c " \
+      "SELECT Id, Name, Canvas_Cloud_Accelerator_Course_ID__c, Discord_Server_ID__c FROM Program__c " \
       "WHERE RecordType.Name = 'Course' AND Canvas_Cloud_Accelerator_Course_ID__c <> NULL AND Status__c IN ('Current', 'Future')"
 
     response = get("#{DATA_SERVICE_PATH}/query?q=#{CGI.escape(soql_query)}")
@@ -119,6 +119,11 @@ class SalesforceAPI
 
   # TODO: remove the Qualtrics IDs from here. We don't use them anymore.
   def get_program_info(program_id)
+    # If the program ID is invalid, return without making an API call.
+    # This prevents SOQLi on program_id (like "1'; DROP TABLE Program__c").
+    # We just return nil instead of raising bc that's how this function acts
+    # for "program not found".
+    return unless program_id.match? /^[a-zA-Z0-9]{18}$/
     soql_query =
       "SELECT Id, Name, Canvas_Cloud_Accelerator_Course_ID__c, Canvas_Cloud_LC_Playbook_Course_ID__c, School__c, " \
         "Section_Name_in_LMS_Coach_Course__c, Default_Timezone__c, Discord_Server_ID__c, " \
@@ -127,6 +132,10 @@ class SalesforceAPI
 
     response = get("#{DATA_SERVICE_PATH}/query?q=#{CGI.escape(soql_query)}")
     JSON.parse(response.body)['records'][0]
+  end
+
+  def update_program(id, fields_to_set)
+     patch("#{DATA_SERVICE_PATH}/sobjects/Program__c/#{id}", fields_to_set.to_json, JSON_HEADERS)
   end
 
   # - The "Id" is the Program.Id.

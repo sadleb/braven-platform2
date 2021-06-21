@@ -22,6 +22,19 @@ INVITE_MAX_AGE = 0
 # to sign up but encounters an error, so it's safer to set this to 0.
 INVITE_MAX_USES = 0
 
+# Character(s) prepended to a message that make the bot treat it as a
+# command.
+BOT_COMMAND_KEY = '!'
+# Admin command strings.
+ADMIN_COMMANDS = {
+  sync_salesforce: 'sync_salesforce',
+}
+# Roles that are allowed to run admin commands.
+ADMIN_ROLES = [
+  'Admin',
+  'Staff',
+]
+
 # Global logger.
 LOGGER = Logger.new(STDOUT)
 
@@ -82,20 +95,9 @@ class DiscordBot
     # TODO: Only allow Admins to run commands.
     # TODO: Add a !configure_member command to manually link a member to a Participant ID.
     # TODO: Add a !sync command to run salesforce_sync.
-#    @bot.message do |event|
-#      LOGGER.debug event.message.inspect
-#      LOGGER.debug event.message.author.inspect
-#      LOGGER.debug event.message.author.roles.inspect
-#
-#      if event.message.author.roles.find { |r| r.name == 'Admin' }
-#        event.message.respond "Ack: #{event.message.content}"
-#      else
-#        event.message.respond "Not an admin, ignoring"
-#      end
-#    end
-
-    # Event handler: A new invite is generated on any server.
-    # TODO: Add invite to cache, and maybe kick off a salesforce sync to cache participant id?
+    @bot.message do |event|
+      on_message(event)
+    end
 
     # Event handler: A new member was added to the server.
     @bot.member_join do |event|
@@ -186,9 +188,9 @@ class DiscordBot
 
       Honeycomb.add_field('user.username', user.username)
       Honeycomb.add_field('user.discriminator', user.discriminator)
-      Honeycomb.add_field('user.id', user.id)
+      Honeycomb.add_field('member.id', event.member.id)
       Honeycomb.add_field('server.id', server.id)
-      LOGGER.debug "Member join: '#{user.username}##{user.discriminator}' (#{user.id})"
+      LOGGER.debug "Member join: '#{user.username}##{user.discriminator}' (#{event.member.id})"
 
       invite = find_used_invite(server)
       # If we couldn't figure out which invite they used, exit early.
@@ -199,6 +201,30 @@ class DiscordBot
       # Note: This function may return on errors, so if you add more code after this call,
       # don't just assume it worked.
       DiscordBot.configure_member(event.member, invite)
+    end
+  rescue StandardError => e
+    record_error(e)
+  end
+
+  def on_message(event)
+    Honeycomb.start_span(name: 'bot.message') do |span|
+      # Ignore all messages that don't look like a bot command.
+      if event.message.content.start_with? BOT_COMMAND_KEY
+        server = event.server
+        Honeycomb.add_field('server.id', server.id)
+        # event.author might be a User instead of a Member, but only if the
+        # Member immediately left the server after sending the message and
+        # before we received the event. And calling this 'member.id' makes
+        # it easier to cross-reference with other events.
+        Honeycomb.add_field('member.id', event.author.id)
+
+        if event.message.author.roles.find { |r| ADMIN_ROLES.include? r.name }
+          LOGGER.debug "Admin command"
+          process_admin_command(event)
+        else
+          LOGGER.debug "Ignoring non-admin command"
+        end
+      end
     end
   rescue StandardError => e
     record_error(e)
@@ -265,49 +291,30 @@ class DiscordBot
       LOGGER.debug "Syncing #{program_ids.count} programs from Salesforce"
 
       program_ids.each do |program_id|
-        Honeycomb.start_span(name: 'bot.sync_salesforce.program') do |span|
-          Honeycomb.add_field('program.id', program_id)
-          # Fetch Discord server ID from the Program, skip if there isn't one.
-          program_info = SalesforceAPI.client.get_program_info(program_id)
-          server_id = program_info['Discord_Server_ID__c'].to_i
-          Honeycomb.add_field('server.id', server_id)
-
-          # Skip Programs that don't have a Discord Server ID.
-          next if server_id == 0
-          LOGGER.debug "Processing program #{program_id}"
-
-          participants = SalesforceAPI.client.find_participants_by(program_id: program_id)
-          Honeycomb.add_field('participants.count', participants.count)
-          LOGGER.debug "Syncing #{participants.count} participants for program #{program_id}"
-
-          participants.each do |participant|
-            Honeycomb.start_span(name: 'bot.sync_salesforce.participant') do |span|
-              Honeycomb.add_field('contact.id', participant.contact_id)
-              Honeycomb.add_field('participant.discord_invite_code', participant.discord_invite_code)
-              LOGGER.debug "Processing participant"
-
-              # TODO: Have SFAPI.get_participants use SOQL so it returns the Participant ID directly.
-              participant_id = SalesforceAPI.client.get_participant_id(participant.program_id, participant.contact_id)
-              Honeycomb.add_field('participant.id', participant_id)
-
-              if participant.discord_invite_code
-                # Fetch the existing code if there is one.
-                LOGGER.debug "Found existing invite for participant #{participant_id}"
-                invite_code = participant.discord_invite_code
-              else
-                # Otherwise, create a new one and save it to the Participant record.
-                LOGGER.debug "Creating new invite for participant #{participant_id}"
-                invite_code = create_invite(server_id)
-                SalesforceAPI.client.update_participant(participant_id, {'Discord_Invite_Code__c': invite_code})
-              end
-
-              Honeycomb.add_field('invite.code', invite_code)
-            end
-          end
-        end
+        sync_salesforce_program(program_id)
       end
       LOGGER.debug "Done syncing programs"
     end
+  end
+
+  # At this point, the message event is guaranteed to 1) have been sent by
+  # a server admin/staff-level user, and 2) have started with the bot command
+  # signifier BOT_COMMAND_KEY.
+  def process_admin_command(event)
+    case event.message.content
+    when /^#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:sync_salesforce]}/
+      LOGGER.debug "sync_salesforce command"
+      sync_salesforce_command(event)
+    else
+      LOGGER.debug "unknown command"
+      event.message.respond "Unknown command."
+    end
+  rescue StandardError => e
+    # Simplify error handling for bot commands.
+    message_content = "❌ Encountered an error!"
+    message_content << "\n#{e.class.name}: #{e.message}"
+    event.message.respond message_content
+    raise e
   end
 
   # Given a Discord Member and an Invite, assign appropriate
@@ -318,7 +325,7 @@ class DiscordBot
       server_id = member.server.id
       user = member.instance_variable_get(:@user)
       Honeycomb.add_field('server.id', server_id)
-      Honeycomb.add_field('user.id', user.id)
+      Honeycomb.add_field('member.id', member.id)
       Honeycomb.add_field('invite.code', invite.code)
 
       # Try to map this invite to a Participant.
@@ -341,7 +348,7 @@ class DiscordBot
       # account, we'll only keep the latest Discord User ID.
       begin
         LOGGER.debug "Found Participant, updating Contact record"
-        SalesforceAPI.client.update_contact(participant.contact_id, {'Discord_User_ID__c': user.id})
+        SalesforceAPI.client.update_contact(participant.contact_id, {'Discord_User_ID__c': member.id})
       rescue RestClient::BadRequest => e
         LOGGER.warn "Attempted to reference same Discord user from multiple Contacts. Kicking the new user."
         record_error(e)
@@ -407,11 +414,157 @@ class DiscordBot
   end
 
   #
-  # Lower-level utilities.
+  # Bot Commands
+  #
+  # Called by process_admin_command.
+  # Always pass in a Discordrb::MessageEvent.
+  #
+
+  # Usage:
+  #
+  # 1) Sync this Server with a Program that already has this Server's
+  # ID set up in Salesforce:
+  #
+  #   sync_salesforce
+  #
+  # 2) Set up a new Salesforce Program to use this Server, and sync:
+  #
+  #   sync_salesforce SF_PROGRAM_ID
+  def sync_salesforce_command(event)
+    server = event.server
+    command = event.message.content.split
+    args = command.drop(1)
+    Honeycomb.add_field('sync_salesforce_command.args.count', args.count)
+    Honeycomb.add_field('sync_salesforce_command.args', args)
+
+    if args.count > 1
+      event.message.respond "Too many arguments, not sure what to do." \
+        "\nTry `#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:sync_salesforce]} MY_SALESFORCE_PROGRAM_ID`"
+      return
+    elsif args.count == 1
+      program_id = args.first
+      message_content = "Starting sync with Program #{program_id}..."
+      message = event.message.respond message_content
+
+      program_info = SalesforceAPI.client.get_program_info(program_id)
+      if program_info.nil?
+        message_content << "\n❌ Program not found on Salesforce. Check the ID and try again?"
+        message.edit(message_content)
+        return
+      end
+
+      program_server_id = program_info['Discord_Server_ID__c'].to_i
+      # Note: nil.to_i == 0
+      if program_server_id == 0
+        # We're setting up a new Program for the first time.
+        message_content << "\n✅ Found Program in Salesforce..."
+        message.edit(message_content)
+        # Save this Server's ID to the Program record.
+        SalesforceAPI.client.update_program(program_id, {'Discord_Server_ID__c': server.id})
+        message_content << "\n✅ Updated Program to use this Discord server..."
+        message.edit(message_content)
+        sync_salesforce_program(program_id)
+        message_content << "\n✅ Synced Program."
+        message_content << "\nAll done!"
+        message.edit(message_content)
+      elsif program_server_id == server.id.to_i
+        # This Server is already linked to this Program.
+        message_content << "\n✅ Found Program in Salesforce..."
+        message_content << "\n✅ Program is already linked to this Discord server..."
+        message.edit(message_content)
+        sync_salesforce_program(program_id)
+        message_content << "\n✅ Synced Program."
+        message_content << "\nAll done!"
+        message.edit(message_content)
+      else
+        # This Server is already linked to a different Program.
+        message_content << "\n⚠️ That Program was linked to a different Discord server! (ID: `#{program_server_id}`)"
+        SalesforceAPI.client.update_program(program_id, {'Discord_Server_ID__c': server.id})
+        message_content << "\n⚠️ Updated Program to use this Discord server."
+        message_content << "\nIf you did this by mistake, go run the same command in the other server to reset."
+        message_content << "\nIf you meant to do this, run `#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:sync_salesforce]}` now"
+        message_content << " to sync the program to this server."
+        message.edit(message_content)
+      end
+    else
+      message_content = "Starting sync with pre-configured Program..."
+      message = event.message.respond message_content
+
+      # Look for a current/future Program with this Discord Server ID.
+      programs = SalesforceAPI.client.get_current_and_future_accelerator_programs
+      program = programs['records'].find { |program| program['Discord_Server_ID__c'].to_i == server.id.to_i }
+
+      if program.nil?
+        message_content << "\n❌ No Program found for this Discord server."
+        message_content << "\nTry this command again with the Program ID you want to link, like:"
+        message_content << "\n`#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:sync_salesforce]} a2Y11000002HY5mEAX`"
+        message.edit(message_content)
+        return
+      end
+
+      # If we did find a program tied to this server, sync it.
+      message_content << "\n✅ Found Program #{program['Id']} in Salesforce..."
+      message.edit(message_content)
+      sync_salesforce_program(program['Id'])
+      message_content << "\n✅ Synced Program."
+      message_content << "\nAll done!"
+      message.edit(message_content)
+    end
+  end
+
+  #
+  # Lower-level Utilities
   #
   # Helper functions used by top-level utilities, that contain enough logic that
   # we still want to be able to write specs for them.
   #
+
+  def sync_salesforce_program(program_id)
+    Honeycomb.start_span(name: 'bot.sync_salesforce_program') do |span|
+      Honeycomb.add_field('program.id', program_id)
+      # Fetch Discord server ID from the Program, skip if there isn't one.
+      program_info = SalesforceAPI.client.get_program_info(program_id)
+      server_id = program_info['Discord_Server_ID__c'].to_i
+      Honeycomb.add_field('server.id', server_id)
+
+      # Skip Programs that don't have a Discord Server ID.
+      return if server_id == 0
+      LOGGER.debug "Processing program #{program_id}"
+
+      participants = SalesforceAPI.client.find_participants_by(program_id: program_id)
+      Honeycomb.add_field('participants.count', participants.count)
+      LOGGER.debug "Syncing #{participants.count} participants for program #{program_id}"
+
+      participants.each do |participant|
+        sync_salesforce_participant(server_id, participant)
+      end
+    end
+  end
+
+  def sync_salesforce_participant(server_id, participant)
+    Honeycomb.start_span(name: 'bot.sync_salesforce_participant') do |span|
+      Honeycomb.add_field('contact.id', participant.contact_id)
+      Honeycomb.add_field('participant.discord_invite_code', participant.discord_invite_code)
+      LOGGER.debug "Processing participant"
+
+      # TODO: Have SFAPI.get_participants use SOQL so it returns the Participant ID directly.
+      participant_id = SalesforceAPI.client.get_participant_id(participant.program_id, participant.contact_id)
+      Honeycomb.add_field('participant.id', participant_id)
+
+      if participant.discord_invite_code
+        # Fetch the existing code if there is one.
+        LOGGER.debug "Found existing invite for participant #{participant_id}"
+        invite_code = participant.discord_invite_code
+      else
+        # Otherwise, create a new one and save it to the Participant record.
+        LOGGER.debug "Creating new invite for participant #{participant_id}"
+        invite_code = create_invite(server_id)
+        SalesforceAPI.client.update_participant(participant_id, {'Discord_Invite_Code__c': invite_code})
+      end
+
+      Honeycomb.add_field('invite.code', invite_code)
+    end
+  end
 
   # Generate a new invite for a given server, and update @invites.
   def create_invite(server_id)
@@ -534,7 +687,6 @@ class DiscordBot
       server = member.server
 
       Honeycomb.add_field('member.id', member.id)
-      Honeycomb.add_field('user.id', member.instance_variable_get(:@user)&.id)
       Honeycomb.add_field('server.id', server.id)
       Honeycomb.add_field('contact.id', participant.contact_id)
       Honeycomb.add_field('program.id', participant.program_id)

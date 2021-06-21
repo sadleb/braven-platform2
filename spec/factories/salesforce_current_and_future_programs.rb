@@ -23,10 +23,12 @@ FactoryBot.define do
     transient do
       sequence(:program_id) { |i| "a2Y17#{i}00000WLxqEAG" }
       sequence(:canvas_course_id)
+      sequence(:discord_server_id) { |i| "#{i}" }
     end
     sequence(:Id) { program_id }
     sequence(:Name) { |i| "TEST: Program#{i}" }
     sequence(:Canvas_Cloud_Accelerator_Course_ID__c) { canvas_course_id }
+    sequence(:Discord_Server_ID__c) { discord_server_id }
     # Leaving out 'attributes' key b/c we don't currently use it.
     initialize_with { attributes.stringify_keys }
   end

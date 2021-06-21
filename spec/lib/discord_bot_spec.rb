@@ -134,6 +134,64 @@ RSpec.describe DiscordBot do
     end
   end
 
+  describe '.on_message' do
+    subject { bot.on_message(event) }
+
+    let(:message_content) { 'test message' }
+    let(:server) { instance_double(Discordrb::Server, id: 'fake-server-id') }
+    let(:user) { instance_double(Discordrb::User, id: 'fake-user-id', username: 'fake-username', discriminator: 1234) }
+    let(:member) { instance_double(Discordrb::Member, id: 'fake-member-id', roles: roles) }
+    let(:message) { instance_double(Discordrb::Message, content: message_content, author: member, respond: nil) }
+    let(:event) { instance_double(Discordrb::Events::MessageEvent, server: server, author: member, message: message) }
+    let(:roles) { [] }
+
+    before :each do
+      member.instance_variable_set(:@user, user)
+      allow(bot).to receive(:process_admin_command)
+    end
+
+    context 'with message that looks like command' do
+      let(:message_content) { "#{BOT_COMMAND_KEY}test command" }
+
+      context 'with message from admin' do
+        let(:roles) { [
+          instance_double(Discordrb::Role, name: ADMIN_ROLES.first),
+        ] }
+
+        it 'processes message as admin command' do
+          expect(bot).to receive(:process_admin_command).with(event).once
+          subject
+        end
+      end
+
+      context 'with message from non-admin' do
+        let(:roles) { [
+          instance_double(Discordrb::Role, name: 'Fellow'),
+        ] }
+
+        it 'ignores message' do
+          expect(bot).not_to receive(:process_admin_command)
+          expect(message).not_to receive(:respond)
+          subject
+        end
+      end
+    end
+
+    context 'with message that does not look like command' do
+      context 'with message from admin' do
+        let(:roles) { [
+          instance_double(Discordrb::Role, name: ADMIN_ROLES.first),
+        ] }
+
+        it 'ignores message' do
+          expect(bot).not_to receive(:process_admin_command)
+          expect(message).not_to receive(:respond)
+          subject
+        end
+      end
+    end
+  end
+
   # Invites
   describe '.init_invite_uses_cache' do
     subject { bot.init_invite_uses_cache }
@@ -302,12 +360,66 @@ RSpec.describe DiscordBot do
 
   end
 
+  # Bot command parsing
+  describe '.process_admin_command' do
+    subject { bot.process_admin_command(event) }
+
+    let(:roles) { [ instance_double(Discordrb::Role, name: ADMIN_ROLES.first) ] }
+    let(:server) { instance_double(Discordrb::Server, id: 'fake-server-id') }
+    let(:user) { instance_double(Discordrb::User, id: 'fake-user-id', username: 'fake-username', discriminator: 1234) }
+    let(:member) { instance_double(Discordrb::Member, id: 'fake-member-id', roles: roles) }
+    let(:message) { instance_double(Discordrb::Message, content: message_content, author: member, respond: nil) }
+    let(:event) { instance_double(Discordrb::Events::MessageEvent, server: server, author: member, message: message) }
+    let(:message_content) { "#{BOT_COMMAND_KEY}test" }
+
+    before :each do
+      member.instance_variable_set(:@user, user)
+    end
+
+    context 'with sync_salesforce command' do
+      let(:message_content) { "#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:sync_salesforce]}" }
+
+      it 'calls the appropriate command function' do
+        expect(bot).to receive(:sync_salesforce_command).with(event).once
+        subject
+      end
+    end
+
+    context 'with unknown command' do
+      it 'responds with only the unknown command message' do
+        expect(message).to receive(:respond).once
+        subject
+      end
+    end
+
+    context 'with exception during command processing' do
+      let(:message_content) { "#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:sync_salesforce]}" }
+
+      before :each do
+        allow(bot).to receive(:sync_salesforce_command).and_raise(StandardError.new('test'))
+      end
+
+      it 'sends a pretty error message' do
+        expect(message).to receive(:respond).once
+        expect {
+          subject
+        }.to raise_error(StandardError)
+      end
+
+      it 'lets the error propogate' do
+        expect {
+          subject
+        }.to raise_error(StandardError)
+      end
+    end
+  end
+
   # Configure member
   describe 'self.configure_member' do
     subject { DiscordBot.configure_member(member, invite) }
 
     let(:server) { instance_double(Discordrb::Server, id: 'fake-server-id') }
-    let(:user) { instance_double(Discordrb::User, id: 'fake-user-id', username: 'fake-username', discriminator: 1234) }
+    let(:user) { instance_double(Discordrb::User, username: 'fake-username', discriminator: 1234) }
     let(:member) { instance_double(Discordrb::Member, id: 'fake-member-id', server: server, set_nick: nil, set_roles: nil, kick: nil) }
     let(:invite) { instance_double(Discordrb::Invite, code: 'fake-invite-code', delete: nil) }
     let(:nickname) { 'test-nick' }
@@ -342,7 +454,7 @@ RSpec.describe DiscordBot do
     context 'with participant that matches invite' do
       it 'updates contact with discord user id' do
         expect(sf_client).to receive(:update_contact)
-          .with(participant.contact_id, {'Discord_User_ID__c': user.id})
+          .with(participant.contact_id, {'Discord_User_ID__c': member.id})
           .once
         subject
       end
@@ -384,6 +496,161 @@ RSpec.describe DiscordBot do
         expect(sf_client).not_to receive(:get_contact_info)
         expect(sf_client).not_to receive(:update_contact)
         expect(DiscordBot).not_to receive(:compute_nickname)
+        subject
+      end
+    end
+  end
+
+  # Bot commands
+  describe '.sync_salesforce_command' do
+    subject { bot.sync_salesforce_command(event) }
+
+    let(:server_id) { '123' }
+    let(:roles) { [ instance_double(Discordrb::Role, name: ADMIN_ROLES.first) ] }
+    let(:server) { instance_double(Discordrb::Server, id: server_id) }
+    let(:user) { instance_double(Discordrb::User, id: 'fake-user-id', username: 'fake-username', discriminator: 1234) }
+    let(:member) { instance_double(Discordrb::Member, id: 'fake-member-id', roles: roles) }
+    let(:message) { instance_double(Discordrb::Message, content: message_content, author: member, edit: nil) }
+    let(:event) { instance_double(Discordrb::Events::MessageEvent, server: server, author: member, message: message) }
+    let(:message_content) { "#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:sync_salesforce]} #{args}".strip }
+    let(:programs) { create(:salesforce_current_and_future_programs, canvas_course_ids: [1, 2]) }
+    let(:program1_with_discord) { create(:salesforce_program_record, program_id: programs['records'][0]['Id'], discord_server_id: server_id) }
+    let(:program2_without_discord) { create(:salesforce_program_record, program_id: programs['records'][1]['Id'], discord_server_id: nil) }
+    let(:sf_client) { instance_double(SalesforceAPI,
+      get_current_and_future_accelerator_programs: programs,
+      update_program: nil,
+      get_program_info: nil,
+    ) }
+    let(:args) { "" }
+
+    before :each do
+      allow(sf_client).to receive(:get_program_info)
+        .with(program1_with_discord['Id'])
+        .and_return(program1_with_discord)
+      allow(sf_client).to receive(:get_program_info)
+        .with(program2_without_discord['Id'])
+        .and_return(program2_without_discord)
+      allow(SalesforceAPI).to receive(:client).and_return(sf_client)
+      allow(message).to receive(:respond).and_return(message)
+      allow(bot).to receive(:sync_salesforce_program)
+    end
+
+    context 'with no arguments' do
+      context 'with already linked program' do
+        # Any of the returned programs will do. We pick the first one just for convenience.
+        let(:server_id) { programs['records'].first['Discord_Server_ID__c'] }
+        let(:program_id) { programs['records'].first['Id'] }
+
+        it 'responds' do
+          expect(message).to receive(:respond)
+          subject
+        end
+
+        it 'syncs linked program' do
+          expect(bot).to receive(:sync_salesforce_program).with(program_id)
+          subject
+        end
+      end
+
+      context 'with no already linked program' do
+        before :each do
+          # Remove discord server IDs from all program records.
+          programs['records'][0]['Discord_Server_ID__c'] = nil
+          programs['records'][1]['Discord_Server_ID__c'] = nil
+        end
+
+        it 'responds' do
+          expect(message).to receive(:respond)
+          subject
+        end
+
+        it 'does not sync anything' do
+          expect(bot).not_to receive(:sync_salesforce_program)
+          subject
+        end
+      end
+    end
+
+    context 'with valid Salesforce Program ID argument, already linked' do
+      let(:program_id) { program1_with_discord['Id'] }
+      let(:args) { "#{program_id}" }
+
+      it 'responds' do
+        expect(message).to receive(:respond)
+        subject
+      end
+
+      it 'does not update program' do
+        expect(sf_client).not_to receive(:update_program)
+        subject
+      end
+
+      it 'syncs program' do
+        expect(bot).to receive(:sync_salesforce_program).with(program_id)
+        subject
+      end
+    end
+
+    context 'with valid Salesforce Program ID argument, not already linked' do
+      let(:program_id) { program2_without_discord['Id'] }
+      let(:args) { "#{program_id}" }
+
+      it 'responds' do
+        expect(message).to receive(:respond)
+        subject
+      end
+
+      it 'updates program' do
+        expect(sf_client).to receive(:update_program)
+          .with(program_id, {'Discord_Server_ID__c': server_id})
+        subject
+      end
+
+      it 'syncs program' do
+        expect(bot).to receive(:sync_salesforce_program).with(program_id)
+        subject
+      end
+    end
+
+    context 'with invalid Salesforce Program ID argument' do
+      let(:args) { "fake" }
+
+      it 'responds' do
+        expect(message).to receive(:respond)
+        subject
+      end
+
+      it 'does not update program' do
+        expect(sf_client).not_to receive(:update_program)
+        subject
+      end
+
+      it 'does not sync program' do
+        expect(bot).not_to receive(:sync_salesforce_program)
+        subject
+      end
+    end
+
+    context 'with too many arguments' do
+      let(:args) { "one two three" }
+
+      it 'responds' do
+        expect(message).to receive(:respond)
+        subject
+      end
+
+      it 'does not edit message' do
+        expect(message).not_to receive(:edit)
+        subject
+      end
+
+      it 'does not update program' do
+        expect(sf_client).not_to receive(:update_program)
+        subject
+      end
+
+      it 'does not sync program' do
+        expect(bot).not_to receive(:sync_salesforce_program)
         subject
       end
     end

@@ -63,7 +63,7 @@ RSpec.describe SalesforceAPI do
   describe '#get_current_and_future_accelerator_programs' do
     let(:request_url) {
       SALESFORCE_DATA_SERVICE_QUERY_URL +
-        "?q=SELECT+Id,+Name,+Canvas_Cloud_Accelerator_Course_ID__c+FROM+Program__c+" \
+        "?q=SELECT+Id,+Name,+Canvas_Cloud_Accelerator_Course_ID__c,+Discord_Server_ID__c+FROM+Program__c+" \
         "WHERE+RecordType.Name+=+'Course'+" \
           "AND+Canvas_Cloud_Accelerator_Course_ID__c+<>+NULL+" \
           "AND+Status__c+IN+('Current',+'Future')"
