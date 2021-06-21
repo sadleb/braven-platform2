@@ -215,7 +215,7 @@ class SalesforceAPI
     response = get("#{DATA_SERVICE_PATH}/sobjects/Contact/#{contact_id}" \
       "?fields=Id,FirstName,LastName,Email,Phone,BZ_Region__c,Preferred_First_Name__c,CreatedDate,Signup_Date__c," \
       "IsEmailBounced,BZ_Geographical_Region__c,Current_Employer__c,Career__c,Title,Job_Function__c,Current_Major__c," \
-      "High_School_Graduation_Date__c,Anticipated_Graduation__c,Graduate_Year__c")
+      "High_School_Graduation_Date__c,Anticipated_Graduation__c,Graduate_Year__c,Discord_User_ID__c")
     JSON.parse(response.body)
   end
 

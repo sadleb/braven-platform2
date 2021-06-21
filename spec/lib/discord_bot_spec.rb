@@ -279,6 +279,7 @@ RSpec.describe DiscordBot do
   describe '.sync_salesforce' do
     subject { bot.sync_salesforce }
 
+    let(:member) { instance_double(Discordrb::Member, id: 'fake-member-id') }
     let(:programs) { create(:salesforce_current_and_future_programs, canvas_course_ids: [1, 2]) }
     let(:program1_with_discord) { create(:salesforce_program_record, program_id: programs['records'][0]['Id']) }
     let(:program2_without_discord) { create(:salesforce_program_record, program_id: programs['records'][1]['Id'], discord_server_id: nil) }
@@ -288,6 +289,8 @@ RSpec.describe DiscordBot do
     let(:participant2_id_without_discord) { "a2Y17000002WLxqXYZ" }
     let(:participant3_with_discord) { SalesforceAPI.participant_to_struct(create(:salesforce_participant, program_id: program2_without_discord['Id'])) }
     let(:participant3_id_with_discord) { "a2Y17000003WLxqXYZ" }
+    let(:contact1_with_discord) { create(:salesforce_contact) }
+    let(:contact2_without_discord) { create(:salesforce_contact, discord_user_id: nil) }
     let(:program1_participants) { [
       participant1_with_discord,
       participant2_without_discord,
@@ -298,6 +301,7 @@ RSpec.describe DiscordBot do
     let(:sf_client) { instance_double(SalesforceAPI,
       get_current_and_future_accelerator_programs: programs,
       update_participant: nil,
+      get_contact_info: nil,
     ) }
     let(:invite_code) { 'test-code' }
 
@@ -320,9 +324,20 @@ RSpec.describe DiscordBot do
       allow(sf_client).to receive(:get_participant_id)
         .with(participant2_without_discord.program_id, participant2_without_discord.contact_id)
         .and_return(participant2_id_without_discord)
+      allow(sf_client).to receive(:get_participant_id)
+        .with(participant1_with_discord.program_id, contact1_with_discord['Id'])
+        .and_return(participant1_id_with_discord)
+      allow(sf_client).to receive(:get_contact_info)
+        .with(contact1_with_discord['Id'])
+        .and_return(contact1_with_discord)
+      allow(sf_client).to receive(:get_contact_info)
+        .with(contact2_without_discord['Id'])
+        .and_return(contact2_without_discord)
       allow(SalesforceAPI).to receive(:client).and_return(sf_client)
 
       allow(bot).to receive(:create_invite).and_return(invite_code)
+      allow(bot).to receive(:get_member)
+      allow(DiscordBot).to receive(:configure_member_from_records)
     end
 
     it 'creates invites for participants with no invite' do
@@ -358,6 +373,19 @@ RSpec.describe DiscordBot do
       subject
     end
 
+    it 'configures member for contacts with discord user id' do
+      allow(participant1_with_discord).to receive(:contact_id).and_return(contact1_with_discord['Id'])
+      allow(bot).to receive(:get_member).and_return(member)
+      expect(DiscordBot).to receive(:configure_member_from_records).once
+      subject
+    end
+
+    it 'does not configure member for contacts with no discord user id' do
+      allow(sf_client).to receive(:find_participants_by).and_return([participant2_without_discord])
+      expect(bot).not_to receive(:get_member)
+      expect(DiscordBot).not_to receive(:configure_member_from_records)
+      subject
+    end
   end
 
   # Bot command parsing
@@ -420,7 +448,7 @@ RSpec.describe DiscordBot do
 
     let(:server) { instance_double(Discordrb::Server, id: 'fake-server-id') }
     let(:user) { instance_double(Discordrb::User, username: 'fake-username', discriminator: 1234) }
-    let(:member) { instance_double(Discordrb::Member, id: 'fake-member-id', server: server, set_nick: nil, set_roles: nil, kick: nil) }
+    let(:member) { instance_double(Discordrb::Member, id: 'fake-member-id', server: server, set_nick: nil, set_roles: nil, kick: nil, nick: nil, roles: []) }
     let(:invite) { instance_double(Discordrb::Invite, code: 'fake-invite-code', delete: nil) }
     let(:nickname) { 'test-nick' }
     let(:participant_role_name) { 'test-role1' }
@@ -484,6 +512,17 @@ RSpec.describe DiscordBot do
       it 'tries to delete invite' do
         expect(invite).to receive(:delete)
         subject
+      end
+
+      context 'with member nickname already set' do
+        before :each do
+          allow(member).to receive(:nick).and_return('test name')
+        end
+
+        it 'does not set nick again' do
+          expect(member).not_to receive(:set_nick)
+          subject
+        end
       end
     end
 
@@ -676,6 +715,35 @@ RSpec.describe DiscordBot do
       expect(bot.instance_variable_get(:@invites)).to eq({})
       subject
       expect(bot.instance_variable_get(:@invites)).to eq({server_id => {invite.code => invite.uses}})
+    end
+  end
+
+  describe '.get_member' do
+    subject { bot.get_member(server_id, user_id) }
+
+    let(:server_id) { 1111 }  # arbitrary id
+    let(:not_server_id) { 2222 }  # arbitrary id
+    let(:user_id) { 33333 }  # arbitrary id
+    let(:not_user_id) { 44444 }  # arbitrary id
+
+    let(:user1) { instance_double(Discordrb::Member, id: user_id) }
+    let(:not_user2) { instance_double(Discordrb::Member, id: not_user_id) }
+    let(:member1) { instance_double(Discordrb::Member) }
+    let(:not_member2) { instance_double(Discordrb::Member) }
+    let(:server1) { instance_double(Discordrb::Server, id: server_id, members: [member1]) }
+    let(:not_server2) { instance_double(Discordrb::Server, id: not_server_id, members: [not_member2]) }
+
+    before :each do
+      bot.instance_variable_set(:@servers, {
+        server1.id => server1,
+        not_server2.id => not_server2,
+      })
+      member1.instance_variable_set(:@user, user1)
+      not_member2.instance_variable_set(:@user, not_user2)
+    end
+
+    it 'returns correct member' do
+      expect(subject).to eq(member1)
     end
   end
 

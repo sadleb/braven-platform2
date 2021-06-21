@@ -58,7 +58,6 @@ GENERAL_CHANNEL = 'general'
 LOGGER = Logger.new(STDOUT)
 
 class DiscordBot
-
   def initialize(
     token: ENV['BOT_TOKEN'],
     log_level: ENV.fetch('LOG_LEVEL', 'DEBUG'),
@@ -376,48 +375,8 @@ class DiscordBot
         return
       end
 
-      LOGGER.debug "Forming nick and roles"
-
-      # From the Salesforce data, figure out what nickname to use, and
-      # what roles to assign. Three types of roles:
-      # * participant_role: {Fellow, Leadership Coach, etc}
-      # * cohort_schedule_role: {LC: Thursday LL, Fellow: Monday LL, etc}
-      # * cohort_role: {Cohort: Susan Thursday, etc}
-      nick = DiscordBot.compute_nickname(contact)
-      Honeycomb.add_field('member.nick', nick)
-
-      participant_role_name = DiscordBot.compute_participant_role(participant)
-      cohort_schedule_role_name = DiscordBot.compute_cohort_schedule_role(participant)
-      cohort_role_name = DiscordBot.compute_cohort_role(participant)
-
-      role_names = [participant_role_name, cohort_schedule_role_name, cohort_role_name]
-      LOGGER.debug "Member config: '#{user.username}##{user.discriminator}', nick: '#{nick}', roles: #{role_names}"
-      Honeycomb.add_field('role_names', role_names)
-
-      # Fetch the Role objects from the Discord server, so we can add them to this user.
-      roles = []
-
-      # All but the Cohort roles are already created in the server.
-      [participant_role_name, cohort_schedule_role_name].compact.each do |role_name|
-        roles << DiscordBot.get_role(member.server, role_name)
-      end
-
-      # Cohort roles and channels may already exist, or we may have to create them.
-      cohort_role = DiscordBot.get_or_create_cohort_role(member.server, cohort_role_name)
-      if cohort_role
-        roles << cohort_role
-        DiscordBot.configure_cohort_channel(member, participant, cohort_role)
-      end
-
-      # Ignore missing roles.
-      # This just means the participant didn't have a cohort schedule and/or
-      # cohort assigned to them on Salesforce yet.
-      roles.compact!
-      Honeycomb.add_field('roles.count', roles.count)
-      LOGGER.debug "Assigning #{roles.count} roles"
-
-      member.set_roles(roles)
-      member.set_nick(nick)
+      # Configure nick and roles.
+      DiscordBot.configure_member_from_records(member, participant, contact)
 
       # Once everything else is done, delete the invite, so it can't be used again.
       LOGGER.debug "Deleting invite"
@@ -574,6 +533,24 @@ class DiscordBot
         # Fetch the existing code if there is one.
         LOGGER.debug "Found existing invite for participant #{participant_id}"
         invite_code = participant.discord_invite_code
+
+        # If they already had a code, they may have already signed up too;
+        # check their contact record for a Discord User ID.
+        # TODO: if this is returned by apex query now, don't fetch contact yet.
+        contact = SalesforceAPI.client.get_contact_info(participant.contact_id)
+        if contact && contact['Discord_User_ID__c']
+          user_id = contact['Discord_User_ID__c']
+          # They have already signed up; reassign roles, in case cohort mapping
+          # happened after they signed up and they don't have cohort roles yet.
+          # This also runs if people change cohorts, and will update their roles
+          # appropriately.
+          LOGGER.debug "Found Discord User ID, re-configuring in case roles changed"
+          Honeycomb.add_field('user.id', user_id)
+
+          member = get_member(server_id, user_id)
+          Honeycomb.add_field('member.id', member&.id)
+          DiscordBot.configure_member_from_records(member, participant, contact) if member
+        end
       else
         # Otherwise, create a new one and save it to the Participant record.
         LOGGER.debug "Creating new invite for participant #{participant_id}"
@@ -582,6 +559,66 @@ class DiscordBot
       end
 
       Honeycomb.add_field('invite.code', invite_code)
+    end
+  end
+
+  # Note this function should only be called when a Contact already has
+  # its Discord_User_ID__c set.
+  def self.configure_member_from_records(member, participant, contact)
+    user = member.instance_variable_get(:@user)
+    LOGGER.debug "Forming nick and roles"
+
+    # From the Salesforce data, figure out what nickname to use, and
+    # what roles to assign. Three types of roles:
+    # * participant_role: {Fellow, Leadership Coach, etc}
+    # * cohort_schedule_role: {LC: Thursday LL, Fellow: Monday LL, etc}
+    # * cohort_role: {Cohort: Susan Thursday, etc}
+    nick = DiscordBot.compute_nickname(contact)
+    Honeycomb.add_field('member.nick', nick)
+
+    participant_role_name = DiscordBot.compute_participant_role(participant)
+    cohort_schedule_role_name = DiscordBot.compute_cohort_schedule_role(participant)
+    cohort_role_name = DiscordBot.compute_cohort_role(participant)
+
+    role_names = [participant_role_name, cohort_schedule_role_name, cohort_role_name]
+    LOGGER.debug "Member config: '#{user.username}##{user.discriminator}', nick: '#{nick}', roles: #{role_names}"
+    Honeycomb.add_field('role_names', role_names)
+
+    # If the member already has the correct cohort role, that implies all the other
+    # roles and nick are also correct. Check their roles and exit early if we don't
+    # need to change anything.
+    return if member.roles.find { |r| r.name == cohort_role_name }
+
+    # Fetch the Role objects from the Discord server, so we can add them to this user.
+    roles = []
+
+    # All but the Cohort roles are already created in the server.
+    [participant_role_name, cohort_schedule_role_name].compact.each do |role_name|
+      roles << DiscordBot.get_role(member.server, role_name)
+    end
+
+    # Cohort roles and channels may already exist, or we may have to create them.
+    cohort_role = DiscordBot.get_or_create_cohort_role(member.server, cohort_role_name)
+    if cohort_role
+      roles << cohort_role
+      DiscordBot.configure_cohort_channel(member, participant, cohort_role)
+    end
+
+    # Ignore missing roles.
+    # This just means the participant didn't have a cohort schedule and/or
+    # cohort assigned to them on Salesforce yet.
+    roles.compact!
+    Honeycomb.add_field('roles.count', roles.count)
+    LOGGER.debug "Assigning #{roles.count} roles"
+
+    # Note this will remove any manually-added roles.
+    # We do this so if someone changes cohorts, they will be removed from the
+    # old cohort role and added to the new one.
+    member.set_roles(roles)
+
+    # Don't overwrite nicknames that have already been set.
+    if member.nick.nil?
+      member.set_nick(nick)
     end
   end
 
@@ -596,6 +633,14 @@ class DiscordBot
     @invites[server_id][invite.code] = invite.uses
 
     invite.code
+  end
+
+  # Get Member object from a Server ID and User ID.
+  def get_member(server_id, user_id)
+    server = @servers[server_id.to_i]
+    return unless server
+
+    server.members.find { |m| m.instance_variable_get(:@user).id.to_i == user_id.to_i }
   end
 
   def self.compute_nickname(contact)
