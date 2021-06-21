@@ -39,6 +39,7 @@ TA_ROLE = 'Teaching Assistant'
 CP_ROLE = 'Coaching Partner'
 LC_ROLE = 'Leadership Coach'
 FELLOW_ROLE = 'Fellow'
+EVERYONE_ROLE = '@everyone'
 
 # Channel constants, for Discord API.
 TEXT_CHANNEL = 0
@@ -160,15 +161,16 @@ class DiscordBot
       Honeycomb.add_field('on_ready.sync_and_exit', @sync_and_exit)
 
       @start_time = DateTime.now.utc
-      @servers = @bot.servers
+      @servers = @bot.servers || {}
       LOGGER.info "Logged in from #{ENV['APPLICATION_HOST'] || 'unknown host'} at #{@start_time}"
-
-      init_invite_uses_cache unless @sync_and_exit
 
       if @sync_and_exit
         sync_salesforce
         exit
       end
+
+      init_invite_uses_cache
+      alert_on_unconfigured_members
     end
   rescue StandardError => e
     record_error(e)
@@ -181,7 +183,7 @@ class DiscordBot
       Honeycomb.add_field('servers.count', @bot.servers.count)
 
       # Update local caches for the new server.
-      @servers = @bot.servers
+      @servers = @bot.servers || {}
       init_invite_uses_cache
 
       # Send a message to the #general channel asking for Admin permissions.
@@ -333,6 +335,18 @@ class DiscordBot
     message_content << "\n#{e.class.name}: #{e.message}"
     event.message.respond message_content
     raise e
+  end
+
+  # Alert on unconfigure members (members with no Roles).
+  def alert_on_unconfigured_members
+    servers_members = get_unconfigured_members
+    servers_members.each do |server_id, members|
+      LOGGER.warn("Unconfigured members on server #{server_id}: #{members.map {|m| m.display_name}}")
+      Honeycomb.add_field('server.id', server_id)
+      Honeycomb.add_field('alert.unconfigured_members', true)
+      Honeycomb.add_field('alert.unconfigured_members.ids', members.map { |m| m.id })
+      Honeycomb.add_field('alert.unconfigured_members.display_names', members.map { |m| m.display_name })
+    end
   end
 
   # Given a Discord Member and an Invite, assign appropriate
@@ -641,6 +655,26 @@ class DiscordBot
     return unless server
 
     server.members.find { |m| m.instance_variable_get(:@user).id.to_i == user_id.to_i }
+  end
+
+  # Get all unconfigured Members (members with no Roles) on all servers.
+  # Returns a hash of { server_id => Array<Member> }.
+  def get_unconfigured_members
+    Honeycomb.start_span(name: 'bot.get_unconfigured_members') do |span|
+      members = {}
+      @servers.each do |server_id, server|
+        LOGGER.debug "Checking server #{server.id} for unconfigured members"
+        server.members.each do |member|
+          LOGGER.debug "Checking roles for '#{member.display_name}'"
+          if member.roles.filter { |r| r.name != EVERYONE_ROLE }.empty?
+            members[server_id] ||= []
+            members[server_id] << member
+          end
+        end
+      end
+
+      members
+    end
   end
 
   def self.compute_nickname(contact)

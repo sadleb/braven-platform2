@@ -45,6 +45,11 @@ RSpec.describe DiscordBot do
         subject
       end
 
+      it 'alerts on unconfigured members' do
+        expect(bot).to receive(:alert_on_unconfigured_members)
+        subject
+      end
+
       it 'does not run sync' do
         expect(bot).not_to receive(:sync_salesforce)
       end
@@ -442,6 +447,36 @@ RSpec.describe DiscordBot do
     end
   end
 
+  describe '.alert_on_unconfigured_members' do
+    subject { bot.alert_on_unconfigured_members }
+
+    let(:unconfigured_members) { {} }
+
+    before :each do
+      allow(bot).to receive(:get_unconfigured_members).and_return(unconfigured_members)
+      allow(Honeycomb).to receive(:add_field)
+    end
+
+    context 'with unconfigured members' do
+      let(:unconfigured_members) { {
+        # server_id => Array<Member>
+        12 => [instance_double(Discordrb::Member, id: 34, display_name: '56')],
+      } }
+
+      it 'sends an alert' do
+        expect(Honeycomb).to receive(:add_field).with('alert.unconfigured_members', true)
+        subject
+      end
+    end
+
+    context 'with no unconfigured members' do
+      it 'does not send an alert' do
+        expect(Honeycomb).not_to receive(:add_field).with('alert.unconfigured_members', true)
+        subject
+      end
+    end
+  end
+
   # Configure member
   describe 'self.configure_member' do
     subject { DiscordBot.configure_member(member, invite) }
@@ -744,6 +779,29 @@ RSpec.describe DiscordBot do
 
     it 'returns correct member' do
       expect(subject).to eq(member1)
+    end
+  end
+
+  describe '.get_unconfigured_members' do
+    subject { bot.get_unconfigured_members }
+
+    let(:server_id) { 12 }
+    let(:server) { instance_double(Discordrb::Server, id: server_id, members: members) }
+    # Note: even members with "no roles" always have the @everyone role.
+    let(:no_roles) { [instance_double(Discordrb::Role, name: EVERYONE_ROLE)] }
+    let(:some_roles) { [instance_double(Discordrb::Role, name: FELLOW_ROLE)] + no_roles }
+    let(:member1_with_roles) { instance_double(Discordrb::Member, display_name: 'member 1', roles: some_roles) }
+    let(:member2_without_roles) { instance_double(Discordrb::Member, display_name: 'member 2', roles: no_roles) }
+    let(:members) { [member1_with_roles, member2_without_roles] }
+
+    before :each do
+      bot.instance_variable_set(:@servers, {server_id => server})
+    end
+
+    it 'returns members with no roles (or only the @everyone role)' do
+      expect(subject).to eq({
+        server_id => [member2_without_roles],
+      })
     end
   end
 
