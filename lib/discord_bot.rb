@@ -32,8 +32,27 @@ ADMIN_COMMANDS = {
 # Roles that are allowed to run admin commands.
 ADMIN_ROLES = [
   'Admin',
-  'Staff',
+  'Braven Staff',
 ]
+# Other role names.
+TA_ROLE = 'Teaching Assistant'
+CP_ROLE = 'Coaching Partner'
+LC_ROLE = 'Leadership Coach'
+FELLOW_ROLE = 'Fellow'
+
+# Channel constants, for Discord API.
+TEXT_CHANNEL = 0
+CHANNEL_CATEGORY = 4
+
+# Stuff for dynamic cohort channels/roles.
+COHORT_CHANNEL_CATEGORY = 'Cohorts'
+COHORT_CHANNEL_DESCRIPTION = 'This channel is a space for communication and collaboration with your Accelerator Cohort.'
+COHORT_TEMPLATE_CHANNEL = 'cohort-template'
+COHORT_TEMPLATE_ROLE = 'Cohort: Template'
+COHORT_TEMPLATE_LC_ROLE = 'Cohort: LC Template'
+
+# Other channel names.
+GENERAL_CHANNEL = 'general'
 
 # Global logger.
 LOGGER = Logger.new(STDOUT)
@@ -592,16 +611,14 @@ class DiscordBot
 
   # Participant role name
   def self.compute_participant_role(participant)
-    # TODO: Factor out constants.
     case participant.role
-    when :Fellow
-      "Fellow"
-    when :"Leadership Coach"
-      "Leadership Coach"
-    when :"Teaching Assistant"
-      "Teaching Assistant"
-    when :"Coaching Partner"
-      "Coaching Partner"
+    when SalesforceAPI::FELLOW
+      FELLOW_ROLE
+    when SalesforceAPI::LEADERSHIP_COACH
+      # TODO: add Coaching Partner detection
+      LC_ROLE
+    when SalesforceAPI::TEACHING_ASSISTANT
+      TA_ROLE
     end
   end
 
@@ -611,11 +628,12 @@ class DiscordBot
     ll_day = (participant.cohort_schedule || '').split(',').first
     return unless ll_day
 
-    # TODO: Factor out constants.
+    # TODO: is there any way to move these interpolated strings to constants?
     case participant.role
-    when :Fellow
+    when SalesforceAPI::FELLOW
       "Fellow: #{ll_day} LL"
-    when :"Leadership Coach"
+    when SalesforceAPI::LEADERSHIP_COACH
+      # TODO: don't give Coaching Partners this role
       "LC: #{ll_day} LL"
     end
   end
@@ -693,17 +711,16 @@ class DiscordBot
       Honeycomb.add_field('role.name', role.name)
       LOGGER.debug "Ensuring proper channel:role configuration for '#{role.name}' role."
 
-      # TODO: Factor out constants.
       # Cohort channel name is based on the role name, downcased, with spaces replaced
       # with dashes and all other non-alphabetical characters stripped.
-      # 'Cohort: Susan Thursday' -> '#cohort-susan-thursday'
+      # E.g. 'Cohort: Susan Thursday' -> '#cohort-susan-thursday'
       channel_name = role.name
         .gsub(/ /, '-')
         .gsub(/[^\p{Alpha}-]/, '')
         .downcase
 
       # If the channel already exists, find it.
-      channel = server.channels.find { |c| c.type == 0 && c.name == channel_name }
+      channel = server.channels.find { |c| c.type == TEXT_CHANNEL && c.name == channel_name }
 
       # Default to not changing permission overwrites.
       permission_overwrites = {}
@@ -712,11 +729,11 @@ class DiscordBot
       unless channel
         LOGGER.debug "No existing Cohort channel found; creating one"
         # Cohort channels go in the 'Cohorts' channel category on the server.
-        category = server.channels.find { |c| c.type == 4 && c.name == 'Cohorts' }
+        category = server.channels.find { |c| c.type == CHANNEL_CATEGORY && c.name == COHORT_CHANNEL_CATEGORY }
         channel = server.create_channel(
           channel_name,
-          0,  # Channel type (0 = text)
-          topic: "Private channel for #{role.name}",
+          TEXT_CHANNEL,  # channel type
+          topic: COHORT_CHANNEL_DESCRIPTION,
           # Note: We don't set permission_overwrites, so the new channel will
           # inherit the permissions of its category parent (Cohorts).
           parent: category,
@@ -726,8 +743,8 @@ class DiscordBot
         # This is a lot of steps, but we're just copying the permissions from the
         # "Cohort: Template" role and "#cohort-template" channel to the new role/channel.
         LOGGER.debug "Adding channel:role permission overwrite for '#{channel.name}'"
-        template_channel = server.channels.find { |c| c.type == 0 && c.name == 'cohort-template' }
-        template_role = server.roles.find { |r| r.name == 'Cohort: Template' }
+        template_channel = server.channels.find { |c| c.type == TEXT_CHANNEL && c.name == COHORT_TEMPLATE_CHANNEL }
+        template_role = server.roles.find { |r| r.name == COHORT_TEMPLATE_ROLE }
         template_overwrite = template_channel.role_overwrites.find { |o| o.id == template_role.id }
         # Change the overwrite ID from the template role to the current role.
         template_overwrite.id = role.id
@@ -739,13 +756,13 @@ class DiscordBot
       # the private Cohort channel, to give them additional management permissions in
       # the channel. (We can't just have cohort-channel:LC-role permissions, because we
       # don't want LCs to have management permissions in all Cohort channels, only their own.)
-      # TODO: Fix so this doesn't run for CPs.
-      if participant.role == :"Leadership Coach"
+      # TODO: Fix so this doesn't run for Coaching Partners.
+      if participant.role == SalesforceAPI::LEADERSHIP_COACH
         # Same as channel:role stuff above, we copy from a template permissions overwrite
         # to create a new channel:member permissions overwrite.
         LOGGER.debug "Adding channel:member permission overwrite, since participant is an LC"
-        template_channel = server.channels.find { |c| c.type == 0 && c.name == 'cohort-template' }
-        lc_template_role = server.roles.find { |r| r.name == 'Cohort: LC Template' }
+        template_channel = server.channels.find { |c| c.type == TEXT_CHANNEL && c.name == COHORT_TEMPLATE_CHANNEL }
+        lc_template_role = server.roles.find { |r| r.name == COHORT_TEMPLATE_LC_ROLE }
         lc_template_overwrite = template_channel.role_overwrites.find { |o| o.id == lc_template_role.id }
         # Change overwrite type from 'role' to 'member', since the template is a role but
         # we're creating a member-specific overwrite.
@@ -818,8 +835,7 @@ private
   # and caches it for the next time.
   def find_general_channel(server_id)
     @general_channels[server_id] ||= @servers[server_id].channels.find { |channel|
-      # Channel type 0 is "text channel".
-      channel.name == "general" && channel.type == 0
+      channel.name == GENERAL_CHANNEL && channel.type == TEXT_CHANNEL
     }
   end
 
