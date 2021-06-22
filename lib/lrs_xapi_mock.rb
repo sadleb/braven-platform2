@@ -28,9 +28,10 @@ class LrsXapiMock
   # Returns a hash with keys {:code, :body}, OR nil.
   def self.handle_request!(request, endpoint, user)
     Honeycomb.start_span(name: 'lrs_xapi_mock.handle_request!') do |span|
-      span.add_field('app.lrs_xapi_mock.path', "/#{endpoint}")
-      span.add_field('app.user.id', user.id)
-      span.add_field('app.user.email', user.email)
+      Honeycomb.add_field('lrs_xapi_mock.path', "/#{endpoint}")
+      Honeycomb.add_field('user.id', user.id)
+      Honeycomb.add_field('user.email', user.email)
+      Honeycomb.add_field('xapi.request.method', request.method)
 
       return unless request.method == 'GET' || request.method == 'PUT'
 
@@ -48,6 +49,11 @@ class LrsXapiMock
         }
       end
 
+      state_id = request.params['stateId']
+      activity_id = request.params['activityId']
+      Honeycomb.add_field('xapi.state_id', state_id)
+      Honeycomb.add_field('xapi.activity_id', activity_id)
+
       # Handle PUT for both endpoints.
       if request.method == 'PUT'
         data = request.raw_post
@@ -61,9 +67,6 @@ class LrsXapiMock
             body: nil,
           }
         when XAPI_STATE_API_ENDPOINT
-          state_id = request.params['stateId']
-          activity_id = request.params['activityId']
-
           # Save the state.
           save_state!(activity_id, state_id, data, lti_launch, user)
           return {
@@ -80,9 +83,6 @@ class LrsXapiMock
 
       # Handle GET only for the state endpoint.
       if request.method == 'GET' and endpoint == XAPI_STATE_API_ENDPOINT
-        state_id = request.params['stateId']
-        activity_id = request.params['activityId']
-
         # Return the state.
         state = get_state(activity_id, state_id, lti_launch, user)
         if state
@@ -110,6 +110,7 @@ private
   end
 
   private_class_method def self.save_state!(activity_id, state_id, data, lti_launch, user)
+    Honeycomb.add_field('xapi.state_data', data)
     # Since this returns data as application/octet-stream, a dangerous mimetype, let's
     # do some extra validation to make it less likely someone can use this as an
     # arbitrary file host for nefarious purposes.
@@ -138,6 +139,7 @@ private
     }
 
     module_state = Rise360ModuleState.find_by(attributes)
+    Honeycomb.add_field('xapi.new_state?', module_state.present?)
     if module_state
       module_state.update!(value: data)
     else
@@ -147,13 +149,15 @@ private
   end
 
   private_class_method def self.get_state(activity_id, state_id, lti_launch, user)
-    Rise360ModuleState.find_by(
+    state = Rise360ModuleState.find_by(
       canvas_course_id: lti_launch.course_id,
       canvas_assignment_id: lti_launch.assignment_id,
       activity_id: activity_id,
       user: user,
       state_id: state_id,
     )
+    Honeycomb.add_field('xapi.state_data', state&.value)
+    state
   end
 
   private_class_method def self.save_interaction!(data, lti_launch, user)
