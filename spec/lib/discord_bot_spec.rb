@@ -289,9 +289,7 @@ RSpec.describe DiscordBot do
     let(:program1_with_discord) { create(:salesforce_program_record, program_id: programs['records'][0]['Id']) }
     let(:program2_without_discord) { create(:salesforce_program_record, program_id: programs['records'][1]['Id'], discord_server_id: nil) }
     let(:participant1_with_discord) { SalesforceAPI.participant_to_struct(create(:salesforce_participant, program_id: program1_with_discord['Id'])) }
-    let(:participant1_id_with_discord) { "a2Y17000001WLxqXYZ" }
     let(:participant2_without_discord) { SalesforceAPI.participant_to_struct(create(:salesforce_participant, program_id: program1_with_discord['Id'], discord_invite_code: nil)) }
-    let(:participant2_id_without_discord) { "a2Y17000002WLxqXYZ" }
     let(:participant3_with_discord) { SalesforceAPI.participant_to_struct(create(:salesforce_participant, program_id: program2_without_discord['Id'])) }
     let(:participant3_id_with_discord) { "a2Y17000003WLxqXYZ" }
     let(:contact1_with_discord) { create(:salesforce_contact) }
@@ -325,13 +323,13 @@ RSpec.describe DiscordBot do
         .and_return(program2_participants)
       allow(sf_client).to receive(:get_participant_id)
         .with(participant1_with_discord.program_id, participant1_with_discord.contact_id)
-        .and_return(participant1_id_with_discord)
+        .and_return(participant1_with_discord.id)
       allow(sf_client).to receive(:get_participant_id)
         .with(participant2_without_discord.program_id, participant2_without_discord.contact_id)
-        .and_return(participant2_id_without_discord)
+        .and_return(participant2_without_discord.id)
       allow(sf_client).to receive(:get_participant_id)
         .with(participant1_with_discord.program_id, contact1_with_discord['Id'])
-        .and_return(participant1_id_with_discord)
+        .and_return(participant1_with_discord.id)
       allow(sf_client).to receive(:get_contact_info)
         .with(contact1_with_discord['Id'])
         .and_return(contact1_with_discord)
@@ -359,14 +357,14 @@ RSpec.describe DiscordBot do
 
     it 'updates participant after creating invite' do
       expect(sf_client).to receive(:update_participant)
-        .with(participant2_id_without_discord, {'Discord_Invite_Code__c': invite_code})
+        .with(participant2_without_discord.id, {'Discord_Invite_Code__c': invite_code})
         .once
       subject
     end
 
     it 'does not create invites for participants that have one' do
       expect(sf_client).not_to receive(:update_participant)
-        .with(participant1_id_with_discord, anything)
+        .with(participant1_with_discord.id, anything)
       subject
     end
 
@@ -761,10 +759,8 @@ RSpec.describe DiscordBot do
     let(:user_id) { 33333 }  # arbitrary id
     let(:not_user_id) { 44444 }  # arbitrary id
 
-    let(:user1) { instance_double(Discordrb::Member, id: user_id) }
-    let(:not_user2) { instance_double(Discordrb::Member, id: not_user_id) }
-    let(:member1) { instance_double(Discordrb::Member) }
-    let(:not_member2) { instance_double(Discordrb::Member) }
+    let(:member1) { instance_double(Discordrb::Member, id: user_id) }
+    let(:not_member2) { instance_double(Discordrb::Member, id: not_user_id) }
     let(:server1) { instance_double(Discordrb::Server, id: server_id, members: [member1]) }
     let(:not_server2) { instance_double(Discordrb::Server, id: not_server_id, members: [not_member2]) }
 
@@ -773,8 +769,6 @@ RSpec.describe DiscordBot do
         server1.id => server1,
         not_server2.id => not_server2,
       })
-      member1.instance_variable_set(:@user, user1)
-      not_member2.instance_variable_set(:@user, not_user2)
     end
 
     it 'returns correct member' do
@@ -844,10 +838,9 @@ RSpec.describe DiscordBot do
     end
 
     context 'with CP' do
-      let(:participant) { SalesforceAPI.participant_to_struct(create(:salesforce_participant_lc)) }
+      let(:participant) { SalesforceAPI.participant_to_struct(create(:salesforce_participant_cp)) }
 
-      # TODO! Fix CP code.
-      xit 'returns role name' do
+      it 'returns role name' do
         expect(subject).to eq("Coaching Partner")
       end
     end

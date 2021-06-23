@@ -24,6 +24,8 @@ INVITE_MAX_USES = 0
 
 # Character(s) prepended to a message that make the bot treat it as a
 # command.
+# TODO: Refactor all the bot command stuff to use "slash commands" once
+# Discordrb releases that functionality.
 BOT_COMMAND_KEY = '!'
 # Admin command strings.
 ADMIN_COMMANDS = {
@@ -111,9 +113,6 @@ class DiscordBot
     end
 
     # Event handler: A message was received on any channel in any server.
-    # TODO: Only allow Admins to run commands.
-    # TODO: Add a !configure_member command to manually link a member to a Participant ID.
-    # TODO: Add a !sync command to run salesforce_sync.
     @bot.message do |event|
       on_message(event)
     end
@@ -324,6 +323,7 @@ class DiscordBot
     case event.message.content
     when /^#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:sync_salesforce]}/
       LOGGER.debug "sync_salesforce command"
+      Honeycomb.add_field('command', 'sync_salesforce')
       sync_salesforce_command(event)
     else
       LOGGER.debug "unknown command"
@@ -537,15 +537,12 @@ class DiscordBot
     Honeycomb.start_span(name: 'bot.sync_salesforce_participant') do |span|
       Honeycomb.add_field('contact.id', participant.contact_id)
       Honeycomb.add_field('participant.discord_invite_code', participant.discord_invite_code)
+      Honeycomb.add_field('participant.id', participant.id)
       LOGGER.debug "Processing participant"
-
-      # TODO: Have SFAPI.get_participants use SOQL so it returns the Participant ID directly.
-      participant_id = SalesforceAPI.client.get_participant_id(participant.program_id, participant.contact_id)
-      Honeycomb.add_field('participant.id', participant_id)
 
       if participant.discord_invite_code
         # Fetch the existing code if there is one.
-        LOGGER.debug "Found existing invite for participant #{participant_id}"
+        LOGGER.debug "Found existing invite for participant #{participant.id}"
         invite_code = participant.discord_invite_code
 
         # If they already had a code, they may have already signed up too;
@@ -559,17 +556,16 @@ class DiscordBot
           # This also runs if people change cohorts, and will update their roles
           # appropriately.
           LOGGER.debug "Found Discord User ID, re-configuring in case roles changed"
-          Honeycomb.add_field('user.id', user_id)
+          Honeycomb.add_field('member.id', user_id)
 
           member = get_member(server_id, user_id)
-          Honeycomb.add_field('member.id', member&.id)
           DiscordBot.configure_member_from_records(member, participant, contact) if member
         end
       else
         # Otherwise, create a new one and save it to the Participant record.
-        LOGGER.debug "Creating new invite for participant #{participant_id}"
+        LOGGER.debug "Creating new invite for participant #{participant.id}"
         invite_code = create_invite(server_id)
-        SalesforceAPI.client.update_participant(participant_id, {'Discord_Invite_Code__c': invite_code})
+        SalesforceAPI.client.update_participant(participant.id, {'Discord_Invite_Code__c': invite_code})
       end
 
       Honeycomb.add_field('invite.code', invite_code)
@@ -650,11 +646,12 @@ class DiscordBot
   end
 
   # Get Member object from a Server ID and User ID.
+  # Note: User ID and Member ID always match.
   def get_member(server_id, user_id)
     server = @servers[server_id.to_i]
     return unless server
 
-    server.members.find { |m| m.instance_variable_get(:@user).id.to_i == user_id.to_i }
+    server.members.find { |m| m.id.to_i == user_id.to_i }
   end
 
   # Get all unconfigured Members (members with no Roles) on all servers.
@@ -694,8 +691,11 @@ class DiscordBot
     when SalesforceAPI::FELLOW
       FELLOW_ROLE
     when SalesforceAPI::LEADERSHIP_COACH
-      # TODO: add Coaching Partner detection
-      LC_ROLE
+      if SalesforceAPI.is_coach_partner?(participant)
+        CP_ROLE
+      else
+        LC_ROLE
+      end
     when SalesforceAPI::TEACHING_ASSISTANT
       TA_ROLE
     end
@@ -708,11 +708,9 @@ class DiscordBot
     return unless ll_day
 
     # TODO: is there any way to move these interpolated strings to constants?
-    case participant.role
-    when SalesforceAPI::FELLOW
+    if participant.role == SalesforceAPI::FELLOW
       "Fellow: #{ll_day} LL"
-    when SalesforceAPI::LEADERSHIP_COACH
-      # TODO: don't give Coaching Partners this role
+    elsif SalesforceAPI.is_lc?(participant)
       "LC: #{ll_day} LL"
     end
   end
@@ -724,7 +722,7 @@ class DiscordBot
     # 'Tuesday, 6pm' -> 'Tuesday'
     ll_day = (participant.cohort_schedule || '').split(',').first
 
-    cohort_lcs = SalesforceAPI.client.get_cohort_lcs(participant.cohort)
+    cohort_lcs = SalesforceAPI.client.get_cohort_lcs(participant.cohort_id)
     if cohort_lcs.count == 1
       cohort_role_name = "Cohort: #{cohort_lcs.first['FirstName__c']} #{cohort_lcs.first['LastName__c']} #{ll_day}".strip
       return cohort_role_name
@@ -743,7 +741,7 @@ class DiscordBot
       Honeycomb.add_field('role.name', name)
       LOGGER.debug "Fetching role '#{role_name}'"
 
-      server.roles.find { |r| r.name == name }
+      server.roles.find { |r| r.name == role_name }
     end
   end
 
@@ -759,8 +757,7 @@ class DiscordBot
 
       # Otherwise, try to create it.
       unless role
-        # TODO: Factor out contsants.
-        template_role = server.roles.find { |r| r.name == 'Cohort: Template' }
+        template_role = server.roles.find { |r| r.name == COHORT_TEMPLATE_ROLE }
         role = server.create_role(name: role_name, permissions: template_role.permissions)
       end
 
@@ -835,8 +832,7 @@ class DiscordBot
       # the private Cohort channel, to give them additional management permissions in
       # the channel. (We can't just have cohort-channel:LC-role permissions, because we
       # don't want LCs to have management permissions in all Cohort channels, only their own.)
-      # TODO: Fix so this doesn't run for Coaching Partners.
-      if participant.role == SalesforceAPI::LEADERSHIP_COACH
+      if SalesforceAPI.is_lc?(participant)
         # Same as channel:role stuff above, we copy from a template permissions overwrite
         # to create a new channel:member permissions overwrite.
         LOGGER.debug "Adding channel:member permission overwrite, since participant is an LC"
@@ -918,7 +914,6 @@ private
     }
   end
 
-  # TODO: Delete this method (or remove hardcoded SERVER_ID), it's only used in development.
   def send_to_general(server_id, msg)
     LOGGER.info msg
     general_channel = find_general_channel(server_id)

@@ -19,7 +19,8 @@ class SalesforceAPI
   SFContact = Struct.new(:id, :email, :first_name, :last_name)
   SFParticipant = Struct.new(:first_name, :last_name, :email, :role,
                              :program_id, :contact_id, :status, :student_id,
-                             :cohort, :cohort_schedule, :id, :discord_invite_code,
+                             :cohort, :cohort_schedule, :cohort_id,
+                             :id, :discord_invite_code,
                              :volunteer_role, :zoom_prefix,
                              :zoom_meeting_id_1, :zoom_meeting_id_2,
                              :zoom_meeting_link_1, :zoom_meeting_link_2,
@@ -241,16 +242,19 @@ class SalesforceAPI
     recursively_map_soql_column_to_array('Name', [], initial_api_path)
   end
 
-  def get_cohort_lcs(cohort_name)
-    # TODO: Fix SQLi!
+  def get_cohort_lcs(cohort_id)
+    # If the cohort ID is invalid, return without making an API call.
+    # This prevents SOQLi on cohort_id (like "1'; DROP TABLE Program__c").
+    # We just return nil instead of raising bc that's how this function acts
+    # for "cohort not found".
+    return unless cohort_id.match? /^[a-zA-Z0-9]{18}$/
+
     soql_query =
       "SELECT FirstName__c, LastName__c " \
         "FROM Participant__c " \
         "WHERE RecordTypeId IN (" \
         "  SELECT Id FROM RecordType WHERE Name = 'Leadership Coach'" \
-        ") AND Cohort__c IN (" \
-        "  SELECT Id from Cohort__c WHERE Name = '#{cohort_name}'" \
-        ")"
+        ") AND Cohort__c = '#{cohort_id}'"
 
     response = get("#{DATA_SERVICE_PATH}/query?q=#{CGI.escape(soql_query)}")
     JSON.parse(response.body)['records']
@@ -350,6 +354,7 @@ class SalesforceAPI
                       participant['ProgramId'], participant['ContactId'],
                       participant['ParticipantStatus'], participant['StudentId'],
                       participant['CohortName'], participant['CohortScheduleDayTime'],
+                      participant['CohortId'],
                       participant['Id'], participant['DiscordInviteCode'],
                       participant['VolunteerRole'], participant['ZoomPrefix'],
                       participant['ZoomMeetingId1'], participant['ZoomMeetingId2'],
