@@ -18,6 +18,8 @@ class Rise360Module < ApplicationRecord
   has_many :rise360_module_versions
   alias_attribute :versions, :rise360_module_versions
 
+  serialize :quiz_breakdown, Array
+
   # This flag is used to track changes to the rise360_zipfile, so we don't
   # run expensive callbacks if we've only updated another column (e.g., name).
   # It persists attachment_changes.key([:rise360_zipfile]), which is
@@ -44,6 +46,7 @@ class Rise360Module < ApplicationRecord
       name: name,
       activity_id: activity_id,
       quiz_questions: quiz_questions,
+      quiz_breakdown: quiz_breakdown,
     )
     version.rise360_zipfile.attach(rise360_zipfile.blob) if rise360_zipfile.attached?
     version

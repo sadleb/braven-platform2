@@ -71,7 +71,21 @@ class Rise360Util
     # See https://stackoverflow.com/questions/4690737/nokogiri-xpath-namespace-query.
     tincan_data.remove_namespaces!
     rise360_module.update!(
+      # Total quiz questions in this module.
       quiz_questions: tincan_data.xpath(QUIZ_QUESTION_XPATH).count,
+      # Array<Integer> of the number of questions in each quiz.
+      # First get the `id` of the quiz question object, which is guaranteed to look
+      # like `ACTIVITY_ID_PART/QUIZ_ID_PART/QUESTION_ID_PART`. Split it, and get the
+      # second part from the end, which is guaranteed to be the QUIZ_ID_PART.
+      # Transform that into a hash of { QUIZ1_ID_PART: [ QUIZ1_ID_PART, QUIZ1_ID_PART ], ... }
+      # where each key represents one quiz, and each value array has a number of elements
+      # equal to the number of quiz questions in that quiz. Finally, discard the
+      # quiz IDs and return just an array of the number of questions in each quiz.
+      # We use this for the suspend_state bugfix, in lib/lrs_xapi_mock.rb.
+      quiz_breakdown: tincan_data.xpath(QUIZ_QUESTION_XPATH)
+        .map { |q| q.attributes['id'].value.split('/')[-2] }
+        .group_by(&:itself)
+        .map { |k, v| v.count },
       activity_id: tincan_data.xpath(COURSE_XPATH).first['id'],
     )
   rescue Exception => e

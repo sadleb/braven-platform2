@@ -60,6 +60,7 @@ RSpec.describe Rise360Util do
             File.open("#{Rails.root}/spec/fixtures/example_tincan.xml")}.with_indifferent_access).at_least(:once)
         rise360_module  # The creation of this object causes the callback to fire.
         expect(rise360_module.quiz_questions).to eq(4)
+        expect(rise360_module.quiz_breakdown).to eq([2, 2])
         expect(rise360_module.activity_id).to eq('http://OrDngAKqbvX4sCs0vBpsk-P1VXsst1vc_rise')
       end
 

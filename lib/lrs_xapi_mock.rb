@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+require 'execjs'
 
 # Mocks responses to LRS/xAPI requests.
 #
@@ -130,6 +131,22 @@ private
       raise LrsXapiMockError.new("unknown stateId")
     end
 
+    # There's a weird bug where sometimes your quiz can think it's on the last
+    # (results) page, but somehow doesn't have all the fields it's supposed to
+    # compute once you reach that page. We don't know how to reproduce this, but
+    # it makes it so people can't continue past the quiz, so we need to fix it.
+    # If the data wasn't broken, this will just leave it as-is.
+    if state_id == SUSPEND_DATA_STATE_ID
+      # Get the Rise360ModuleVersion for this assignment ID.
+      module_version = CourseRise360ModuleVersion
+        .find_by(canvas_assignment_id: lti_launch.assignment_id)
+        .rise360_module_version
+      Honeycomb.add_field('rise360_module_version.id', module_version.id)
+
+      data = fix_broken_suspend_data(data, module_version.quiz_breakdown)
+    end
+
+    # Continue saving the state.
     attributes = {
       canvas_course_id: lti_launch.course_id,
       canvas_assignment_id: lti_launch.assignment_id,
@@ -139,7 +156,7 @@ private
     }
 
     module_state = Rise360ModuleState.find_by(attributes)
-    Honeycomb.add_field('xapi.new_state?', module_state.present?)
+    Honeycomb.add_field('xapi.new_state?', module_state.nil?)
     if module_state
       module_state.update!(value: data)
     else
@@ -202,5 +219,117 @@ private
         success: payload.dig('result', 'success')
       )
     end
+  end
+
+  # Fix the weird broken suspend_data bug.
+  private_class_method def self.fix_broken_suspend_data(data_json, quiz_breakdown)
+    Honeycomb.start_span(name: 'xapi.fix_broken_suspend_data') do
+      # First, decompress the data. It's compressed using lzwCompress.js, which
+      # doesn't seem to have a Ruby equivalent, so unfortunately that means we
+      # have to run JavaScript here.
+      Honeycomb.add_field('xapi.compiled_js?', defined?(@lzw_compress).nil?)
+      @lzw_compress ||= Honeycomb.start_span(name: 'xapi.fix_broken_suspend_data.compile') do
+        ExecJS.compile(
+          File.open(Rails.root.join('lib/javascript/lzwCompress.js')).read()
+        )
+      end
+
+      # The Rise format puts the compressed data in the `d` key.
+      data = nil
+      packed_data = nil
+      Honeycomb.start_span(name: 'xapi.fix_broken_suspend_data.parse') do
+        data = JSON.parse(data_json)
+        packed_data = data['d']
+      end
+
+      # At this point we should just have an Array<Integer>. Let's make sure, since
+      # we're about to `eval` it on our server. :(
+      return data_json unless packed_data.is_a? Array
+      return data_json unless packed_data.all? { |x| x.is_a? Integer }
+
+      # Unpack the packed data, which is now hopefully safe to eval. :(
+      unpacked_json = nil
+      unpacked_data = nil
+      Honeycomb.start_span(name: 'xapi.fix_broken_suspend_data.unpack') do
+        unpacked_json = @lzw_compress.eval("lzwCompress.unpack(JSON.parse('#{packed_data}'))")
+        Honeycomb.add_field_to_trace('xapi.unpacked_json', unpacked_json)
+        unpacked_data = JSON.parse(unpacked_json)
+      end
+
+      # The resulting object should look something like this:
+      # {
+      #   progress: {
+      #     lessons: {
+      #       0: {c: 1, p: 100, i: {...}},  // Not a quiz
+      #       1: {c: 1, p: 100, i: {...}},  // Not a quiz
+      #       2: {a: 4, c: 1, ps: 80, p: 100, s: 33, ...},  // Quiz!
+      #     }
+      #   }
+      # }
+      # Where each lesson represents one section in the module, and is
+      # either a quiz or a non-quiz section.
+      lessons = unpacked_data.dig('progress', 'lessons')
+      return data_json unless lessons
+
+      # IFF the lesson value has an `a` key, it's a mastery quiz.
+      # We only care about mastery quizzes, since that's where the bug is.
+      # We also only care when `a` is equal to the number of questions in this
+      # quiz, plus one; when the user is on the "results" page of the quiz.
+      # Finally, we only care when the other values that are supposed to be
+      # there, are not there.
+      found_bug = false
+      quiz_number = -1
+      Honeycomb.start_span(name: 'xapi.fix_broken_suspend_data.loop') do
+        lessons.each do |key, value|
+          next if value['a'].nil?
+          # If this is a quiz, increment the quiz_number.
+          quiz_number += 1
+
+          quiz_questions = quiz_breakdown[quiz_number] || 0
+          next unless value['a'] == quiz_questions + 1
+          next if value['c'] && value['rr']
+
+          # Here's the bug!
+          found_bug = true
+          Honeycomb.add_field('alert.xapi_suspend_data_bug', true)
+          Honeycomb.add_field('xapi.suspend_data.lessons', lessons.to_json)
+          # Fix it!
+          # The bug shows up when you're on the Quiz results screen
+          # (`a` = number_of_questions + 1)
+          # but somehow Rise didn't correctly compute all the other values
+          # it's supposed to put into the object once you hit that screen
+          # (`c`, `rr`, and `pq`).
+          # `c` should always = 1 once you've finished the quiz (c: completed);
+          # when it's nil, the module thinks you haven't completed the quiz and
+          # doesn't let you continue to the next section.
+          # `rr` should always = true once you've finished the quiz (no idea what
+          # it stands for); when it's nil, the module shows a broken screen
+          # instead of the nice results animation.
+          # There are some other values that are supposed to be in there too,
+          # but they don't seem to break anything when they're missing, so we
+          # leave them alone.
+          # If we just set `c` and `rr` to what the module expects them to be,
+          # we can un-break the module the next time the user refreses the page.
+          value['c'] = 1
+          value['rr'] = true
+          lessons[key] = value
+        end
+      end
+
+      # If we didn't change anything, return the original data.
+      return data_json unless found_bug
+
+      # Otherwise, we need to put the new data back into the correct format.
+      Honeycomb.start_span(name: 'xapi.fix_broken_suspend_data.pack') do
+        unpacked_data['progress']['lessons'] = lessons
+        unpacked_json = unpacked_data.to_json
+        packed_data = @lzw_compress.eval("lzwCompress.pack('#{unpacked_json}')")
+        data['d'] = packed_data
+        return data.to_json
+      end
+    end
+  rescue JSON::ParserError => e
+    # If JSON.parse fails, just return the original data.
+    data_json
   end
 end

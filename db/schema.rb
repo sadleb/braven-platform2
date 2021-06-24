@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_05_25_214248) do
+ActiveRecord::Schema.define(version: 2021_06_23_150932) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
@@ -400,6 +400,7 @@ ActiveRecord::Schema.define(version: 2021_05_25_214248) do
     t.datetime "updated_at", precision: 6, null: false
     t.string "activity_id"
     t.integer "quiz_questions"
+    t.string "quiz_breakdown"
     t.index ["activity_id"], name: "index_rise360_module_versions_on_activity_id"
     t.index ["rise360_module_id"], name: "index_rise360_module_versions_on_rise360_module_id"
     t.index ["user_id"], name: "index_rise360_module_versions_on_user_id"
@@ -411,6 +412,7 @@ ActiveRecord::Schema.define(version: 2021_05_25_214248) do
     t.string "activity_id"
     t.integer "quiz_questions"
     t.string "name", default: "", null: false
+    t.string "quiz_breakdown"
     t.index ["activity_id"], name: "index_rise360_modules_on_activity_id"
   end
 

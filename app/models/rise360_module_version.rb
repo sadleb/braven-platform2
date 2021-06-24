@@ -13,6 +13,8 @@ class Rise360ModuleVersion < ApplicationRecord
   validates :quiz_questions, presence: true
   validates :activity_id, presence: true
 
+  serialize :quiz_breakdown, Array
+
   # Because the Version is immutable, we only need this callback on create.
   after_create_commit :publish
 
