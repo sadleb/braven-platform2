@@ -391,7 +391,7 @@ class SalesforceAPI
   # as well.
   def self.is_lc?(salesforce_participant)
     salesforce_participant.role&.to_sym == SalesforceAPI::LEADERSHIP_COACH &&
-      salesforce_participant.volunteer_role.blank?
+      salesforce_participant.volunteer_role != SalesforceAPI::COACH_PARTNER
   end
 
   # Returns true if a SFParticipant struct is for a Coach Partner

@@ -41,6 +41,7 @@ FactoryBot.define do
 
     factory :salesforce_participant_lc do
       sequence(:Role) { :'Leadership Coach' }
+      sequence(:VolunteerRole) { 'Leadership Coach' }
     end
 
     factory :salesforce_participant_ta do
