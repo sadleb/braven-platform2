@@ -608,10 +608,12 @@ class DiscordBot
     end
 
     # Cohort roles and channels may already exist, or we may have to create them.
-    cohort_role = DiscordBot.get_or_create_cohort_role(member.server, cohort_role_name)
-    if cohort_role
-      roles << cohort_role
-      DiscordBot.configure_cohort_channel(member, participant, cohort_role)
+    if cohort_role_name
+      cohort_role = DiscordBot.get_or_create_cohort_role(member.server, cohort_role_name)
+      if cohort_role
+        roles << cohort_role
+        DiscordBot.configure_cohort_channel(member, participant, cohort_role)
+      end
     end
 
     # Ignore missing roles.
@@ -738,7 +740,7 @@ class DiscordBot
 
   def self.get_role(server, role_name)
     Honeycomb.start_span(name: 'bot.get_role') do |span|
-      Honeycomb.add_field('role.name', name)
+      Honeycomb.add_field('role.name', role_name)
       LOGGER.debug "Fetching role '#{role_name}'"
 
       server.roles.find { |r| r.name == role_name }
@@ -777,7 +779,7 @@ class DiscordBot
   #   Cohort: My Cohort Name (read/write)-> #cohort-my-cohort-name
   #   My Discord User (read/write/manage)-> #cohort-my-cohort-name
   def self.configure_cohort_channel(member, participant, role)
-    Honeycomb.start_span(name: 'bot.configure_cohort_channels') do |span|
+    Honeycomb.start_span(name: 'bot.configure_cohort_channel') do |span|
       server = member.server
 
       Honeycomb.add_field('member.id', member.id)
@@ -820,8 +822,11 @@ class DiscordBot
         # "Cohort: Template" role and "#cohort-template" channel to the new role/channel.
         LOGGER.debug "Adding channel:role permission overwrite for '#{channel.name}'"
         template_channel = server.channels.find { |c| c.type == TEXT_CHANNEL && c.name == COHORT_TEMPLATE_CHANNEL }
+        Honeycomb.add_field('template_channel.id', template_channel&.id)
         template_role = server.roles.find { |r| r.name == COHORT_TEMPLATE_ROLE }
+        Honeycomb.add_field('template_role.id', template_role&.id)
         template_overwrite = template_channel.role_overwrites.find { |o| o.id == template_role.id }
+        Honeycomb.add_field('template_overwrite.id', template_overwrite&.id)
         # Change the overwrite ID from the template role to the current role.
         template_overwrite.id = role.id
         permission_overwrites = channel.permission_overwrites

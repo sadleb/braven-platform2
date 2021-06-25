@@ -557,6 +557,15 @@ RSpec.describe DiscordBot do
           subject
         end
       end
+
+      context 'with no cohort role name' do
+        let(:cohort_role_name) { nil }
+
+        it 'does not create cohort role' do
+          expect(DiscordBot).not_to receive(:get_or_create_cohort_role)
+          subject
+        end
+      end
     end
 
     context 'with no participant that matches invite' do
@@ -957,7 +966,7 @@ RSpec.describe DiscordBot do
     let(:channel) { instance_double(Discordrb::Channel, name: channel_name, type: 0, :permission_overwrites= => nil, permission_overwrites: {}) }
     let(:overwrite) { instance_double(Discordrb::Overwrite, id: template_role.id, :type= => nil, :id= => nil, type: nil, to_hash: {}) }
     let(:lc_overwrite) { instance_double(Discordrb::Overwrite, id: lc_template_role.id, :type= => nil, :id= => nil, type: nil) }
-    let(:template_channel) { instance_double(Discordrb::Channel, name: 'cohort-template', type: 0, role_overwrites: [overwrite, lc_overwrite]) }
+    let(:template_channel) { instance_double(Discordrb::Channel, id: 1, name: 'cohort-template', type: 0, role_overwrites: [overwrite, lc_overwrite]) }
     let(:category) { instance_double(Discordrb::Channel, name: 'Cohorts', type: 4) }
     let(:channels) { [template_channel] }
     let(:user) { instance_double(Discordrb::User, id: 'fake-user-id', username: 'fake-username', discriminator: 1234) }
