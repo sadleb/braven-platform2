@@ -77,6 +77,7 @@ private
     Honeycomb.add_field('zoom.participant.first_name', first_name) # Send this so we can query by name prefixes used for breakout rooms
     Honeycomb.add_field('zoom.participant.last_name', last_name)
 
+
     ZoomAPI.client.add_registrant(meeting_id, @registration_details)['join_url']
   end
 
@@ -92,6 +93,7 @@ private
   # breakout room. CPs float around and are manually managed in an-hoc manner. We just need to
   # know that they are a CP.
   def compute_prefix
+    return 'TA - ' if @salesforce_participant.role == SalesforceAPI::TEACHING_ASSISTANT
     return 'CP - ' if SalesforceAPI.is_coach_partner?(@salesforce_participant)
     return 'LC - ' if SalesforceAPI.is_lc?(@salesforce_participant)
 

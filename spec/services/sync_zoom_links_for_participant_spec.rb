@@ -133,6 +133,12 @@ RSpec.describe SyncZoomLinksForParticipant do
         it_behaves_like 'Enrolled Participant'
       end
 
+      context 'Teaching Assistant' do
+        let(:salesforce_participant) { create :salesforce_participant_ta }
+        let(:first_name_prefix) { 'TA - ' }
+        it_behaves_like 'Enrolled Participant'
+      end
+
       shared_examples 'Dropped Participant' do
         let(:no_content_response) { double(RestClient::Response, :code => 204) }
 
