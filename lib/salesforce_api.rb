@@ -329,8 +329,8 @@ class SalesforceAPI
   end
 
 
-  def find_participant(contact_id:)
-    participants = get_participants(nil, contact_id)
+  def find_participant(contact_id:, program_id: nil)
+    participants = get_participants(program_id, contact_id)
     raise ParticipantNotOnSalesForceError, "Contact ID #{contact_id}" if participants.empty?
 
     # TODO: Figure out the criteria for in case of many participants

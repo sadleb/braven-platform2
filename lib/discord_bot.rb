@@ -30,6 +30,7 @@ BOT_COMMAND_KEY = '!'
 # Admin command strings.
 ADMIN_COMMANDS = {
   sync_salesforce: 'sync_salesforce',
+  configure_member: 'configure_member',
 }
 # Roles that are allowed to run admin commands.
 ADMIN_ROLES = [
@@ -178,7 +179,7 @@ class DiscordBot
   def on_server_create(event)
     Honeycomb.start_span(name: 'bot.server_create') do |span|
       LOGGER.debug "Joined new server #{event.server.id}"
-      Honeycomb.add_field('server.id', event.server.id)
+      Honeycomb.add_field('server.id', event.server.id.to_s)
       Honeycomb.add_field('servers.count', @bot.servers.count)
 
       # Update local caches for the new server.
@@ -207,8 +208,8 @@ class DiscordBot
 
       Honeycomb.add_field('user.username', user.username)
       Honeycomb.add_field('user.discriminator', user.discriminator)
-      Honeycomb.add_field('member.id', event.member.id)
-      Honeycomb.add_field('server.id', server.id)
+      Honeycomb.add_field('member.id', event.member.id.to_s)
+      Honeycomb.add_field('server.id', server.id.to_s)
       LOGGER.debug "Member join: '#{user.username}##{user.discriminator}' (#{event.member.id})"
 
       invite = find_used_invite(server)
@@ -230,12 +231,10 @@ class DiscordBot
       # Ignore all messages that don't look like a bot command.
       if event.message.content.start_with? BOT_COMMAND_KEY
         server = event.server
-        Honeycomb.add_field('server.id', server.id)
-        # event.author might be a User instead of a Member, but only if the
-        # Member immediately left the server after sending the message and
-        # before we received the event. And calling this 'member.id' makes
-        # it easier to cross-reference with other events.
-        Honeycomb.add_field('member.id', event.author.id)
+        Honeycomb.add_field('server.id', server.id.to_s)
+        # event.author could be a Member or a User, but the ID will be the same
+        # either way.
+        Honeycomb.add_field('member.id', event.author.id.to_s)
 
         if event.message.author.roles.find { |r| ADMIN_ROLES.include? r.name }
           LOGGER.debug "Admin command"
@@ -325,8 +324,13 @@ class DiscordBot
       LOGGER.debug "sync_salesforce command"
       Honeycomb.add_field('command', 'sync_salesforce')
       sync_salesforce_command(event)
+    when /^#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:configure_member]}/
+      LOGGER.debug "configure_member command"
+      Honeycomb.add_field('command', 'configure_member')
+      configure_member_command(event)
     else
       LOGGER.debug "unknown command"
+      Honeycomb.add_field('command', 'unknown')
       event.message.respond "Unknown command."
     end
   rescue StandardError => e
@@ -342,7 +346,7 @@ class DiscordBot
     servers_members = get_unconfigured_members
     servers_members.each do |server_id, members|
       LOGGER.warn("Unconfigured members on server #{server_id}: #{members.map {|m| m.display_name}}")
-      Honeycomb.add_field('server.id', server_id)
+      Honeycomb.add_field('server.id', server_id.to_s)
       Honeycomb.add_field('alert.unconfigured_members', true)
       Honeycomb.add_field('alert.unconfigured_members.ids', members.map { |m| m.id })
       Honeycomb.add_field('alert.unconfigured_members.display_names', members.map { |m| m.display_name })
@@ -356,8 +360,8 @@ class DiscordBot
     Honeycomb.start_span(name: 'bot.configure_member') do |span|
       server_id = member.server.id
       user = member.instance_variable_get(:@user)
-      Honeycomb.add_field('server.id', server_id)
-      Honeycomb.add_field('member.id', member.id)
+      Honeycomb.add_field('server.id', server_id.to_s)
+      Honeycomb.add_field('member.id', member.id.to_s)
       Honeycomb.add_field('invite.code', invite.code)
 
       # Try to map this invite to a Participant.
@@ -430,10 +434,12 @@ class DiscordBot
     Honeycomb.add_field('sync_salesforce_command.args', args)
 
     if args.count > 1
+      # Wrong arguments.
       event.message.respond "Too many arguments, not sure what to do." \
         "\nTry `#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:sync_salesforce]} MY_SALESFORCE_PROGRAM_ID`"
       return
     elsif args.count == 1
+      # Sync with the given Program.
       program_id = args.first
       message_content = "Starting sync with Program #{program_id}..."
       message = event.message.respond message_content
@@ -479,6 +485,7 @@ class DiscordBot
         message.edit(message_content)
       end
     else
+      # Sync with the saved Program for this Server.
       message_content = "Starting sync with pre-configured Program..."
       message = event.message.respond message_content
 
@@ -504,6 +511,105 @@ class DiscordBot
     end
   end
 
+  # Usage:
+  #
+  # Link a Salesforce Participant to a Discord User.
+  #
+  #   configure_member @username SALESFORCE_CONTACT_ID
+  #
+  # OR (if you're in a channel where the user isn't, and you can't @mention them)
+  #
+  #   configure_member DISCORD_USER_ID SALESFORCE_CONTACT_ID
+  def configure_member_command(event)
+    server = event.server
+    command = event.message.content.split
+
+    if event.message.mentions&.first
+      # If someone was @mentioned, get their ID.
+      user_id = event.message.mentions&.first&.id
+    else
+      # If the user was specified by ID instead, try to fetch the member,
+      # so we can error out if the ID isn't valid.
+      user_id = get_member(server.id, command[1])&.id
+    end
+    contact_id = command[2]
+    LOGGER.debug "User: #{user_id}, Contact: #{contact_id}"
+
+    # This field has a prefix to differentiate it from member.id,
+    # which is the member that called this function.
+    Honeycomb.add_field('configure_member.user.id', user_id.to_s)
+    Honeycomb.add_field('contact.id', contact_id)
+
+    # Respond with usage if we couldn't parse the command.
+    if user_id.nil? || contact_id.nil? || command.count != 3
+      event.message.respond "Couldn't understand your request." \
+        "\nTry `#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:configure_member]} @username SALESFORCE_CONTACT_ID`"
+        "\nOR `#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:configure_member]} DISCORD_USER_ID SALESFORCE_CONTACT_ID`"
+      return
+    end
+
+    # Try fetching the Participant.
+    message_content = "Starting configuration for Contact #{contact_id}..."
+    message = event.message.respond(message_content)
+
+    programs = SalesforceAPI.client.get_current_and_future_accelerator_programs
+    program = programs['records'].find { |program| program['Discord_Server_ID__c'].to_i == server.id.to_i }
+
+    if program.nil?
+      message_content << "\n❌ No Program found for this Discord server."
+      message_content << "\nFirst, sync this server with a Salesforce Program ID, like:"
+      message_content << "\n`#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:sync_salesforce]} a2Y11000002HY5mEAX`"
+      message.edit(message_content)
+      return
+    end
+    Honeycomb.add_field('program.id', program['Id'])
+
+    # If we found a Program tied to this server, use that ID to fetch the Participant.
+    participant = SalesforceAPI.client.find_participant(contact_id: contact_id, program_id: program['Id'])
+    Honeycomb.add_field('participant.id', participant&.id)
+    if participant.nil?
+      message_content << "\n❌ No Participant found for Contact #{contact_id}, Program #{program['Id']}."
+      message.edit(message_content)
+      return
+    end
+
+    message_content << "\n✅ Found Participant #{participant.id} in Salesforce..."
+    message.edit(message_content)
+
+    # If we found a Participant, update the Contact's Discord User ID.
+    SalesforceAPI.client.update_contact(participant.contact_id, {'Discord_User_ID__c': user_id})
+    message_content << "\n✅ Set Discord User ID for Contact #{participant.contact_id}..."
+    message.edit(message_content)
+
+    # Configure nick and roles.
+    contact = SalesforceAPI.client.get_contact_info(participant.contact_id)
+    member = get_member(server.id, user_id)
+    DiscordBot.configure_member_from_records(member, participant, contact)
+    message_content << "\n✅ Configured nickname/roles in Discord..."
+    message.edit(message_content)
+
+    # Then delete their invite link, so no one else can use it.
+    Honeycomb.add_field('invite.code', participant.discord_invite_code)
+    if participant.discord_invite_code
+      invite = server.invites.find { |i| i.code == participant.discord_invite_code }
+      if invite
+        begin
+          invite.delete
+          Honeycomb.add_field('configure_member.invite_deleted', true)
+        rescue Discordrb::Errors::UnknownInvite
+          # Probably another instance of the bot got to it first.
+          LOGGER.debug "Invite already deleted"
+          Honeycomb.add_field('configure_member.invite_deleted', false)
+        end
+        message_content << "\n✅ Deleted Discord Invite Code for Participant #{participant.id}..."
+        message.edit(message_content)
+      end
+    end
+
+    message_content << "\nAll done!"
+    message.edit(message_content)
+  end
+
   #
   # Lower-level Utilities
   #
@@ -517,7 +623,7 @@ class DiscordBot
       # Fetch Discord server ID from the Program, skip if there isn't one.
       program_info = SalesforceAPI.client.get_program_info(program_id)
       server_id = program_info['Discord_Server_ID__c'].to_i
-      Honeycomb.add_field('server.id', server_id)
+      Honeycomb.add_field('server.id', server_id.to_s)
 
       # Skip Programs that don't have a Discord Server ID.
       return if server_id == 0
@@ -556,7 +662,7 @@ class DiscordBot
           # This also runs if people change cohorts, and will update their roles
           # appropriately.
           LOGGER.debug "Found Discord User ID, re-configuring in case roles changed"
-          Honeycomb.add_field('member.id', user_id)
+          Honeycomb.add_field('member.id', user_id.to_s)
 
           member = get_member(server_id, user_id)
           DiscordBot.configure_member_from_records(member, participant, contact) if member
@@ -782,8 +888,8 @@ class DiscordBot
     Honeycomb.start_span(name: 'bot.configure_cohort_channel') do |span|
       server = member.server
 
-      Honeycomb.add_field('member.id', member.id)
-      Honeycomb.add_field('server.id', server.id)
+      Honeycomb.add_field('member.id', member.id.to_s)
+      Honeycomb.add_field('server.id', server.id.to_s)
       Honeycomb.add_field('contact.id', participant.contact_id)
       Honeycomb.add_field('program.id', participant.program_id)
       Honeycomb.add_field('role.name', role.name)
@@ -822,11 +928,11 @@ class DiscordBot
         # "Cohort: Template" role and "#cohort-template" channel to the new role/channel.
         LOGGER.debug "Adding channel:role permission overwrite for '#{channel.name}'"
         template_channel = server.channels.find { |c| c.type == TEXT_CHANNEL && c.name == COHORT_TEMPLATE_CHANNEL }
-        Honeycomb.add_field('template_channel.id', template_channel&.id)
+        Honeycomb.add_field('template_channel.id', template_channel&.id.to_s)
         template_role = server.roles.find { |r| r.name == COHORT_TEMPLATE_ROLE }
-        Honeycomb.add_field('template_role.id', template_role&.id)
-        template_overwrite = template_channel.role_overwrites.find { |o| o.id == template_role.id }
-        Honeycomb.add_field('template_overwrite.id', template_overwrite&.id)
+        Honeycomb.add_field('template_role.id', template_role&.id.to_s)
+        template_overwrite = template_channel.overwrites[template_role.id]
+        Honeycomb.add_field('template_overwrite.id', template_overwrite&.id.to_s)
         # Change the overwrite ID from the template role to the current role.
         template_overwrite.id = role.id
         permission_overwrites = channel.permission_overwrites
@@ -842,8 +948,11 @@ class DiscordBot
         # to create a new channel:member permissions overwrite.
         LOGGER.debug "Adding channel:member permission overwrite, since participant is an LC"
         template_channel = server.channels.find { |c| c.type == TEXT_CHANNEL && c.name == COHORT_TEMPLATE_CHANNEL }
+        Honeycomb.add_field('lc_template_channel.id', template_channel&.id.to_s)
         lc_template_role = server.roles.find { |r| r.name == COHORT_TEMPLATE_LC_ROLE }
-        lc_template_overwrite = template_channel.role_overwrites.find { |o| o.id == lc_template_role.id }
+        Honeycomb.add_field('lc_template_role.id', lc_template_role&.id.to_s)
+        lc_template_overwrite = template_channel.overwrites[lc_template_role.id]
+        Honeycomb.add_field('lc_template_overwrite.id', lc_template_overwrite&.id.to_s)
         # Change overwrite type from 'role' to 'member', since the template is a role but
         # we're creating a member-specific overwrite.
         lc_template_overwrite.type = :member

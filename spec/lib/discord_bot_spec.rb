@@ -416,6 +416,15 @@ RSpec.describe DiscordBot do
       end
     end
 
+    context 'with configure_member command' do
+      let(:message_content) { "#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:configure_member]}" }
+
+      it 'calls the appropriate command function' do
+        expect(bot).to receive(:configure_member_command).with(event).once
+        subject
+      end
+    end
+
     context 'with unknown command' do
       it 'responds with only the unknown command message' do
         expect(message).to receive(:respond).once
@@ -737,6 +746,171 @@ RSpec.describe DiscordBot do
     end
   end
 
+  describe '.configure_member_command' do
+    subject { bot.configure_member_command(event) }
+
+    let(:server_id) { 123 }
+    let(:roles) { [ instance_double(Discordrb::Role, name: ADMIN_ROLES.first) ] }
+    let(:server) { instance_double(Discordrb::Server, id: server_id, members: [member], invites: invites) }
+    let(:user) { instance_double(Discordrb::User, id: 'fake-user-id', username: 'fake-username', discriminator: 1234) }
+    let(:member) { instance_double(Discordrb::Member, id: 'fake-member-id', roles: roles) }
+    let(:message) { instance_double(Discordrb::Message, content: message_content, author: member, edit: nil, mentions: mentions) }
+    let(:event) { instance_double(Discordrb::Events::MessageEvent, server: server, author: member, message: message) }
+    let(:message_content) { "#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:configure_member]} #{args}".strip }
+    let(:programs) { create(:salesforce_current_and_future_programs, canvas_course_ids: [1, 2]) }
+    let(:participant) { SalesforceAPI.participant_to_struct(create(:salesforce_participant_fellow)) }
+    let(:sf_client) { instance_double(SalesforceAPI,
+      get_current_and_future_accelerator_programs: programs,
+      update_program: nil,
+      get_program_info: nil,
+      find_participant: nil,
+      get_contact_info: nil,
+      update_contact: nil,
+    ) }
+    let(:invites) { [] }
+    let(:mentions) { [] }
+    let(:args) { "" }
+
+    before :each do
+      allow(SalesforceAPI).to receive(:client).and_return(sf_client)
+      allow(message).to receive(:respond).and_return(message)
+      bot.instance_variable_set(:@servers, {server.id => server})
+      allow(DiscordBot).to receive(:configure_member_from_records)
+    end
+
+    context 'with no arguments' do
+      it 'responds' do
+        expect(message).to receive(:respond)
+        subject
+      end
+
+      it 'does not try to get programs' do
+        expect(sf_client).not_to receive(:get_current_and_future_accelerator_programs)
+        subject
+      end
+    end
+
+
+    context 'with @mention' do
+      # arbitrary user id
+      let(:mentions) { [instance_double(Discordrb::User, id: 10)] }
+
+      context 'with already linked program' do
+        # doesn't matter which program
+        let(:server_id) { programs['records'].first['Discord_Server_ID__c'] }
+
+        context 'with valid contact id' do
+          let(:args) { "@mention #{participant.contact_id}" }
+
+          before :each do
+            # doen't matter which program
+            allow(sf_client).to receive(:find_participant)
+              .with(contact_id: participant.contact_id, program_id: programs['records'].first['Id'])
+              .and_return(participant)
+          end
+
+          it 'tries to get participant' do
+            expect(sf_client).to receive(:find_participant)
+            subject
+          end
+
+          it 'updates contact' do
+            expect(sf_client).to receive(:update_contact)
+            subject
+          end
+
+          it 'gets contact' do
+            expect(sf_client).to receive(:get_contact_info)
+            subject
+          end
+
+          it 'gets member' do
+            expect(bot).to receive(:get_member).with(server_id, mentions.first.id)
+            subject
+          end
+
+          it 'configures member' do
+            expect(DiscordBot).to receive(:configure_member_from_records)
+            subject
+          end
+        end
+
+        context 'with invalid contact id' do
+          let(:args) { "@mention test" }
+
+          it 'tries to get participant' do
+            expect(sf_client).to receive(:find_participant)
+            subject
+          end
+
+          it 'exits before updating contact' do
+            expect(sf_client).not_to receive(:update_contact)
+            subject
+          end
+        end
+      end
+
+      context 'with no already linked program' do
+        let(:args) { "@mention #{participant.contact_id}" }
+
+        it 'responds' do
+          expect(message).to receive(:respond)
+          subject
+        end
+
+        it 'does not try to fetch participant' do
+          expect(sf_client).not_to receive(:find_participant)
+          subject
+        end
+      end
+    end
+
+    context 'with valid user id' do
+      # arbitrary user id
+      let(:target_user_id) { 23 }
+      let(:target_member) { instance_double(Discordrb::Member, id: target_user_id) }
+      let(:args) { "#{target_user_id} test" }
+      # doesn't matter which program
+      let(:server_id) { programs['records'].first['Discord_Server_ID__c'] }
+
+      before :each do
+        allow(bot).to receive(:get_member).and_return(target_member)
+        allow(sf_client).to receive(:find_participant).and_return(participant)
+      end
+
+      it 'responds' do
+        expect(message).to receive(:respond)
+        subject
+      end
+
+      it 'gets member, twice' do
+        expect(bot).to receive(:get_member)
+          .exactly(2)
+          .times
+        subject
+      end
+    end
+
+    context 'with invalid user id' do
+      let(:args) { "test test" }
+
+      before :each do
+        allow(bot).to receive(:get_member).and_return(nil)
+      end
+
+      it 'responds' do
+        expect(message).to receive(:respond)
+        subject
+      end
+
+      it 'does not try to get programs' do
+        expect(sf_client).not_to receive(:get_current_and_future_accelerator_programs)
+        subject
+      end
+    end
+  end
+
+
   # Create invite
   describe '.create_invite' do
     subject { bot.create_invite(server_id) }
@@ -966,7 +1140,7 @@ RSpec.describe DiscordBot do
     let(:channel) { instance_double(Discordrb::Channel, name: channel_name, type: 0, :permission_overwrites= => nil, permission_overwrites: {}) }
     let(:overwrite) { instance_double(Discordrb::Overwrite, id: template_role.id, :type= => nil, :id= => nil, type: nil, to_hash: {}) }
     let(:lc_overwrite) { instance_double(Discordrb::Overwrite, id: lc_template_role.id, :type= => nil, :id= => nil, type: nil) }
-    let(:template_channel) { instance_double(Discordrb::Channel, id: 1, name: 'cohort-template', type: 0, role_overwrites: [overwrite, lc_overwrite]) }
+    let(:template_channel) { instance_double(Discordrb::Channel, id: 1, name: 'cohort-template', type: 0, overwrites: {overwrite.id => overwrite, lc_overwrite.id => lc_overwrite}) }
     let(:category) { instance_double(Discordrb::Channel, name: 'Cohorts', type: 4) }
     let(:channels) { [template_channel] }
     let(:user) { instance_double(Discordrb::User, id: 'fake-user-id', username: 'fake-username', discriminator: 1234) }
