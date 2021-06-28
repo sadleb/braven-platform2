@@ -10,15 +10,10 @@ class CapstoneEvaluationsController < ApplicationController
 
   nested_resource_of Course
 
-  # Note: make sure this matches the naming conventions we have for the Canvas
-  # assignments. For the Capstone project we have:
-  #  - GROUP PROJECT: Capstone Challenge
-  #  - GROUP PROJECT: Capstone Challenge: Teamwork
-  #  - GROUP PROJECT: Complete Peer Evaluations
-  PEER_REVIEWS_ASSIGNMENT_NAME = 'GROUP PROJECT: Complete Capstone Evaluations'
+  COMPLETE_CAPSTONE_EVALS_ASSIGNMENT_NAME = 'TODO: Complete Capstone Evaluations'
 
   def assignment_name
-    PEER_REVIEWS_ASSIGNMENT_NAME
+    COMPLETE_CAPSTONE_EVALS_ASSIGNMENT_NAME
   end
 
   def lti_launch_url

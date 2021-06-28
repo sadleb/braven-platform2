@@ -33,7 +33,7 @@ RSpec.describe FetchCanvasAssignmentsInfo do
     let(:capstone_evaluations_lti_launch_url) { new_course_capstone_evaluation_submission_path(course) }
     let(:capstone_evaluations_assignment) { create(
       :canvas_assignment,
-      name: CapstoneEvaluationsController::PEER_REVIEWS_ASSIGNMENT_NAME,
+      name: CapstoneEvaluationsController::COMPLETE_CAPSTONE_EVALS_ASSIGNMENT_NAME,
       course_id: course.canvas_course_id,
       lti_launch_url: capstone_evaluations_lti_launch_url,
     ) }

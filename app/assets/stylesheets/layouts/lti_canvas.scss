@@ -19,8 +19,11 @@
 
 @import "shared/variables";
 
-// Center the root div horizontally on the page when shown inside an iFrame through
-// our LTI extension. Set the max-width to medium sized devices even when viewed
+// Center the root div horizontally on the page when shown through our LTI extension.
+// Note that generally, pages using this layout will be launched in their own window
+// but they may be launched as an iframe as well, so be mindful of that when editing
+// these styles.
+// Set the max-width to medium sized devices even when viewed
 // on a desktop to force ourselves to create content that will look good on a
 // mobile device. If you decide to change the max-width for a certain view,
 // make sure you write your content responsively!
@@ -28,6 +31,6 @@
   height: 100vh; // Height of iframe viewport layout, not the actual screen
   max-width: $container-max-width-md;
   margin: 0 auto;
-  padding: 0;
+  padding: 1.4rem;
 }
 

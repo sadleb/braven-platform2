@@ -8,8 +8,6 @@
 /* Braven Projects CSS */
 .bv-custom-content-container {
 
-  padding: 1.4rem;
-
   // Leave space so the autosave status bar doesn't overlap the submit button.
   padding-bottom: 3rem;
 
@@ -54,7 +52,7 @@
   }
 
   iframe.linked-in-authorization-button {
-    // Size of button icon with an extra pixel in each dimension 
+    // Size of button icon with an extra pixel in each dimension
     // for the border on hover and focus.
     width: 217px;
     height: 43px; // Height of button plus 2px for the 1px border.
