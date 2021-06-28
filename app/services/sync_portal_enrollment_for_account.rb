@@ -61,6 +61,9 @@ class SyncPortalEnrollmentForAccount
     when SalesforceAPI::TEACHING_ASSISTANT
       sync_enrollment(sf_program.fellow_course_id, RoleConstants::TA_ENROLLMENT,
                       SectionConstants::TA_SECTION, limit_privileges_to_course_section=false)
+      sync_enrollment(sf_program.leadership_coach_course_id, RoleConstants::TA_ENROLLMENT,
+                      SectionConstants::TA_SECTION, limit_privileges_to_course_section=false)
+      give_ta_permissions()
     else
       logger.warn("Got unknown role #{sf_participant.role} from SF")
     end
@@ -83,6 +86,8 @@ class SyncPortalEnrollmentForAccount
       drop_course_enrollment(sf_program.fellow_course_id)
     when SalesforceAPI::TEACHING_ASSISTANT
       drop_course_enrollment(sf_program.fellow_course_id)
+      drop_course_enrollment(sf_program.leadership_coach_course_id)
+      remove_ta_permissions()
     else
       logger.warn("Got unknown role #{sf_participant.role} from SF")
     end
@@ -149,6 +154,19 @@ class SyncPortalEnrollmentForAccount
       Honeycomb.add_field('sync_portal_enrollment.skip_reason', 'No enrollment changes')
       logger.info("Skipping sync enrollment for #{@user.email}. No enrollment changes.")
     end
+  end
+
+  # A TA_ENROLLMENT gives them permission to take attendance on behalf of an LC as
+  # well as masquerade as other users. We use TA accounts for staff as well as real
+  # Teaching Assistants in an "admin" capacity of sorts.
+  def give_ta_permissions()
+    @user.add_role RoleConstants::CAN_TAKE_ATTENDANCE_FOR_ALL
+    canvas_client.assign_account_role(@user.canvas_user_id, CanvasConstants::STAFF_ACCOUNT_ROLE_ID)
+  end
+
+  def remove_ta_permissions()
+    @user.remove_role RoleConstants::CAN_TAKE_ATTENDANCE_FOR_ALL
+    canvas_client.unassign_account_role(@user.canvas_user_id, CanvasConstants::STAFF_ACCOUNT_ROLE_ID)
   end
 
   # Pass in a local db section.

@@ -340,6 +340,36 @@ class CanvasAPI
     JSON.parse(response.body)
   end
 
+  # Give the user an "Account Role" from those defined here:
+  # https://braven.instructure.com/accounts/1/permissions (click the "Account Roles" tab).
+  # Default is full "Account Admin" permissions.
+  #
+  # This is a little confusing b/c to assign the role you call the "Make an account admin" API:
+  #   https://canvas.instructure.com/doc/api/admins.html#method.admins.create
+  # which is the same as going to the account settings here:
+  #   https://braven.instructure.com/accounts/1/settings
+  # clicking on the "Admins" tab, and adding a new "Account Admin".
+  #
+  # NOTE: We defined our own "Staff Account" role that doesn't have full admin permissions,
+  # but does give the permissions we need staff to have.
+  def assign_account_role(canvas_user_id, canvas_role_id = CanvasConstants::ACCOUNT_ADMIN_ROLE_ID)
+    body = {
+      :user_id => canvas_user_id,
+      :role_id => canvas_role_id,
+      :send_confirmation => false
+    }
+    response = post("/accounts/#{DefaultAccountID}/admins", body)
+    JSON.parse(response.body)
+  end
+
+  # Removes the specified "Account Role" for the user.
+  # Defaults to removing "Account Admin"
+  def unassign_account_role(canvas_user_id, canvas_role_id = CanvasConstants::ACCOUNT_ADMIN_ROLE_ID)
+    body = { :role_id => canvas_role_id }
+    response = delete("/accounts/#{DefaultAccountID}/admins/#{canvas_user_id}", body)
+    JSON.parse(response.body)
+  end
+
   def find_section_by(course_id:, name:)
     sections = get_sections(course_id)
     section = sections.filter { |s| s['name'] == name }&.first

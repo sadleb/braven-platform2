@@ -43,5 +43,14 @@ end
 class CanvasConstants
   CANVAS_URL = Rails.application.secrets.canvas_url.freeze
   CAS_LOGIN_URL = "#{CANVAS_URL}/login/cas".freeze
+
+  # We created a custom Account Role called "Staff Account" here:
+  # https://braven.instructure.com/accounts/1/permissions
+  # Use this ID with the CanvasAPI#make_admin() method to assign this role
+  #
+  # You can list available role_ids using:
+  # https://canvas.instructure.com/doc/api/roles.html#method.role_overrides.api_index
+  STAFF_ACCOUNT_ROLE_ID = 142
+  ACCOUNT_ADMIN_ROLE_ID = 1
 end
 
