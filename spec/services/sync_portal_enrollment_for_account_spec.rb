@@ -4,42 +4,43 @@ require 'rails_helper'
 
 RSpec.describe SyncPortalEnrollmentForAccount do
   let(:fellow_canvas_course_id) { 11 }
+  let(:lc_playbook_canvas_course_id) { 12 }
   let(:sf_email) { 'test1@example.com' }
   let(:sf_participant) { SalesforceAPI::SFParticipant.new('first', 'last', sf_email, nil, nil, 'test_salesforce_id') }
   # Arbitrary Canvas user ID
   let(:canvas_email) { sf_email }
   let(:portal_user) { CanvasAPI::LMSUser.new(10, canvas_email) }
-  let(:sf_program) { SalesforceAPI::SFProgram.new(432, 'Some Program', 'Some School', fellow_canvas_course_id) }
-  let(:lms_section) { CanvasAPI::LMSSection.new(10, "test section") }
-  let(:lms_enrollment) { CanvasAPI::LMSEnrollment.new(55, fellow_canvas_course_id, RoleConstants::STUDENT_ENROLLMENT, lms_section.id) }
-  let(:lms_assignments) { [
+  let(:sf_program) { SalesforceAPI::SFProgram.new(432, 'Some Program', 'Some School', fellow_canvas_course_id, lc_playbook_canvas_course_id) }
+  let(:fellow_lms_section) { CanvasAPI::LMSSection.new(10, "test section") }
+  let(:fellow_lms_enrollment) { CanvasAPI::LMSEnrollment.new(55, fellow_canvas_course_id, RoleConstants::STUDENT_ENROLLMENT, fellow_lms_section.id) }
+  let(:fellow_lms_assignments) { [
     create(:canvas_assignment, course_id: fellow_canvas_course_id),
     create(:canvas_assignment, course_id: fellow_canvas_course_id),
     create(:canvas_assignment, course_id: fellow_canvas_course_id),
   ] }
-  let(:lms_overrides) { [
-    create(:canvas_assignment_override_section, assignment_id: lms_assignments.first['id'], course_section_id: lms_section.id),
-    create(:canvas_assignment_override_section, assignment_id: lms_assignments.first['id'], course_section_id: lms_section.id),
-    create(:canvas_assignment_override_section, assignment_id: lms_assignments.last['id'], course_section_id: lms_section.id),
+  let(:fellow_lms_overrides) { [
+    create(:canvas_assignment_override_section, assignment_id: fellow_lms_assignments.first['id'], course_section_id: fellow_lms_section.id),
+    create(:canvas_assignment_override_section, assignment_id: fellow_lms_assignments.first['id'], course_section_id: fellow_lms_section.id),
+    create(:canvas_assignment_override_section, assignment_id: fellow_lms_assignments.last['id'], course_section_id: fellow_lms_section.id),
   ] }
-  let(:matching_lms_course_overrides) { [
-    create(:canvas_assignment_override_user, assignment_id: lms_assignments.first['id'], student_ids: [portal_user.id]),
-    create(:canvas_assignment_override_user, assignment_id: lms_assignments.last['id'], student_ids: [portal_user.id]),
+  let(:matching_fellow_fellow_lms_course_overrides) { [
+    create(:canvas_assignment_override_user, assignment_id: fellow_lms_assignments.first['id'], student_ids: [portal_user.id]),
+    create(:canvas_assignment_override_user, assignment_id: fellow_lms_assignments.last['id'], student_ids: [portal_user.id]),
   ] }
-  let(:lms_course_overrides) { [
-    matching_lms_course_overrides,
-    create(:canvas_assignment_override_section, assignment_id: lms_assignments.first['id'], course_section_id: lms_section.id),
+  let(:fellow_lms_course_overrides) { [
+    matching_fellow_fellow_lms_course_overrides,
+    create(:canvas_assignment_override_section, assignment_id: fellow_lms_assignments.first['id'], course_section_id: fellow_lms_section.id),
   ].flatten }
   let(:lms_client) { double(
     CanvasAPI,
-    find_enrollment: lms_enrollment,
-    find_section_by: lms_section,
+    find_enrollment: fellow_lms_enrollment,
+    find_section_by: fellow_lms_section,
     enroll_user_in_course: nil,
-    create_lms_section: lms_section,
+    create_lms_section: fellow_lms_section,
     delete_enrollment: nil,
-    get_assignments: lms_assignments,
-    get_assignment_overrides: lms_overrides,
-    get_assignment_overrides_for_course: lms_course_overrides,
+    get_assignments: fellow_lms_assignments,
+    get_assignment_overrides: fellow_lms_overrides,
+    get_assignment_overrides_for_course: fellow_lms_course_overrides,
     create_assignment_overrides: nil,
   ) }
   let(:sync_from_salesforce_service) { double(SyncFromSalesforceContact) }
@@ -50,8 +51,9 @@ RSpec.describe SyncPortalEnrollmentForAccount do
   # (https://app.asana.com/0/1174274412967132/1197893935338145/f)
   let(:platform_email) { sf_email }
   let!(:user) { create(:registered_user, email: platform_email, salesforce_id: sf_participant.contact_id, canvas_user_id: portal_user.id) }
-  let!(:course) { create(:course, canvas_course_id: lms_enrollment.course_id) }
-  let!(:section) { create(:section, course_id: course.id, canvas_section_id: lms_section.id, name: lms_section.name) }
+  let!(:fellow_course) { create(:course, canvas_course_id: fellow_lms_enrollment.course_id) }
+  let!(:fellow_section) { create(:section, course_id: fellow_course.id, canvas_section_id: fellow_lms_section.id, name: fellow_lms_section.name) }
+  let!(:lc_course) { create(:course, canvas_course_id: lc_playbook_canvas_course_id) }
 
   before(:each) do
     allow(SyncFromSalesforceContact).to receive(:new).and_return(sync_from_salesforce_service)
@@ -68,21 +70,39 @@ RSpec.describe SyncPortalEnrollmentForAccount do
   end
 
   describe '#run' do
-# TODO: need to write specs in follow-up PR. Fix this failing spec as part of that.
-#    context 'for enrolled teaching assistant' do
-#      before(:each) do
-#        sf_participant.role = SalesforceAPI::TEACHING_ASSISTANT
-#        sf_participant.status = SalesforceAPI::ENROLLED
-#      end
-#
-#      it 'enrolls with limit removed' do
-#        # because TAs need access to all users, not just users in their section.
-#        run_sync
-#        expect(lms_client).to have_received(:enroll_user_in_course).with(
-#            portal_user.id, fellow_canvas_course_id, RoleConstants::TA_ENROLLMENT, lms_section.id, false
-#        )
-#      end
-#    end
+    context 'for enrolled teaching assistant' do
+      before(:each) do
+        sf_participant.role = SalesforceAPI::TEACHING_ASSISTANT
+        sf_participant.status = SalesforceAPI::ENROLLED
+        allow(lms_client).to receive(:assign_account_role)
+      end
+
+      it 'enrolls in the fellow course with limit removed' do
+        # because TAs need access to all users, not just users in their section.
+        run_sync
+        expect(lms_client).to have_received(:enroll_user_in_course).with(
+            portal_user.id, fellow_canvas_course_id, RoleConstants::TA_ENROLLMENT, fellow_lms_section.id, false
+        )
+      end
+
+      it 'enrolls in the lc playbook course with limit removed' do
+        run_sync
+        expect(lms_client).to have_received(:enroll_user_in_course).with(
+            portal_user.id, lc_playbook_canvas_course_id, RoleConstants::TA_ENROLLMENT, anything, false
+        )
+      end
+
+      it 'assigns the CanTakeAttendanceForAll role' do
+        user.remove_role RoleConstants::CAN_TAKE_ATTENDANCE_FOR_ALL # to be safe
+        run_sync
+        expect(user.has_role?(RoleConstants::CAN_TAKE_ATTENDANCE_FOR_ALL)).to be(true)
+      end
+
+      it 'assigns the Staff Account role in Canvas' do
+        expect(lms_client).to receive(:assign_account_role).with(portal_user.id, CanvasConstants::STAFF_ACCOUNT_ROLE_ID).once
+        run_sync
+      end
+    end
 
     context 'for enrolled fellow participant' do
       before(:each) do
@@ -119,7 +139,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 
       it 'de-enrols a user if section changes' do
         new_section = CanvasAPI::LMSSection.new(28374)
-        allow(lms_client).to receive(:find_enrollment).and_return(lms_enrollment)
+        allow(lms_client).to receive(:find_enrollment).and_return(fellow_lms_enrollment)
         allow(lms_client).to receive(:find_section_by).and_return(new_section)
         run_sync
         expect(lms_client).to have_received(:delete_enrollment).once
@@ -127,7 +147,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 
       it 'reenrols the user if section changes' do
         new_section = CanvasAPI::LMSSection.new(97863)
-        allow(lms_client).to receive(:find_enrollment).and_return(lms_enrollment)
+        allow(lms_client).to receive(:find_enrollment).and_return(fellow_lms_enrollment)
         allow(lms_client).to receive(:find_section_by).and_return(new_section)
         run_sync
         expect(lms_client).to have_received(:enroll_user_in_course).once
@@ -135,7 +155,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 
       it 're-creates assignment overrides if section changes' do
         new_section = CanvasAPI::LMSSection.new(97863)
-        allow(lms_client).to receive(:find_enrollment).and_return(lms_enrollment)
+        allow(lms_client).to receive(:find_enrollment).and_return(fellow_lms_enrollment)
         allow(lms_client).to receive(:find_section_by).and_return(new_section)
 
         run_sync
@@ -143,19 +163,19 @@ RSpec.describe SyncPortalEnrollmentForAccount do
         # Note: the id was deleted from the overrides, their hashes modified in-place.
         expect(lms_client).to have_received(:create_assignment_overrides)
           .once
-          .with(course.canvas_course_id, matching_lms_course_overrides)
+          .with(fellow_course.canvas_course_id, matching_fellow_fellow_lms_course_overrides)
       end
 
 
       it 'de-enrols a user if role changes' do
-        new_enrollment = CanvasAPI::LMSEnrollment.new(82738732, lms_enrollment.course_id, RoleConstants::TA_ENROLLMENT, lms_section.id)
+        new_enrollment = CanvasAPI::LMSEnrollment.new(82738732, fellow_lms_enrollment.course_id, RoleConstants::TA_ENROLLMENT, fellow_lms_section.id)
         allow(lms_client).to receive(:find_enrollment).and_return(new_enrollment)
         run_sync
         expect(lms_client).to have_received(:delete_enrollment).once
       end
 
       it 'reenrols the user if role changes' do
-        new_enrollment = CanvasAPI::LMSEnrollment.new(928798237, lms_enrollment.course_id, RoleConstants::TA_ENROLLMENT, lms_section.id)
+        new_enrollment = CanvasAPI::LMSEnrollment.new(928798237, fellow_lms_enrollment.course_id, RoleConstants::TA_ENROLLMENT, fellow_lms_section.id)
         allow(lms_client).to receive(:find_enrollment).and_return(new_enrollment)
         run_sync
         expect(lms_client).to have_received(:enroll_user_in_course).once
@@ -169,9 +189,45 @@ RSpec.describe SyncPortalEnrollmentForAccount do
       end
 
       it 'it drops the user if user is enrolled' do
-        allow(lms_client).to receive(:find_enrollment).and_return(lms_enrollment)
+        allow(lms_client).to receive(:find_enrollment).and_return(fellow_lms_enrollment)
         run_sync
         expect(lms_client).to have_received(:delete_enrollment).once
+      end
+    end
+
+    context 'for dropped ta participant' do
+      let(:lc_lms_enrollment) { CanvasAPI::LMSEnrollment.new(56, fellow_canvas_course_id, RoleConstants::TA_ENROLLMENT, 'fake_section_id') }
+
+      before(:each) do
+        sf_participant.role = SalesforceAPI::TEACHING_ASSISTANT
+        sf_participant.status = SalesforceAPI::DROPPED
+        allow(lms_client).to receive(:unassign_account_role)
+      end
+
+      it 'it drops the user if user is enrolled' do
+        # a little hacky b/c we should do separate ones for each course, but i'd have to refact
+        allow(lms_client).to receive(:find_enrollment).with(portal_user.id, fellow_canvas_course_id).and_return(fellow_lms_enrollment)
+        allow(lms_client).to receive(:find_enrollment).with(portal_user.id, lc_playbook_canvas_course_id).and_return(lc_lms_enrollment)
+        run_sync
+        # once for Accelerator Course and once for LC Playbook
+        expect(lms_client).to have_received(:delete_enrollment).twice
+      end
+
+      # Note: we may consider changing this logic in the future if staff will be TA's
+      # in multiple courses at the same time. The could end up with a Dropped Participant in one,
+      # fighting with an Enrolled participant in another and the behavior will be whichever the last one
+      # to sync would determine. Cross that bridge when we get there. For now I think it's safe to remove
+      # the role for Dropped participants.
+      it 'it removes the CanTakeAttendanceForAll platform role' do
+        user.add_role RoleConstants::CAN_TAKE_ATTENDANCE_FOR_ALL
+        run_sync
+        expect(user.has_role?(RoleConstants::CAN_TAKE_ATTENDANCE_FOR_ALL)).to be(false)
+      end
+
+      # Same comment as above about potentially having 2 Participant records in different states at the same time.
+      it 'remove the Staff Account role in Canvas' do
+        expect(lms_client).to receive(:unassign_account_role).with(portal_user.id, CanvasConstants::STAFF_ACCOUNT_ROLE_ID).once
+        run_sync
       end
     end
 
@@ -275,7 +331,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
                portal_user: portal_user,
                salesforce_participant: sf_participant,
                salesforce_program: sf_program)
-          .send(:find_or_create_section, fellow_canvas_course_id, lms_section.name)
+          .send(:find_or_create_section, fellow_canvas_course_id, fellow_lms_section.name)
 
         expect(lms_client).not_to have_received(:create_lms_section)
       end
@@ -286,9 +342,9 @@ RSpec.describe SyncPortalEnrollmentForAccount do
                portal_user: portal_user,
                salesforce_participant: sf_participant,
                salesforce_program: sf_program)
-          .send(:find_or_create_section, fellow_canvas_course_id, lms_section.name)
+          .send(:find_or_create_section, fellow_canvas_course_id, fellow_lms_section.name)
 
-        expect(local_section).to eq(section)
+        expect(local_section).to eq(fellow_section)
       end
     end
 
@@ -296,13 +352,13 @@ RSpec.describe SyncPortalEnrollmentForAccount do
       before :each do
         allow(lms_client).to receive(:find_section_by).and_return(
           nil,  # first call
-          lms_section,  # second call, looking for the cohort-schedule section
+          fellow_lms_section,  # second call, looking for the cohort-schedule section
         )
       end
 
       context "when participant in cohort-schedule only" do
         before :each do
-          sf_participant.cohort_schedule = lms_section.name
+          sf_participant.cohort_schedule = fellow_lms_section.name
         end
 
         it "creates the Canvas section" do
@@ -311,7 +367,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
                  portal_user: portal_user,
                 salesforce_participant: sf_participant,
                 salesforce_program: sf_program)
-            .send(:find_or_create_section, fellow_canvas_course_id, lms_section.name)
+            .send(:find_or_create_section, fellow_canvas_course_id, fellow_lms_section.name)
 
           expect(lms_client).to have_received(:create_lms_section)
         end
@@ -322,7 +378,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
                  portal_user: portal_user,
                 salesforce_participant: sf_participant,
                 salesforce_program: sf_program)
-            .send(:find_or_create_section, fellow_canvas_course_id, lms_section.name)
+            .send(:find_or_create_section, fellow_canvas_course_id, fellow_lms_section.name)
 
           expect(lms_client).not_to have_received(:get_assignments)
           expect(lms_client).not_to have_received(:get_assignment_overrides)
@@ -335,20 +391,20 @@ RSpec.describe SyncPortalEnrollmentForAccount do
                 portal_user: portal_user,
                 salesforce_participant: sf_participant,
                 salesforce_program: sf_program)
-            .send(:find_or_create_section, fellow_canvas_course_id, lms_section.name)
+            .send(:find_or_create_section, fellow_canvas_course_id, fellow_lms_section.name)
 
-          expect(local_section).to eq(section)
+          expect(local_section).to eq(fellow_section)
         end
       end
 
       context "when participant in cohort" do
-        # lms_section should be the cohort-schedule section.
-        let(:lms_section) { CanvasAPI::LMSSection.new(11, "test cohort-schedule section") }
+        # fellow_lms_section should be the cohort-schedule section.
+        let(:fellow_lms_section) { CanvasAPI::LMSSection.new(11, "test cohort-schedule section") }
         let(:lms_cohort_section) { CanvasAPI::LMSSection.new(10, "test cohort section") }
-        let!(:section) { create(:section, course_id: course.id, canvas_section_id: lms_cohort_section.id, name: lms_cohort_section.name) }
+        let!(:fellow_section) { create(:section, course_id: fellow_course.id, canvas_section_id: lms_cohort_section.id, name: lms_cohort_section.name) }
 
         before :each do
-          sf_participant.cohort_schedule = lms_section.name
+          sf_participant.cohort_schedule = fellow_lms_section.name
           sf_participant.cohort = lms_cohort_section.name
           allow(lms_client).to receive(:create_lms_section).and_return(lms_cohort_section)
         end
@@ -373,7 +429,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
             .send(:find_or_create_section, fellow_canvas_course_id, lms_cohort_section.name)
 
           expect(lms_client).to have_received(:get_assignments)
-          expect(lms_client).to have_received(:get_assignment_overrides).exactly(lms_assignments.count).times
+          expect(lms_client).to have_received(:get_assignment_overrides).exactly(fellow_lms_assignments.count).times
           expect(lms_client).to have_received(:create_assignment_overrides).once
         end
 
@@ -385,7 +441,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
                 salesforce_program: sf_program)
             .send(:find_or_create_section, fellow_canvas_course_id, lms_cohort_section.name)
 
-          expect(local_section).to eq(section)
+          expect(local_section).to eq(fellow_section)
         end
       end
     end

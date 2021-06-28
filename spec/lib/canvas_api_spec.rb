@@ -136,6 +136,40 @@ RSpec.describe CanvasAPI do
     end
   end
 
+  describe '#assign_account_role' do
+    let(:admin_obj) { create :canvas_staff_account }
+    let(:user_id) { admin_obj['user']['id'] }
+
+    it 'Sends POST to the Make Admin API endpoint with the right user and role' do
+      request_url = "#{CANVAS_API_URL}/accounts/#{CanvasAPI::DefaultAccountID}/admins"
+
+      stub_request(:post, request_url).to_return(body: admin_obj.to_json)
+
+      response = canvas.assign_account_role(user_id, admin_obj['role_id'])
+
+      expect(WebMock).to have_requested(:post, request_url).once
+      expect(response).to eq(admin_obj)
+    end
+  end
+
+  describe '#unassign_account_role' do
+    let(:admin_obj) { create :canvas_staff_account }
+    let(:user_id) { admin_obj['user']['id'] }
+
+    it 'Sends DELETE to the Remove Admin API endpoint with the right user and role' do
+      request_url = "#{CANVAS_API_URL}/accounts/#{CanvasAPI::DefaultAccountID}/admins/#{user_id}"
+
+      stub_request(:delete, request_url).to_return(body: admin_obj.to_json)
+
+      response = canvas.unassign_account_role(user_id, admin_obj['role_id'])
+
+      expect(WebMock).to have_requested(:delete, request_url).with(body: "role_id=#{admin_obj['role_id']}").once
+      expect(response).to eq(admin_obj)
+    end
+  end
+
+
+
   describe '#get_user_communication_channels' do
     let(:user_id) { 100 }
 
