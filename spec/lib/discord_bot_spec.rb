@@ -425,9 +425,19 @@ RSpec.describe DiscordBot do
       end
     end
 
+    context 'with list_misconfigured command' do
+      let(:message_content) { "#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:list_misconfigured]}" }
+
+      it 'calls the appropriate command function' do
+        expect(bot).to receive(:list_misconfigured_command).with(event).once
+        subject
+      end
+    end
+
     context 'with unknown command' do
-      it 'responds with only the unknown command message' do
+      it 'responds with the unknown command message' do
         expect(message).to receive(:respond).once
+        expect(message).not_to receive(:edit)
         subject
       end
     end
@@ -790,7 +800,6 @@ RSpec.describe DiscordBot do
       end
     end
 
-
     context 'with @mention' do
       # arbitrary user id
       let(:mentions) { [instance_double(Discordrb::User, id: 10)] }
@@ -910,6 +919,40 @@ RSpec.describe DiscordBot do
     end
   end
 
+  describe '.list_misconfigured_command' do
+    subject { bot.list_misconfigured_command(event) }
+
+    # Note: even members with "no roles" always have the @everyone role.
+    let(:no_roles) { [instance_double(Discordrb::Role, name: EVERYONE_ROLE)] }
+    let(:member) { instance_double(Discordrb::Member, id: 'fake-member-id', roles: no_roles, display_name: nil) }
+    let(:message) { instance_double(Discordrb::Message, content: message_content, edit: nil) }
+    let(:message_content) { "#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:list_misconfigured]} #{args}".strip }
+    let(:programs) { create(:salesforce_current_and_future_programs, canvas_course_ids: [1, 2]) }
+    let(:participant) { SalesforceAPI.participant_to_struct(create(:salesforce_participant_fellow)) }
+    let(:sf_client) { instance_double(SalesforceAPI,
+      get_current_and_future_accelerator_programs: programs,
+      find_participants_by: [participant],
+    ) }
+    let(:args) { "" }
+    # doesn't matter which program
+    let(:server_id) { programs['records'].first['Discord_Server_ID__c'] }
+    let(:server) { instance_double(Discordrb::Server, id: server_id, members: [member], invites: []) }
+    let(:event) { instance_double(Discordrb::Events::MessageEvent, server: server, author: member, message: message) }
+
+    before :each do
+      allow(SalesforceAPI).to receive(:client).and_return(sf_client)
+      allow(message).to receive(:respond).and_return(message)
+    end
+
+    it 'completes without error' do
+      expect(message).to receive(:respond).once
+      expect(message).to receive(:edit)
+      expect {
+        subject
+      }.not_to raise_error
+    end
+
+  end
 
   # Create invite
   describe '.create_invite' do

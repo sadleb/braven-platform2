@@ -31,6 +31,7 @@ BOT_COMMAND_KEY = '!'
 ADMIN_COMMANDS = {
   sync_salesforce: 'sync_salesforce',
   configure_member: 'configure_member',
+  list_misconfigured: 'list_misconfigured',
 }
 # Roles that are allowed to run admin commands.
 ADMIN_ROLES = [
@@ -328,10 +329,14 @@ class DiscordBot
       LOGGER.debug "configure_member command"
       Honeycomb.add_field('command', 'configure_member')
       configure_member_command(event)
+    when /^#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:list_misconfigured]}/
+      LOGGER.debug "list_misconfigured command"
+      Honeycomb.add_field('command', 'list_misconfigured')
+      list_misconfigured_command(event)
     else
       LOGGER.debug "unknown command"
       Honeycomb.add_field('command', 'unknown')
-      event.message.respond "Unknown command."
+      event.message.respond "Unknown command. Try: #{ADMIN_COMMANDS.values.join(', ')}"
     end
   rescue StandardError => e
     # Simplify error handling for bot commands.
@@ -604,6 +609,139 @@ class DiscordBot
         message_content << "\n✅ Deleted Discord Invite Code for Participant #{participant.id}..."
         message.edit(message_content)
       end
+    end
+
+    message_content << "\nAll done!"
+    message.edit(message_content)
+  end
+
+  # Usage:
+  #
+  # List members that may be un- or misconfigured, based on
+  #
+  # 1. Participants with an invite code that has >0 uses or has been deleted,
+  # and no Contact.Discord_User_ID__c;
+  # 2. Members with a Fellow or LC role that don't have a total of 3 roles
+  # (Participant role, Cohort role, Cohort schedule role);
+  # 3. Members with a CP or TA role that don't have a total of 1 role;
+  # 4. Members with no roles.
+  #
+  #   list_misconfigured
+  def list_misconfigured_command(event)
+    server = event.server
+
+    message_content = "Starting check for misconfigured members..."
+    message = event.message.respond(message_content)
+
+    # Figure out which program to use.
+    programs = SalesforceAPI.client.get_current_and_future_accelerator_programs
+    program = programs['records'].find { |program| program['Discord_Server_ID__c'].to_i == server.id.to_i }
+
+    if program.nil?
+      message_content << "\n❌ No Program found for this Discord server."
+      message_content << "\nFirst, sync this server with a Salesforce Program ID, like:"
+      message_content << "\n`#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:sync_salesforce]} a2Y11000002HY5mEAX`"
+      message.edit(message_content)
+      return
+    end
+    Honeycomb.add_field('program.id', program['Id'])
+
+    message_content << "\n✅ Found Program #{program['Id']}..."
+    message.edit(message_content)
+
+    # First, check Participants.
+    participants = SalesforceAPI.client.find_participants_by(program_id: program['Id'])
+    Honeycomb.add_field('participants.count', participants&.count)
+    message_content << "\nℹ️ Checking #{participants.count} program participants..."
+    message.edit(message_content)
+    unmatched_participants = []
+    uninvited_participants = 0
+    participants.each do |participant|
+      # 1. Participants with an invite code that has >0 uses or has been deleted,
+      # and no Contact.Discord_User_ID__c;
+      if participant.discord_invite_code && participant.discord_user_id.nil?
+        invite = server.invites.find { |i| i.code == participant.discord_invite_code }
+        if invite && invite.uses > 0
+          unmatched_participants << participant
+        elsif invite.nil?
+          unmatched_participants << participant
+        end
+      elsif participant.discord_invite_code.nil?
+        uninvited_participants += 1
+      end
+    end
+
+    message_content << "\nℹ️ Found #{uninvited_participants} participants without an invite."
+    message.edit(message_content)
+
+    if unmatched_participants.any?
+      message_content << "\n⚠️ Found #{unmatched_participants.count} participants with used"
+      message_content << " or deleted invites but no Discord User ID in their contact record:"
+      unmatched_participants.each do |participant|
+        message_content << "\n  **Participant**: `#{participant.id}`"
+        message_content << "\n  **Contact**: `#{participant.contact_id}`"
+        message_content << "\n  **Name**: #{participant.first_name} #{participant.last_name}"
+        message_content << "\n  **Discord invite code**: ||#{participant.discord_invite_code}||"
+        message_content << "\n"
+      end
+      message.edit(message_content)
+    else
+      message_content << "\n✅ Didn't find any issues with participants."
+      message.edit(message_content)
+    end
+
+    # Then, check Members.
+    members = server.members
+    message_content << "\nℹ️ Checking #{members.count} server members..."
+    message.edit(message_content)
+    Honeycomb.add_field('members.count', members.count)
+
+    wrong_role_members = []
+    no_role_members = []
+    members.each do |member|
+      # Note: roles.count is the number of expected roles, plus the @everyone role.
+      roles = member.roles
+      if (roles.any? { |r| r.name == FELLOW_ROLE } && roles.count != 4) ||
+          (roles.any? { |r| r.name == LC_ROLE } && roles.count != 4) ||
+          (roles.any? { |r| r.name == CP_ROLE } && roles.count != 2) ||
+          (roles.any? { |r| r.name == TA_ROLE } && roles.count != 2)
+        # 2. Members with a Fellow or LC role that don't have a total of 3 roles;
+        # 3. Members with a CP or TA role that don't have a total of 1 role.
+        wrong_role_members << member
+      elsif roles.count == 1
+        # 4. Members with no roles.
+        no_role_members << member
+      end
+    end
+
+    if wrong_role_members.any?
+      message_content << "\n⚠️ Found #{wrong_role_members.count} members with wrong roles:"
+      wrong_role_members.each do |member|
+        message_content << "\n  **Discord User ID**: `#{member.id}`"
+        message_content << "\n  **Display name**: `#{member.display_name}`"
+        roles = member.roles
+          .map { |role| role.name }
+          .filter { |name| name != EVERYONE_ROLE }
+          .join(', ')
+        message_content << "\n  Roles: #{roles}"
+        message_content << "\n"
+      end
+      message.edit(message_content)
+    end
+
+    if no_role_members.any?
+      message_content << "\n⚠️ Found #{no_role_members.count} members with no roles:"
+      no_role_members.each do |member|
+        message_content << "\n  **Discord User ID**: `#{member.id}`"
+        message_content << "\n  **Display name**: `#{member.display_name}`"
+        message_content << "\n"
+      end
+      message.edit(message_content)
+    end
+
+    if wrong_role_members.empty? && no_role_members.empty?
+      message_content << "\n✅ Didn't find any issues with members."
+      message.edit(message_content)
     end
 
     message_content << "\nAll done!"
