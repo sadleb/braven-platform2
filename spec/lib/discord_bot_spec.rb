@@ -434,6 +434,15 @@ RSpec.describe DiscordBot do
       end
     end
 
+    context 'with create_invite command' do
+      let(:message_content) { "#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:create_invite]}" }
+
+      it 'calls the appropriate command function' do
+        expect(bot).to receive(:create_invite_command).with(event).once
+        subject
+      end
+    end
+
     context 'with unknown command' do
       it 'responds with the unknown command message' do
         expect(message).to receive(:respond).once
@@ -952,6 +961,95 @@ RSpec.describe DiscordBot do
       }.not_to raise_error
     end
 
+  end
+
+  describe '.create_invite_command' do
+    subject { bot.create_invite_command(event) }
+
+    let(:server_id) { 123 }
+    let(:roles) { [ instance_double(Discordrb::Role, name: ADMIN_ROLES.first) ] }
+    let(:server) { instance_double(Discordrb::Server, id: server_id, invites: invites) }
+    let(:message) { instance_double(Discordrb::Message, content: message_content, edit: nil) }
+    let(:event) { instance_double(Discordrb::Events::MessageEvent, server: server, message: message) }
+    let(:invite) { instance_double(Discordrb::Invite, code: participant.discord_invite_code, delete: nil) }
+    let(:message_content) { "#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:create_invite]} #{args}".strip }
+    let(:programs) { create(:salesforce_current_and_future_programs, canvas_course_ids: [1, 2]) }
+    let(:participant) { SalesforceAPI.participant_to_struct(create(:salesforce_participant_fellow)) }
+    let(:sf_client) { instance_double(SalesforceAPI,
+      get_current_and_future_accelerator_programs: programs,
+      find_participant: nil,
+      update_participant: nil,
+    ) }
+    let(:invites) { [invite] }
+    let(:args) { "" }
+
+    before :each do
+      allow(SalesforceAPI).to receive(:client).and_return(sf_client)
+      allow(message).to receive(:respond).and_return(message)
+      bot.instance_variable_set(:@servers, {server.id => server})
+      allow(bot).to receive(:create_invite).and_return('fake code')
+    end
+
+    context 'with no arguments' do
+      it 'responds' do
+        expect(message).to receive(:respond)
+        subject
+      end
+
+      it 'does not try to get programs' do
+        expect(sf_client).not_to receive(:get_current_and_future_accelerator_programs)
+        subject
+      end
+    end
+
+    context 'with valid contact id argument' do
+      let(:args) { "#{participant.contact_id}" }
+
+      context 'with already linked program' do
+        # doesn't matter which program
+        let(:server_id) { programs['records'].first['Discord_Server_ID__c'].to_i }
+
+        before :each do
+          # doen't matter which program
+          allow(sf_client).to receive(:find_participant)
+            .with(contact_id: participant.contact_id, program_id: programs['records'].first['Id'])
+            .and_return(participant)
+        end
+
+        it 'tries to get participant' do
+          expect(sf_client).to receive(:find_participant)
+          subject
+        end
+
+        it 'tries to delete existing invite' do
+          expect(invite).to receive(:delete)
+          subject
+        end
+
+        it 'creates a new invite' do
+          expect(bot).to receive(:create_invite)
+          subject
+        end
+
+        it 'updates participant record' do
+          expect(sf_client).to receive(:update_participant)
+          subject
+        end
+      end
+
+      context 'with no linked program' do
+        it 'responds' do
+          expect(message).to receive(:respond)
+          expect(message).to receive(:edit)
+          subject
+        end
+
+        it 'does not try to get participant' do
+          expect(sf_client).not_to receive(:find_participant)
+          subject
+        end
+      end
+    end
   end
 
   # Create invite

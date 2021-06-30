@@ -32,6 +32,7 @@ ADMIN_COMMANDS = {
   sync_salesforce: 'sync_salesforce',
   configure_member: 'configure_member',
   list_misconfigured: 'list_misconfigured',
+  create_invite: 'create_invite',
 }
 # Roles that are allowed to run admin commands.
 ADMIN_ROLES = [
@@ -236,6 +237,8 @@ class DiscordBot
         # event.author could be a Member or a User, but the ID will be the same
         # either way.
         Honeycomb.add_field('member.id', event.author.id.to_s)
+        # Try to add the DN if this is a member.
+        Honeycomb.add_field('member.display_name', event.author.display_name) if event.author.respond_to?(:display_name)
 
         if event.message.author.roles.find { |r| ADMIN_ROLES.include? r.name }
           LOGGER.debug "Admin command"
@@ -333,6 +336,10 @@ class DiscordBot
       LOGGER.debug "list_misconfigured command"
       Honeycomb.add_field('command', 'list_misconfigured')
       list_misconfigured_command(event)
+    when /^#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:create_invite]}/
+      LOGGER.debug "create_invite command"
+      Honeycomb.add_field('command', 'create_invite')
+      create_invite_command(event)
     else
       LOGGER.debug "unknown command"
       Honeycomb.add_field('command', 'unknown')
@@ -744,6 +751,94 @@ class DiscordBot
       message.edit(message_content)
     end
 
+    message_content << "\nAll done!"
+    message.edit(message_content)
+  end
+
+  # Usage:
+  #
+  # Create an invite for a Contact's Participant in this server's
+  # Program. If the Participant already had an invite, makes sure
+  # that invite is deleted from this server first.
+  #
+  #   create_invite SF_CONTACT_ID
+  def create_invite_command(event)
+    server = event.server
+    command = event.message.content.split
+    args = command.drop(1)
+    contact_id = args.first
+
+    if args.count != 1
+      # Wrong arguments.
+      event.message.respond "Wrong arguments, not sure what to do." \
+        "\nTry `#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:create_invite]} SALESFORCE_CONTACT_ID`"
+      return
+    end
+
+    message_content = "Creating a new invite..."
+    message = event.message.respond(message_content)
+    Honeycomb.add_field('contact.id', contact_id)
+
+    # Figure out which program to use.
+    programs = SalesforceAPI.client.get_current_and_future_accelerator_programs
+    program = programs['records'].find { |program| program['Discord_Server_ID__c'].to_i == server.id.to_i }
+
+    if program.nil?
+      message_content << "\n❌ No Program found for this Discord server."
+      message_content << "\nFirst, sync this server with a Salesforce Program ID, like:"
+      message_content << "\n`#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:sync_salesforce]} a2Y11000002HY5mEAX`"
+      message.edit(message_content)
+      return
+    end
+    Honeycomb.add_field('program.id', program['Id'])
+
+    message_content << "\n✅ Found Program #{program['Id']}..."
+    message.edit(message_content)
+
+    # If we found a Program tied to this server, use that ID to fetch the Participant.
+    participant = SalesforceAPI.client.find_participant(contact_id: contact_id, program_id: program['Id'])
+    Honeycomb.add_field('participant.id', participant&.id)
+    if participant.nil?
+      message_content << "\n❌ No Participant found for Contact #{contact_id}, Program #{program['Id']}."
+      message.edit(message_content)
+      return
+    end
+
+    message_content << "\n✅ Found Participant #{participant.id} in Salesforce..."
+    message.edit(message_content)
+
+    # If we found a Participant, check its existing invite, and delete if needed.
+    if participant.discord_invite_code
+      invite = server.invites.find { |i| i.code == participant.discord_invite_code }
+      if invite
+        begin
+          invite.delete
+          Honeycomb.add_field('create_invite.invite_deleted', true)
+          message_content << "\nℹ️ Deleted existing invite ||#{invite.code}||."
+          message.edit(message_content)
+        rescue Discordrb::Errors::UnknownInvite
+          # Probably another instance of the bot got to it first.
+          LOGGER.debug "Invite already deleted"
+          Honeycomb.add_field('create_invite.invite_deleted', false)
+          message_content << "\nℹ️ Old invite ||#{invite.code}|| not found on this server."
+          message.edit(message_content)
+        end
+      else
+        Honeycomb.add_field('create_invite.invite_deleted', false)
+        message_content << "\nℹ️ Old invite ||#{participant.discord_invite_code}|| not found on this server."
+        message.edit(message_content)
+      end
+    end
+
+    # Create a new invite, and update the Participant record.
+    LOGGER.debug "Creating new invite for participant #{participant.id}"
+    invite_code = create_invite(server.id)
+    Honeycomb.add_field('invite.code', invite_code)
+    message_content << "\n✅ Created new invite ||#{invite_code}|| (||<https://discord.com/invite/#{invite_code}>||)..."
+    message.edit(message_content)
+
+    SalesforceAPI.client.update_participant(participant.id, {'Discord_Invite_Code__c': invite_code})
+    message_content << "\n✅ Updated Participant #{participant.id} in Salesforce..."
     message_content << "\nAll done!"
     message.edit(message_content)
   end
