@@ -193,6 +193,42 @@ class User < ApplicationRecord
     User.find_by(signup_token: encoded_signup_token)
   end
 
+  # Adds common Honeycomb fields to every span in the trace. Useful to be able to group
+  # any particular field you're querying for by user.
+  #
+  # IMPORTANT: if you need information on multiple users in a trace, DO NOT USE THIS.
+  # Whatever the values for the last user are will overwrite all the other user info.
+  # Instead, you can use add_to_honeycomb_span() for each user. You'll have to query for
+  # fields in that particular span to be able to group by user.
+  def add_to_honeycomb_trace
+    honeycomb_id_fields_map.each { |field, value| Honeycomb.add_field_to_trace(field, value) }
+    add_login_context_to_honeycomb_span()
+  end
+
+  # Adds common Honeycomb fields only to the current span. Useful if you need to add
+  # user information for multiple Users in a given trace.
+  #
+  # IMPORTANT: if you call add_to_honeycomb_trace() it will OVERWRITE the values sent here.
+  def add_to_honeycomb_span
+    honeycomb_id_fields_map.each { |field, value| Honeycomb.add_field(field, value) }
+    add_login_context_to_honeycomb_span()
+  end
+
+  # Adds user fields useful to troubleshoot login issues to the current span
+  def add_login_context_to_honeycomb_span
+    Honeycomb.add_field('user.registered?', registered?)
+    Honeycomb.add_field('user.confirmed?', confirmed?)
+    Honeycomb.add_field('user.unconfirmed_email', unconfirmed_email)
+  end
+
+  def honeycomb_id_fields_map
+    {
+      'user.id': id.to_s,
+      'user.email': email,
+      'salesforce.contact.id': salesforce_id,
+      'canvas.user.id': canvas_user_id.to_s,
+    }
+  end
 protected
 
   # Allow empty passowrds for non-registered users.

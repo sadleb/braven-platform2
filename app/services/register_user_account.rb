@@ -34,9 +34,6 @@ class RegisterUserAccount
 
   def run
     Honeycomb.start_span(name: 'register_user_account.run') do |span|
-      span.add_field('app.salesforce.contact.id', @user.salesforce_id)
-      span.add_field('app.user.id', @user.id)
-      span.add_field('app.user.email', @user.email)
       span.add_field('app.register_user_account.salesforce_email', @register_user_params[:email])
 
       # Mimic Devise's reset_password_by_token behavior for expired tokens.

@@ -21,8 +21,6 @@ class SyncUserEmailToCanvas
   end
 
   def run!
-    Honeycomb.add_field('user.email', @user.email)
-
     @canvas_login = CanvasAPI.client.get_login(@user.canvas_user_id)
     @canvas_login_email = @canvas_login['unique_id']
     Honeycomb.add_field('canvas.user.email', @canvas_login_email)

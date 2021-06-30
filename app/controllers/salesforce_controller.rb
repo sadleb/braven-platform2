@@ -62,16 +62,20 @@ class SalesforceController < ApplicationController
       # class here: https://github.com/beyond-z/salesforce/blob/master/src/classes/BZ_SyncContactsToCanvas.apxc
 
       @canvas_user_id = contact[:CanvasUserId]
-      Honeycomb.add_field('user.canvas_user_id', @canvas_user_id)
+      Honeycomb.add_field_to_trace('canvas.user.id', @canvas_user_id.to_s)
 
       @new_email = contact[:Email]
       # Note: we don't send these to Canvas. Rely on users do update their own names.
       @first_name = contact[:FirstName]
       @last_name = contact[:LastName]
       @salesforce_contact_id = contact[:ContactId]
+      Honeycomb.add_field_to_trace('salesforce.contact.id', @salesforce_contact_id)
 
       # Raise if not found so we don't change anything in Canvas.
       @user = User.find_by!(salesforce_id: @salesforce_contact_id)
+
+      # Overwrite the trace's user information with user we're syncing, not the running user.
+      @user&.add_to_honeycomb_trace()
 
       # Error out before making any changes if things are missing
       raise ArgumentError.new("Missing Email for: #{contact}") unless @new_email

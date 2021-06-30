@@ -26,6 +26,7 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
     # was valid. Just try to send an email if the user exists and then tell them
     # to check their email.
     user = find_user_by_uuid || find_user_by_confirmation_token
+    add_honeycomb_context(user)
     user&.send_confirmation_instructions
     redirect_to new_user_confirmation_path
   end
@@ -50,6 +51,10 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
     # if the token was invalid.
     user = User.confirm_by_token(params[:confirmation_token])
 
+    # Explicitly add this user to the trace since we didn't know who was hitting
+    # this endpoint until now.
+    add_honeycomb_context(user)
+
     if user.errors.empty?
       SyncUserEmailToCanvas.new(user).run!
       Rails.logger.info("Finished account confirmation for #{user.inspect}.")
@@ -69,7 +74,6 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
       # account, the button will work. If not, the button will act like it worked but do
       # nothing.
       Rails.logger.error("Confirmation error for #{user.inspect}. Errors = #{user.errors.full_messages}")
-      Honeycomb.add_field('user.email', user.email)
       Honeycomb.add_field('error', user.errors.class.name)
       Honeycomb.add_field('error_detail', user.errors.full_messages)
       Honeycomb.add_field('error_type', user.errors.first.type) # e.g. confirmation_period_expired
@@ -136,6 +140,11 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
 
   def configure_permitted_parameters
     devise_parameter_sanitizer.permit(:create, keys: [:uuid, :confirmation_token])
+  end
+
+  def add_honeycomb_context(user)
+    Honeycomb.add_field('user.present?', user.present?)
+    user&.add_to_honeycomb_trace()
   end
 
 end

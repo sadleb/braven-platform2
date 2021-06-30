@@ -11,8 +11,12 @@ RSpec.describe CasController, type: :controller do
   describe "RubyCAS routing" do
     let!(:valid_user) { create(:registered_user) }
     let(:valid_user_creds) {{ email: valid_user.email, password: valid_user.password }}
-    # Must be a page a non-admin user can access. The host is *ignored*, even if explicitly set.
-    let(:return_service) { 'http://braven/cas/login' }
+    # This is supposed to be something like:
+    # 'https://braven.instructure.com/login/cas'
+    # But the host is *ignored*, even if explicitly set. So set it to a platform path
+    # that will return a success response regardless of the request. Don't use
+    # '/cas/login' b/c it gets confusing in the logs when troubleshooting.
+    let(:return_service) { keypairs_path }
 
     it "fails validate a service ticket because no ticket specified" do
       # Attempt to validate the ticket
@@ -26,7 +30,7 @@ RSpec.describe CasController, type: :controller do
     end
 
     describe "/cas/validate" do
-      before(:each) do 
+      before(:each) do
         VCR.use_cassette('sso_ticket_invalid', :match_requests_on => [:path]) do
           visit "/cas/login?service=#{url_encode(return_service)}"
           fill_and_submit_login(username, password)
@@ -69,7 +73,7 @@ RSpec.describe CasController, type: :controller do
           it "fails validate a service ticket because it is consumed" do
             # Validate service ticket
             visit "/cas/validate?ticket=#{@params["ticket"]}&service=#{return_service}"
-  
+
             # Attempt to validate consumed service ticket
             visit "/cas/validate?ticket=#{@params["ticket"]}&service=#{return_service}"
             result = JSON.parse(page.body)

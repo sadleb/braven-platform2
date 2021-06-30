@@ -6,6 +6,7 @@ require 'canvas_api'
 class GradeModuleForUserJob < ApplicationJob
   queue_as :default
 
+  # Note a lot of this code is duplicated (but simplified) from app/services/grade_modules.rb.
   def perform(user, canvas_course_id, canvas_assignment_id)
 
     # TODO: only grade Modules and not things in the LC Playbook b/c it generates
@@ -13,8 +14,8 @@ class GradeModuleForUserJob < ApplicationJob
     # in Modules just so they can test it out though:
     # https://app.asana.com/0/1174274412967132/1199946751486950
 
-    # Note a lot of this code is duplicated (but simplified) from app/services/grade_modules.rb.
-    Honeycomb.add_field('user.id', user.id)
+    # Explicitly set the user context since this is a background job.
+    user.add_to_honeycomb_trace()
     Honeycomb.add_field('canvas.course.id', canvas_course_id)
     Honeycomb.add_field('canvas.assignment.id', canvas_assignment_id)
 

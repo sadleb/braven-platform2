@@ -44,6 +44,7 @@ class GradeModules
   end
 
   def grade_course(course)
+
     Honeycomb.start_span(name: 'grade_modules.grade_course') do |span|
       # We're doing some less-readable queries here because they're drastically
       # more efficient than using the more-readable model associations would be.
@@ -118,9 +119,12 @@ class GradeModules
       user_ids.each do |user_id|
         Honeycomb.start_span(name: 'grade_modules.grade_user') do
           Honeycomb.add_field('canvas.assignment.id', canvas_assignment_id)
+
+          # Note: it's important not to add the user info to the trace. The trace will
+          # have spans for many users. This is run from a job, so no current user context is set.
           Honeycomb.add_field('user.id', user_id)
           user = User.find(user_id)
-          Honeycomb.add_field('canvas.user.id', user.canvas_user_id)
+          user.add_to_honeycomb_span()
 
           interactions = Rise360ModuleInteraction.where(
             user: user,

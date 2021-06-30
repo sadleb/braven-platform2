@@ -27,9 +27,9 @@ class SyncPortalEnrollmentsForProgram
         # the block causes Honeycomb to automatically set the 'error' and 'error_detail' fields.
         Honeycomb.start_span(name: 'sync_portal_enrollments_for_program.sync_participant') do |span|
           span.add_field('app.sync_portal_enrollments_for_program.sync_participant_complete', false)
-          span.add_field('app.user.email', participant.email)
           span.add_field('app.salesforce.contact.id', participant.contact_id)
           span.add_field('app.salesforce.student.id', participant.student_id)
+          span.add_field('app.salesforce.program.id', participant.program_id)
 
           # Create local users here before calling SyncPortalEnrollmentForAccount.
           # Also sends signup token to Salesforce, and emails the user a signup link.
@@ -37,10 +37,6 @@ class SyncPortalEnrollmentsForProgram
 
           # Can happen if they were marked Dropped or Completed before having ever created their User
           next if user.blank?
-
-          span.add_field('app.user.id', user.id)
-          span.add_field('app.user.confirmed?', user.confirmed?)
-          span.add_field('app.user.registered?', user.registered?)
 
           SyncZoomLinksForParticipant.new(participant, @force_zoom_update).run
 
@@ -96,6 +92,7 @@ class SyncPortalEnrollmentsForProgram
 
   def find_or_set_up_user!(sf_participant)
     user = User.find_by(salesforce_id: sf_participant.contact_id)
+    Honeycomb.add_field('user.present?', user.present?)
 
     if user.blank?
       unless sf_participant.status == SalesforceAPI::ENROLLED
@@ -137,6 +134,10 @@ class SyncPortalEnrollmentsForProgram
         Honeycomb.add_field('sync_portal_enrollments_for_program.signup_email_sent', true)
       end
     end
+
+    # Be careful to only add this to the span. Since this is only run from a job, no
+    # user context is added to the trace which would overwrite these values.
+    user&.add_to_honeycomb_span()
 
     user
   end

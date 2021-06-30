@@ -18,7 +18,10 @@ class SyncPortalEnrollmentForAccount
   #
   # Note: canvas_role = [:StudentEnrollment, :TaEnrollment, :DesignerEnrollment, :TeacherEnrollment]
   def run
-    Honeycomb.add_field('salesforce.contact.id', @user.salesforce_id)
+
+    # Note: it's important not to add the user info to the trace. The trace may
+    # have spans for many users when run as part of sync_portal_enrollments_for_program
+    @user.add_to_honeycomb_span()
     Honeycomb.add_field('salesforce.participant.status', @sf_participant.status)
 
     logger.info("Started sync enrollment for #{sf_participant.email}")

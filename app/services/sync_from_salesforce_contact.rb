@@ -18,8 +18,6 @@ class SyncFromSalesforceContact
   # and Platform are in sync but somehow the Canvas login email get out of sync
   # (most likely an admin or engineer messing it up).
   def run!
-    Honeycomb.add_field('user.email', @user.email)
-    Honeycomb.add_field('user.unconfirmed_email', @user.unconfirmed_email)
     Honeycomb.add_field('salesforce.contact.email', @salesforce_contact.email)
 
     if @user.unconfirmed_email&.downcase == @salesforce_contact.email.downcase

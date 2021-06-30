@@ -21,6 +21,8 @@ class Users::PasswordsController < Devise::PasswordsController
     return super unless reset_password_token
 
     user = User.with_reset_password_token(reset_password_token)
+    add_honeycomb_context(user)
+
     if user.present? && !user.registered?
       # Since we've verified the token, and we know the user has not done
       # the sign_up flow yet, redirect to RegistrationsController#new to set
@@ -37,6 +39,7 @@ class Users::PasswordsController < Devise::PasswordsController
   def update
     # https://www.rubydoc.info/github/plataformatec/devise/Devise/PasswordsController#update-instance_method
     super do
+      add_honeycomb_context(resource)
       if resource.errors.any? { |e| e.attribute == :reset_password_token }
         # If the validation fails on token, whether because the token
         # didn't match any users, or was expired, redirect to the #new
@@ -71,4 +74,10 @@ class Users::PasswordsController < Devise::PasswordsController
     users_password_check_email_path
   end
 
+private
+
+  def add_honeycomb_context(user)
+    Honeycomb.add_field('user.present?', user.present?)
+    user&.add_to_honeycomb_trace()
+  end
 end

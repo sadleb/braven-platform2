@@ -171,10 +171,8 @@ class Users::RegistrationsController < Devise::RegistrationsController
   private
 
   def add_honeycomb_context(user)
-    Honeycomb.add_field('user.id', user&.id)
-    Honeycomb.add_field('user.email', user&.email)
-    Honeycomb.add_field('user.present?', user&.present?)
-    Honeycomb.add_field('user.registered?', user&.registered?)
+    Honeycomb.add_field('user.present?', user.present?)
+    user&.add_to_honeycomb_trace()
   end
 
 end

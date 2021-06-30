@@ -22,6 +22,14 @@ class CasController < ApplicationController
   # and thus get no benefit from authorization.
   skip_after_action :verify_authorized
 
+  # Skip the add_honeycomb_fields callback for this controller, since we won't be logged in
+  # and it tries to add information about the currently logged in user. Note: if you don't
+  # skip this, just the act of checking current_user or user_signed_in? causes the CAS
+  # validation to happen a second time which conflicts with our feature specs
+  # and these that use VCR with only 1 interaction recorded. I spent too long troubleshooting
+  # that before just adding this line.
+  skip_before_action :add_honeycomb_fields
+
   before_action :set_settings
   before_action :set_request_client
   before_action :set_params
@@ -416,12 +424,8 @@ private
   end
 
   def add_honeycomb_context(user)
-    Honeycomb.add_field('user.id', user&.id)
-    Honeycomb.add_field('user.email', user&.email)
-    Honeycomb.add_field('user.unconfirmed_email', user&.unconfirmed_email)
-    Honeycomb.add_field('user.present?', user&.present?)
-    Honeycomb.add_field('user.registered?', user&.registered?)
-    Honeycomb.add_field('user.confirmed?', user&.confirmed?)
+    Honeycomb.add_field('user.present?', user.present?)
+    user&.add_to_honeycomb_trace()
   end
 end
 

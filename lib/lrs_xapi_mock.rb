@@ -30,8 +30,6 @@ class LrsXapiMock
   def self.handle_request!(request, endpoint, user)
     Honeycomb.start_span(name: 'lrs_xapi_mock.handle_request!') do |span|
       Honeycomb.add_field('lrs_xapi_mock.path', "/#{endpoint}")
-      Honeycomb.add_field('user.id', user.id)
-      Honeycomb.add_field('user.email', user.email)
       Honeycomb.add_field('xapi.request.method', request.method)
 
       return unless request.method == 'GET' || request.method == 'PUT'
