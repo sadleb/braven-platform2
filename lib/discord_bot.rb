@@ -887,9 +887,8 @@ class DiscordBot
         # If they already had a code, they may have already signed up too;
         # check their contact record for a Discord User ID.
         # TODO: if this is returned by apex query now, don't fetch contact yet.
-        contact = SalesforceAPI.client.get_contact_info(participant.contact_id)
-        if contact && contact['Discord_User_ID__c']
-          user_id = contact['Discord_User_ID__c']
+        if participant.discord_user_id
+          user_id = participant.discord_user_id
           # They have already signed up; reassign roles, in case cohort mapping
           # happened after they signed up and they don't have cohort roles yet.
           # This also runs if people change cohorts, and will update their roles
@@ -898,7 +897,23 @@ class DiscordBot
           Honeycomb.add_field('member.id', user_id.to_s)
 
           member = get_member(server_id, user_id)
-          DiscordBot.configure_member_from_records(member, participant, contact) if member
+          if member
+            contact = SalesforceAPI.client.get_contact_info(participant.contact_id)
+            DiscordBot.configure_member_from_records(member, participant, contact)
+
+            # Make sure their invite is deleted too, since they're already in the server.
+            invite = @servers[server_id].invites.find { |i| i.code == participant.discord_invite_code }
+            if invite
+              begin
+                invite.delete
+                Honeycomb.add_field('sync_salesforce_participant.invite_deleted', true)
+              rescue Discordrb::Errors::UnknownInvite
+                # Probably another instance of the bot got to it first.
+                LOGGER.debug "Invite already deleted"
+                Honeycomb.add_field('sync_salesforce_participant.invite_deleted', false)
+              end
+            end
+          end
         end
       else
         # Otherwise, create a new one and save it to the Participant record.

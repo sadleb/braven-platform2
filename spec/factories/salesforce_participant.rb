@@ -8,6 +8,7 @@ FactoryBot.define do
     transient do
       sequence(:program_id) { |i| "a2Y1700000#{i}WLxqAUX" }
       sequence(:discord_invite_code) { |i| "code#{i}" }
+      sequence(:discord_user_id) { |i| "#{i}" }
       cohort_schedule_day { 'Monday' }
     end
 
@@ -29,6 +30,7 @@ FactoryBot.define do
     sequence(:ParticipantStatus) { 'Enrolled' }
     sequence(:StudentId) { |i| "TestSisId#{i}" }
     sequence(:DiscordInviteCode) { discord_invite_code }
+    sequence(:DiscordUserId) { discord_user_id }
     sequence(:ZoomPrefix) { |i| "ZoomPrefix#{1}" }
     sequence(:ZoomMeetingId1) { |i| "%010d" % i}
     sequence(:ZoomMeetingLink1) { nil }

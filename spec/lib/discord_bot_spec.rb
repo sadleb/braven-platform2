@@ -285,6 +285,8 @@ RSpec.describe DiscordBot do
     subject { bot.sync_salesforce }
 
     let(:member) { instance_double(Discordrb::Member, id: 'fake-member-id') }
+    let(:invite) { instance_double(Discordrb::Invite, code: participant1_with_discord.discord_invite_code, delete: nil) }
+    let(:server) { instance_double(Discordrb::Server, id: program1_with_discord['Discord_Server_ID__c'].to_i, invites: [invite]) }
     let(:programs) { create(:salesforce_current_and_future_programs, canvas_course_ids: [1, 2]) }
     let(:program1_with_discord) { create(:salesforce_program_record, program_id: programs['records'][0]['Id']) }
     let(:program2_without_discord) { create(:salesforce_program_record, program_id: programs['records'][1]['Id'], discord_server_id: nil) }
@@ -340,6 +342,7 @@ RSpec.describe DiscordBot do
 
       allow(bot).to receive(:create_invite).and_return(invite_code)
       allow(bot).to receive(:get_member)
+      bot.instance_variable_set(:@servers, {server.id => server})
       allow(DiscordBot).to receive(:configure_member_from_records)
     end
 
@@ -380,6 +383,14 @@ RSpec.describe DiscordBot do
       allow(participant1_with_discord).to receive(:contact_id).and_return(contact1_with_discord['Id'])
       allow(bot).to receive(:get_member).and_return(member)
       expect(DiscordBot).to receive(:configure_member_from_records).once
+      subject
+    end
+
+    it 'deletes invite after configuring member' do
+      allow(participant1_with_discord).to receive(:contact_id).and_return(contact1_with_discord['Id'])
+      allow(bot).to receive(:get_member).and_return(member)
+      expect(DiscordBot).to receive(:configure_member_from_records).once
+      expect(invite).to receive(:delete).once
       subject
     end
 
