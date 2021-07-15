@@ -47,11 +47,11 @@ RSpec.describe HoneycombJsController, type: :controller do
       end
 
       it "sets the user.id" do
-        expect(libhoney_event).to have_received(:add_field).with('app.user.id', user.id).once
+        expect(libhoney_event).to have_received(:add_field).with('app.user.id', user.id.to_s).once
       end
 
       it "sets the user.canvas_user_id" do
-        expect(libhoney_event).to have_received(:add_field).with('app.canvas.user.id', user.canvas_user_id).once
+        expect(libhoney_event).to have_received(:add_field).with('app.canvas.user.id', user.canvas_user_id.to_s).once
       end
 
       it "sets the user.email" do
