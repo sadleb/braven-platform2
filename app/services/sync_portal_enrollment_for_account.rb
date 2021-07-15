@@ -117,9 +117,9 @@ class SyncPortalEnrollmentForAccount
     section_name = section_name.blank? ? SectionConstants::DEFAULT_SECTION : section_name
     section = find_or_create_section(canvas_course_id, section_name)
 
-    Honeycomb.add_field('canvas.course.id', canvas_course_id)
+    Honeycomb.add_field('canvas.course.id', canvas_course_id.to_s)
     Honeycomb.add_field('canvas.section.name', section.name)
-    Honeycomb.add_field('canvas.section.id', section.canvas_section_id)
+    Honeycomb.add_field('canvas.section.id', section.canvas_section_id.to_s)
     Honeycomb.add_field('canvas.section.role', role)
 
     enrollment = find_user_enrollment(canvas_course_id)

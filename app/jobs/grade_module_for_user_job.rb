@@ -16,8 +16,8 @@ class GradeModuleForUserJob < ApplicationJob
 
     # Explicitly set the user context since this is a background job.
     user.add_to_honeycomb_trace()
-    Honeycomb.add_field('canvas.course.id', canvas_course_id)
-    Honeycomb.add_field('canvas.assignment.id', canvas_assignment_id)
+    Honeycomb.add_field('canvas.course.id', canvas_course_id.to_s)
+    Honeycomb.add_field('canvas.assignment.id', canvas_assignment_id.to_s)
 
     # Select the max id at the very beginning, so we can use it at the bottom to mark only things
     # before this as old. If we don't do this, we run the risk of marking things as old that we

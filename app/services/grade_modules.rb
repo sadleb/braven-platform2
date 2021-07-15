@@ -23,7 +23,7 @@ class GradeModules
         Rails.logger.info("Exit early: no current/future accelerator programs")
         return
       end
-      canvas_course_ids = programs['records'].map { |r| r['Canvas_Cloud_Accelerator_Course_ID__c'] }
+      canvas_course_ids = programs['records'].map { |r| r['Canvas_Cloud_Accelerator_Course_ID__c'].to_s }
       span.add_field('app.grade_modules.canvas_course_ids', canvas_course_ids)
 
       # Eliminate courses with no module interactions, and exit early if that
@@ -66,8 +66,8 @@ class GradeModules
         .where(course: course)
         .pluck(:canvas_assignment_id)
 
-      span.add_field('app.course.id', course.id)
-      span.add_field('app.canvas.course.id', course.canvas_course_id)
+      span.add_field('app.course.id', course.id.to_s)
+      span.add_field('app.canvas.course.id', course.canvas_course_id.to_s)
       span.add_field('app.grade_modules.users.count', user_ids.count)
       span.add_field('app.grade_modules.assignments.count', canvas_assignment_ids.count)
 
@@ -84,9 +84,9 @@ class GradeModules
       # Select course again, because it's not that expensive and saves us passing it in.
       course = CourseRise360ModuleVersion.find_by(canvas_assignment_id: canvas_assignment_id).course
 
-      span.add_field('app.canvas.assignment.id', canvas_assignment_id)
-      span.add_field('app.canvas.course.id', course.canvas_course_id)
-      span.add_field('app.course.id', course.id)
+      span.add_field('app.canvas.assignment.id', canvas_assignment_id.to_s)
+      span.add_field('app.canvas.course.id', course.canvas_course_id.to_s)
+      span.add_field('app.course.id', course.id.to_s)
 
       # Initialize map of grades[canvas_user_id] = 'X%'.
       grades = Hash.new
@@ -112,17 +112,18 @@ class GradeModules
       # haven't actually processed yet, causing students to get missing or incorrect grades.
       # NOTE: the `new` column should only be considered an estimate with +/- 1 day resolution.
       max_id = Rise360ModuleInteraction.maximum(:id)
-      span.add_field('app.grade_modules.interactions.max_id', max_id)
+      span.add_field('app.grade_modules.interactions.max_id', max_id.to_s)
       span.add_field('app.grade_modules.users.count', user_ids.count)
 
       # All users in the course, even if they haven't interacted with this assignment.
       user_ids.each do |user_id|
         Honeycomb.start_span(name: 'grade_modules.grade_user') do
-          Honeycomb.add_field('canvas.assignment.id', canvas_assignment_id)
+          Honeycomb.add_field('canvas.assignment.id', canvas_assignment_id.to_s)
 
           # Be careful to only add this to the span (with the prefix) b/c there is not a single
           # "user" associated with this trace. We're instrumenting information about multiple users.
           Honeycomb.add_field('grade_modules.user.id', user_id)
+
           user = User.find(user_id)
           user.add_to_honeycomb_span('grade_modules')
 

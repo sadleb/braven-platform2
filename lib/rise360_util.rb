@@ -12,7 +12,7 @@ class Rise360Util
   COURSE_XPATH = '//tincan/activities/activity[@type="http://adlnet.gov/expapi/activities/course"]'
 
   # The full request_uri, aka path (including query params) to be able to launch
-  # the Rise360 Module. 
+  # the Rise360 Module.
   #
   # The "filekey" is the "key" attribute of an ActiveStorage zipfile.
   # Aka the name of the zipfile on S3.
@@ -93,7 +93,7 @@ class Rise360Util
     Rails.logger.error("  Error: #{e}")
     Honeycomb.add_field('error', e.class.name)
     Honeycomb.add_field('error_detail', e.message)
-    Honeycomb.add_field('rise360_module.id', rise360_module.id)
+    Honeycomb.add_field('rise360_module.id', rise360_module.id.to_s)
   end
 
   class << self
@@ -103,7 +103,7 @@ class Rise360Util
     def s3_object_key(filekey, filename)
       [ S3_OBJECT_PREFIX, filekey, filename ].join("/")
     end
-  
+
   end
 
   # Wrapper for an AWS S3 bucket. Takes care of authentication.

@@ -53,7 +53,7 @@ class SyncPortalEnrollmentsForProgram
             next
           end
 
-          span.add_field('app.canvas.user.id', portal_user.id)
+          span.add_field('app.canvas.user.id', portal_user.id.to_s)
 
           sync_portal_enrollment!(user, portal_user, participant)
 

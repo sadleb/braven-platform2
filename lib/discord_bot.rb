@@ -360,7 +360,7 @@ class DiscordBot
       LOGGER.warn("Unconfigured members on server #{server_id}: #{members.map {|m| m.display_name}}")
       Honeycomb.add_field('server.id', server_id.to_s)
       Honeycomb.add_field('alert.unconfigured_members', true)
-      Honeycomb.add_field('alert.unconfigured_members.ids', members.map { |m| m.id })
+      Honeycomb.add_field('alert.unconfigured_members.ids', members.map { |m| m.id.to_s })
       Honeycomb.add_field('alert.unconfigured_members.display_names', members.map { |m| m.display_name })
     end
   end

@@ -8,7 +8,7 @@ require 'lti_launch'
 module LtiAuthentication
 
   class WardenStrategy < Warden::Strategies::Base
-    
+
     # True if this strategy should be run for this request
     def valid?
       @lti_state = fetch_state
@@ -28,7 +28,7 @@ module LtiAuthentication
         unless ll = LtiLaunch.is_valid?(@lti_state)
           status = :forbidden
           message = "LtiAuthentication::WardenStrategy couldn't find LtiLaunch with state = '#{@lti_state}'"
-          return finish_authenticate(span, status, message) 
+          return finish_authenticate(span, status, message)
         end
 
         url = ll.target_link_uri
@@ -43,7 +43,7 @@ module LtiAuthentication
         message = "LtiAuthentication::WardenStrategy done authenticating user_id = #{user.id}"
         unless ll.sessionless
           ll.sessionless = true
-          ll.save! 
+          ll.save!
         end
         return finish_authenticate(span, status, message, url, canvas_id, user)
       end
@@ -55,8 +55,7 @@ private
       span.add_field('app.lti_authentication.status', status&.to_s)
       span.add_field('app.lti_authentication.message', message)
       span.add_field('app.lti_authentication.url', url)
-      span.add_field('app.canvas.user.id', canvas_id)
-      span.add_field('app.user.id', user&.id)
+      user&.add_to_honeycomb_trace
 
       if status == :ok
         Rails.logger.debug(message)
@@ -69,7 +68,7 @@ private
 
     # There are 5 possible locations where the lti state may be stored in a request:
     # params[:state] is there for routes hit using LtiLaunchController
-    # params[:auth] is there when Rise360 packages load index.html. We piggyback off the "auth" query param that Rise 
+    # params[:auth] is there when Rise360 packages load index.html. We piggyback off the "auth" query param that Rise
     #               packages can be configured with and store it there when launching them.
     # request.headers[:authorization] is there for Ajax requests from both Rise360 and Projects. For Rise360 this
     #                                 is the result of configuring Tincan.js with the "auth" option in the launch.

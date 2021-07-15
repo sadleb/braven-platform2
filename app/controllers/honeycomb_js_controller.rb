@@ -65,14 +65,14 @@ class HoneycombJsController < ApplicationController
     elsif is_manual_beacon?
       span_name = "#{BOOMERANG_FIELD_PREFIX}.manual"
     else
-      span_name = BOOMERANG_FIELD_PREFIX 
+      span_name = BOOMERANG_FIELD_PREFIX
     end
 
     PropagatedSpan.new(span_name, existing_trace_to_add_to, duration).send_to_honeycomb() do |span|
 
       # Add some standard common server side accessible fields to make it easier to query for and analyze when troubleshooting.
-      span.add_field('app.user.id', current_user.id)
-      span.add_field('app.canvas.user.id', current_user.canvas_user_id)
+      span.add_field('app.user.id', current_user.id.to_s)
+      span.add_field('app.canvas.user.id', current_user.canvas_user_id.to_s)
       span.add_field('app.user.email', current_user.email)
       span.add_field('app.user.first_name', current_user.first_name)
       span.add_field('app.user.last_name', current_user.last_name)

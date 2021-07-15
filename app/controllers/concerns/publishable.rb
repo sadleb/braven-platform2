@@ -135,8 +135,8 @@ module Publishable
       raise PublishableError.new 'Failed to unpublish because there is student data associated with this model'
     end
 
-    Honeycomb.add_field('canvas.course.id', @course.canvas_course_id)
-    Honeycomb.add_field('canvas.assignment.id', canvas_assignment_id)
+    Honeycomb.add_field('canvas.course.id', @course.canvas_course_id.to_s)
+    Honeycomb.add_field('canvas.assignment.id', canvas_assignment_id.to_s)
 
     begin
       CanvasAPI.client.delete_assignment(

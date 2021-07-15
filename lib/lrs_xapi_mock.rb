@@ -39,8 +39,8 @@ class LrsXapiMock
       # assignments (e.g. Course Resources).
       raise LrsXapiMockError.new("no auth header") unless request.authorization&.start_with? LtiConstants::AUTH_HEADER_PREFIX
       lti_launch = get_lti_launch(request.authorization)
-      span.add_field('app.canvas.course.id', lti_launch.course_id)
-      span.add_field('app.canvas.assignment.id', lti_launch.assignment_id)
+      Honeycomb.add_field('canvas.course.id', lti_launch.course_id.to_s)
+      Honeycomb.add_field('canvas.assignment.id', lti_launch.assignment_id.to_s)
       unless lti_launch.course_id && lti_launch.assignment_id
         return {
           code: 403,  # Forbidden
@@ -139,7 +139,7 @@ private
       module_version = CourseRise360ModuleVersion
         .find_by(canvas_assignment_id: lti_launch.assignment_id)
         .rise360_module_version
-      Honeycomb.add_field('rise360_module_version.id', module_version.id)
+      Honeycomb.add_field('rise360_module_version.id', module_version.id.to_s)
 
       data = fix_broken_suspend_data(data, module_version.quiz_breakdown)
     end
