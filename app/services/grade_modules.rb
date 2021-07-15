@@ -120,11 +120,11 @@ class GradeModules
         Honeycomb.start_span(name: 'grade_modules.grade_user') do
           Honeycomb.add_field('canvas.assignment.id', canvas_assignment_id)
 
-          # Note: it's important not to add the user info to the trace. The trace will
-          # have spans for many users. This is run from a job, so no current user context is set.
-          Honeycomb.add_field('user.id', user_id)
+          # Be careful to only add this to the span (with the prefix) b/c there is not a single
+          # "user" associated with this trace. We're instrumenting information about multiple users.
+          Honeycomb.add_field('grade_modules.user.id', user_id)
           user = User.find(user_id)
-          user.add_to_honeycomb_span()
+          user.add_to_honeycomb_span('grade_modules')
 
           interactions = Rise360ModuleInteraction.where(
             user: user,

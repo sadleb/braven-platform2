@@ -21,7 +21,7 @@ class SyncPortalEnrollmentForAccount
 
     # Note: it's important not to add the user info to the trace. The trace may
     # have spans for many users when run as part of sync_portal_enrollments_for_program
-    @user.add_to_honeycomb_span()
+    @user.add_to_honeycomb_span('sync_portal_enrollment_for_account')
     Honeycomb.add_field('salesforce.participant.status', @sf_participant.status)
 
     logger.info("Started sync enrollment for #{sf_participant.email}")

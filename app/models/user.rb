@@ -208,9 +208,12 @@ class User < ApplicationRecord
   # Adds common Honeycomb fields only to the current span. Useful if you need to add
   # user information for multiple Users in a given trace.
   #
-  # IMPORTANT: if you call add_to_honeycomb_trace() it will OVERWRITE the values sent here.
-  def add_to_honeycomb_span
-    honeycomb_id_fields_map.each { |field, value| Honeycomb.add_field(field, value) }
+  # Note: you must pass in the 'caller_name', in other words the name of the calling class,
+  # so that we can prefix the standard field name. We do this b/c if add_to_honeycomb_trace()
+  # were called anywhere during the current trace, these values would be overwritten.
+  def add_to_honeycomb_span(caller_name)
+    raise ArgumentError.new("caller_name is blank") if caller_name.blank?
+    honeycomb_id_fields_map.each { |field, value| Honeycomb.add_field("#{caller_name}.#{field}", value) }
     add_login_context_to_honeycomb_span()
   end
 

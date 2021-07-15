@@ -334,6 +334,7 @@ class CasController < ApplicationController
 
     @success = !st.nil? && !@error
     @username = st.username if @success
+    Honeycomb.add_field_to_trace('user.email', @username)
 
     render(json: {success: @success, user: @username})
   end
@@ -346,6 +347,7 @@ class CasController < ApplicationController
 
     if @success
       @username = st.username
+      Honeycomb.add_field_to_trace('user.email', @username)
       if @pgt_url
         pgt = PGT.create @pgt_url, st, @request_client
         @pgtiou = pgt.iou if pgt
@@ -366,6 +368,7 @@ class CasController < ApplicationController
     @proxies = []
     if @success
       @username = pt.username
+      Honeycomb.add_field_to_trace('user.email', @username)
 
       if pt.kind_of? ProxyTicket
         st = ST.find_by(id: pt.service_ticket_id)
@@ -418,7 +421,10 @@ private
   end
 
   def set_loginpost_params
-    @username = params[:username].downcase.strip if params[:username]
+    if params[:username]
+      @username = params[:username].downcase.strip
+      Honeycomb.add_field_to_trace('user.email', @username)
+    end
     @password = params[:password]
     @lt = params[:lt]
   end

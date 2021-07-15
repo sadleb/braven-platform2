@@ -135,9 +135,9 @@ class SyncPortalEnrollmentsForProgram
       end
     end
 
-    # Be careful to only add this to the span. Since this is only run from a job, no
-    # user context is added to the trace which would overwrite these values.
-    user&.add_to_honeycomb_span()
+    # Be careful to only add this to the span b/c there is not a single "user" associated
+    # with this trace. We're instrumenting information about multiple users.
+    user&.add_to_honeycomb_span('sync_portal_enrollments_for_program')
 
     user
   end
