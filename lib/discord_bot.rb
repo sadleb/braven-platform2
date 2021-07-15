@@ -191,7 +191,7 @@ class DiscordBot
       # Send a message to the #general channel asking for Admin permissions.
       send_to_general(
         event.server.id,
-        "Please assign me Admin role to enable bot functionality."
+        "Please reorganize the bot role (as described in the Discord Guide setup instructions) to enable bot functionality."
       )
     end
   rescue StandardError => e
