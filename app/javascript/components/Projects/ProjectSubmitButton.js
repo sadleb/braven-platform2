@@ -6,7 +6,12 @@ import {
   Form,
   Button,
   Spinner,
-} from 'react-bootstrap'
+} from 'react-bootstrap';
+
+// Hack for half-React Projects (see packs/project_answers.js).
+const WRAPPER_DIV_ID = 'custom-content-wrapper';
+const SUBMISSION_DATA_ATTR = 'data-project-submission-id';
+const PROJECT_SUBMISSION_ID_REGEX = /\/project_submissions\/(?<id>\d+)\//;
 
 class ProjectSubmitButton extends React.Component {
   constructor(props) {
@@ -56,9 +61,16 @@ class ProjectSubmitButton extends React.Component {
         headers: {
           'X-CSRF-Token': Rails.csrfToken(),
         },
+        redirect: 'follow',
       },
      )
     .then((response) => {
+      // Hack for half-React Projects.
+      if (response.redirected) {
+        const newProjectSubmissionId = response.url.match(PROJECT_SUBMISSION_ID_REGEX).groups.id;
+        this._updateProjectSubmissionId(newProjectSubmissionId);
+      }
+
       this.setState({
         alert: response.ok ? this._successAlert() : this._errorAlert(),
         // If you've successfully submitted this project behavior, getting 
@@ -73,6 +85,12 @@ class ProjectSubmitButton extends React.Component {
         alert: this._errorAlert(),
       });
     });
+  }
+
+  // Hack for half-React Projects (see packs/project_answers.js).
+  _updateProjectSubmissionId(newProjectSubmissionId) {
+    const wrapperDiv = document.getElementById(WRAPPER_DIV_ID);
+    wrapperDiv.setAttribute(SUBMISSION_DATA_ATTR, newProjectSubmissionId);
   }
 
   _renderAlert() {

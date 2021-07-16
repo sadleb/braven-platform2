@@ -22,8 +22,17 @@ const SUPPORTED_INPUT_ELEMENTS = [
 export async function main() {
     const wrapperDiv = document.getElementById(WRAPPER_DIV_ID);
     const isReadOnly = wrapperDiv.attributes[READ_ONLY_ATTR].value;
-    const projectSubmissionId = wrapperDiv.attributes[SUBMISSION_DATA_ATTR].value;
-    const apiUrl = `/project_submissions/${projectSubmissionId}/project_submission_answers`;
+
+    function getProjectSubmissionId() {
+        // Half-React hack: Read the submission ID from the div every time we need it,
+        // in case the ProjectSubmitButton React component changed the ProjectSubmission
+        // out from under us (which it does every time you submit).
+        return wrapperDiv.attributes[SUBMISSION_DATA_ATTR].value;
+    }
+
+    function getApiUrl() {
+        return `/project_submissions/${getProjectSubmissionId()}/project_submission_answers`;
+    }
 
     function getAllInputs() {
         return document.querySelectorAll(SUPPORTED_INPUT_ELEMENTS.join(', '));
@@ -37,7 +46,7 @@ export async function main() {
     function prefillAnswers() {
 
         const honeySpan = new HoneycombXhrSpan(HONEYCOMB_CONTROLLER_NAME, 'prefillAnswers', {
-                                             'project_submission.id': projectSubmissionId,
+                                             'project_submission.id': getProjectSubmissionId(),
                                              'readonly': isReadOnly});
 
         const inputs = getAllInputs();
@@ -50,7 +59,7 @@ export async function main() {
         }
 
         return fetch(
-          apiUrl,
+          getApiUrl(),
           {
             method: 'GET',
             headers: {
@@ -60,7 +69,6 @@ export async function main() {
           },
          )
         .then((response) => {
-
             // Convert array of answer objects into map of {input_name: input_value}.
             response.json().then((answers) => {
                 const prefills = answers.reduce((map, obj) => {
@@ -141,14 +149,14 @@ export async function main() {
         };
 
         const honeySpan = new HoneycombXhrSpan(HONEYCOMB_CONTROLLER_NAME, 'sendAnswer', {
-                                             'project_submission.id': projectSubmissionId,
+                                             'project_submission.id': getProjectSubmissionId(),
                                              'readonly': isReadOnly,
                                              'input_name': inputName,
                                              'input_value': inputValue});
 
          // AJAX call to ProjectSubmissionAnswersController.
         fetch(
-          apiUrl,
+          getApiUrl(),
           {
             method: 'POST',
             body: JSON.stringify(data),
@@ -160,23 +168,29 @@ export async function main() {
           },
          )
         .then((response) => {
+            // Logging.
+            honeySpan.addField('response.status', response.status, false);
+
+            // Error handling.
+            if (!response.ok) {
+                // 4xx and 5xx responses should procede to the .catch below.
+                throw new Error(`HTTP Response ${response.status}`);
+            }
+
             // User feedback.
             input.classList.remove('autosave-input-error');
             input.dataset.lastSavedValue = input.value;
             inputAlert.innerHTML = "";
             if (getUnsavedInputs().length === 0) {
                 changeAutoSaveStatus('All progress saved.', 'autosave-status-success');
-                projectSubmitButtion.toggleEnabled(true);
+                projectSubmitButton.toggleEnabled(true);
             } else {
-                projectSubmitButtion.toggleEnabled(false);
+                projectSubmitButton.toggleEnabled(false);
                 changeAutoSaveStatus('Some answers are still unsaved! Look for those that say "Failed to save answer." and click Retry.', 'autosave-status-error');
             }
-
-            // Logging.
-            honeySpan.addField('response.status', response.status, false);
         })
         .catch((error) => {
-            projectSubmitButtion.toggleEnabled(false);
+            projectSubmitButton.toggleEnabled(false);
 
             // User feedback.
             input.classList.add('autosave-input-error');
@@ -201,7 +215,7 @@ export async function main() {
     /////////////////////////////
 
     // If no answers have been saved in the past, there won't be a submission or anything to pre-fill.
-    if (projectSubmissionId) {
+    if (getProjectSubmissionId()) {
         await prefillAnswers();
     }
 

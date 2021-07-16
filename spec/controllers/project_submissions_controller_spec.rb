@@ -144,7 +144,7 @@ RSpec.describe ProjectSubmissionsController, type: :controller do
       project_submission.update!(is_submitted: true)
       edit_request
       expect(response).to have_http_status(403)
-      expect(response.body).to match /Not allowed/
+      expect(response.body).to match /Permission Denied/
     end
 
   end

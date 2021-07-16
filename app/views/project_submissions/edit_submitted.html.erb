@@ -1,0 +1,9 @@
+<% content_for :title, 'Project' %>
+
+<h1>Permission Denied</h1>
+<p>Can't edit previous submissions.</p>
+<p>Try editing your
+<%= link_to 'latest submission', new_course_project_version_project_submission_path(
+  @course_project_version,
+  state: @lti_launch.state) %>
+instead.</p>

@@ -25,7 +25,7 @@ class ProjectSubmissionsController < ApplicationController
   # Note: this should only be called on unsubmitted submissions.
   def edit
     authorize @project_submission
-    render plain: 'Not allowed to edit previous submissions', status: 403 and return if @project_submission.is_submitted
+    render :edit_submitted, status: 403 and return if @project_submission.is_submitted
   end
 
   def submit
@@ -56,9 +56,11 @@ class ProjectSubmissionsController < ApplicationController
     )
     LtiAdvantageAPI.new(@lti_launch).create_score(lti_score)
 
-    redirect_to course_project_version_project_submission_path(
+    # After submitting successfully, redirect to #new to immediately create
+    # another unsubmitted submission.
+    # Note: This assumes Projects always allow resubmissions.
+    redirect_to new_course_project_version_project_submission_path(
       @course_project_version,
-      @project_submission,
       state: @lti_launch.state
     )
   end
