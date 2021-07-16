@@ -3,10 +3,16 @@
 <div class="row">
   <div class="col-md-10 offset-md-1">
     <h1>Confirmation failed</h1>
-    <p>Your confirmation link has expired, has already been used, or was invalid.</p>
+    <p>Your confirmation link has already been used, has expired, or was invalid.</p>
+
+    <p>If you have <strong>already confirmed your account</strong>, try <%= link_to 'logging in', cas_login_path(service: CanvasConstants::CANVAS_URL) %> instead.</p>
+  </div>
+</div>
+
+<div class="row py-0">
+  <div class="col-md-10 offset-md-1">
     <p>If you followed this link from an old email, and have not already confirmed your account, click the button below to try sending a new confirmation email.</p>
     <%= form_with(model: User, url: user_confirmation_path, html: { method: :post}) do |f| %>
-
       <div class="field">
         <%= f.hidden_field :confirmation_token, value: params[:confirmation_token] %>
       </div>
@@ -14,14 +20,6 @@
       <div class="actions">
         <%= f.submit "Resend confirmation email", class: 'btn btn-sm btn-secondary m-0 py-0' %>
       </div>
-
     <% end %>
-
-  </div>
-</div>
-
-<div class="row pt-1">
-  <div class="col-md-10 offset-md-1">
-    <p>If you have already confirmed your account, try <%= link_to 'logging in', cas_login_path %> instead.</p>
   </div>
 </div>

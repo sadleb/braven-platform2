@@ -33,10 +33,17 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
 
   # GET /resource/confirmation?confirmation_token=abcdef
   def show
-
-    # Taken from: https://github.com/heartcombo/devise/blob/5d5636f03ac19e8188d99c044d4b5e90124313af/lib/devise/models/confirmable.rb#L362
-    # which is what super does to look up the resource (aka user)
+    # Add info to Honeycomb, without revealing on the frontend
+    # whether this confirmation token was actually valid.
     user_before_confirmation = User.find_first_by_auth_conditions(confirmation_token: params[:confirmation_token])
+    add_honeycomb_context(user_before_confirmation)
+  end
+
+  # POST /resource/confirmation/confirm
+  def confirm
+    # Taken from: https://github.com/heartcombo/devise/blob/5d5636f03ac19e8188d99c044d4b5e90124313af/lib/devise/models/confirmable.rb#L362
+    # which is what confirmable#show does to look up the resource (aka user)
+    user_before_confirmation = find_user_by_confirmation_token
     rollback_params = {
       email: user_before_confirmation.email,
       unconfirmed_email: user_before_confirmation.unconfirmed_email,
@@ -49,7 +56,7 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
     # in other Devise paths that we've been stripping out.
     # Also note that confirm_by_token() returns a new empty User with errors set
     # if the token was invalid.
-    user = User.confirm_by_token(params[:confirmation_token])
+    user = User.confirm_by_token(confirmation_token_param)
 
     # Explicitly add this user to the trace since we didn't know who was hitting
     # this endpoint until now.
@@ -78,7 +85,7 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
       Honeycomb.add_field('error_detail', user.errors.full_messages)
       Honeycomb.add_field('error_type', user.errors.first.type) # e.g. confirmation_period_expired
       redirect_to users_confirmation_show_resend_path(
-        confirmation_token: params[:confirmation_token]
+        confirmation_token: confirmation_token_param
       ) and return
     end
   rescue RestClient::Exception => e
@@ -134,8 +141,12 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
   end
 
   # Note this uses the nested syntax expected in the #create action.
+  def confirmation_token_param
+    params.dig(:user, :confirmation_token)
+  end
+
   def find_user_by_confirmation_token
-    User.find_first_by_auth_conditions(confirmation_token: params[:user][:confirmation_token])
+    User.find_first_by_auth_conditions(confirmation_token: confirmation_token_param)
   end
 
   def configure_permitted_parameters

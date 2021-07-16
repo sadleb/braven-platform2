@@ -36,6 +36,7 @@ Rails.application.routes.draw do
     get 'users/registration', to: "users/registrations#show"
     post '/admin/users', to: 'users#create'
     get 'users/confirmation/show_resend', to: "users/confirmations#show_resend"
+    post 'users/confirmation/confirm', to: "users/confirmations#confirm"
   end
 
   get 'home/welcome'

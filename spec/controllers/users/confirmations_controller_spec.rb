@@ -75,17 +75,17 @@ RSpec.describe Users::ConfirmationsController, type: :controller do
     end
   end
 
-  # Note that #show is the endpoint that actually consumes a valid confirmation link
-  # and confirms them. It's a bit non-intuitive.
-  describe '#show' do
+  describe '#confirm' do
     let(:sync_email_service) { double(SyncUserEmailToCanvas, :run! => nil) }
 
     before(:each) do
       allow(SyncUserEmailToCanvas).to receive(:new).and_return(sync_email_service)
     end
 
-    subject(:run_show) do
-      get :show, params: { confirmation_token: token }
+    subject(:run_confirm) do
+      post :confirm, params: {
+        user: { confirmation_token: token }
+      }
     end
 
     shared_examples 'confirmation' do
@@ -98,13 +98,13 @@ RSpec.describe Users::ConfirmationsController, type: :controller do
         # end
 
         it 'confirms the user' do
-          run_show
+          run_confirm
           user.reload
           expect(user.confirmed?).to eq(true)
         end
 
         it 'creates CAS ServiceTicket after confirmation' do
-          run_show
+          run_confirm
           st = RubyCAS::Server::Core::Tickets::ServiceTicket.find_by(username: user.email, service: CanvasConstants::CAS_LOGIN_URL)
         end
 
@@ -122,7 +122,7 @@ RSpec.describe Users::ConfirmationsController, type: :controller do
             expected_redirect_url
           end
 
-          run_show
+          run_confirm
 
           expect(response).to redirect_to expected_redirect_url
         end
@@ -133,14 +133,14 @@ RSpec.describe Users::ConfirmationsController, type: :controller do
         it 'runs Canvas login email sync service' do
           expect(SyncUserEmailToCanvas).to receive(:new).with(user).and_return(sync_email_service).once
           expect(sync_email_service).to receive(:run!).once
-          run_show
+          run_confirm
         end
 
         context 'when Canvas API call fails' do
           it 'rolls back the User models confirmation and email columns' do
             user_before_conf = user
             allow(sync_email_service).to receive(:run!).and_raise(RestClient::Exception)
-            expect{ run_show }.to raise_error(RestClient::Exception)
+            expect{ run_confirm }.to raise_error(RestClient::Exception)
             expect(User.find(user.id)).to eq(user_before_conf)
           end
         end
@@ -155,7 +155,7 @@ RSpec.describe Users::ConfirmationsController, type: :controller do
 
         context 'when missing confirmation_token param' do
           it 'redirects to show_resend action' do
-            get :show, params: { }
+            post :confirm, params: { }
             expect(response).to redirect_to users_confirmation_show_resend_path(confirmation_token: token)
           end
         end
@@ -163,7 +163,7 @@ RSpec.describe Users::ConfirmationsController, type: :controller do
         context 'when blank token' do
           let(:token) { '' }
           it 'redirects to show_resend action' do
-            run_show
+            run_confirm
             expect(response).to redirect_to users_confirmation_show_resend_path(confirmation_token: token)
           end
         end
@@ -171,7 +171,7 @@ RSpec.describe Users::ConfirmationsController, type: :controller do
         context 'when token not in database' do
           let(:token) { 'aaaaa_something_fake' }
           it 'redirects to show_resend action' do
-            run_show
+            run_confirm
             expect(response).to redirect_to users_confirmation_show_resend_path(confirmation_token: token)
           end
         end
@@ -180,7 +180,7 @@ RSpec.describe Users::ConfirmationsController, type: :controller do
           let(:token) { user.confirmation_token }
           it 'redirects to show_resend action' do
             User.confirm_by_token(token)
-            run_show
+            run_confirm
             expect(response).to redirect_to users_confirmation_show_resend_path(confirmation_token: token)
           end
         end
@@ -189,7 +189,7 @@ RSpec.describe Users::ConfirmationsController, type: :controller do
           let(:token) { user.confirmation_token }
           it 'redirects to show_resend action' do
             user.update!(confirmation_sent_at: 1.year.ago)
-            run_show
+            run_confirm
             expect(response).to redirect_to users_confirmation_show_resend_path(confirmation_token: token)
           end
         end
@@ -221,7 +221,7 @@ RSpec.describe Users::ConfirmationsController, type: :controller do
 
         it 'updates the email attribute to be the unconfirmed_email' do
           expect(user.email).not_to eq(unconfirmed_email) # Sanity check
-          run_show
+          run_confirm
           user.reload
           expect(user.email).to eq(unconfirmed_email)
           expect(user.unconfirmed_email).to be(nil)
@@ -233,7 +233,7 @@ RSpec.describe Users::ConfirmationsController, type: :controller do
       end
 
     end
-  end # END #show
+  end # END #confirm
 
   # For security purposes, the #show_resend endpoint should not expose any information about the validity
   # of the token or the user account it may be tied to. It's generic and used for all invalid token scenarios
@@ -251,14 +251,14 @@ RSpec.describe Users::ConfirmationsController, type: :controller do
       shared_examples 'generic message' do
         it 'shows a generic message with no details about the validity of the token or account tied to it' do
           run_show_resend
-          expect(response.body).to match(/Your confirmation link has expired, has already been used, or was invalid/)
+          expect(response.body).to match(/Your confirmation link has already been used, has expired, or was invalid/)
         end
       end
 
       context 'when missing confirmation_token param' do
         it 'shows a generic message with no details about the validity of the token or account tied to it' do
           get :show_resend, params: { }
-          expect(response.body).to match(/Your confirmation link has expired, has already been used, or was invalid/)
+          expect(response.body).to match(/Your confirmation link has already been used, has expired, or was invalid/)
         end
       end
 

@@ -1,0 +1,18 @@
+<% content_for :title, 'Confirm Your Email' %>
+
+<div class="row">
+  <div class="col-md-10 offset-md-1">
+    <h1>Confirm Your Email</h1>
+    <p>To confirm your email address, click the button below.</p>
+
+    <%= form_with(model: User, url: users_confirmation_confirm_path, html: {method: :post}) do |f| %>
+      <div class="field">
+        <%= f.hidden_field :confirmation_token, value: params[:confirmation_token] %>
+      </div>
+
+      <div class="actions">
+        <%= f.submit "Confirm", class: 'btn btn-primary' %>
+      </div>
+    <% end %>
+  </div>
+</div>
