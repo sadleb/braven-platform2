@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_06_23_150932) do
+ActiveRecord::Schema.define(version: 2021_07_19_182659) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
@@ -81,6 +81,64 @@ ActiveRecord::Schema.define(version: 2021_06_23_150932) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.string "event_type"
+  end
+
+  create_table "canvas_rubric_criterion", force: :cascade do |t|
+    t.bigint "canvas_rubric_id", null: false
+    t.string "canvas_criterion_id", null: false
+    t.string "description"
+    t.string "long_description"
+    t.float "points"
+    t.string "title"
+    t.datetime "created_at", precision: 6, default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.datetime "updated_at", precision: 6, default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.index ["canvas_rubric_id", "canvas_criterion_id"], name: "index_canvas_criterion_unique_1", unique: true
+  end
+
+  create_table "canvas_rubric_ratings", force: :cascade do |t|
+    t.bigint "canvas_rubric_id", null: false
+    t.string "canvas_criterion_id", null: false
+    t.string "canvas_rating_id", null: false
+    t.string "description"
+    t.string "long_description"
+    t.float "points"
+    t.datetime "created_at", precision: 6, default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.datetime "updated_at", precision: 6, default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.index ["canvas_rubric_id", "canvas_criterion_id", "canvas_rating_id"], name: "index_canvas_rubric_ratings_unique_1", unique: true
+  end
+
+  create_table "canvas_rubrics", id: false, force: :cascade do |t|
+    t.bigint "canvas_rubric_id", null: false
+    t.float "points_possible"
+    t.string "title"
+    t.datetime "created_at", precision: 6, default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.datetime "updated_at", precision: 6, default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.index ["canvas_rubric_id"], name: "index_canvas_rubrics_on_canvas_rubric_id", unique: true
+  end
+
+  create_table "canvas_submission_ratings", force: :cascade do |t|
+    t.bigint "canvas_submission_id", null: false
+    t.string "canvas_criterion_id", null: false
+    t.string "canvas_rating_id", null: false
+    t.string "comments"
+    t.float "points"
+    t.datetime "created_at", precision: 6, default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.datetime "updated_at", precision: 6, default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.index ["canvas_submission_id", "canvas_rating_id", "canvas_criterion_id"], name: "index_canvas_submission_ratings_unique_1", unique: true
+  end
+
+  create_table "canvas_submissions", id: false, force: :cascade do |t|
+    t.bigint "canvas_submission_id", null: false
+    t.bigint "canvas_assignment_id", null: false
+    t.bigint "canvas_user_id", null: false
+    t.bigint "canvas_course_id", null: false
+    t.float "score"
+    t.string "grade"
+    t.datetime "graded_at"
+    t.boolean "late"
+    t.datetime "created_at", precision: 6, default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.datetime "updated_at", precision: 6, default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.index ["canvas_submission_id"], name: "index_canvas_submissions_on_canvas_submission_id", unique: true
   end
 
   create_table "capstone_evaluation_questions", force: :cascade do |t|

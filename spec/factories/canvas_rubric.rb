@@ -20,7 +20,7 @@ FactoryBot.define do
       context_type { 'Course' } 
       reusable { false }
       read_only { false }
-      data { build(:canvas_rubric_data) }
+      data { [ build(:canvas_rubric_data) ] }
   
       transient do
         sequence(:assignment_id)

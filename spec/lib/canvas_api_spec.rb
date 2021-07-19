@@ -364,6 +364,21 @@ RSpec.describe CanvasAPI do
     end
   end
 
+  describe '#get_submission_data' do
+    let(:course_id) { 100 }
+
+    it 'hits the Canvas API correctly' do
+      request_url = "#{CANVAS_API_URL}/courses/#{course_id}/students/submissions?include[]=rubric_assessment&student_ids[]=all"
+
+      stub_request(:get, request_url).to_return( body: "[]" )
+
+      response = canvas.get_submission_data(course_id)
+
+      expect(WebMock).to have_requested(:get, request_url).once
+      expect(response).to eq([])
+    end
+  end
+
   describe "#update_grades" do
     let(:course_id) { 111 }
     let(:assignment_id) { 222 }

@@ -122,6 +122,17 @@ class CanvasAPI
     graded_by_id.present? && graded_by_id != api_user_id
   end
 
+  # Get all submission data for a given course, for all assignments/users,
+  # including rubric data. This can take a while.
+  # https://canvas.instructure.com/doc/api/submissions.html#method.submissions_api.for_students
+  def get_submission_data(course_id)
+    response = get("/courses/#{course_id}/students/submissions", {
+      'include[]': 'rubric_assessment',
+      'student_ids[]': 'all'
+    })
+    get_all_from_pagination(response)
+  end
+
   # Batch updates grades for multiple users and one assignment using the Canvas Submissions API:
   # https://canvas.instructure.com/doc/api/submissions.html#method.submissions_api.update
   # grades_by_user_id: hash containing canvas_user_id => grade
@@ -498,6 +509,17 @@ class CanvasAPI
 #    JSON.parse(response)
 #  end
 
+
+  def get_course_rubrics_data(course_id)
+    response = get("/courses/#{course_id}/rubrics")
+    get_all_from_pagination(response)
+  end
+
+  def get_account_rubrics_data(account_id=DefaultAccountID)
+    response = get("/accounts/#{account_id}/rubrics")
+    get_all_from_pagination(response)
+  end
+
   # Note: unlike get_rubric(), you cannot pass an 'include[]=assignment_associations' parameter to
   # to see which rubrics are already associated with an assignment or not. You can however see that
   # info in the response to get_assigments().
@@ -505,8 +527,7 @@ class CanvasAPI
   # filter_out_already_associated: true to only return rubrics that are not already
   #                                associated (attached) to an assignment
   def get_rubrics(course_id, filter_out_already_associated = false)
-    response = get("/courses/#{course_id}/rubrics")
-    response_json = get_all_from_pagination(response)
+    response_json = get_course_rubrics_data(course_id)
     result = response_json.map { |r| LMSRubric.new(r['id'], r['title']) }
 
     if filter_out_already_associated

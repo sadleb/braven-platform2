@@ -1,0 +1,2 @@
+class CanvasSubmissionRating < ApplicationRecord
+end
