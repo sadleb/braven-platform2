@@ -95,7 +95,7 @@ class HoneycombJsController < ApplicationController
   # Standardize some Boomerang fields to Rails equivalents for easier querying.
   def translate_boomerang_fields(span)
     if params[:u] # "u" stands for "url"
-      pathinfo = URI(params[:u])
+      pathinfo = Addressable::URI.parse(params[:u])
       span.add_field("#{BOOMERANG_FIELD_PREFIX}.request.path", pathinfo.path)
       span.add_field("#{BOOMERANG_FIELD_PREFIX}.request.query_string", pathinfo.query)
     end

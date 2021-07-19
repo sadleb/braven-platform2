@@ -1,5 +1,5 @@
 # See https://github.com/ledermann/docker-rails/blob/develop/Dockerfile
-FROM ruby:2.6.6-alpine
+FROM ruby:2.7.2-alpine
 
 RUN apk add --update --no-cache \
     build-base \
@@ -23,6 +23,11 @@ WORKDIR /app
 ENV BUNDLE_PATH=/app/vendor/bundle
 
 COPY Gemfile Gemfile.lock /app/
+
+RUN bundle config --local frozen 1 && \
+    bundle config --local build.sassc --disable-march-tune-native && \
+    bundle install -j4 --retry 3
+
 RUN bundle install --path vendor/bundle --jobs 4 --frozen --no-deployment && cp Gemfile.lock /tmp
 
 COPY . /app/

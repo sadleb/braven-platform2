@@ -140,7 +140,7 @@ class FilterLogging
 
     # These are values coming from HoneycombJsController generated spans
     # from Boomerang payloads.
-    if fields['name'].start_with?('js.')
+    if fields['name']&.start_with?('js.')
       if fields.has_key?("#{BOOMERANG_FIELD_PREFIX}.request.query_string")
         fields["#{BOOMERANG_FIELD_PREFIX}.request.query_string"] =
           parameter_filter.filter_param('url', fields["#{BOOMERANG_FIELD_PREFIX}.request.query_string"])
@@ -154,7 +154,7 @@ class FilterLogging
     end
 
     # RestClient
-    if fields['name'].start_with?('restclient')
+    if fields['name']&.start_with?('restclient')
       if fields.has_key?('restclient.request.header') && fields['restclient.request.header']['Authorization']
         fields['restclient.request.header']['Authorization'] = FILTERED
       end

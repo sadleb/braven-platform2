@@ -13,7 +13,7 @@ GIT
 
 GIT
   remote: https://github.com/bebraven/rubycas-server-core.git
-  revision: a9ec315e242a3efb88ed2f5dcf01a51b9d238f78
+  revision: 1eb8dd2fe27d213a0ea96a209a07240c0f222559
   branch: platform-compat
   specs:
     rubycas-server-core (0.2.1)
@@ -610,7 +610,7 @@ DEPENDENCIES
   will_paginate
 
 RUBY VERSION
-   ruby 2.6.6p146
+   ruby 2.7.2p137
 
 BUNDLED WITH
-   1.17.3
+   2.1.4
