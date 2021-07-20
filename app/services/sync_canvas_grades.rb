@@ -41,6 +41,15 @@ class SyncCanvasGrades
             Rails.logger.info("Found #{submission['rubric_assessment'].length} rubric_assessments")
             submission['rubric_assessment'].each do |canvas_criterion_id, assessment_value|
               Rails.logger.info("Syncing rating for canvas_submission_id=#{data[:canvas_submission_id]}, canvas_rating_id=#{assessment_value['rating_id']}")
+
+              # Sometimes the rating id is nil. Only seen this on one test user,
+              # so maybe an isolated case? Send some stats to Honeycomb just in case.
+              unless assessment_value['rating_id']
+                Honeycomb.add_field('sync_canvas_grades.no_rating_id', true)
+                Honeycomb.add_field('sync_canvas_grades.assessment_value', assessment_value)
+                next
+              end
+
               rating_data = {
                 canvas_submission_id: data[:canvas_submission_id],
                 canvas_criterion_id: canvas_criterion_id,
