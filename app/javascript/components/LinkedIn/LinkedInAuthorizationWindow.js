@@ -20,13 +20,23 @@ class LinkedInAuthorizationWindow extends React.Component {
     // authorization flow and the controller has handled the accept/reject
     // from them.
     if (!this.props.displayUrl) {
-      // TODO: https://app.asana.com/0/1174274412967132/1193832365458401
-      // Add some sort of confirmation message before we shut down the
-      // pop-up. E.g.:
-      // setTimeout(function(){window.close()}, 5000);
-      // return <someUI />;
-      window.close();
-      return null;
+      const params = (new URL(window.location)).searchParams;
+      if (params.has('error')) {
+        // The user declined the authorization, or some other error
+        // occured. They've already been informed about the error
+        // by the LinkedIn flow, so we can just close immediately.
+        window.close();
+        return null;
+      } else {
+        // Briefly show a success message before we shut down the
+        // pop-up.
+        setTimeout(function(){ window.close(); }, 5000);
+        return <div>
+          <h1>Success!</h1>
+          <p>You authorized Braven to access your LinkedIn data.</p>
+          <p>You can now close this window, or it will close automatically in a few seconds.</p>
+        </div>;
+      }
     }
 
     // Render LinkedIn's authorization page in pop-up
