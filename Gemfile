@@ -126,6 +126,7 @@ gem 'attr_encrypted'
 
 gem 'aws-sdk-s3'
 gem 'rubyzip'
+gem 'rexml'
 
 gem 'rails_same_site_cookie'
 

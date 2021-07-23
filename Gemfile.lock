@@ -563,6 +563,7 @@ DEPENDENCIES
   rails_same_site_cookie
   react-rails
   rest-client
+  rexml
   rolify
   rspec-rails (~> 5.0.0)
   rubocop
