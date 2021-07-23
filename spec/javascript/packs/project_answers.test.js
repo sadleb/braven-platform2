@@ -84,10 +84,12 @@ test('prefills radio answers', async () => {
     setupHtml(projectSubmissionId, false, `
         <fieldset>
           <div class="custom-content-radio-div">
-            <input type="radio" value="radio-value-1" name="${inputName}">
+            <input type="radio" value="radio-value-1" name="${inputName}" id="radio-1">
+            <label for="radio-1">one</label>
           </div>
           <div class="custom-content-radio-div">
-            <input type="radio" value="radio-value-2" name="${inputName}">
+            <input type="radio" value="radio-value-2" name="${inputName}" id="radio-2">
+            <label for="radio-2">two</label>
           </div>
         </fieldset>
     `);

@@ -39,7 +39,9 @@ export async function main() {
     }
 
     function getUnsavedInputs() {
-        const unsaved_selectors = SUPPORTED_INPUT_ELEMENTS.map( e => `${e}.autosave-input-error` );
+        const unsaved_selectors = SUPPORTED_INPUT_ELEMENTS.map(e =>
+            `${e}.autosave-input-error, .autosave-input-error ${e}`
+        );
         return document.querySelectorAll(unsaved_selectors.join(', '));
     }
 
@@ -110,7 +112,15 @@ export async function main() {
     // Remove this if/when we redo in React.
     function attachInputFeedback() {
         getAllInputs().forEach(input => {
-            input.insertAdjacentHTML('afterend',
+            var element;
+            if (input.type === "radio") {
+                // For radio buttons, put the alert div after the label.
+                element = input.parentElement.querySelector('label');
+            } else {
+                // For other input types, put the alert immediately after the input.
+                element = input;
+            }
+            element.insertAdjacentHTML('afterend',
                 '<div class="autosave-alert" role="alert" aria-live="polite"></div>'
             );
         });
@@ -124,6 +134,12 @@ export async function main() {
 
     function sendAnswer(e) {
         const input = e.target;
+        // The "question target" is an element representing a single question,
+        // on which error classes, last saved values, etc can be set. Most of
+        // the time, this is the input itself, but for radios, it's the
+        // fieldset ancestor.
+        const questionTarget = input.type === "radio" ?
+            input.closest('fieldset') : input;
         const lastSavedValue = input.dataset.lastSavedValue;
 
         // Exit if the value hasn't changed from the last saved one.
@@ -136,7 +152,11 @@ export async function main() {
 
         const inputName = input.name;
         const inputValue = input.value;
-        const inputAlert = input.nextElementSibling; // div.autosave-alert
+        // Alert div is the next sibling on most inputs, but is placed after
+        // the label for radio inputs.
+        const inputAlert = input.type === "radio" ?
+            input.parentElement.querySelector('div.autosave-alert') :
+            input.nextElementSibling;
 
         // Display saving indicator.
         changeAutoSaveStatus('Saving...', 'autosave-status-saving');
@@ -178,8 +198,8 @@ export async function main() {
             }
 
             // User feedback.
-            input.classList.remove('autosave-input-error');
-            input.dataset.lastSavedValue = input.value;
+            questionTarget.classList.remove('autosave-input-error');
+            questionTarget.dataset.lastSavedValue = input.value;
             inputAlert.innerHTML = "";
             if (getUnsavedInputs().length === 0) {
                 changeAutoSaveStatus('All progress saved.', 'autosave-status-success');
@@ -193,7 +213,7 @@ export async function main() {
             projectSubmitButton.toggleEnabled(false);
 
             // User feedback.
-            input.classList.add('autosave-input-error');
+            questionTarget.classList.add('autosave-input-error');
             inputAlert.innerHTML = "Failed to save answer. <a href='#'>Retry?</a>";
             inputAlert.querySelector('a').onclick = () => { 
                 // clicking the Retry on any of the failed answers retries them all
