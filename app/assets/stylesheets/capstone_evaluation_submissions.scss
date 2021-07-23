@@ -16,10 +16,14 @@ div.capstone-evaluation-container {
   max-width: $grid-breakpoint-md;
 
   // Switch to vertical layout
-  @media (max-width: 752px){ 
+  @media (max-width: 752px){
     .capstone-evaluation-radios {
-      display: block; 
+      display: block;
     }
+  }
+
+  @media (min-width: 753px){
+    padding: 1.4rem 0 1.4rem;
   }
 
   fieldset.single-capstone-evaluation-wrapper {
