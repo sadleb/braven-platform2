@@ -12,8 +12,8 @@ class User < ApplicationRecord
   # Note: there is also a :trackable configuration if we want more info on sign-in activity.
   devise :cas_authenticatable, :rememberable, :registerable, :confirmable, :validatable, :recoverable
 
-  # Add secret fields here to exclude them from serialization/printing.
-  Devise::Models::Authenticatable::UNSAFE_ATTRIBUTES_FOR_SERIALIZATION += [
+  # Add secret fields to exclude them from serialization/printing in addition to Devise's default ones.
+  UNSAFE_ATTRIBUTES_FOR_SERIALIZATION = [
     :signup_token, :signup_token_sent_at,
     :linked_in_access_token, :linked_in_state,
   ]
@@ -242,6 +242,12 @@ protected
   def password_required?
     return false unless registered?
     super
+  end
+
+  # Redefine method that filters sensitive fields when serializing/printing
+  # See: vendor/bundle/ruby/3.0.0/gems/devise-4.8.0/lib/devise/models/authenticatable.rb
+  def serializable_hash(options = nil)
+    super({:except => UNSAFE_ATTRIBUTES_FOR_SERIALIZATION})
   end
 
 private

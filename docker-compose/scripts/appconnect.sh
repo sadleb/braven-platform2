@@ -1,2 +1,2 @@
 #!/bin/bash
-docker-compose exec platformweb /bin/sh
+docker-compose exec platformweb /bin/bash

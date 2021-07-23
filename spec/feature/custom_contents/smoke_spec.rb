@@ -4,14 +4,14 @@ require "capybara_helper"
 include ERB::Util
 include Rack::Utils
 
-RSpec.describe CustomContentsController, type: :routing do
+RSpec.describe CustomContentsController, type: :feature do
   let!(:valid_user) { create(:admin_user) }
   let(:valid_user_creds) {{ email: valid_user.email, password: valid_user.password }}
 
   describe "Content Editor Smoke Tests" do
     describe "/custom_contents/new loads ckeditor", :js do
       let(:return_service) { '/custom_contents/new' }
-      before(:each) do 
+      before(:each) do
         VCR.configure do |c|
           c.ignore_localhost = true
           # Must ignore the Capybara host IFF we are running tests that have browser AJAX requests to that host.
@@ -26,7 +26,7 @@ RSpec.describe CustomContentsController, type: :routing do
       context "when username and password are valid" do
         let(:username) { valid_user_creds[:email] }
         let(:password) { valid_user_creds[:password] }
-        
+
         it "loads the content editor and lists components" do
           expect(current_url).to include(return_service)
           expect(page).to have_title("Content Editor")

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 # Turn off automatic visual mode using the mouse
@@ -55,7 +55,7 @@ if [[ "${RAILS_ENV:-'development'}" == 'development' ]]; then
   # Note: there are some issues with the listen gem and certain editors
   # where gaurd won't detect changes made from the host machine on a Mac
   # inside the container when the volume is mounted. For VIM, you need to add
-  #   set backupcopy=yes 
+  #   set backupcopy=yes
   # in your .vimrc
   # See: https://github.com/guard/listen/issues/434
   # Also, if you force polling it will absolutely destroy your CPU.
@@ -66,7 +66,7 @@ else
   echo "Precompiling assets in production mode"
   bundle exec rake assets:precompile
 
-  # Puma expect this folder to already exist and don't create 
+  # Puma expect this folder to already exist and don't create
   mkdir -p /app/tmp/pids/
 
   echo "Starting the rails app using puma"

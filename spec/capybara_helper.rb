@@ -1,3 +1,5 @@
+require 'capybara/rails'
+
 RSpec.configure do |config|
   config.include Capybara::DSL
 end
@@ -17,8 +19,8 @@ chrome_host = ENV.fetch('SELENIUM_HOST', nil)
 if chrome_shim
   Selenium::WebDriver::Chrome.path = chrome_shim
 
-  chrome_opts = chrome_shim ? { "chromeOptions" => { "binary" => chrome_shim, "remote-debugging-port" => "9222", "headless" => true } } : {}
-  puts chrome_opts
+  chrome_opts = chrome_shim ? { "goog:chromeOptions" => { "binary" => chrome_shim } } : {}
+  puts "### chrome_opts = #{chrome_opts}"
 
   Capybara.register_driver :chrome do |app|
     Capybara::Selenium::Driver.new(
@@ -46,7 +48,7 @@ elsif chrome_host # If you're running it in a docker container and have to conne
   end
 
   Capybara.javascript_driver = :selenium
-  
+
 else # Assumes your running it on localhost and have Chrome installed on your machine.
   Capybara.javascript_driver = :selenium_chrome_headless
 end

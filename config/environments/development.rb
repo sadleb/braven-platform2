@@ -85,7 +85,7 @@ Rails.application.configure do
   # config.action_cable.disable_request_forgery_protection = true
 
   # Host Authorization was introduced in Rails 6 to prevent against DNS.
-  # 0.0.0.0 and localhost are permitted, but we aren't using those to 
+  # 0.0.0.0 and localhost are permitted, but we aren't using those to
   # communicate across containers. This line allows connection via the
   # specified name.
   config.hosts << "platformweb"
@@ -107,7 +107,7 @@ Rails.application.configure do
   # When running in Docker, the subnets may not be the default 127.0.0.1 for localhost.
   # So we need to whitelist whatever subnet the docker network is using in order for
   # the web-console gem to work.
-  config.web_console.whitelisted_ips = Socket.ip_address_list.reduce([]) do |res, addrinfo|
+  config.web_console.allowed_ips = Socket.ip_address_list.reduce([]) do |res, addrinfo|
     addrinfo.ipv4? ? res << IPAddr.new(addrinfo.ip_address).mask(24) : res
   end
 end

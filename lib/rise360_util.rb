@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 require 'nokogiri'
+require 'zip'
 
 # Provides helper methods to unzip, publish, and launch Rise360Module
 # and CourseResource on AWS S3
@@ -29,7 +30,7 @@ class Rise360Util
   def self.presigned_url(launch_path)
     bucket = AwsS3Bucket.new
     launch_path.slice!(0) # Remove leading slash
-    bucket.object(URI.unescape(launch_path)).presigned_url(:get, expires_in: 1.hour.to_i)
+    bucket.object(CGI.unescape(launch_path)).presigned_url(:get, expires_in: 1.hour.to_i)
   end
 
   # Publishes an ActiveStorage zipfile (with a "key" attribute)

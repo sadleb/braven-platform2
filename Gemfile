@@ -3,19 +3,22 @@
 source 'https://rubygems.org'
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby '~> 2.7'
+ruby '~> 3.0'
 gem 'rails', '~> 6.1.0'
 
 gem 'pg'
 
 # Use Puma as the app server
-gem 'puma', '~> 3.12'
+gem 'puma', '~> 5.3', '>= 5.3.2'
 # Use SCSS for stylesheets
 gem 'sass-rails', '~> 5'
+
+#TODO: see if webpacker can be upgraded. Had issues before
 # Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker
 gem 'webpacker', '~> 4.0'
 # Turbolinks makes navigating your web application faster. Read more: https://github.com/turbolinks/turbolinks
 gem 'turbolinks', '~> 5'
+
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 gem 'jbuilder', '~> 2.7'
 
@@ -28,7 +31,7 @@ group :development, :test do
 
   gem 'dotenv'
   gem 'factory_bot_rails'
-  gem 'rspec-rails', '~> 4.0.2'
+  gem 'rspec-rails', '~> 5.0.0'
   gem 'shoulda-matchers'
 end
 
@@ -55,13 +58,16 @@ group :development do
   gem 'rubocop-performance', require: false
   gem 'rubocop-rails', require: false
   gem 'rubocop-rspec', require: false
+
+  #TODO: see if I can upgrade this gem
   gem 'webpacker-react', '~> 1.0.0.beta.1'
 end
 
 group :test do
   # Adds support for Capybara system testing and selenium driver
   gem 'capybara', '>= 2.15'
-  gem 'selenium-webdriver'
+  # Note that v3 doesn't support Ruby 3 that well. See: https://github.com/SeleniumHQ/selenium/issues/9001
+  gem 'selenium-webdriver', '>= 4.0.0.beta4'
   # Easy installation and use of web drivers to run system tests with browsers
   gem 'webdrivers'
   # HTTP request mocking
@@ -104,19 +110,13 @@ gem 'rubycas-server-core', github: 'bebraven/rubycas-server-core', branch: 'plat
 
 # Honeycomb
 gem 'honeycomb-beeline'
-# Pin to 1.17 until we fix this https://app.asana.com/0/1174274412967132/1200007440513901/f.
-gem 'libhoney', '~> 1.17.0'
+gem 'libhoney'
 
 # Allows us to write rake tasks that can programatticaly run Heroku commands
 # using their API. E.g. create a task to restart a dyno so it can be run
 # in the middle of the night to avoid downtime when users are on the platform
 # See: https://github.com/heroku/platform-api
 gem 'platform-api', require: false
-
-# To develop locally, you can mount your local rowan_bot code as a volume in docker-compose.yml
-# and then change the following to this:
-# gem 'rowan_bot', path: '/app/rowan_bot'
-gem 'rowan_bot', github: 'bebraven/rowan_bot', ref: 'b078c0f'
 
 # Implementation of JSON Web Token (JWT) standard: https://github.com/jwt/ruby-jwt
 gem 'jwt'

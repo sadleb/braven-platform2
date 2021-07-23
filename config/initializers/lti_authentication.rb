@@ -1,4 +1,6 @@
 # frozen_string_literal: true
+Rails.configuration.to_prepare do
+
 require 'lti_launch'
 
 # This module is responsible for handling authentication for LtiLaunches that don't have access
@@ -95,3 +97,4 @@ private
   end
 end
 
+end # END to_prepare
