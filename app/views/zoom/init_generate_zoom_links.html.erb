@@ -18,17 +18,16 @@
         <li>If the link's will be used more than once (e.g. for Learning Labs), make sure you setup the "Recurring meeting" setting properly.</li>
       </ul>
       <p>Then, copy/paste the Meeting ID from the URL into the below field. E.g. if the meeting URL is:<br><code class="ml-3">https://us02web.zoom.us/meeting/85617845555</code><br>then you would enter<br><code class="ml-3">85617845555</code></p>
-      <p>Finally, upload a .csv of participants to generate links for with the following columns:</p>
+      <p>Finally, upload a .csv of participants to generate links for with the following columns (and ONLY the following columns, in this order):</p>
       <pre>    <strong>email</strong>,<strong>first_name</strong>,<strong>last_name</strong></pre>
       <p>OR <a href="generate_zoom_links_template.csv" download>download the template and populate it</a>.
       <div class="p-2 border border-danger">
       Some <strong>IMPORTANT</strong> gotchas when creating this spreadsheet:</p>
       <ul>
         <li>Do NOT add the person whose account was used to setup the meeting to the spreadsheet. It will FAIL.</li>
-        <li>Use one of the following programs to create the .csv. Other programs used to create the .csv are not supported and may FAIL:
+        <li>Use the template above to create the .csv or you can download a Google Sheet as a .csv. Other programs are not officially supported and MAY fail:
           <ul>
-            <li>Microsoft Excel on a Mac computer (downloaded through Office 365)</li>
-            <li>A Google Sheet that you download as a .csv</li>
+            <li class="mt-1">Make sure that only the above three columns (<code>email, first_name, last_name</code>) are in there and that they are in that order. Delete all other columns.</li>
           </ul>
         </li>
       <ul>
