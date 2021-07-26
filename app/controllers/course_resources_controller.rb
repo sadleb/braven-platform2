@@ -11,7 +11,7 @@ class CourseResourcesController < ApplicationController
 
   def lti_show
     authorize CourseResource
-    canvas_course_id = @lti_launch.request_message.custom['course_id']
+    canvas_course_id = @lti_launch.request_message.canvas_course_id
     course = Course.find_by(canvas_course_id: canvas_course_id)
     if course&.course_resource
       url = Addressable::URI.parse(course.course_resource.launch_url)

@@ -39,8 +39,7 @@ class LrsXapiMock
       # assignments (e.g. Course Resources).
       raise LrsXapiMockError.new("no auth header") unless request.authorization&.start_with? LtiConstants::AUTH_HEADER_PREFIX
       lti_launch = get_lti_launch(request.authorization)
-      Honeycomb.add_field('canvas.course.id', lti_launch.course_id.to_s)
-      Honeycomb.add_field('canvas.assignment.id', lti_launch.assignment_id.to_s)
+      lti_launch&.add_to_honeycomb_trace()
       unless lti_launch.course_id && lti_launch.assignment_id
         return {
           code: 403,  # Forbidden
@@ -205,7 +204,7 @@ private
       # Grade it now if they complete the module instead of waiting for the nightly task
       # so that they immediately see they get credit and feel good about that.
       if progress == 100
-        GradeModuleForUserJob.perform_later(user, rmi.canvas_course_id, rmi.canvas_assignment_id)
+        GradeModuleForUserJob.perform_later(user, lti_launch, rmi.canvas_course_id, rmi.canvas_assignment_id)
       end
     when Rise360ModuleInteraction::ANSWERED
       Rise360ModuleInteraction.create!(

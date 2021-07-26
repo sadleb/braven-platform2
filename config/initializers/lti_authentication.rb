@@ -10,10 +10,17 @@ require 'lti_launch'
 module LtiAuthentication
 
   class WardenStrategy < Warden::Strategies::Base
+    include Rails.application.routes.url_helpers
 
     # True if this strategy should be run for this request
     def valid?
+
+      # Don't run this if We're still doing the Lti Authentication handshake in the lti_launch_controller.
+      # The state doesn't become valid until the 'POST /lti/launch' finishes and redirects.
+      return false if request.path == lti_launch_path
+
       @lti_state = fetch_state
+      Honeycomb.add_field('app.lti_authentication.valid?', @lti_state.present?)
       @lti_state.present?
     end
 
@@ -29,7 +36,7 @@ module LtiAuthentication
         # https://app.asana.com/0/1174274412967132/1188248367583275
         unless ll = LtiLaunch.is_valid?(@lti_state)
           status = :forbidden
-          message = "LtiAuthentication::WardenStrategy couldn't find LtiLaunch with state = '#{@lti_state}'"
+          message = "LtiAuthentication::WardenStrategy couldn't find LtiLaunch using state value"
           return finish_authenticate(span, status, message)
         end
 

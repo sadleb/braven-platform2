@@ -144,9 +144,10 @@ RSpec.describe LrsXapiMock do
         it 'kicks off the module grading job' do
           expect(GradeModuleForUserJob).to have_received(:perform_later)
             .with(user,
+                  lti_launch,
                   lti_launch.request_message.canvas_course_id,
-                  lti_launch.request_message.custom['assignment_id']
-            ).once 
+                  lti_launch.request_message.canvas_assignment_id
+            ).once
         end
 
         it 'returns 204' do

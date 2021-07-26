@@ -34,9 +34,14 @@ class LtiLaunchController < ApplicationController
   def launch
     params.require([:id_token, :state])
 
-    # This also verifies the request is coming from Canvas using the public JWK 
+    # This also verifies the request is coming from Canvas using the public JWK
     # as described in Step 3 here: https://canvas.instructure.com/doc/api/file.lti_dev_key_config.html
     ll = LtiLaunch.authenticate(params[:state], params[:id_token])
+
+    # The launch redirects to the target url with the state param, so even though we call this
+    # here and it'll be in this trace, the real place where the LtiLaunch Honeycomb fields are
+    # being added for target endpoint is in app/controllers/application_controller.
+    ll&.add_to_honeycomb_trace()
 
     # Sign in the user on Platform. Note that if third party cookies aren't allowed in the
     # browser this will have no effect and the LtiAuthentication::WardenStrategy will be used
@@ -67,7 +72,7 @@ class LtiLaunchController < ApplicationController
 
   # Grab the user ID out of the payload and tell devise that they are authenticated for this session.
   def sign_in_from_lti(ll)
-    if user = ll.user 
+    if user = ll.user
       sign_in user
       Rails.logger.debug("Done signing in LTI-authenticated user #{user.email}")
     else

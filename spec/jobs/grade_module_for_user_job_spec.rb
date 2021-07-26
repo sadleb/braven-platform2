@@ -8,6 +8,10 @@ RSpec.describe GradeModuleForUserJob, type: :job do
     let(:canvas_assignment_id) { course_rise360_module_version.canvas_assignment_id }
     let(:canvas_course_id) { course_rise360_module_version.course.canvas_course_id }
     let(:activity_id) { 'https://some/activity/id' }
+    let(:lti_launch) {
+      create(:lti_launch_assignment,
+        canvas_user_id: user.canvas_user_id, canvas_assignment_id: canvas_assignment_id, canvas_course_id: canvas_course_id)
+    }
     let(:raw_grade) { 75 }
     let(:manually_graded) { false }
     let(:canvas_client) { double(CanvasAPI) }
@@ -24,7 +28,7 @@ RSpec.describe GradeModuleForUserJob, type: :job do
     end
 
     subject(:run_job) do
-      GradeModuleForUserJob.perform_now(user, canvas_course_id, canvas_assignment_id)
+      GradeModuleForUserJob.perform_now(user, lti_launch, canvas_course_id, canvas_assignment_id)
     end
 
     it 'calls ModuleGradeCalculator with the correct params' do

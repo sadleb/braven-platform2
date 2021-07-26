@@ -7,17 +7,16 @@ class GradeModuleForUserJob < ApplicationJob
   queue_as :default
 
   # Note a lot of this code is duplicated (but simplified) from app/services/grade_modules.rb.
-  def perform(user, canvas_course_id, canvas_assignment_id)
+  def perform(user, lti_launch, canvas_course_id, canvas_assignment_id)
 
     # TODO: only grade Modules and not things in the LC Playbook b/c it generates
     # email notifications and it's weird.  We probably still want to grade LCs and staff
     # in Modules just so they can test it out though:
     # https://app.asana.com/0/1174274412967132/1199946751486950
 
-    # Explicitly set the user context since this is a background job.
+    # Explicitly set the user and launch context since this is a background job.
     user.add_to_honeycomb_trace()
-    Honeycomb.add_field('canvas.course.id', canvas_course_id.to_s)
-    Honeycomb.add_field('canvas.assignment.id', canvas_assignment_id.to_s)
+    lti_launch.add_to_honeycomb_trace()
 
     # Select the max id at the very beginning, so we can use it at the bottom to mark only things
     # before this as old. If we don't do this, we run the risk of marking things as old that we

@@ -75,6 +75,14 @@ class ApplicationController < ActionController::Base
     # to be able to group whatever you're querying for by user. Depending on the flow or support
     # ticket information, one or the other of these common fields may be more convenient to use.
     current_user&.add_to_honeycomb_trace()
+
+    # Add the common fields for this LtiLaunch to every span in the trace. E.g. canvas_assignment_id.
+    # Careful: If you run any logic in an endpoint authenticated using an LtiLaunch where it
+    # loops over multiple assignments, courses, or users and sends the appropriate IDs
+    # to Honeycomb, make sure you use different Honeycomb fields then this sends b/c this
+    # will clobber all that and just overwrite them with the LtiLaunch values for those fields
+    # in all spans in the trace.
+    @lti_launch&.add_to_honeycomb_trace()
   end
 
   # Remove the default X-Frame-Options header Rails adds. We use CSP instead.

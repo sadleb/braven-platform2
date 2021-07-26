@@ -2,12 +2,12 @@
 
 # Represents the attendance answer (aka attendance status) submitted for a
 # Fellow (student) for a given event (e.g. a Learning Lab). An
-# AttendanceEventSubmission is a set of answers, one per Fellow. 
+# AttendanceEventSubmission is a set of answers, one per Fellow.
 #
 # Note: we use "answer" to be consistent with the other submission controllers/models.
 class AttendanceEventSubmissionAnswersController < ApplicationController
   include DryCrud::Controllers
-  
+
   # For the #launch action
   include LtiHelper
   before_action :set_lti_launch, only: [:launch]
@@ -24,7 +24,7 @@ private
   # For #launch
   def set_course_attendance_event
     @course_attendance_event = CourseAttendanceEvent.find_by(
-      canvas_assignment_id: @lti_launch.request_message.custom['assignment_id'],
+      canvas_assignment_id: @lti_launch.request_message.canvas_assignment_id,
     )
   end
 end

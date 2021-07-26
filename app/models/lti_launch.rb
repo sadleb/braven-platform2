@@ -28,6 +28,7 @@ class LtiLaunch < ApplicationRecord
      # an attacker could theoretically brute force a login, which makes it more important to
      # to not have them valid forever.
      # Task: https://app.asana.com/0/1174274412967132/1184057808812020
+
      ll = LtiLaunch.where(state: state).authenticated.first
      (ll.present? ? ll : false)
   end
@@ -55,23 +56,27 @@ class LtiLaunch < ApplicationRecord
     @request_message ||= LtiIdToken.parse(id_token_payload)
   end
 
+  def resource_link_request_message
+    raise ArgumentError.new, 'Wrong LTI launch message type. Must be a launch of a ResourceLink.' unless request_message.is_a?(LtiResourceLinkRequestMessage)
+    request_message
+  end
+
   # The user that this launch is for.
   def user
     User.find_by(canvas_user_id: request_message.canvas_user_id)
   end
 
+# TODO: get rid of the following two accessors. Just have everyone use the request_message or resource_link_request_message
+# Or if we keep them, rename them to be canvas_assignment_id and canvas_course_id to be consistent.
+
   # Assignment and Course IDs are used for attaching Rise360ModuleInteractions
   # to the appropriate module. Return nil if the ID was not an integer.
   def assignment_id
-    raise ArgumentError.new, 'Wrong LTI launch message type. Must be a launch of a ResourceLink.' unless request_message.is_a?(LtiResourceLinkRequestMessage) 
-
-    Integer(request_message.custom['assignment_id'], exception: false)
+    resource_link_request_message.canvas_assignment_id
   end
 
   def course_id
-    raise ArgumentError.new, 'Wrong LTI launch message type. Must be a launch of a ResourceLink.' unless request_message.is_a?(LtiResourceLinkRequestMessage) 
-
-    Integer(request_message.custom['course_id'], exception: false)
+    resource_link_request_message.canvas_course_id
   end
 
   # True if this is an LtiLaunch that doesn't have access to normal Devise session based authentication
@@ -87,7 +92,7 @@ class LtiLaunch < ApplicationRecord
 
   # Returns the parameters needed in Step 2 of the LTI Launch flow in order
   # to do the handshake with the LTI platform (aka Canvas) and "login" / authenitcate
-  # an LTI launch / session. See: 
+  # an LTI launch / session. See:
   # http://www.imsglobal.org/spec/security/v1p0/#step-2-authentication-request
   def auth_params
     {
@@ -98,10 +103,25 @@ class LtiLaunch < ApplicationRecord
       :client_id => client_id,
       :redirect_uri => LTI_LAUNCH_REDIRECT_URI,  # URL to return to after login
       :state => state,                       # State to identify the launch session. Note: may be multiple per browser session
-      :nonce => nonce,                       # Prevent replay attacks 
+      :nonce => nonce,                       # Prevent replay attacks
       :login_hint =>  login_hint,            # Login hint to identify platform (aka Canvas) session
       :lti_message_hint => lti_message_hint  # Used by platform (aka Canvas) to store / identify context on their end. Opaque to us.
     }
+  end
+
+  # Adds common Honeycomb fields to every span in the trace for this launch.
+  # Useful to be able to group any particular field you're querying for by launch info
+  #
+  # IMPORTANT: if you're in a trace that will send these same fields for multiple
+  # courses, assignments, users, etc in different spans, use a more specific name for those fields.
+  # Something like 'my_class.canvas.course.id'. This method will overwrite the following fields for
+  # every span in the trace so you for example you would get the 'canvas.assignment.id' values set
+  # to 555 everywhere even if you set it to 444 in some span.
+  def add_to_honeycomb_trace
+    Honeycomb.add_field_to_trace('canvas.course.id', resource_link_request_message.canvas_course_id.to_s)
+    Honeycomb.add_field_to_trace('canvas.assignment.id', resource_link_request_message.canvas_assignment_id.to_s)
+    Honeycomb.add_field_to_trace('canvas.user.id', resource_link_request_message.canvas_user_id.to_s)
+    Honeycomb.add_field_to_trace('canvas.user.roles', resource_link_request_message.canvas_roles)
   end
 end
 

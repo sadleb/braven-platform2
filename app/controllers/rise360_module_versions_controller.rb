@@ -82,7 +82,7 @@ private
 
   def set_course_rise360_module_version
     @course_rise360_module_version = CourseRise360ModuleVersion.find_by!(
-      canvas_assignment_id: @lti_launch.request_message.custom['assignment_id'],
+      canvas_assignment_id: @lti_launch.request_message.canvas_assignment_id,
     )
   end
 
