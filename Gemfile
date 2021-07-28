@@ -135,3 +135,8 @@ gem "pundit"
 gem "rolify"
 
 gem "discordrb", git: 'https://github.com/shardlab/discordrb', branch: 'main', require: false
+
+# Provides better configuration for auto-scaling dynos on Heroku
+# than the out of the box options. See:
+# See: https://elements.heroku.com/addons/rails-autoscale
+gem 'rails_autoscale_agent'  # NOTE: don't use require false. It doesn't work to load in initializer for some reason.
