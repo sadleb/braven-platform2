@@ -7,6 +7,9 @@ class GenerateZoomLinksMailer < ApplicationMailer
   end
 
   def failure_email
+    @exception = params[:exception]
+    @participants = params[:participants]
+    @failed_participants = params[:failed_participants]
     mail(to: recipient, subject: 'Zoom links generation failed')
   end
 

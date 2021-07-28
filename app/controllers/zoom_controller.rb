@@ -22,7 +22,16 @@ class ZoomController < ApplicationController
     # by using Save As: "CSV UTF-8" as well as the plain "CSV" formats with Excel v16.49 on a Mac
     # This article helped me find the fix:
     # https://jamescrisp.org/2020/05/05/importing-excel-365-csvs-with-ruby-on-osx/
-    participants = CSV.read(params[:participants].path, headers: true, encoding:'bom|utf-8').map(&:to_h)
+    #
+    # Also, the "strip_converter" handles stripping/trimming whitespace since it's common for folks
+    # to copy/paste a value and end up with a trailing space.
+    strip_converter = ->(field) { field.strip }
+    participants = CSV.read(params[:participants].path,
+                         headers: true,
+                         encoding:'bom|utf-8',
+                         converters: strip_converter)
+                   .map(&:to_h)
+
     GenerateZoomLinksJob.perform_later(params[:meeting_id], params[:email], participants)
 
     redirect_to root_path, notice: 'The generation process was started. Watch out for an email'

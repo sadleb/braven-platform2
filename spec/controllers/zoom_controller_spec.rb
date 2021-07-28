@@ -74,7 +74,18 @@ RSpec.describe ZoomController, type: :controller do
             .with(meeting_id, staff_email, [{'email' =>'test@example.com', 'first_name' => 'Brian', 'last_name' => 'xTest'}]).once
           run_generate_links
         end
+
+        context 'for emails with leading and trailing whitespace' do
+          let(:csv_path) { fixture_file_upload(Rails.root.join('spec/fixtures/zoom_link_csvs/', 'google_sheets_with_whitespace_in_email.csv'), 'application/csv') }
+
+          it 'strips the whitespace' do
+            expect(GenerateZoomLinksJob).to receive(:perform_later)
+              .with(meeting_id, staff_email, [{'email' =>'test@example.whitespace.com', 'first_name' => 'Brian', 'last_name' => 'xTestZoomWithWhitespace1'}]).once
+            run_generate_links
+          end
+        end
       end
+
     end # END POST #generate_zoom_links
   end
 end

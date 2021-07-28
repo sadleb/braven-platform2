@@ -1,1 +1,64 @@
-<p>The generate process failed</p>
+<% content_for :email_css do %>
+  tr {
+    text-align: left;
+  }
+
+  th {
+    background-color: #2E6D99; <%# $bv-oceanblue-600 %>
+    color: white;
+    padding: 0.5rem 0.75rem 0.5rem 0.25rem;
+  }
+
+  td {
+    padding: 0.75rem 0.75rem 0.25rem 0.25rem;
+  }
+
+  td.error-message {
+    color: #DB2B36; <%# $bv-red-600 %>
+    padding: 0rem;
+    padding-left: 1rem;
+  }
+<% end %>
+
+<p>Uh oh! The Zoom link generation process failed.</p>
+
+<% if @failed_participants.present? && @failed_participants.count < @participants.count %>
+
+  <p><strong><%= @failed_participants.count %> out of <%= @participants.count %></strong>
+    rows in the .csv had participants we failed to generate links for. See below.
+  </p>
+  <br>
+  <h2>Errors</h2>
+  <table>
+    <tbody>
+    <tr>
+       <th><strong>Row Number</strong></th>
+       <th><strong>Name</strong></th>
+       <th><strong>Email</strong></th>
+    </tr>
+    <% @failed_participants.each do |failure_info| %>
+    <tr>
+      <td><%= failure_info['row_number'] %></td>
+      <td><%= "#{failure_info['first_name']} #{failure_info['last_name']}" %></td>
+      <td><%= failure_info['email'] %></td>
+    </tr>
+    <tr>
+      <td class="error-message" colspan="3"><%= failure_info['error_detail'] %></td>
+    </tr>
+    <% end %>
+    </tbody>
+  </table>
+
+<% else %>
+
+  <p>We failed to generate links for all participants in the .csv. Below is the error. Please review the instructions carefully to make sure you followed them and try again. Otherwise, open a support ticket with the information below.</p>
+  <hr>
+
+  <%# This could have been something like an invalid Meeting ID or the ZoomAPI being down. %>
+  <p><strong><%= @exception.class %>: <%= @exception.message %></strong><p>
+
+  <p>Error details (Sentry will have more info)</p>
+  ------------
+  <pre><%= simple_format(@exception.full_message) %></pre>
+
+<% end %>
