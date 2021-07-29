@@ -22,7 +22,12 @@ class ModuleGradeCalculator
   # necessary. For an example, see:
   #   lib/tasks/grade_modules.rake
   def self.compute_grade(user_id, canvas_assignment_id, assignment_overrides)
-    Honeycomb.start_span(name: 'module_grade_calculator.compute_grade') do |span|
+    Honeycomb.start_span(name: 'module_grade_calculator.compute_grade') do
+      # Prefixed to avoid conflicting with LtiLaunch.add_to_honeycomb_trace() values.
+      # this is run as part of a rake task that has many of these spans with different values.
+      Honeycomb.add_field('module_grade_calculator.user.id', user_id)
+      Honeycomb.add_field('module_grade_calculator.canvas.assignment.id', canvas_assignment_id)
+
       # Note: If a content designer publishes a new Rise360 package to the same
       # assignment, all old interactions are technically invalidated. But we
       # can't easily detect that here, so make sure outdated interactions are
@@ -42,6 +47,7 @@ class ModuleGradeCalculator
 
       # Figure out which due date applies to this user.
       due_date = due_date_for_user(user_id, assignment_overrides)
+      Honeycomb.add_field('module_grade_calculator.due_date', due_date)
 
       # Start computing grades.
       progressed_interactions = interactions.where(verb: Rise360ModuleInteraction::PROGRESSED)
@@ -137,6 +143,9 @@ class ModuleGradeCalculator
         success: true,
       )
       .count
+
+    Honeycomb.add_field('module_grade_calculator.quiz_questions_correct', correct_answers)
+    Honeycomb.add_field('module_grade_calculator.quiz_questions_total', total_questions)
 
     100 * (correct_answers.to_f / total_questions.to_f)
   end
