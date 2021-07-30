@@ -6,9 +6,12 @@ require 'salesforce_api'
 # more stuff than just enrollments and it's not just "from" Salesforce anymore,
 # it syncs stuff back to the Program / Participants like Zoom links and signup_tokens)
 class SyncPortalEnrollmentsForProgram
+  include Rails.application.routes.url_helpers
+
   attr_reader :sf_program_id, :failed_participants, :count
 
   class SyncPortalEnrollmentsForProgramError < StandardError; end
+  class CanvasUserIdMismatchError < StandardError; end
 
   FailedParticipantInfo = Struct.new(:salesforce_id, :email, :first_name, :last_name, :error_detail, keyword_init: true)
 
@@ -21,6 +24,10 @@ class SyncPortalEnrollmentsForProgram
   end
 
   def run
+    Honeycomb.add_field_to_trace('salesforce.program.id', @sf_program_id)
+    Honeycomb.add_field('sync_portal_enrollments_for_program.send_signup_emails', @send_signup_emails)
+    Honeycomb.add_field('sync_portal_enrollments_for_program.force_zoom_update', @force_zoom_update)
+
     program_participants.each do |participant|
       begin
         # Note that putting the span inside the begin/rescue and letting exceptions bubble through
@@ -55,18 +62,23 @@ class SyncPortalEnrollmentsForProgram
 
           span.add_field('app.canvas.user.id', portal_user.id.to_s)
 
+          validate_user(participant.email, user, portal_user)
+
           sync_portal_enrollment!(user, portal_user, participant)
 
           span.add_field('app.sync_portal_enrollments_for_program.sync_participant_complete', true)
         end
       rescue => e
         Sentry.capture_exception(e)
+        error_detail = translate_error_to_user_message(e, participant)
+        Honeycomb.add_field('error', e.class.name)
+        Honeycomb.add_field('error_detail', error_detail)
         @failed_participants << FailedParticipantInfo.new(
           salesforce_id: participant.contact_id,
           email: participant.email,
           first_name: participant.first_name,
           last_name: participant.last_name,
-          error_detail: "#{e.class}: #{e.message}"
+          error_detail: error_detail
         )
       end
     end
@@ -153,6 +165,37 @@ class SyncPortalEnrollmentsForProgram
     # Return the raw token so we can optionally use it to send
     # emails without making an extra Salesforce call to fetch it.
     raw_token
+  end
+
+  def validate_user(email, user, canvas_user)
+    unless user.canvas_user_id == canvas_user.id
+      message = <<-EOF
+On Canvas, the user with email #{email} has a Canvas User Id = '#{canvas_user.id}'
+but it's set to '#{user.canvas_user_id}' on Platform. These must match.
+Fix it here: #{user_url(user)} and in the Salesforce Contact record: #{user.salesforce_id}.
+EOF
+      raise CanvasUserIdMismatchError, message
+    end
+  end
+
+  def translate_error_to_user_message(e, participant)
+    error_detail = "#{e.class}: #{e.message}"
+    if e.is_a?(ActiveRecord::RecordInvalid)
+      ar_error = e.record.errors.first
+      if ar_error.attribute == :email && ar_error.type == :taken
+        existing_user = User.find_by_email(participant.email)
+        error_detail = <<-EOF
+Hmmm, there is already a Platform user with email: #{participant.email}.
+We can't create a second user with that email. Are there duplicate Contacts in Salesforce?
+Make sure this one is the only one: #{user_url(existing_user)}. Their Contact ID is: #{existing_user.salesforce_id}.
+If that is not the issue, make sure the Platform user has the correct Salesforce Contact ID
+that we're trying to sync which is: #{participant.contact_id}.
+EOF
+      end
+    elsif e.is_a?(CanvasUserIdMismatchError)
+      error_detail = e.message
+    end
+    error_detail
   end
 
   # The new user params where Salesforce is the source of truth

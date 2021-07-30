@@ -130,36 +130,76 @@ RSpec.describe SyncPortalEnrollmentsForProgram do
           :Email => user_success.email
         SalesforceAPI.participant_to_struct(sf_part_hash)
       }
+      let(:user_fail) { create :registered_user }
+      let(:portal_user_fail) { CanvasAPI::LMSUser.new(user_fail.canvas_user_id, user_fail.email) }
       let(:sf_participant_fail) {
-        sf_part_hash = create :salesforce_participant, :Email => 'fail1@example.com'
+        sf_part_hash = create :salesforce_participant,
+          :ContactId => user_fail.salesforce_id,
+          :FirstName => user_fail.first_name,
+          :LastName => user_fail.last_name,
+          :Email => user_fail.email
         SalesforceAPI.participant_to_struct(sf_part_hash)
       }
       # Note the order here matters. fail first, then success
       let(:sf_participants) { [sf_participant_fail, sf_participant_success] }
       let(:sync_program_service) { SyncPortalEnrollmentsForProgram.new(salesforce_program_id: sf_program.id) }
 
-      before(:each) do
-        expect(lms_client).to receive(:find_user_by).with(email: sf_participant_fail.email, salesforce_contact_id: anything, student_id: anything)
-          .and_raise("Fake Exception")
-        expect(lms_client).to receive(:find_user_by).with(email: sf_participant_success.email, salesforce_contact_id: anything, student_id: anything)
-          .and_return(portal_user_success)
-        expect{ sync_program_service.run }.to raise_error(SyncPortalEnrollmentsForProgram::SyncPortalEnrollmentsForProgramError)
+      context 'for general failure' do
+        before(:each) do
+          expect(lms_client).to receive(:find_user_by).with(email: sf_participant_fail.email, salesforce_contact_id: anything, student_id: anything)
+            .and_raise("Fake Exception")
+          expect(lms_client).to receive(:find_user_by).with(email: sf_participant_success.email, salesforce_contact_id: anything, student_id: anything)
+            .and_return(portal_user_success)
+          expect{ sync_program_service.run }.to raise_error(SyncPortalEnrollmentsForProgram::SyncPortalEnrollmentsForProgramError)
+        end
+
+        it 'processes more participants after a failure for one' do
+          expect(sync_account_service).to have_received(:run).once
+        end
+
+        it 'sets the failed_participants attribute' do
+          expect(sync_program_service.failed_participants.count).to eq(1)
+          expect(sync_program_service.failed_participants.first.email).to eq(sf_participant_fail.email)
+        end
+
+        it 'sets the count attribute' do
+          expect(sync_program_service.count).to eq(2)
+        end
       end
 
-      it 'processes more participants after a failure for one' do
-        expect(sync_account_service).to have_received(:run).once
+      context 'for specific failures' do
+        before(:each) do
+          allow(lms_client).to receive(:find_user_by).with(email: sf_participant_fail.email, salesforce_contact_id: anything, student_id: anything)
+            .and_return(portal_user_fail)
+          allow(lms_client).to receive(:find_user_by).with(email: sf_participant_success.email, salesforce_contact_id: anything, student_id: anything)
+            .and_return(portal_user_success)
+        end
+
+        context 'when Canvas User IDs dont match' do
+          it 'shows a nice error message' do
+            user_fail.canvas_user_id= 1
+            portal_user_fail.id = 2
+            expect{ sync_program_service.run }.to raise_error(SyncPortalEnrollmentsForProgram::SyncPortalEnrollmentsForProgramError, /These must match/)
+          end
+        end
+
+        context 'when existing Platform user with same email but different Salesforce Contact ID' do
+          let(:user_fail) { create :registered_user, salesforce_id: '00000000000000000A' }
+          let(:missing_contact_id) { '00000000000000000Z' }
+
+          it 'shows a nice error message' do
+            expect(sf_participant_fail.contact_id).to eq(user_fail.salesforce_id)
+            # Make them not match and sanity check that the new ID doesnt have a platform user.
+            sf_participant_fail.contact_id = missing_contact_id
+            expect(sf_participant_fail.contact_id).not_to eq(user_fail.salesforce_id)
+            expect(User.find_by_salesforce_id(missing_contact_id)).to eq(nil)
+            expect{ sync_program_service.run }.to raise_error(SyncPortalEnrollmentsForProgram::SyncPortalEnrollmentsForProgramError, /We can't create a second user with that email/)
+          end
+        end
       end
 
-      it 'sets the failed_participants attribute' do
-        expect(sync_program_service.failed_participants.count).to eq(1)
-        expect(sync_program_service.failed_participants.first.email).to eq(sf_participant_fail.email)
-      end
+    end # END 'with failed participants'
 
-      it 'sets the count attribute' do
-        expect(sync_program_service.count).to eq(2)
-      end
-    end
-
-  end
+  end # END '#run'
 
 end
