@@ -1,0 +1,12 @@
+<h1>Not Authorized</h1>
+<% if current_user %>
+  <p>Your account, "<%= current_user.email %>", is not allowed to access this page.</p>
+
+  <% unless @exception.message.match? /^not allowed to [^ ]* this [^ ]*$/ %>
+    <%# Kind of hacky, but this implies it's a custom exception message raised in the Policy. %>
+    <p><%= @exception.message %></p>
+  <% end %>
+
+<% else %>
+  <p>You are not allowed to access this page.</p>
+<% end %>

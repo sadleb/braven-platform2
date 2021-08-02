@@ -42,7 +42,9 @@ RSpec.describe ProjectSubmissionPolicy, type: :policy do
       ta_user = create(:registered_user)
       ta_section = create(:ta_section, course: another_course)
       ta_user.add_role RoleConstants::TA_ENROLLMENT, ta_section
-      expect(subject).not_to permit ta_user, project_submission
+      expect {
+        expect(subject).not_to permit ta_user, project_submission
+      }.to raise_error(Pundit::NotAuthorizedError)
     end
 
     it "disallows LCs from other sections in course" do
@@ -61,7 +63,9 @@ RSpec.describe ProjectSubmissionPolicy, type: :policy do
     end
 
     it "disallows non-admin users not enrolled in a course attached to the project" do
-      expect(subject).not_to permit user, project_submission
+      expect {
+        expect(subject).not_to permit user, project_submission
+      }.to raise_error(Pundit::NotAuthorizedError)
     end
   end
 
@@ -78,7 +82,9 @@ RSpec.describe ProjectSubmissionPolicy, type: :policy do
     end
 
     it "disallows non-admin users not enrolled in a course attached to the project" do
-      expect(subject).not_to permit user, project_submission
+      expect {
+        expect(subject).not_to permit user, project_submission
+      }.to raise_error(Pundit::NotAuthorizedError)
     end
   end
 

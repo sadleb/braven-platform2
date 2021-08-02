@@ -27,7 +27,9 @@ RSpec.describe ProjectVersionPolicy, type: :policy do
     end
 
     it "disallows non-admin users not enrolled in a course attached to the project version" do
-      expect(subject).not_to permit user, project_version
+      expect {
+        expect(subject).not_to permit user, project_version
+      }.to raise_error(Pundit::NotAuthorizedError)
     end
   end
 end

@@ -16,6 +16,7 @@ class CustomContentVersionPolicy < ApplicationPolicy
       end
     end
 
-    false
+    # This message will show up in the errors#not_authorized view.
+    raise Pundit::NotAuthorizedError, message: 'You are not enrolled in this course.'
   end
 end

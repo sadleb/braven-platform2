@@ -5,6 +5,8 @@ class ApplicationController < ActionController::Base
   include RubyCAS::Server::Core::Tickets
   include DryCrud::Controllers
   include Pundit
+  # Custom error handling.
+  include Rescuable
 
   before_action :authenticate_user!
   before_action :add_honeycomb_fields
@@ -83,6 +85,10 @@ class ApplicationController < ActionController::Base
     # will clobber all that and just overwrite them with the LtiLaunch values for those fields
     # in all spans in the trace.
     @lti_launch&.add_to_honeycomb_trace()
+
+    # Add the HTTP request ID to the current span, so that it doesn’t get an `app` prefix
+    # and matches the built-in `request` namespace that the Rails integration uses.
+    Honeycomb.current_span&.add_field('request.id', request.request_id)
   end
 
   # Remove the default X-Frame-Options header Rails adds. We use CSP instead.

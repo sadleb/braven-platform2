@@ -19,7 +19,8 @@ class AttendanceEventSubmissionPolicy < ApplicationPolicy
       return true if user.has_role? RoleConstants::TA_ENROLLMENT, section
     end
 
-    false
+    # This message will show up in the errors#not_authorized view.
+    raise Pundit::NotAuthorizedError, message: 'You do not have permission to take attendance for this course.'
   end
 
   def edit?

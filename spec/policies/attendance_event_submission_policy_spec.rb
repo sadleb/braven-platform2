@@ -30,11 +30,15 @@ RSpec.describe AttendanceEventSubmissionPolicy, type: :policy do
 
     scenario 'disallows Fellow users' do
       user.add_role RoleConstants::STUDENT_ENROLLMENT, section
-      expect(subject).not_to permit(user, record)
+      expect {
+        expect(subject).not_to permit(user, record)
+      }.to raise_error(Pundit::NotAuthorizedError)
     end
 
     scenario 'disallows non-enrolled users' do
-      expect(subject).not_to permit(user, record)
+      expect {
+        expect(subject).not_to permit(user, record)
+      }.to raise_error(Pundit::NotAuthorizedError)
     end
   end
 
