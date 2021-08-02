@@ -119,6 +119,7 @@ class CanvasAPI
     # Note: if the submission has been created using LtiScore.new_pending_manual_submission(),
     # the grader_id will be nil. Don't accidentally treat that as manually graded.
     graded_by_id = user_submission['grader_id']
+    Honeycomb.add_field('canvas_api.graded_by_id', graded_by_id)
     graded_by_id.present? && graded_by_id != api_user_id
   end
 
