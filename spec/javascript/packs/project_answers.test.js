@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import fetchMock from "jest-fetch-mock";
 fetchMock.enableMocks();
 
@@ -7,7 +11,7 @@ beforeEach(() => {
 
 /*
 beforeEach(() => {
-    // Set up our document 
+    // Set up our document
     document.head.innerHTML = '<meta name="state" content="test">';
     document.body.innerHTML =
         '<input type="text" name="test-id">' +

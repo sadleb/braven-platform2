@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import { HoneycombAddToSpan } from 'packs/honeycomb'
 jest.mock('packs/honeycomb');
 

@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 
 beforeEach(() => {
     window.BOOMR = {
@@ -15,7 +18,7 @@ test('HoneycombXhrSpan adds standard fields to span', () => {
 
     window.BOOMR.hasSentPageLoadBeacon.mockReturnValue(true);
     const honeycomb = require('packs/honeycomb.js');
- 
+
     const honey_span = new honeycomb.HoneycombXhrSpan('the_filename', 'the_function_name', {'somefield': 'somevalue'});
     expect(window.BOOMR.addVar.mock.calls.length).toBe(1);
     expect(window.BOOMR.addVar.mock.calls[0][0]).toBe('js.app.the_filename.the_function_name.somefield');
@@ -32,7 +35,7 @@ test('HoneycombAddToSpan adds fields after Boomerang loaded', () => {
     expect(window.BOOMR.addVar.mock.calls.length).toBe(0);
 
     window.BOOMR.isBoomerangLoaded = true;
-    document.dispatchEvent(new Event('onBoomerangLoaded'));    
+    document.dispatchEvent(new Event('onBoomerangLoaded'));
     expect(window.BOOMR.addVar.mock.calls.length).toBe(1);
 });
 
@@ -45,7 +48,7 @@ test('HoneycombXhrSpan adds fields after Boomerang loaded', () => {
 
     window.BOOMR.hasSentPageLoadBeacon = jest.fn().mockReturnValue(true);
     window.BOOMR.isBoomerangLoaded = true;
-    document.dispatchEvent(new Event('onBoomerangLoaded'));    
+    document.dispatchEvent(new Event('onBoomerangLoaded'));
     expect(window.BOOMR.addVar.mock.calls.length).toBe(1);
 });
 
