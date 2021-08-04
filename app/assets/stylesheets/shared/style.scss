@@ -24,7 +24,7 @@ html, body {
   // Weird stuff happens with margin collapsing causing a margin between the body and
   // the first element. This prevents it. Example of problem:
   // https://stackoverflow.com/questions/7742720/css-margin-pushing-the-body-element
-  overflow: auto; 
+  overflow: auto;
 }
 
 header {
@@ -75,11 +75,13 @@ p {
 }
 
 a {
-	color: $bv-oceanblue-600;
+  color: $bv-oceanblue-600;
+  text-decoration: underline;
 }
 
 a:visited {
-	color: $bv-oceanblue-700;
+  color: $bv-oceanblue-700;
+  text-decoration: underline;
 }
 
 li {
@@ -97,7 +99,7 @@ input[type=submit] {
   @include braven-button-primary;
 }
 
-input[type=submit]:hover, 
+input[type=submit]:hover,
 input[type=submit]:focus {
   @include braven-button-base-hover;
 }
