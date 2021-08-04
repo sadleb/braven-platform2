@@ -13,6 +13,9 @@ namespace :salesforce do
       puts("### Running Sync From Salesforce Program: #{program_id} - #{Time.now.strftime("%Y-%m-%d %H:%M:%S %Z")}")
       SyncPortalEnrollmentsForProgram.new(salesforce_program_id: program_id).run
       puts("    Done running Sync From Salesforce Program: #{program_id} - #{Time.now.strftime("%Y-%m-%d %H:%M:%S %Z")}")
+    rescue SyncPortalEnrollmentsForProgram::SyncPortalEnrollmentsForProgramError => e
+      puts("    Error: #{e} - #{Time.now.strftime("%Y-%m-%d %H:%M:%S %Z")}")
+      puts("    Continuing to next Program. - #{Time.now.strftime("%Y-%m-%d %H:%M:%S %Z")}")
     end
   end
 
