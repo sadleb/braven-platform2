@@ -6,7 +6,8 @@
 
 <% content_for :instructions_prompt do %>
   <p>Thank you for signing and submitting your waivers!</p>
-  <p>Please immediately check your email and spam for a link to <strong>verify the waivers</strong> you just signed.</p>
+  <p>Please immediately <strong>check your email and spam</strong> for a link to <strong>verify the waivers</strong> you just signed.</p>
+  <%= render partial: 'tips_to_find_email' %>
 <% end %>
 
 <% content_for :instructions_call_to_action do %>

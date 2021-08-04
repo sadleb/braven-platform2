@@ -165,7 +165,7 @@ RSpec.describe WaiverSubmissionsController, type: :controller do
       it 'shows the thank you page with message about next steps' do
         expect(response.body).to match /Waivers Submitted - One More Step/
         expect(response.body).to match /Thank you/
-        expect(response.body).to match /immediately check your email and spam/
+        expect(response.body).to match /#{Regexp.escape('immediately <strong>check your email and spam</strong>')}/
       end
     end # '#create'
 
