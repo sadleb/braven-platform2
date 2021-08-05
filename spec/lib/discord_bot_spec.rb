@@ -400,6 +400,30 @@ RSpec.describe DiscordBot do
       expect(DiscordBot).not_to receive(:configure_member_from_records)
       subject
     end
+
+    context 'with dropped participant' do
+
+      before :each do
+        participant1_with_discord.status = SalesforceAPI::DROPPED
+      end
+
+      it 'deletes invite code if applicable' do
+        expect(invite).to receive(:delete).once
+        subject
+      end
+
+      it 'kicks member if applicable' do
+        allow(bot).to receive(:get_member).and_return(member)
+        expect(member).to receive(:kick).once
+        subject
+      end
+
+      it 'does not kick member if no member found' do
+        allow(bot).to receive(:get_member).and_return(nil)
+        expect(member).not_to receive(:kick)
+        subject
+      end
+    end
   end
 
   # Bot command parsing

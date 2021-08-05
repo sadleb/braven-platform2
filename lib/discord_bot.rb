@@ -877,6 +877,7 @@ class DiscordBot
       Honeycomb.add_field('contact.id', participant.contact_id)
       Honeycomb.add_field('participant.discord_invite_code', participant.discord_invite_code)
       Honeycomb.add_field('participant.id', participant.id)
+      Honeycomb.add_field('participant.status', participant.status)
       LOGGER.debug "Processing participant"
 
       if participant.discord_invite_code
@@ -884,9 +885,25 @@ class DiscordBot
         LOGGER.debug "Found existing invite for participant #{participant.id}"
         invite_code = participant.discord_invite_code
 
+        if participant.status == SalesforceAPI::DROPPED
+          # Revoke their invite.
+          LOGGER.debug "Revoking dropped participant's invite"
+
+          invite = @servers[server_id].invites.find { |i| i.code == participant.discord_invite_code }
+          if invite
+            begin
+              invite.delete("Participant record was marked as Dropped.")
+              Honeycomb.add_field('sync_salesforce_participant.invite_deleted', true)
+            rescue Discordrb::Errors::UnknownInvite
+              # Probably another instance of the bot got to it first.
+              LOGGER.debug "Invite already deleted"
+              Honeycomb.add_field('sync_salesforce_participant.invite_deleted', false)
+            end
+          end
+        end
+
         # If they already had a code, they may have already signed up too;
         # check their contact record for a Discord User ID.
-        # TODO: if this is returned by apex query now, don't fetch contact yet.
         if participant.discord_user_id
           user_id = participant.discord_user_id
           # They have already signed up; reassign roles, in case cohort mapping
@@ -898,6 +915,18 @@ class DiscordBot
 
           member = get_member(server_id, user_id)
           if member
+            if participant.status == SalesforceAPI::DROPPED
+              # Kick them out.
+              LOGGER.debug "Kicking dropped participant"
+
+              member.kick("Participant record was marked as Dropped.")
+
+              Honeycomb.add_field('sync_salesforce_participant.kicked_user', true)
+
+              # Exit early.
+              return
+            end
+
             contact = SalesforceAPI.client.get_contact_info(participant.contact_id)
             DiscordBot.configure_member_from_records(member, participant, contact)
 
@@ -915,11 +944,14 @@ class DiscordBot
             end
           end
         end
-      else
-        # Otherwise, create a new one and save it to the Participant record.
+      elsif participant.status != SalesforceAPI::DROPPED
+        # If there's no invite, and the Participant isn't dropped, create a new
+        # invite and save it to the Participant record.
         LOGGER.debug "Creating new invite for participant #{participant.id}"
         invite_code = create_invite(server_id)
         SalesforceAPI.client.update_participant(participant.id, {'Discord_Invite_Code__c': invite_code})
+      else
+        LOGGER.debug "Not creating invite for Dropped participant #{participant.id}"
       end
 
       Honeycomb.add_field('invite.code', invite_code)
