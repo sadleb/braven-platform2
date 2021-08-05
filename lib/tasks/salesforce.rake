@@ -16,6 +16,7 @@ namespace :salesforce do
     rescue SyncPortalEnrollmentsForProgram::SyncPortalEnrollmentsForProgramError => e
       puts("    Error: #{e} - #{Time.now.strftime("%Y-%m-%d %H:%M:%S %Z")}")
       puts("    Continuing to next Program. - #{Time.now.strftime("%Y-%m-%d %H:%M:%S %Z")}")
+      Sentry.capture_exception(e)
     end
   end
 
