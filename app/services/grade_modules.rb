@@ -18,13 +18,12 @@ class GradeModules
     Honeycomb.start_span(name: 'grade_modules.run') do |span|
       # From the list of "running" "programs" in Salesforce, fetch a list of "accelerator"
       # (non-LC) courses.
-      programs = SalesforceAPI.client.get_current_and_future_accelerator_programs
-      if programs['records'].empty?
-        Rails.logger.info("Exit early: no current/future accelerator programs")
+      canvas_course_ids = SalesforceAPI.client.get_current_and_future_accelerator_canvas_course_ids
+      span.add_field('app.grade_modules.canvas_course_ids', canvas_course_ids)
+      if canvas_course_ids.empty?
+        Rails.logger.info("Exit early: no current/future accelerator programs with a Canvas course ID set.")
         return
       end
-      canvas_course_ids = programs['records'].map { |r| r['Canvas_Cloud_Accelerator_Course_ID__c'].to_s }
-      span.add_field('app.grade_modules.canvas_course_ids', canvas_course_ids)
 
       # Eliminate courses with no module interactions, and exit early if that
       # leaves us with an empty list.

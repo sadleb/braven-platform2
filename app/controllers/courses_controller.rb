@@ -9,6 +9,9 @@ class CoursesController < ApplicationController
   # GET /courses
   def index
     authorize Course
+    current_canvas_course_ids = SalesforceAPI.client.get_current_and_future_canvas_course_ids()
+    @current_launched_courses = @courses.launched_courses.where(canvas_course_id: current_canvas_course_ids)
+    @past_launched_courses = @courses.launched_courses.where.not(canvas_course_id: current_canvas_course_ids)
   end
 
   # GET /courses/1

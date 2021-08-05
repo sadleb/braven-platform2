@@ -6,8 +6,8 @@ RSpec.describe SyncCanvasGrades do
 
   let(:service) { SyncCanvasGrades.new }
   let(:sf_client) { double(SalesforceAPI) }
-  # Default: no programs. Override in context below where appropriate.
-  let(:sf_programs) { create(:salesforce_current_and_future_programs) }
+  # Default: no courses. Override in context below where appropriate.
+  let(:accelerator_course_ids) { [] }
   let(:canvas_client) { double(CanvasAPI) }
 
   describe "#run" do
@@ -16,8 +16,8 @@ RSpec.describe SyncCanvasGrades do
     before :each do
       allow(canvas_client).to receive(:get_account_rubrics_data).and_return([])
       allow(sf_client)
-        .to receive(:get_current_and_future_accelerator_programs)
-        .and_return(sf_programs)
+        .to receive(:get_current_and_future_accelerator_canvas_course_ids)
+        .and_return(accelerator_course_ids)
       allow(SalesforceAPI).to receive(:client).and_return(sf_client)
       allow(CanvasAPI).to receive(:client).and_return(canvas_client)
     end
@@ -29,14 +29,14 @@ RSpec.describe SyncCanvasGrades do
 
         subject
 
-        expect(sf_client).to have_received(:get_current_and_future_accelerator_programs)
+        expect(sf_client).to have_received(:get_current_and_future_accelerator_canvas_course_ids)
         expect(canvas_client).not_to have_received(:get_submission_data)
       end
     end
 
     context "with some running programs" do
       let(:course) { create(:course) }
-      let(:sf_programs) { create(:salesforce_current_and_future_programs, canvas_course_ids: [course.canvas_course_id]) }
+      let(:accelerator_course_ids) { [course.canvas_course_id] }
       let(:submission_data) { [create(:canvas_submission)] }
       let(:rubrics_data) { [create(:canvas_rubric)] }
 

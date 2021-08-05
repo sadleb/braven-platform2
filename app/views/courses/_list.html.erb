@@ -1,16 +1,14 @@
 <div class="row mt-4">
-  <nav aria-label="breadcrumb" class="breadcrumb col mt-2">
-    <ol class="my-auto">
-      <li class="breadcrumb-item active" aria-current="page">
-        <%= name.pluralize %>
-      </li>
-    </ol>
-    <% if button_label %>
-      <div class="col d-flex justify-content-end">
-        <%= link_to "Add #{name}", new_course_path, class: "btn btn-lg btn-secondary m-0", role: "button" %>
-      </div>
-    <% end %>
-  </nav>
+  <div class="col">
+    <nav aria-label="breadcrumb" class="breadcrumb col mt-2">
+      <p class="breadcrumb-item active"><%= name %></p>
+      <% if button_label %>
+        <div class="col d-flex justify-content-end">
+          <%= link_to "Add #{name}", new_course_path, class: "btn btn-lg btn-secondary m-0", role: "button" %>
+        </div>
+      <% end %>
+    </nav>
+  </div>
 </div>
 
 <div class="row">

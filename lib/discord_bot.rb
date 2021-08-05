@@ -308,7 +308,7 @@ class DiscordBot
   def sync_salesforce
     Honeycomb.start_span(name: 'bot.sync_salesforce') do |span|
       programs = SalesforceAPI.client.get_current_and_future_accelerator_programs
-      program_ids = programs['records'].map { |program| program['Id'] }
+      program_ids = programs.map { |program| program['Id'] }
       Honeycomb.add_field('program_ids.count', program_ids.count)
       LOGGER.debug "Syncing #{program_ids.count} programs from Salesforce"
 
@@ -503,7 +503,7 @@ class DiscordBot
 
       # Look for a current/future Program with this Discord Server ID.
       programs = SalesforceAPI.client.get_current_and_future_accelerator_programs
-      program = programs['records'].find { |program| program['Discord_Server_ID__c'].to_i == server.id.to_i }
+      program = programs.find { |program| program['Discord_Server_ID__c'].to_i == server.id.to_i }
 
       if program.nil?
         message_content << "\n❌ No Program found for this Discord server."
@@ -565,7 +565,7 @@ class DiscordBot
     message = event.message.respond(message_content)
 
     programs = SalesforceAPI.client.get_current_and_future_accelerator_programs
-    program = programs['records'].find { |program| program['Discord_Server_ID__c'].to_i == server.id.to_i }
+    program = programs.find { |program| program['Discord_Server_ID__c'].to_i == server.id.to_i }
 
     if program.nil?
       message_content << "\n❌ No Program found for this Discord server."
@@ -642,7 +642,7 @@ class DiscordBot
 
     # Figure out which program to use.
     programs = SalesforceAPI.client.get_current_and_future_accelerator_programs
-    program = programs['records'].find { |program| program['Discord_Server_ID__c'].to_i == server.id.to_i }
+    program = programs.find { |program| program['Discord_Server_ID__c'].to_i == server.id.to_i }
 
     if program.nil?
       message_content << "\n❌ No Program found for this Discord server."
@@ -781,7 +781,7 @@ class DiscordBot
 
     # Figure out which program to use.
     programs = SalesforceAPI.client.get_current_and_future_accelerator_programs
-    program = programs['records'].find { |program| program['Discord_Server_ID__c'].to_i == server.id.to_i }
+    program = programs.find { |program| program['Discord_Server_ID__c'].to_i == server.id.to_i }
 
     if program.nil?
       message_content << "\n❌ No Program found for this Discord server."

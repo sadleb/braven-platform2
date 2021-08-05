@@ -105,17 +105,44 @@ class SalesforceAPI
     RestClient.patch("#{@salesforce_url}#{path}", body, @global_headers.merge(headers))
   end
 
-  # Gets a list of all Accelerator Programs (not LC Programs) that have been launched (aka
-  # they have a Canvas Course ID set) and are either currently running or will be in the future.
+  # Gets a list of all Programs that have been launched with the Accelerator Course (and
+  # most likely also a LC Playbook course) and are either currently running or will be in the future.
   def get_current_and_future_accelerator_programs()
     soql_query =
-      "SELECT Id, Name, Canvas_Cloud_Accelerator_Course_ID__c, Discord_Server_ID__c FROM Program__c " \
+      "SELECT Id, Name, Canvas_Cloud_Accelerator_Course_ID__c, Canvas_Cloud_LC_Playbook_Course_ID__c, Discord_Server_ID__c FROM Program__c " \
       "WHERE RecordType.Name = 'Course' AND Canvas_Cloud_Accelerator_Course_ID__c <> NULL AND Status__c IN ('Current', 'Future')"
 
     response = get("#{DATA_SERVICE_PATH}/query?q=#{CGI.escape(soql_query)}")
     response_json = JSON.parse(response.body)
     raise SalesforceDataError, "Got paginated response which isn't implemented" if response_json['nextRecordsUrl'].present?
-    response_json
+    response_json['records']
+  end
+
+  # Gets a list of all Canvas Course IDs (both Accelerator and LC Playbook) that
+  # are for Programs that are either currently running or will be in the future.
+  def get_current_and_future_canvas_course_ids()
+    current_and_future_accelerator_programs = get_current_and_future_accelerator_programs()
+    canvas_course_ids = []
+    unless current_and_future_accelerator_programs.empty?
+      current_and_future_accelerator_programs.each { |p|
+        canvas_course_ids << p['Canvas_Cloud_Accelerator_Course_ID__c']
+        canvas_course_ids << p['Canvas_Cloud_LC_Playbook_Course_ID__c']
+      }.uniq.compact
+    end
+    canvas_course_ids
+  end
+
+  # Gets a list of all Accelerator Canvas Course IDs (not the LC Playbook courses) that
+  # are either currently running or will be in the future.
+  def get_current_and_future_accelerator_canvas_course_ids()
+    current_and_future_accelerator_programs = get_current_and_future_accelerator_programs()
+    canvas_course_ids = []
+    unless current_and_future_accelerator_programs.empty?
+      canvas_course_ids = current_and_future_accelerator_programs.map { |p|
+        p['Canvas_Cloud_Accelerator_Course_ID__c']
+      }.uniq.compact
+    end
+    canvas_course_ids
   end
 
   # TODO: remove the Qualtrics IDs from here. We don't use them anymore.

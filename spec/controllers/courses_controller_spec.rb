@@ -35,10 +35,13 @@ RSpec.describe CoursesController, type: :controller do
   # CoursesController. Be sure to keep this updated too.
   let(:valid_session) { {} }
 
+  let(:sf_client) { double(SalesforceAPI) }
   let(:canvas_client) { double(CanvasAPI) }
 
   describe 'when logged in' do
     before do
+      allow(sf_client).to receive(:get_current_and_future_canvas_course_ids)
+      allow(SalesforceAPI).to receive(:client).and_return(sf_client)
       allow(CanvasAPI).to receive(:client).and_return(canvas_client)
       sign_in user
     end

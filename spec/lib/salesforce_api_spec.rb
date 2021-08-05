@@ -63,19 +63,40 @@ RSpec.describe SalesforceAPI do
   describe '#get_current_and_future_accelerator_programs' do
     let(:request_url) {
       SALESFORCE_DATA_SERVICE_QUERY_URL +
-        "?q=SELECT+Id,+Name,+Canvas_Cloud_Accelerator_Course_ID__c,+Discord_Server_ID__c+FROM+Program__c+" \
+        "?q=SELECT+Id,+Name,+Canvas_Cloud_Accelerator_Course_ID__c,+Canvas_Cloud_LC_Playbook_Course_ID__c,+Discord_Server_ID__c+FROM+Program__c+" \
         "WHERE+RecordType.Name+=+'Course'+" \
           "AND+Canvas_Cloud_Accelerator_Course_ID__c+<>+NULL+" \
           "AND+Status__c+IN+('Current',+'Future')"
     }
-    it 'calls the correct endpoint' do
-      programs_json = FactoryBot.json(:salesforce_current_and_future_programs)
+    let(:accelerator_course_ids) { [1,2] }
+    # must match hardcoded offset in salesforce_current_and_future_programs factory
+    let(:lc_playbook_course_ids) { [accelerator_course_ids[0]+1000, accelerator_course_ids[1]+1000] }
+    let(:programs_json) { FactoryBot.json(:salesforce_current_and_future_programs, canvas_course_ids: accelerator_course_ids) }
+
+    before(:each) do
       stub_request(:get, request_url).to_return(body: programs_json )
+    end
 
+    it 'calls the correct endpoint' do
       response = SalesforceAPI.client.get_current_and_future_accelerator_programs()
-
       expect(WebMock).to have_requested(:get, request_url).once
-      expect(response).to eq(JSON.parse(programs_json))
+      expect(response).to eq(JSON.parse(programs_json)['records'])
+    end
+
+    describe '#get_current_and_future_canvas_course_ids' do
+      it 'calls the correct endpoint and parses all IDs out' do
+        response = SalesforceAPI.client.get_current_and_future_canvas_course_ids()
+        expect(WebMock).to have_requested(:get, request_url).once
+        expect(response).to eq([accelerator_course_ids[0], lc_playbook_course_ids[0], accelerator_course_ids[1], lc_playbook_course_ids[1]])
+      end
+    end
+
+    describe '#get_current_and_future_accelerator_canvas_course_ids' do
+      it 'calls the correct endpoint and parses only the accelerator IDs out' do
+        response = SalesforceAPI.client.get_current_and_future_accelerator_canvas_course_ids()
+        expect(WebMock).to have_requested(:get, request_url).once
+        expect(response).to eq([accelerator_course_ids[0], accelerator_course_ids[1]])
+      end
     end
   end
 

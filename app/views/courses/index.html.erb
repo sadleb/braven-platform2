@@ -4,15 +4,22 @@
 
 <%= render(
   'list',
-  name: 'Course Template',
+  name: 'Course Templates',
   button_label: nil,
   courses: @courses.unlaunched_courses,
 ) %>
 
 <%= render(
   'list',
-  name: 'Launched Course',
-  courses: @courses.launched_courses,
+  name: 'Current Launched Courses',
+  courses: @current_launched_courses,
+  button_label: nil,
+) %>
+
+<%= render(
+  'list',
+  name: 'Past Launched Courses',
+  courses: @past_launched_courses,
   button_label: nil,
 ) %>
 

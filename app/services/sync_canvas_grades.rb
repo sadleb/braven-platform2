@@ -9,8 +9,7 @@ class SyncCanvasGrades
   end
 
   def run
-    program_data = SalesforceAPI.client.get_current_and_future_accelerator_programs
-    canvas_course_ids = program_data['records'].map { |p| p['Canvas_Cloud_Accelerator_Course_ID__c'] }.uniq.compact
+    canvas_course_ids = SalesforceAPI.client.get_current_and_future_accelerator_canvas_course_ids
     Honeycomb.add_field('sync_canvas_grades.courses.count', canvas_course_ids.count)
     Rails.logger.info("Found #{canvas_course_ids.count} courses")
 

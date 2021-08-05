@@ -304,7 +304,7 @@ RSpec.describe DiscordBot do
       participant3_with_discord,
     ] }
     let(:sf_client) { instance_double(SalesforceAPI,
-      get_current_and_future_accelerator_programs: programs,
+      get_current_and_future_accelerator_programs: programs['records'],
       update_participant: nil,
       get_contact_info: nil,
     ) }
@@ -637,7 +637,7 @@ RSpec.describe DiscordBot do
     let(:program1_with_discord) { create(:salesforce_program_record, program_id: programs['records'][0]['Id'], discord_server_id: server_id) }
     let(:program2_without_discord) { create(:salesforce_program_record, program_id: programs['records'][1]['Id'], discord_server_id: nil) }
     let(:sf_client) { instance_double(SalesforceAPI,
-      get_current_and_future_accelerator_programs: programs,
+      get_current_and_future_accelerator_programs: programs['records'],
       update_program: nil,
       get_program_info: nil,
     ) }
@@ -790,7 +790,7 @@ RSpec.describe DiscordBot do
     let(:programs) { create(:salesforce_current_and_future_programs, canvas_course_ids: [1, 2]) }
     let(:participant) { SalesforceAPI.participant_to_struct(create(:salesforce_participant_fellow)) }
     let(:sf_client) { instance_double(SalesforceAPI,
-      get_current_and_future_accelerator_programs: programs,
+      get_current_and_future_accelerator_programs: programs['records'],
       update_program: nil,
       get_program_info: nil,
       find_participant: nil,
@@ -950,7 +950,7 @@ RSpec.describe DiscordBot do
     let(:programs) { create(:salesforce_current_and_future_programs, canvas_course_ids: [1, 2]) }
     let(:participant) { SalesforceAPI.participant_to_struct(create(:salesforce_participant_fellow)) }
     let(:sf_client) { instance_double(SalesforceAPI,
-      get_current_and_future_accelerator_programs: programs,
+      get_current_and_future_accelerator_programs: programs['records'],
       find_participants_by: [participant],
     ) }
     let(:args) { "" }
@@ -987,7 +987,7 @@ RSpec.describe DiscordBot do
     let(:programs) { create(:salesforce_current_and_future_programs, canvas_course_ids: [1, 2]) }
     let(:participant) { SalesforceAPI.participant_to_struct(create(:salesforce_participant_fellow)) }
     let(:sf_client) { instance_double(SalesforceAPI,
-      get_current_and_future_accelerator_programs: programs,
+      get_current_and_future_accelerator_programs: programs['records'],
       find_participant: nil,
       update_participant: nil,
     ) }

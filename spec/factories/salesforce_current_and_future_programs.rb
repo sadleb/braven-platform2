@@ -28,6 +28,7 @@ FactoryBot.define do
     sequence(:Id) { program_id }
     sequence(:Name) { |i| "TEST: Program#{i}" }
     sequence(:Canvas_Cloud_Accelerator_Course_ID__c) { canvas_course_id }
+    sequence(:Canvas_Cloud_LC_Playbook_Course_ID__c) { canvas_course_id + 1000 }
     sequence(:Discord_Server_ID__c) { discord_server_id }
     # Leaving out 'attributes' key b/c we don't currently use it.
     initialize_with { attributes.stringify_keys }
