@@ -862,6 +862,16 @@ class DiscordBot
 
       # Skip Programs that don't have a Discord Server ID.
       return if server_id == 0
+
+      # Skip Programs that have a Discord Server ID for a server we're not
+      # currently in, so deleting or kicking the bot out of one server doesn't
+      # break every other program.
+      unless @servers.has_key?(server_id)
+        Honeycomb.add_field('sync_salesforce_program.not_in_server', true)
+        LOGGER.warn "Skipping Program #{program_id} because we're not in server #{server_id}"
+        return
+      end
+
       LOGGER.debug "Processing program #{program_id}"
 
       participants = SalesforceAPI.client.find_participants_by(program_id: program_id)
