@@ -1,8 +1,7 @@
-<!--- Provide a general summary of your changes in the Title above -->
-
 ### Description
+<!--- Make sure the pull request Title above has a general summary of the changes. -->
 
-<!--- Describe your changes in detail -->
+<!--- Describe your changes in detail here -->
 
 ### Motivation and Context
 
@@ -10,7 +9,7 @@
 <!--- If it fixes an open ticket or issue, please provide the link here. -->
 
 ### Screenshots (if appropriate):
-<!-- Feel free to remove this section if it is not needed
+<!-- Feel free to remove this section if it is not needed -->
 
 ### Types of changes
 

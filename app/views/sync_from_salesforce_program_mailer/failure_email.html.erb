@@ -48,6 +48,8 @@
     </tbody>
   </table>
 
+<% elsif @exception.is_a?(SalesforceAPI::ProgramNotOnSalesforceError) %>
+  <p><%= @exception.message %></p>
 <% else %>
 
   <p>The sync process failed completely with the error below</p>

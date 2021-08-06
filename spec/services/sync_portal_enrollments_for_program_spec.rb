@@ -175,6 +175,14 @@ RSpec.describe SyncPortalEnrollmentsForProgram do
             .and_return(portal_user_success)
         end
 
+        context 'with invalid Program ID' do
+          let(:error_message) { 'Program Blah not found. Please use a valid program.' }
+          it 'shows a nice error message' do
+            expect(sf_client).to receive(:find_program).and_raise(SalesforceAPI::ProgramNotOnSalesforceError, error_message)
+            expect{ sync_program_service.run }.to raise_error(SalesforceAPI::ProgramNotOnSalesforceError, error_message)
+          end
+        end
+
         context 'when Canvas User IDs dont match' do
           it 'shows a nice error message' do
             user_fail.canvas_user_id= 1

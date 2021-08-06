@@ -316,7 +316,7 @@ class SalesforceAPI
 
   def find_program(id:)
     program = get_program_info(id)
-    raise ProgramNotOnSalesforceError if program.nil?
+    raise ProgramNotOnSalesforceError, "Program ID: #{id} not found on Salesforce. Please enter a valid Program ID" if program.nil?
 
     SFProgram.new(program['Id'], program['Name'], program['SchoolId'],
               program['Canvas_Cloud_Accelerator_Course_ID__c'].to_i,
