@@ -164,6 +164,8 @@ class DiscordBot
 
       @start_time = DateTime.now.utc
       @servers = @bot.servers || {}
+      Honeycomb.add_field('servers.count', @servers.count)
+      Honeycomb.add_field('on_ready.server_ids', @servers.keys)
       LOGGER.info "Logged in from #{ENV['APPLICATION_HOST'] || 'unknown host'} at #{@start_time}"
 
       if @sync_and_exit
@@ -889,7 +891,7 @@ class DiscordBot
           # Revoke their invite.
           LOGGER.debug "Revoking dropped participant's invite"
 
-          invite = @servers[server_id].invites.find { |i| i.code == participant.discord_invite_code }
+          invite = @servers[server_id]&.invites&.find { |i| i.code == participant.discord_invite_code }
           if invite
             begin
               invite.delete("Participant record was marked as Dropped.")
@@ -931,7 +933,7 @@ class DiscordBot
             DiscordBot.configure_member_from_records(member, participant, contact)
 
             # Make sure their invite is deleted too, since they're already in the server.
-            invite = @servers[server_id].invites.find { |i| i.code == participant.discord_invite_code }
+            invite = @servers[server_id]&.invites&.find { |i| i.code == participant.discord_invite_code }
             if invite
               begin
                 invite.delete
