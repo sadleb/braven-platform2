@@ -170,6 +170,9 @@ class SyncPortalEnrollmentForAccount
   def remove_ta_permissions()
     @user.remove_role RoleConstants::CAN_TAKE_ATTENDANCE_FOR_ALL
     canvas_client.unassign_account_role(@user.canvas_user_id, CanvasConstants::STAFF_ACCOUNT_ROLE_ID)
+  rescue RestClient::NotFound
+      # This gets thrown if the account role was manually deleted or never assigned. Fine to skip.
+      Honeycomb.add_field('sync_portal_enrollment.staff_account_role.not_found', true)
   end
 
   # Pass in a local db section.
