@@ -1,0 +1,7 @@
+<h1>Oops!</h1>
+<p>This page has expired.</p>
+<% if @referrer_path %>
+  <p>To return to the previous page and try again, <%= link_to 'click here', @referrer_path %>.</p>
+<% else %>
+  <p>Try using your browser's <strong>Back button</strong> to return to the previous page, then <strong>refresh that page</strong> and try again.</p>
+<% end %>
