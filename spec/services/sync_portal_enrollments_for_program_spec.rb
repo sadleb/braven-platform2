@@ -196,6 +196,37 @@ RSpec.describe SyncPortalEnrollmentsForProgram do
             expect{ sync_program_service.run }.to raise_error(SyncPortalEnrollmentsForProgram::SyncPortalEnrollmentsForProgramError, /We can't create a second user with that email/)
           end
         end
+
+        context 'when Zoom meeting has ended' do
+          let(:error_message) { 'We cannot create pre-registered links' }
+          before(:each) do
+            expect(sync_zoom_service).to receive(:run).and_raise(ZoomAPI::ZoomMeetingEndedError, error_message)
+          end
+
+          # Just make sure that this particular error is propogated to the
+          # aggregated error that is used to send the email to help product support troubleshoot.
+          it 'shows a nice error message' do
+            expect{ sync_program_service.run }.to raise_error(SyncPortalEnrollmentsForProgram::SyncPortalEnrollmentsForProgramError, /#{error_message}/)
+          end
+        end
+
+        context 'when invalid email' do
+          let(:error_message) { 'We cannot create a Zoom link for email' }
+          before(:each) do
+            expect(sync_zoom_service).to receive(:run).and_raise(ZoomAPI::BadZoomRegistrantFieldError, error_message)
+          end
+
+          # Just make sure that this particular error is propogated to the
+          # aggregated error that is used to send the email to help product support troubleshoot.
+          it 'shows a nice error message' do
+            expect{ sync_program_service.run }.to raise_error(SyncPortalEnrollmentsForProgram::SyncPortalEnrollmentsForProgramError, /#{error_message}/)
+          end
+        end
+
+        # context 'when syncing Host of Zoom meeting' do
+        #   See: sync_zoom_links_for_participant_spec.rb
+        #   for how the ZoomAPI::HostCantRegisterForZoomMeetingError is handled
+        # end
       end
 
     end # END 'with failed participants'

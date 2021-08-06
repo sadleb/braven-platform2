@@ -7,6 +7,9 @@ require 'json'
 # for user authorization."
 class ZoomAPI
   BASE_URL = 'https://api.zoom.us/v2'
+  class ZoomMeetingEndedError < StandardError; end
+  class HostCantRegisterForZoomMeetingError < StandardError; end
+  class BadZoomRegistrantFieldError < StandardError; end
 
   # Use this to get an instance of the API client with authentication info setup.
   # The client's authentication is only valid for a short period of time.
@@ -26,6 +29,7 @@ class ZoomAPI
   def initialize(auth_token)
     @global_headers = {
       'Content-Type' => 'application/json',
+      'Accept' => 'application/json',
       'Authorization' => "Bearer #{auth_token}",
     }
   end
@@ -36,6 +40,46 @@ class ZoomAPI
 
   def add_registrant(meeting_id, body)
     post("/meetings/#{meeting_id}/registrants", body)
+  rescue RestClient::BadRequest => e
+    registrant = body.symbolize_keys
+    response = JSON.parse(e.http_body)
+
+    case response['code']
+
+    # {
+    #   "code":300,
+    #   "message":"Validation Failed.",
+    #   "errors":[
+    #     {"field":"email","message":"Invalid field."}
+    #   ]
+    # }
+    when 300
+      error_field = response.dig('errors', 0, 'field')
+      error_message = response.dig('errors', 0, 'message')
+      raise BadZoomRegistrantFieldError,
+        "We cannot create a Zoom link for email: '#{registrant[:email]}'. Zoom says the '#{error_field}' field is: #{error_message}"
+
+    # {
+    #   "code":3027,
+    #   "message":"Host can not register"
+    # }
+    when 3027
+      raise HostCantRegisterForZoomMeetingError,
+        "We cannot create a Zoom link for the host. " +
+        "Email '#{registrant[:email]}' is a host for Meeting ID = #{meeting_id}"
+
+    # {
+    #   "code":3038,
+    #   "message":"Meeting is over, you can not register now. If you have any questions, please contact the Meeting host."
+    # }
+    when 3038
+      raise ZoomMeetingEndedError,
+        "We cannot create links for Zoom Meeting ID = #{meeting_id}. It has ended. " +
+        "Please use a meeting in the future. If running a sync, the Meeting ID is set on the Cohort Schedule in Salesforce for this Participant."
+
+    else
+      raise
+    end
   end
 
   def cancel_registrants(meeting_id, registrant_emails)

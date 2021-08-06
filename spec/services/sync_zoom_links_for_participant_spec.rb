@@ -113,6 +113,47 @@ RSpec.describe SyncZoomLinksForParticipant do
             end
           end
         end
+
+        # Make sure that this particular error is not treated as a sync failure. Staff members that are hosts
+        # of the Zoom meeting can be sync'd to the Course as a Teaching Assistant (or some other staff role).
+        # Instead of a real link, just return a message about why the Zoom link wasn't created so people know what's up.
+        context 'when syncing Host of Zoom meeting' do
+          let(:meeting_link_1) { nil }
+          let(:meeting_link_2) { nil }
+          let(:error_message) { 'We cannot create a pre-registered Zoom link for a host.' }
+
+          it 'returns a message about why the link wasnt created as the link itself so that staff knows what is going on' do
+            join_url1 = nil
+            join_url2 = nil
+
+            if meeting_id_1.present?
+              join_url1 = SyncZoomLinksForParticipant::ZOOM_HOST_LINK_MESSAGE
+              allow(zoom_client).to receive(:add_registrant).with(meeting_id_1, {
+                'email' => salesforce_participant_struct.email,
+                'first_name' => "#{first_name_prefix}#{salesforce_participant_struct.first_name}",
+                'last_name' => salesforce_participant_struct.last_name
+              }).and_raise(ZoomAPI::HostCantRegisterForZoomMeetingError, error_message)
+            end
+
+            if meeting_id_2.present?
+              join_url2 = SyncZoomLinksForParticipant::ZOOM_HOST_LINK_MESSAGE
+              allow(zoom_client).to receive(:add_registrant).with(meeting_id_2, {
+                'email' => salesforce_participant_struct.email,
+                'first_name' => "#{first_name_prefix}#{salesforce_participant_struct.first_name}",
+                'last_name' => salesforce_participant_struct.last_name
+              }).and_raise(ZoomAPI::HostCantRegisterForZoomMeetingError, error_message)
+            end
+
+            # Even if no meeting IDs are configured, this is still called to clear them out if they had been set previously.
+            if join_url1 != salesforce_participant_struct.zoom_meeting_link_1 ||
+               join_url2 != salesforce_participant_struct.zoom_meeting_link_2
+              expect(sf_client).to receive(:update_zoom_links).with(salesforce_participant_struct.id, join_url1, join_url2).once
+            end
+
+            run_sync
+          end
+        end
+
       end # END 'Enrolled Participant' examples
 
       context 'Fellow' do

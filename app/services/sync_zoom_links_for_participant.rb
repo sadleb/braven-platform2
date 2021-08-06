@@ -3,6 +3,9 @@ require 'salesforce_api'
 require 'zoom_api'
 
 class SyncZoomLinksForParticipant
+
+  ZOOM_HOST_LINK_MESSAGE = 'NONE: cannot generate Zoom link for a Host of the meeting'
+
   def initialize(salesforce_participant, force_update = false)
     @salesforce_participant = salesforce_participant
     @force_update = force_update
@@ -77,8 +80,12 @@ private
     Honeycomb.add_field('zoom.participant.first_name', first_name) # Send this so we can query by name prefixes used for breakout rooms
     Honeycomb.add_field('zoom.participant.last_name', last_name)
 
+    return ZoomAPI.client.add_registrant(meeting_id, @registration_details)['join_url']
 
-    ZoomAPI.client.add_registrant(meeting_id, @registration_details)['join_url']
+  rescue ZoomAPI::HostCantRegisterForZoomMeetingError => e
+    Honeycomb.add_field('zoom.participant.skip_reason', e.message)
+    Rails.logger.debug(e.message)
+    return ZOOM_HOST_LINK_MESSAGE
   end
 
   def cancel_registration(meeting_id)

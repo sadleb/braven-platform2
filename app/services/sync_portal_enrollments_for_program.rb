@@ -192,7 +192,10 @@ If that is not the issue, make sure the Platform user has the correct Salesforce
 that we're trying to sync which is: #{participant.contact_id}.
 EOF
       end
-    elsif e.is_a?(CanvasUserIdMismatchError)
+    # These are rescued at a lower level and translated to a user friendly message. Just show that.
+    elsif e.is_a?(CanvasUserIdMismatchError) ||
+          e.is_a?(ZoomAPI::ZoomMeetingEndedError) ||
+          e.is_a?(ZoomAPI::BadZoomRegistrantFieldError)
       error_detail = e.message
     end
     error_detail
