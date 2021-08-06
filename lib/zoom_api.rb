@@ -74,7 +74,7 @@ class ZoomAPI
     # }
     when 3038
       raise ZoomMeetingEndedError,
-        "We cannot create links for Zoom Meeting ID = #{meeting_id}. It has ended. " +
+        "We cannot create a Zoom link for email: '#{registrant[:email]}'. The Zoom Meeting ID = #{meeting_id} has ended. " +
         "Please use a meeting in the future. If running a sync, the Meeting ID is set on the Cohort Schedule in Salesforce for this Participant."
 
     else
