@@ -23,11 +23,9 @@ WORKDIR /app
 
 COPY Gemfile Gemfile.lock /app/
 
-# Note: do not remove the --no-deployment flag.
-# Setting it as config instead does not work.
 RUN bundle config set --local frozen 'true' && \
     bundle config set --local path 'vendor/bundle' && \
-    bundle install --jobs 4 --no-deployment && cp Gemfile.lock /tmp
+    bundle install --jobs 4 && cp Gemfile.lock /tmp
 
 COPY . /app/
 
