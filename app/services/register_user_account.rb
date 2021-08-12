@@ -71,7 +71,7 @@ class RegisterUserAccount
 
       # Create a user in Canvas.
       create_canvas_user!
-      span.add_field('app.canvas.user.id', @user.canvas_user_id.to_s)
+      Honeycomb.add_field_to_trace('canvas.user.id', @user.canvas_user_id.to_s)
 
       # Update Salesforce with the signup date and Canvas User ID.
       sf_client.update_contact(@user.salesforce_id, {
