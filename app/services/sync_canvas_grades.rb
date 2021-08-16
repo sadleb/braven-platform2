@@ -92,6 +92,8 @@ private
     rubrics.each do |rubric|
       Rails.logger.info("Syncing canvas_rubric_id=#{rubric['id']}")
       rubric_data = {
+        canvas_context_id: rubric['context_id'],
+        canvas_context_type: rubric['context_type'],
         canvas_rubric_id: rubric['id'],
         points_possible: rubric['points_possible'],
         title: rubric['title'],

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_07_19_182659) do
+ActiveRecord::Schema.define(version: 2021_08_16_200415) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
@@ -113,6 +113,8 @@ ActiveRecord::Schema.define(version: 2021_07_19_182659) do
     t.string "title"
     t.datetime "created_at", precision: 6, default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.datetime "updated_at", precision: 6, default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.bigint "canvas_context_id"
+    t.string "canvas_context_type"
     t.index ["canvas_rubric_id"], name: "index_canvas_rubrics_on_canvas_rubric_id", unique: true
   end
 
