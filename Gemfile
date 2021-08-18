@@ -141,3 +141,6 @@ gem "discordrb", git: 'https://github.com/shardlab/discordrb', branch: 'main', r
 # than the out of the box options. See:
 # See: https://elements.heroku.com/addons/rails-autoscale
 gem 'rails_autoscale_agent'  # NOTE: don't use require false. It doesn't work to load in initializer for some reason.
+
+gem 'sidekiq', require: false
+gem 'sidekiq-scheduler', require: false

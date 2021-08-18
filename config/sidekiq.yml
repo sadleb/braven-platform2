@@ -1,0 +1,5 @@
+:dynamic: true
+:max_retries: 0
+:queues:
+  - default
+  - low_priority

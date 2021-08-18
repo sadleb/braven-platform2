@@ -23,8 +23,7 @@ WORKDIR /app
 
 COPY Gemfile Gemfile.lock /app/
 
-RUN bundle config set --local frozen 'true' && \
-    bundle config set --local path 'vendor/bundle' && \
+RUN bundle config set --local path 'vendor/bundle' && \
     bundle install --jobs 4 && cp Gemfile.lock /tmp
 
 COPY . /app/

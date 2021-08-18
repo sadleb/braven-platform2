@@ -1,3 +1,6 @@
+require 'sidekiq/web'
+require 'sidekiq-scheduler/web'
+
 # Needed to use the url_helpers outside of views and controller
 Rails.application.routes.default_url_options[:host] = Rails.application.secrets.application_host
 
@@ -256,10 +259,16 @@ Rails.application.routes.draw do
   # Honeycomb Instrumentation Routes
   post '/honeycomb_js/send_span', to: 'honeycomb_js#send_span'
 
+  # Sidekiq
+  authenticate :user, -> (u) { u.admin? } do
+    mount Sidekiq::Web  => '/sidekiq'
+  end
+
   # Catch-all route for missing ones to return an unauthorized response rather than a 404
   get '*other', to: 'home#missing_route'
   post '*other', to: 'home#missing_route'
   put '*other', to: 'home#missing_route'
   patch '*other', to: 'home#missing_route'
   delete '*other', to: 'home#missing_route'
+
 end

@@ -28,6 +28,7 @@ services:
     depends_on:
       - platform_chrome
       - platformdb
+      - platform_redis_persistent
     env_file:
       - .env
     # These take precedence over any values in the above file.
@@ -60,6 +61,20 @@ services:
     networks:
       - bravendev
 
+  # The long container name is to disambiguate from a non-persistent
+  # redis instance, if we ever add one to use for caching in the future.
+  # https://github.com/mperham/sidekiq/wiki/Using-Redis#multiple-redis-instances
+  platform_redis_persistent:
+    image: redis:6.2
+    command: redis-server --appendonly yes
+    container_name: redis-persistent
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-persistent:/data
+    networks:
+      - bravendev
+
   platform_chrome:
     image: selenium/standalone-chrome
     # SELENIUM_PORT
@@ -79,6 +94,7 @@ volumes:
   node-modules:
   vendor-bundle:
   webpack-cache:
+  redis-persistent:
 
 # Note all Braven web app docker dev envs use this same network so they can talk to each other.
 # E.g. the hostname joinweb will resolve inside the ssoweb container if they are on the same docker network.

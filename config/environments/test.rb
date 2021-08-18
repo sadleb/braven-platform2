@@ -45,6 +45,10 @@ Rails.application.configure do
     config.logger    = ActiveSupport::TaggedLogging.new(logger)
   end
 
+  # Use an in-memory queuing backend for Active Job, so we don't need redis/sidekiq
+  # as dependencies for running rspec..
+  config.active_job.queue_adapter     = :async
+
   config.action_mailer.perform_caching = false
   config.action_mailer.default_url_options= {host: Rails.application.secrets.application_host}
 

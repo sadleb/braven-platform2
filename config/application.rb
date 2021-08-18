@@ -35,24 +35,9 @@ module Platform
     # E.g. if we want to run in production mode locally.
     #config.assets.initialize_on_precompile=false
 
-    # For the default AsyncAdapter for ActiveJob, change max_threads to 3 instead of
-    # the number of cores since our Heroku dyno's have 8 cores and the database connection
-    # pool hack in config/database.yml could push us to exhaust the 120 max DB connections
-    # pretty easily if scale our dynos or run one-offs.
-    # DB connections = dynos * connections per dyno
-    #                = dynos * (workers per dyno * connections per worker)
-    #                = dynos * (WEB_CONCURRENCY * (PUMA_MAX_THREADS + ASYNC_ADAPTER_MAX_THREADS))
-    #                = dynos * (2*(5+3))
-    #                = dynos * 16
-    # This let's us have up to 7 dynos running at once. The 8th can exhaust the max DB connections.
-    # TODO: replace this with a real queue_adapter in production and get rid of the database connection pool hack:
-    # https://app.asana.com/0/1174274412967132/1200138491722566
-    ASYNC_ADAPTER_MAX_THREADS = 3
     PUMA_MAX_THREADS = Integer(ENV.fetch("PUMA_MAX_THREADS") { 5 })
-    config.active_job.queue_adapter = ActiveJob::QueueAdapters::AsyncAdapter.new \
-      min_threads: 1,
-      max_threads: ASYNC_ADAPTER_MAX_THREADS,
-      idletime: 60.seconds
-    end
 
+    config.active_job.queue_adapter = :sidekiq
+
+  end
 end

@@ -52,6 +52,9 @@ sysctl fs.inotify.max_queued_events=524288
 sysctl fs.inotify.max_user_instances=524288
 
 if [[ "${RAILS_ENV:-'development'}" == 'development' ]]; then
+  echo "Starting a sidekiq worker in the background"
+  bundle exec sidekiq &
+
   # Note: there are some issues with the listen gem and certain editors
   # where gaurd won't detect changes made from the host machine on a Mac
   # inside the container when the volume is mounted. For VIM, you need to add

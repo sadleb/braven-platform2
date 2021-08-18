@@ -8,6 +8,9 @@ class ApplicationJob < ActiveJob::Base
   # Most jobs are safe to ignore if the underlying records are no longer available
   # discard_on ActiveJob::DeserializationError
 
+  include Sidekiq::Worker::Options
+  sidekiq_options retry: false
+
   # By wrapping all of our jobs in a manual span like this instead of relying on the
   # auto-instrumentation we've configued in config/initializes/honeycomb, uncaught exceptions
   # now magically populate the root error and error_detail fields so we don't have to go digging

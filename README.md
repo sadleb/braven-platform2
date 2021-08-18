@@ -170,26 +170,25 @@ The app should automatically pick up any changes you make and live-reload in you
 to rebuild the container (e.g. you added a `gem` dependency), you can do so in two ways - with or without the docker
 cache.
 
+**Note**: When adding a new gem to the `Gemfile`, always run the `rebuild.sh` script below!
+
 With cache (recommended):
 
-    docker-compose down
-    docker-compose build
+    ./docker-compose/scripts/rebuild.sh
 
 Without cache (slow! usually not necessary):
 
-    docker-compose down -v --rmi all --remove-orphans  # deletes all container data!
     docker-compose build --force-rm --no-cache
+    docker-compose up -d
 
 In rare cases, you may need to bypass docker-compose and use docker directly to remove all volumes:
 
+    docker-compose down -v --rmi all --remove-orphans  # deletes all container data!
     docker volume rm platform_db-platform
 
 If you change JavaScript dependencies, you need to restart the container, so yarn runs:
 
     docker-compose down
-
-In all cases, to bring the container back up after a rebuild, run:
-
     docker-compose up -d
 
 **Note:** there is a bug where on a Mac if you edit a file on the host machine (as opposed to inside the container)

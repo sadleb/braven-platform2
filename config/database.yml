@@ -5,15 +5,10 @@ default: &default
   username: <%= ENV['DATABASE_USERNAME'] %>
   password: <%= ENV['DATABASE_PASSWORD'] %>
 
-  # HAX: Add the ASYNC_ADAPTER_MAX_THREADS to the pool b/c we currently use the default
-  # AsyncAdapter for ActiveJob. It uses an in-process thread pool to execute jobs,
-  # so any job that needs a database connection will need one available in the pool.
-  # We need to switch off that b/c it's not meant for prod.
-  # TODO: https://app.asana.com/0/1174274412967132/1200138491722566
-  #
   # Note: we need at least one DB connection per puma thread or we'll run into the following:
   # ActiveRecord::ConnectionTimeoutError (could not obtain a connection from the pool within 5.000 seconds...)
-  pool: <%= Integer(ENV['DB_POOL'] || Platform::Application::PUMA_MAX_THREADS || 5) + Platform::Application::ASYNC_ADAPTER_MAX_THREADS %>
+  pool: <%= Integer(ENV['DB_POOL'] || Platform::Application::PUMA_MAX_THREADS || 5) %>
+
 
 development:
   <<: *default
