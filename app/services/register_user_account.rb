@@ -53,6 +53,12 @@ class RegisterUserAccount
         return
       end
 
+      # If someone's not currently enrolled, show a 500 error page, and don't
+      # let them sign up.
+      unless salesforce_participant_enrolled?
+        raise RegisterUserAccountError, "Salesforce Contact ID not enrolled: #{@user.salesforce_id}"
+      end
+
       # Don't send confirmation email yet; we do it explicitly below.
       @user.skip_confirmation_notification!
       @user.update(@register_user_params.merge({
@@ -121,10 +127,6 @@ private
   end
 
   def create_canvas_user!
-    unless salesforce_participant_enrolled?
-      raise RegisterUserAccountError, "Salesforce Contact ID not enrolled: #{@user.salesforce_id}"
-    end
-
     canvas_user = CanvasAPI.client.create_user(
       @salesforce_participant.first_name,
       @salesforce_participant.last_name,
