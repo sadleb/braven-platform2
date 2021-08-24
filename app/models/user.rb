@@ -172,14 +172,6 @@ class User < ApplicationRecord
     raw
   end
 
-  # Send to Salesforce.
-  # Call it with the raw token, *not* the encoded one from the database.
-  def send_signup_token(token)
-    SalesforceAPI.client.update_contact(self.salesforce_id, {
-      'Signup_Token__c': token,
-    })
-  end
-
   # https://github.com/heartcombo/devise/blob/57d1a1d3816901e9f2cc26e36c3ef70547a91034/lib/devise/models/recoverable.rb#L77
   def signup_period_valid?
     # Note we reuse the confirm_within value from Devise global config.

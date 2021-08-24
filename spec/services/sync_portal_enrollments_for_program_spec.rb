@@ -77,11 +77,14 @@ RSpec.describe SyncPortalEnrollmentsForProgram do
         run_sync
       end
 
-      it 'sends the signup token to Salesforce' do
+      it 'sends the signup token and user.id to Salesforce' do
         fake_token = 'fake_token'
-        allow(new_user).to receive(:signup_token).and_return(nil)
         allow(new_user).to receive(:set_signup_token!).and_return(fake_token)
-        expect(new_user).to receive(:send_signup_token).with(fake_token).once
+        salesforce_contact_fields_to_set = {
+          'Platform_User_ID__c': new_user.id,
+          'Signup_Token__c': fake_token,
+        }
+        expect(sf_client).to receive(:update_contact).with(new_user.salesforce_id, salesforce_contact_fields_to_set).once
         run_sync
       end
 

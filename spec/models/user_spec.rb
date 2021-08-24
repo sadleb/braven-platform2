@@ -428,25 +428,6 @@ RSpec.describe User, type: :model do
     end
   end
 
-  describe '.send_signup_token' do
-    subject { user.send_signup_token(token) }
-
-    let(:user) { create(:registered_user) }
-    let(:token) { 'TestToken' }
-    let(:sf_client) { double(SalesforceAPI, update_contact: nil) }
-
-    before :each do
-      allow(SalesforceAPI).to receive(:client).and_return(sf_client)
-    end
-
-    it 'calls salesforceapi' do
-      subject
-      expect(sf_client).to have_received(:update_contact)
-        .with(user.salesforce_id, {'Signup_Token__c': token})
-        .once
-    end
-  end
-
   describe '.signup_period_valid?' do
     subject { user.signup_period_valid? }
 

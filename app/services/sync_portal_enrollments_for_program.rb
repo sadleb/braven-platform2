@@ -137,9 +137,17 @@ class SyncPortalEnrollmentsForProgram
       # if validations fail.
       user.save!
 
-      # Generate and send the signup token to Salesforce.
-      # Note raw_signup_token will only be set if it wasn't generated previously.
-      raw_signup_token = sync_signup_token!(user)
+      # Generate the signup token.
+      raw_signup_token = user.set_signup_token!
+
+      # Set these new User fields on the Salesforce Contact record
+      # Note: call it with the raw token, *not* the encoded one from the database b/c that's
+      # what is needed in the Account Create Link.
+      salesforce_contact_fields_to_set = {
+        'Platform_User_ID__c': user.id,
+        'Signup_Token__c': raw_signup_token,
+      }
+      SalesforceAPI.client.update_contact(user.salesforce_id, salesforce_contact_fields_to_set)
 
       if @send_signup_emails
         user.send_signup_email!(raw_signup_token)
@@ -152,19 +160,6 @@ class SyncPortalEnrollmentsForProgram
     user&.add_to_honeycomb_span('sync_portal_enrollments_for_program')
 
     user
-  end
-
-  # Generate token and send to Salesforce.
-  def sync_signup_token!(user)
-    # Only do this process once.
-    return if user.signup_token
-
-    raw_token = user.set_signup_token!
-    user.send_signup_token(raw_token)
-
-    # Return the raw token so we can optionally use it to send
-    # emails without making an extra Salesforce call to fetch it.
-    raw_token
   end
 
   def validate_user(email, user, canvas_user)
