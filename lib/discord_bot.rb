@@ -375,8 +375,11 @@ class DiscordBot
       server_id = member.server.id
       user = member.instance_variable_get(:@user)
       Honeycomb.add_field('server.id', server_id.to_s)
+      Honeycomb.add_field('server.name', member.server&.name)
       Honeycomb.add_field('member.id', member.id.to_s)
       Honeycomb.add_field('invite.code', invite.code)
+      Honeycomb.add_field('user.username', user&.username)
+      Honeycomb.add_field('user.discriminator', user&.discriminator)
 
       # Try to map this invite to a Participant.
       # Always fetch latest info from SF, don't rely on a cache, so we're guaranteed to

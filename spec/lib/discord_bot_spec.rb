@@ -542,7 +542,7 @@ RSpec.describe DiscordBot do
   describe 'self.configure_member' do
     subject { DiscordBot.configure_member(member, invite) }
 
-    let(:server) { instance_double(Discordrb::Server, id: 'fake-server-id') }
+    let(:server) { instance_double(Discordrb::Server, id: 'fake-server-id', name: 'fake-server-name') }
     let(:user) { instance_double(Discordrb::User, username: 'fake-username', discriminator: 1234) }
     let(:member) { instance_double(Discordrb::Member, id: 'fake-member-id', server: server, set_nick: nil, set_roles: nil, kick: nil, nick: nil, roles: []) }
     let(:invite) { instance_double(Discordrb::Invite, code: 'fake-invite-code', delete: nil) }
