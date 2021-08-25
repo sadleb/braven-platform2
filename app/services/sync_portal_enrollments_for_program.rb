@@ -190,8 +190,12 @@ EOF
     # These are rescued at a lower level and translated to a user friendly message. Just show that.
     elsif e.is_a?(CanvasUserIdMismatchError) ||
           e.is_a?(ZoomAPI::ZoomMeetingEndedError) ||
+          e.is_a?(ZoomAPI::RegistrationNotEnabledForZoomMeetingError) ||
+          e.is_a?(ZoomAPI::ZoomMeetingDoesNotExistError) ||
           e.is_a?(ZoomAPI::BadZoomRegistrantFieldError)
       error_detail = e.message
+    elsif e.is_a?(CanvasAPI::TimeoutError)
+      error_detail = e.message << " Until it works this user may have trouble accessing Canvas: #{participant.email}"
     end
     error_detail
   end

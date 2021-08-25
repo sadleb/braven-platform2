@@ -2,6 +2,7 @@ require 'rest-client'
 
 class CanvasAPI
   UserNotOnCanvas = Class.new(StandardError)
+  TimeoutError = Class.new(StandardError)
 
   LMSUser = Struct.new(:id, :email)
   LMSEnrollment = Struct.new(:id, :course_id, :type, :section_id)
@@ -45,21 +46,58 @@ class CanvasAPI
   end
 
   def get(path, params={}, headers={})
-    RestClient.get("#{@api_url}#{path}", {params: params}.merge(@global_headers.merge(headers)))
+    retry_timeout do
+      RestClient.get("#{@api_url}#{path}", {params: params}.merge(@global_headers.merge(headers)))
+    end
   end
 
   def post(path, body, headers={})
-    RestClient.post("#{@api_url}#{path}", body, @global_headers.merge(headers))
+    retry_timeout do
+      RestClient.post("#{@api_url}#{path}", body, @global_headers.merge(headers))
+    end
   end
 
   def put(path, body, headers={})
-    RestClient.put("#{@api_url}#{path}", body, @global_headers.merge(headers))
+    retry_timeout do
+      RestClient.put("#{@api_url}#{path}", body, @global_headers.merge(headers))
+    end
   end
 
   def delete(path, body={}, headers={})
-    # Delete helper method doesn't accept a payload. Have to drop down lower level.
-    RestClient::Request.execute(method: :delete,
-      url: "#{@api_url}#{path}", payload: body, headers: @global_headers.merge(headers))
+    retry_timeout do
+      # Delete helper method doesn't accept a payload. Have to drop down lower level.
+      RestClient::Request.execute(method: :delete,
+        url: "#{@api_url}#{path}", payload: body, headers: @global_headers.merge(headers))
+    end
+  end
+
+  # Wrap a RestClient call with a single retry if the request times out just to avoid
+  # having to manually try again if it was a temporary thing. When we ran into this one
+  # time it was just a single user in an entire sync that blipped.
+  def retry_timeout &block
+
+    # Original call.
+    block.call()
+
+  # The exception we actually saw was a ReadTimeout, but let's handle OpenTimeout too. See:
+  # https://github.com/rest-client/rest-client/blob/master/lib/restclient/exceptions.rb#L202
+  rescue RestClient::Exceptions::Timeout
+    Honeycomb.add_field('canvas_api.retry_success', false)
+    sleep 0.5
+    result = nil
+    begin
+
+      # Retry
+      result = block.call()
+
+    # Translate this to a nice user friendly error message for Product Support to know what to do
+    # if the second try still fails.
+    rescue RestClient::Exceptions::Timeout
+      raise TimeoutError, "There was a timeout when talking to Canvas. This is usually temporary. " +
+                          "Try logging into Canvas to make sure it's generally working and then try again."
+    end
+    Honeycomb.add_field('canvas_api.retry_success', true)
+    result
   end
 
   def api_user_id

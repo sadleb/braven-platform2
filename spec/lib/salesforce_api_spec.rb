@@ -397,9 +397,9 @@ RSpec.describe SalesforceAPI do
   describe '.update_contact' do
     let(:contact_id) { '003170000125IpSAAU' }
     let(:contact_obj) { { some_field: 'some_value' } }
+    let(:request_url_regex) { /#{SALESFORCE_INSTANCE_URL}#{SalesforceAPI::DATA_SERVICE_PATH}\/sobjects\/Contact\/#{contact_id}/ }
 
     it 'calls the correct endpoint' do
-      request_url_regex = /#{SALESFORCE_INSTANCE_URL}#{SalesforceAPI::DATA_SERVICE_PATH}\/sobjects\/Contact\/#{contact_id}/
       stub_request(:patch, request_url_regex)
 
       response = SalesforceAPI.client.update_contact(contact_id, contact_obj)
@@ -407,6 +407,24 @@ RSpec.describe SalesforceAPI do
       expect(WebMock).to have_requested(:patch, request_url_regex)
         .with(body: contact_obj.to_json)
         .once
+    end
+
+    context 'when UNABLE_TO_LOCK_ROW response' do
+      let(:error_response_json) { '[{"message":"unable to obtain exclusive access to this record or 1 records: 0035cFAKEIDAQBGAA4","errorCode":"UNABLE_TO_LOCK_ROW","fields":[]}]' }
+
+      it 'retries the request once' do
+        stub_request(:patch, request_url_regex).to_return(
+          {status: 500, body: error_response_json},
+          {status: 204}
+        )
+        sf_client = SalesforceAPI.client
+        expect(sf_client).to receive(:sleep).and_return(0.5).once
+
+        response = sf_client.update_contact(contact_id, contact_obj)
+
+        expect(WebMock).to have_requested(:patch, request_url_regex).twice
+        expect(response.code).to eq(204)
+      end
     end
   end
 end

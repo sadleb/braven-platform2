@@ -11,13 +11,40 @@ RSpec.describe CanvasAPI do
   let(:canvas) { CanvasAPI.new(CANVAS_URL, 'test-token') }
 
   describe '#get' do
+    let(:request_url_regex) { /#{CANVAS_API_URL}.*/ }
+
     it 'correctly sets authorization header' do
-      stub_request(:any, /#{CANVAS_API_URL}.*/)
+      stub_request(:any, request_url_regex)
 
       canvas.get('/test')
 
       expect(WebMock).to have_requested(:get, "#{CANVAS_API_URL}/test")
         .with(headers: {'Authorization'=>'Bearer test-token'}).once
+    end
+
+    context 'on ReadTimeout' do
+      it 'retries the request once and raises user friendly error message' do
+        stub_request(:any, request_url_regex).to_raise(RestClient::Exceptions::ReadTimeout)
+        expect(canvas).to receive(:sleep).and_return(0.5).once
+
+        expect{canvas.get('/test2')}.to raise_error(CanvasAPI::TimeoutError, /try again/)
+
+        # Ideally I would stub the request to raise the first time and work the second time,
+        # but I couldn't figure out how to do that. Just checking if it was called twice should
+        # be a good enough test.
+        expect(WebMock).to have_requested(:get, request_url_regex).twice
+      end
+    end
+
+    context 'on OpenTimeout' do
+      it 'retries the request once and raises user friendly error message' do
+        stub_request(:any, request_url_regex).to_raise(RestClient::Exceptions::OpenTimeout)
+        expect(canvas).to receive(:sleep).and_return(0.5).once
+
+        expect{canvas.get('/test2')}.to raise_error(CanvasAPI::TimeoutError, /try again/)
+
+        expect(WebMock).to have_requested(:get, request_url_regex).twice
+      end
     end
   end
 

@@ -103,6 +103,21 @@ class SalesforceAPI
 
   def patch(path, body, headers={})
     RestClient.patch("#{@salesforce_url}#{path}", body, @global_headers.merge(headers))
+  rescue RestClient::InternalServerError => e
+    # The following transient error happens when two things are trying to update the same
+    # Salesforce record: https://developer.salesforce.com/forums/?id=9060G000000I2r1QAC
+    #   [{"message":"unable to obtain exclusive access to this record or 1 records: 0035cFAKESFIDAAI",
+    #     "errorCode":"UNABLE_TO_LOCK_ROW","fields":[]}]
+    # Let's just wait a little and try again to see if these generally go away.
+    if e.http_body =~ /UNABLE_TO_LOCK_ROW/
+      Honeycomb.add_field('salesforce_api.retry_success', false)
+      sleep 0.5
+      result = RestClient.patch("#{@salesforce_url}#{path}", body, @global_headers.merge(headers))
+      Honeycomb.add_field('salesforce_api.retry_success', true)
+      result
+    else
+      raise
+    end
   end
 
   # Gets a list of all Programs that have been launched with the Accelerator Course (and

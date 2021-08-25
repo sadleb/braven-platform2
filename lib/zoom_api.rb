@@ -8,7 +8,9 @@ require 'json'
 class ZoomAPI
   BASE_URL = 'https://api.zoom.us/v2'
   class ZoomMeetingEndedError < StandardError; end
+  class ZoomMeetingDoesNotExistError < StandardError; end
   class HostCantRegisterForZoomMeetingError < StandardError; end
+  class RegistrationNotEnabledForZoomMeetingError < StandardError; end
   class BadZoomRegistrantFieldError < StandardError; end
 
   # Use this to get an instance of the API client with authentication info setup.
@@ -58,6 +60,25 @@ class ZoomAPI
       error_message = response.dig('errors', 0, 'message')
       raise BadZoomRegistrantFieldError,
         "We cannot create a Zoom link for email: '#{registrant[:email]}'. Zoom says the '#{error_field}' field is: #{error_message}"
+
+    # {
+    #   "code":404,
+    #   "message":"Registration has not been enabled for this meeting: 85390989484."
+    # }
+    when 404
+      raise RegistrationNotEnabledForZoomMeetingError,
+        "We cannot create a Zoom link for email: '#{registrant[:email]}'. " +
+        "Registration must be enabled for Zoom Meeting ID = #{meeting_id}. " +
+        "Please go into the meeting settings, click Edit, and set 'Registration: Required'."
+
+    # {
+    #   "code":3001,
+    #   "message":"Meeting does not exist: 85617842328."
+    # }
+    when 3001
+      raise ZoomMeetingDoesNotExistError,
+        "We cannot create a Zoom link for email: '#{registrant[:email]}'. " +
+        "Zoom Meeting ID = #{meeting_id} doesn't exist. Maybe it was deleted or the ID is wrong?"
 
     # {
     #   "code":3027,
