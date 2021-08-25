@@ -111,6 +111,10 @@ class User < ApplicationRecord
     admin? or has_role? RoleConstants::CAN_SEND_NEW_SIGNUP_EMAIL
   end
 
+  def can_schedule_discord?
+    admin? or has_role? RoleConstants::CAN_SCHEDULE_DISCORD
+  end
+
   # The email address to log in with after the confirmation link is clicked.
   # For the initial account setup, this is just the email. But if the email is
   # changed, it becomes the unconfirmed_email until they reconfirm

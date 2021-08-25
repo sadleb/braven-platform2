@@ -12,3 +12,14 @@
  *
  */
 
+@import "shared/variables";
+
+// Override the red H2 styling.
+h2 {
+    color: $bv-black !important;
+}
+
+// Override the underline on buttons that are actually links.
+a.btn {
+    text-decoration: none;
+}

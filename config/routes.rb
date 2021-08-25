@@ -208,6 +208,9 @@ Rails.application.routes.draw do
   get 'generate_zoom_links', to: 'zoom#init_generate_zoom_links'
   post 'generate_zoom_links', to: 'zoom#generate_zoom_links'
 
+  # Schedule Discord messages
+  resources :discord_schedule, only: [:index, :new, :create, :destroy]
+
   # RubyCAS Routes
   resources :cas, except: [:show]
   get '/cas/login', to: 'cas#login'

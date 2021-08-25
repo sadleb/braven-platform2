@@ -1,0 +1,72 @@
+<div class="col-lg-8">
+  <%= form_with(url: discord_schedule_index_path, method: "post", local: true) do |f| %>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="form-group">
+          <%= f.label('server_id', 'Discord server') %>
+          <%= f.select('server_id',
+            # Update the Discord Server Constants if/when we add more.
+            DiscordConstants::SERVERS,
+          {}, required: true, class: 'form-control') %>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="form-group">
+          <%= f.label('channel', 'Channel') %>
+          <div class="input-group">
+            <div class="input-group-prepend">
+              <span class="input-group-text" id="channelPrepend">#</span>
+            </div>
+            <%= f.text_field('channel', required: true, class: 'form-control', placeholder: 'general') %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6">
+        <div class="form-group">
+          <%= f.label('datetime', 'Send at') %>
+          <%= f.datetime_local_field('datetime', min: Date.today, required: true, class: 'form-control') %>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="form-group">
+          <%= f.label('timezone', 'Time zone') %>
+          <%= f.select('timezone', [
+            # Add timezones as needed, in the correct format.
+            'America/Los_Angeles',
+            'America/Chicago',
+            'America/New_York',
+          ], {}, required: true, class: 'form-control') %>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="form-group">
+          <%= f.label('message', 'Message') %>
+          <%= f.text_area('message', required: true, class: 'form-control', placeholder: 'Hi @everyone... ✨') %>
+          <small id="messageTip" class="form-text text-muted">Tip: Press ⌃-⌘-SPACE to use emoji.</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <p>Be sure to double-check the channel name! Scheduled messages with misspelled channel names will not be sent.</p>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <div class="form-group actions">
+          <%= f.submit "Schedule" %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
