@@ -915,6 +915,11 @@ class DiscordBot
               Honeycomb.add_field('sync_salesforce_participant.invite_deleted', false)
             end
           end
+
+          # Remove the discord code from their Participant record too, so if
+          # they're re-enrolled later, the sync will make them a new invite.
+          LOGGER.debug "Removing invite code from participant in Salesforce"
+          SalesforceAPI.client.update_participant(participant.id, {'Discord_Invite_Code__c': nil})
         end
 
         # If they already had a code, they may have already signed up too;

@@ -423,6 +423,13 @@ RSpec.describe DiscordBot do
         expect(member).not_to receive(:kick)
         subject
       end
+
+      it 'updates participant record' do
+        expect(sf_client).to receive(:update_participant)
+          .with(participant1_with_discord.id, {'Discord_Invite_Code__c': nil})
+          .once
+        subject
+      end
     end
   end
 
