@@ -42,7 +42,9 @@ class ZoomAPI
 
   def add_registrant(meeting_id, body)
     post("/meetings/#{meeting_id}/registrants", body)
-  rescue RestClient::BadRequest => e
+  rescue RestClient::BadRequest,
+         RestClient::NotFound => e
+
     registrant = body.symbolize_keys
     response = JSON.parse(e.http_body)
 

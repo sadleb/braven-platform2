@@ -46,6 +46,12 @@ private
       begin
         response = ZoomAPI.client.add_registrant(@meeting_id, participant)
         csv_row_with_link = participant.merge({ 'join_url' => response['join_url'] })
+      rescue ZoomAPI::RegistrationNotEnabledForZoomMeetingError,
+             ZoomAPI::ZoomMeetingDoesNotExistError,
+             ZoomAPI::ZoomMeetingEndedError => e
+        # The links will fail for everyone for these errors, so just stop processing and report it.
+        # Ideally move this to the validate_meeting() call below when we tackle the TODO so that the failure email is nicer.
+        raise e
       rescue => e
         Sentry.capture_exception(e)
         # Add 2 to get the .csv row # b/c we don't parse the header row and need to make it 1 based instead of 0 based.
