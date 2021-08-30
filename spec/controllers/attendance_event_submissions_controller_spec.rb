@@ -240,7 +240,9 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
       end
 
       context 'with fellows' do
-        let!(:fellow_user) { create :fellow_user, section: accelerator_section }
+        let!(:fellow_user1) { create :fellow_user, last_name: 'Zebra', section: accelerator_section }
+        let!(:fellow_user2) { create :fellow_user, last_name: 'BlastName', section: accelerator_section }
+        let!(:fellow_user3) { create :fellow_user, last_name: 'Adams', section: accelerator_section }
         let!(:ta_section) { create :section, name: SectionConstants::TA_SECTION, course: accelerator_section.course }
 
         context 'when LC has special permission' do
@@ -262,6 +264,11 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
             subject
             expect(response.body).not_to include(ta_section.name)
           end
+
+          it 'alphabetizes the list by last name' do
+            subject
+            expect(response.body).to match(/<legend>.+Adams.*<legend>.+BlastName.*<legend>.+Zebra/m)
+          end
         end
 
         context 'when LC does not have special permission' do
@@ -275,7 +282,9 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
         it "shows the Fellow's name in standard attendance form" do
           subject
           expect(response.body).to include("</form>")
-          expect(response.body).to include(fellow_user.full_name)
+          expect(response.body).to include(fellow_user1.full_name)
+          expect(response.body).to include(fellow_user2.full_name)
+          expect(response.body).to include(fellow_user3.full_name)
           expect(response.body).to include('type="radio"')
           expect(response.body).not_to include(user.full_name)
         end
@@ -289,7 +298,9 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
           it "shows the simple checkbox-only form" do
             subject
             expect(response.body).to include("</form>")
-            expect(response.body).to include(fellow_user.full_name)
+            expect(response.body).to include(fellow_user1.full_name)
+            expect(response.body).to include(fellow_user2.full_name)
+            expect(response.body).to include(fellow_user3.full_name)
             expect(response.body).to include('type="checkbox"')
             expect(response.body).not_to include('type="radio"')
           end

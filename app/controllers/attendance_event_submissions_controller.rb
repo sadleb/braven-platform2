@@ -132,7 +132,7 @@ private
     # sections they're not the TA for, by the `section` call. If you refactor
     # this, be sure to keep those limitations.
     @fellow_users = []
-    @fellow_users = section.students if section
+    @fellow_users = section.students.order(:last_name) if section
   end
 
   def section
