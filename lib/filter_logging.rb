@@ -197,6 +197,18 @@ class FilterLogging
       fields["app.#{field}"] = fields.delete(field) if fields.has_key?(field)
     end
 
+    # Filter the referrer we add in application controller.
+    if fields.has_key?('request.header.referrer')
+      fields['request.header.referrer'] = parameter_filter.filter_param('url', fields['request.header.referrer'])
+    end
+
+    # Add the response Location header to spans where it's available, so we can
+    # tell where we're redirecting people to.
+    if fields.has_key?('process_action.action_controller.response')
+      fields['response.header.location'] = parameter_filter.filter_param('url',
+        fields['process_action.action_controller.response'].headers['Location'])
+    end
+
   rescue => e
     Rails.logger.error(e)
     Sentry.capture_exception(e)

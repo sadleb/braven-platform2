@@ -89,6 +89,10 @@ class ApplicationController < ActionController::Base
     # Add the HTTP request ID to the current span, so that it doesn’t get an `app` prefix
     # and matches the built-in `request` namespace that the Rails integration uses.
     Honeycomb.current_span&.add_field('request.id', request.request_id)
+
+    # Add the referer header to the span, so we can see where people are
+    # getting redirected from.
+    Honeycomb.current_span&.add_field('request.header.referrer', request.referrer)
   end
 
   # Remove the default X-Frame-Options header Rails adds. We use CSP instead.
