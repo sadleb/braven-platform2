@@ -386,11 +386,15 @@ RSpec.describe DiscordBot do
       subject
     end
 
-    it 'deletes invite after configuring member' do
+    it 'does not delete invite after configuring member' do
+      # just because someone has a member in the server, doesn't mean
+      # they can actually access that account. don't needlessly expire
+      # invites during sync; they may be new ones created by staff to allow
+      # the person to sign up again.
       allow(participant1_with_discord).to receive(:contact_id).and_return(contact1_with_discord['Id'])
       allow(bot).to receive(:get_member).and_return(member)
       expect(DiscordBot).to receive(:configure_member_from_records).once
-      expect(invite).to receive(:delete).once
+      expect(invite).not_to receive(:delete)
       subject
     end
 

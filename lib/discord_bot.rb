@@ -949,19 +949,6 @@ class DiscordBot
 
             contact = SalesforceAPI.client.get_contact_info(participant.contact_id)
             DiscordBot.configure_member_from_records(member, participant, contact)
-
-            # Make sure their invite is deleted too, since they're already in the server.
-            invite = @servers[server_id]&.invites&.find { |i| i.code == participant.discord_invite_code }
-            if invite
-              begin
-                invite.delete
-                Honeycomb.add_field('sync_salesforce_participant.invite_deleted', true)
-              rescue Discordrb::Errors::UnknownInvite
-                # Probably another instance of the bot got to it first.
-                LOGGER.debug "Invite already deleted"
-                Honeycomb.add_field('sync_salesforce_participant.invite_deleted', false)
-              end
-            end
           end
         end
       elsif participant.status != SalesforceAPI::DROPPED
