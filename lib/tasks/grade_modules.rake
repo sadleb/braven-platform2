@@ -6,14 +6,24 @@
 namespace :grade do
   desc "grade modules"
   task modules: :environment do
-    # Turn off debug logging, we don't need to see every SQL query.
-    Rails.logger.level = Logger::INFO
+    Honeycomb.start_span(name: 'grade_modules.rake') do
 
-    puts("### Running rake grade:modules - #{Time.now.strftime("%Y-%m-%d %H:%M:%S %Z")}")
+      # Turn off debug logging, we don't need to see every SQL query.
+      Rails.logger.level = Logger::INFO
 
-    grade_modules_service = GradeModules.new
-    grade_modules_service.run
+      # Note: these puts (and all logs) don't make it to Papertrail b/c this is run in a one-off dyno.
+      # Need to cutover to sidekiq if we want these logs to go there.
 
-    puts("### Done running rake grade:modules - #{Time.now.strftime("%Y-%m-%d %H:%M:%S %Z")}")
+      puts("### Running rake grade:modules - #{Time.now.strftime("%Y-%m-%d %H:%M:%S %Z")}")
+
+      grade_modules_service = GradeModules.new
+      grade_modules_service.run
+
+      puts("### Done running rake grade:modules - #{Time.now.strftime("%Y-%m-%d %H:%M:%S %Z")}")
+
+    end
+  rescue => e
+    Sentry.capture_exception(e)
+    raise # This goes off into never, never land unless you're running from the console
   end
 end
