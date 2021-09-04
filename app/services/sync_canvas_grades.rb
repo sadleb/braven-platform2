@@ -17,12 +17,12 @@ class SyncCanvasGrades
       Honeycomb.start_span(name: 'sync_submissions') do
         Honeycomb.add_field('canvas.course.id', canvas_course_id.to_s)
         # Sync grades.
-        Rails.logger.info("Syncing grades for canvas_course_id=#{canvas_course_id}")
+        Rails.logger.debug("Syncing grades for canvas_course_id=#{canvas_course_id}")
         submissions = CanvasAPI.client.get_submission_data(canvas_course_id)
         Honeycomb.add_field('sync_canvas_grades.submissions.count', submissions.count)
         Rails.logger.info("Found #{submissions.count} submissions")
         submissions.each do |submission|
-          Rails.logger.info("Syncing canvas_submission_id=#{submission['id']}")
+          Rails.logger.debug("Syncing canvas_submission_id=#{submission['id']}")
           data = {
             canvas_submission_id: submission['id'],
             canvas_assignment_id: submission['assignment_id'],
@@ -39,7 +39,7 @@ class SyncCanvasGrades
             Honeycomb.add_field('sync_canvas_grades.rubric_assessments.count', submission['rubric_assessment'].length)
             Rails.logger.info("Found #{submission['rubric_assessment'].length} rubric_assessments")
             submission['rubric_assessment'].each do |canvas_criterion_id, assessment_value|
-              Rails.logger.info("Syncing rating for canvas_submission_id=#{data[:canvas_submission_id]}, canvas_rating_id=#{assessment_value['rating_id']}")
+              Rails.logger.debug("Syncing rating for canvas_submission_id=#{data[:canvas_submission_id]}, canvas_rating_id=#{assessment_value['rating_id']}")
 
               # Sometimes the rating id is nil. Only seen this on one test user,
               # so maybe an isolated case? Send some stats to Honeycomb just in case.
@@ -90,7 +90,7 @@ private
 
   def sync_rubrics(rubrics)
     rubrics.each do |rubric|
-      Rails.logger.info("Syncing canvas_rubric_id=#{rubric['id']}")
+      Rails.logger.debug("Syncing canvas_rubric_id=#{rubric['id']}")
       rubric_data = {
         canvas_context_id: rubric['context_id'],
         canvas_context_type: rubric['context_type'],
@@ -104,7 +104,7 @@ private
 
       Rails.logger.info("Found #{rubric['data'].length} rubric criterion")
       rubric['data'].each do |criterion|
-        Rails.logger.info("Syncing canvas_criterion_id=#{criterion['id']}")
+        Rails.logger.debug("Syncing canvas_criterion_id=#{criterion['id']}")
         criterion_data = {
           canvas_rubric_id: rubric['id'],
           canvas_criterion_id: criterion['id'],
@@ -120,7 +120,7 @@ private
 
         Rails.logger.info("Found #{criterion['ratings'].length} rubric ratings")
         criterion['ratings'].each do |rating|
-          Rails.logger.info("Syncing canvas_rating_id=#{rating['id']}")
+          Rails.logger.debug("Syncing canvas_rating_id=#{rating['id']}")
           rating_data = {
             canvas_rubric_id: rubric['id'],
             canvas_criterion_id: rating['criterion_id'],
