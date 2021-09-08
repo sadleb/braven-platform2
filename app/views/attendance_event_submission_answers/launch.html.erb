@@ -1,11 +1,10 @@
 <% content_for :title, @attendance_event.title %>
 
-<p>
   <% if @attendance_event.event_type&.to_sym == AttendanceEvent::STANDARD_EVENT %>
-    When your Leadership Coach takes attendance for this event, your score for this assignment will be updated on the Grades page. Refer to your syllabus for more information on how attendance impacts your grade.
+    <p>No action required here, other than attending this specific Learning Lab (class)!</p>
+    <p>When your Leadership Coach takes attendance for this Learning Lab, you will be given credit for this assignment. Refer to your syllabus for more information on how attendance impacts your grade.</p>
   <% else %>
     <%# Currently, there are normal standard attendance events OR 1-1's. This copy is for 1-1's %>
-    When your Leadership Coach records that this happened, your score for this assignment will be updated on the Grades page. Refer to your syllabus for more information on how this impacts your grade.
+    <p>No action required here, other than doing your 1-1 with your Leadership Coach.</p>
+    <p>When your Leadership Coach records that this happened, you be given credit for this assignment. Refer to your syllabus for more information on how this impacts your grade.</p>
   <% end%>
-</p>
-
