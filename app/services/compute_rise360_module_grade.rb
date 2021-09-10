@@ -105,7 +105,7 @@ class ComputeRise360ModuleGrade
     # they can get for the on-time portion of the grade.
     def on_time_points_display
       points_total = GRADE_WEIGHTS[:on_time] * Rise360Module::POINTS_POSSIBLE
-      percent_of_grade_awarded = GRADE_WEIGHTS[:on_time] * (@on_time_grade / 100)
+      percent_of_grade_awarded = GRADE_WEIGHTS[:on_time] * (@on_time_grade.to_f / 100)
       points_awarded = Rise360Module::POINTS_POSSIBLE * percent_of_grade_awarded
       "#{points_awarded.round(1)} / #{points_total.round(1)}"
     end
@@ -119,7 +119,7 @@ class ComputeRise360ModuleGrade
       effective_grade_weight += GRADE_WEIGHTS[:mastery_quiz] if @quiz_grade.nil?
 
       points_total = effective_grade_weight * Rise360Module::POINTS_POSSIBLE
-      percent_of_grade_awarded = effective_grade_weight * (@engagement_grade / 100)
+      percent_of_grade_awarded = effective_grade_weight * (@engagement_grade.to_f / 100)
       points_awarded = Rise360Module::POINTS_POSSIBLE * percent_of_grade_awarded
       "#{points_awarded.round(1)} / #{points_total.round(1)}"
     end
@@ -130,14 +130,14 @@ class ComputeRise360ModuleGrade
       return 'N/A' if @quiz_grade.nil? # This shouldn't happen. Let's just be safe if a Module doesn't have mastery questions
 
       points_total = GRADE_WEIGHTS[:mastery_quiz] * Rise360Module::POINTS_POSSIBLE
-      percent_of_grade_awarded = GRADE_WEIGHTS[:mastery_quiz] * (@quiz_grade / 100)
+      percent_of_grade_awarded = GRADE_WEIGHTS[:mastery_quiz] * (@quiz_grade.to_f / 100)
       points_awarded = Rise360Module::POINTS_POSSIBLE * percent_of_grade_awarded
       "#{points_awarded.round(1)} / #{points_total.round(1)}"
     end
 
     # Returns a string like "3.3 / 10.0" for the total points they were awarded
     def total_points_display
-      percent_of_grade_awarded = (@total_grade / 100)
+      percent_of_grade_awarded = (@total_grade.to_f / 100)
       points_awarded = Rise360Module::POINTS_POSSIBLE * percent_of_grade_awarded
       "#{points_awarded.round(1)} / #{Rise360Module::POINTS_POSSIBLE.to_f.round(1)}"
     end
