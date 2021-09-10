@@ -21,7 +21,7 @@ RSpec.describe LrsXapiMock do
       allow(request).to receive(:raw_post).and_return(post_body) if method == 'PUT' || method == 'POST'
       allow(request).to receive(:method).and_return(method)
       allow(request).to receive(:authorization).and_return(authorization)
-      allow(GradeModuleForUserJob).to receive(:perform_later).and_return(nil)
+      allow(GradeRise360ModuleForUserJob).to receive(:perform_later).and_return(nil)
       response # This is what makes the request for each test and sets this to the response
     end
 
@@ -116,7 +116,7 @@ RSpec.describe LrsXapiMock do
 
         # We only do this when they finish or nighlty b/c it's computationally and memory intensive.
         it 'does not kick off module grading job' do
-          expect(GradeModuleForUserJob).not_to have_received(:perform_later)
+          expect(GradeRise360ModuleForUserJob).not_to have_received(:perform_later)
         end
 
         it 'returns 204' do
@@ -142,12 +142,8 @@ RSpec.describe LrsXapiMock do
         end
 
         it 'kicks off the module grading job' do
-          expect(GradeModuleForUserJob).to have_received(:perform_later)
-            .with(user,
-                  lti_launch,
-                  lti_launch.request_message.canvas_course_id,
-                  lti_launch.request_message.canvas_assignment_id
-            ).once
+          expect(GradeRise360ModuleForUserJob).to have_received(:perform_later)
+            .with(user, lti_launch).once
         end
 
         it 'returns 204' do

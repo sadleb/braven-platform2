@@ -45,15 +45,18 @@ private
   # assignment that is of type 'basic_lti_launch' it will fail with:
   # "user not authorized to perform that action"
   def ensure_submission()
-    return if Rise360ModuleGrade.find_by(
+    grade = Rise360ModuleGrade.create_or_find_by!(
       user: current_user,
       course_rise360_module_version: @course_rise360_module_version
-    ).present?
-
-    grade = Rise360ModuleGrade.create!(
-      user: current_user,
-      course_rise360_module_version: @course_rise360_module_version,
     )
+
+    return if grade.has_submission?
+
+    # Note: there is a very unlikely race condition where we could get past the above return line
+    # and end up calling the LtiAdvantageAPI twice to create a score / submission. I tested
+    # what the behavior is and it's fine. Both API calls succeed, the second one is what
+    # the "submitted_at" timestamp would be set to, and the line item's score resultUrl
+    # is the same. No need to fix the race condition.
 
     submission = LtiScore.new_module_submission(
       current_user.canvas_user_id,
@@ -63,12 +66,16 @@ private
       )
     )
 
+    # Send a submission to Canvas with { activityProgress: Submitted, gradingProgress: PendingManual } and the
+    # basic_lti_launch URL set to launch the show() action for this Rise360ModuleGrade
+    #
+    # Note: there is an edge case here that's too hard to fix. If they never open the Module then this doesn't run.
+    # Then, after the due date passes the nightly grading task will use the CanvasAPI to send a 0 grade to Canvas.
+    # Finally, if they then go open the Module after that, this LtiAdvantage.create_score() code runs which causes Canvas
+    # to clear out the 0 and put it back into an ungraded state. However, the 0 score will be re-sent the next time
+    # grading runs.
     score_result = LtiAdvantageAPI.new(@lti_launch).create_score(submission)
     grade.update!(canvas_results_url: score_result['resultUrl'])
-
-  rescue RestClient::Exception
-    grade.destroy! if grade
-    raise
   end
 
   # Only users enrolled as students can create a submission

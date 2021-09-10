@@ -4,7 +4,7 @@
 # task to be more memory- and/or time-efficient.
 
 namespace :grade do
-  desc "grade modules"
+  desc "grade all Rise360 modules"
   task modules: :environment do
     Honeycomb.start_span(name: 'grade_modules.rake') do
 
@@ -14,7 +14,7 @@ namespace :grade do
       # Note: these puts (and all logs) show up with app/scheduler.X in Papertrail.
       puts("### Running rake grade:modules - #{Time.now.strftime("%Y-%m-%d %H:%M:%S %Z")}")
 
-      grade_modules_service = GradeModules.new
+      grade_modules_service = GradeRise360Modules.new
       grade_modules_service.run
 
       puts("### Done running rake grade:modules - #{Time.now.strftime("%Y-%m-%d %H:%M:%S %Z")}")

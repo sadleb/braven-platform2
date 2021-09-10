@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'rest-client'
 
 class CanvasAPI
@@ -141,24 +142,21 @@ class CanvasAPI
     JSON.parse(response.body)
   end
 
-  # True if a TA or staff member manually entered a grade rather than our code auto-grading it.
-  def latest_submission_manually_graded?(course_id, assignment_id, user_id)
-    # I thought about use a bulk API call to get the submissions for these users but I'm worried
-    # it'll be buggy and harder to maintain. 1 extra API call per user that has done work and getting
-    # their grade updated nightly seems fine
-    user_submission = get_latest_submission(course_id, assignment_id, user_id)
+  # Returns all submissions for an assignment in the format:
+  # { canvas_user_id => submission }
+  def get_assignment_submissions(course_id, assignment_id, filter_out_unopened_assignment_submissions = false)
+    response = get("/courses/#{course_id}/assignments/#{assignment_id}/submissions")
+    all_submissions = get_all_from_pagination(response)
 
-    # It's hard to implement this by looking for whether the grader was a TA b/c it could
-    # have been an admin or designer or some other role that had permission to edit grades.
-    # The easiest way is just to assume that if it wasn't this API user, it was a manual override.
-    # If we ever change the API user or accidentally set a manual grade that breaks auto-grading,
-    # either write a script or implement an admin tool to fix things up.
-    #
-    # Note: if the submission has been created using LtiScore.new_pending_manual_submission(),
-    # the grader_id will be nil. Don't accidentally treat that as manually graded.
-    graded_by_id = user_submission['grader_id']
-    Honeycomb.add_field('canvas_api.graded_by_id', graded_by_id)
-    graded_by_id.present? && graded_by_id != api_user_id
+    all_submissions.filter_map { |s|
+      # If an assignment that is a basic_lti_launch submission type has never been opened, the submissions
+      # returned may have a nil 'submission_type' which isn't a real one.
+      if filter_out_unopened_assignment_submissions and s['submission_type'].nil?
+        nil
+      else
+        [s['user_id'], s]
+      end
+    }.to_h
   end
 
   # Get all submission data for a given course, for all assignments/users,
@@ -256,6 +254,12 @@ class CanvasAPI
     users = JSON.parse(response.body)
     # Only return an object if one and only one user matches the query.
     users.length == 1 ? users[0] : nil
+  end
+
+  # https://canvas.instructure.com/doc/api/users.html#method.users.api_show
+  def show_user_details(user_id)
+    response = get("/users/#{user_id}")
+    JSON.parse(response.body)
   end
 
   # https://canvas.instructure.com/doc/api/logins.html

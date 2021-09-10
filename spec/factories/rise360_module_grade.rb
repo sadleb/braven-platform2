@@ -2,10 +2,11 @@ FactoryBot.define do
   factory :rise360_module_grade do
     association :user, factory: :fellow_user
     course_rise360_module_version
-    grade_manually_overridden { false }
+    on_time_credit_received { false }
+    canvas_results_url { nil }
 
-    factory :rise360_module_grade_overridden do
-      grade_manually_overridden { true }
+    factory 'rise360_module_grade_with_submission' do
+      canvas_results_url { 'https://some/submission/url/on/canvas/created/when/opened' }
     end
   end
 end

@@ -7,6 +7,14 @@ require 'rise360_util'
 class Rise360Module < ApplicationRecord
   include Versionable
 
+  # TODO: this constant is used to convert a score into a percent in the grading
+  # code. To make this not be insanely brittle, we should actually use this to set
+  # the points_possible when we publish a Module. We should also prevent folks from
+  # changing it in the Canvas UI. Currently, we assume Designers properly go set all Modules to
+  # be worth 10 points. Grading will BREAK if that doesn't happen.
+  # https://app.asana.com/0/1174274412967132/1199231117515061
+  POINTS_POSSIBLE=10
+
   after_save :set_rise360_zipfile_changed, if: :saved_change_to_rise360_zipfile?
   after_commit :publish, if: :rise360_zipfile_changed?
   before_destroy :purge
@@ -26,7 +34,7 @@ class Rise360Module < ApplicationRecord
   # ActiveModel's way of tracking changes to attachments. In ActiveModel's
   # implementation, attachment_changes is not available in the commit hooks
   # because all of the changes are already persisted to the DB. However,
-  # we only have access to the ActiveStorage attachment in the commit state, 
+  # we only have access to the ActiveStorage attachment in the commit state,
   # hence this custom flag.
   attr_accessor :rise360_zipfile_changed
 

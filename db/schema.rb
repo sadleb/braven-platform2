@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_08_16_200415) do
+ActiveRecord::Schema.define(version: 2021_09_02_142326) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
@@ -140,6 +140,9 @@ ActiveRecord::Schema.define(version: 2021_08_16_200415) do
     t.boolean "late"
     t.datetime "created_at", precision: 6, default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.datetime "updated_at", precision: 6, default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.string "submission_type"
+    t.datetime "due_at"
+    t.bigint "canvas_grader_id"
     t.index ["canvas_submission_id"], name: "index_canvas_submissions_on_canvas_submission_id", unique: true
   end
 
@@ -415,7 +418,8 @@ ActiveRecord::Schema.define(version: 2021_08_16_200415) do
     t.bigint "user_id", null: false
     t.bigint "course_rise360_module_version_id", null: false
     t.string "canvas_results_url"
-    t.boolean "grade_manually_overridden", default: false
+    t.boolean "on_time_credit_received", default: false, null: false
+    t.index ["canvas_results_url"], name: "index_rise360_module_grades_on_canvas_results_url_exists", where: "(canvas_results_url IS NOT NULL)"
     t.index ["course_rise360_module_version_id"], name: "index_rise360_module_grades_on_course_rise360_module_version_id"
     t.index ["user_id", "course_rise360_module_version_id"], name: "index_rise360_module_grades_uniqueness", unique: true
     t.index ["user_id"], name: "index_rise360_module_grades_on_user_id"
@@ -432,11 +436,12 @@ ActiveRecord::Schema.define(version: 2021_08_16_200415) do
     t.boolean "new", default: true, null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["canvas_assignment_id", "user_id", "verb"], name: "index_rise360_module_interactions_on_assignment_user_verb"
     t.index ["canvas_assignment_id"], name: "index_rise360_module_interactions_on_canvas_assignment_id"
-    t.index ["canvas_course_id", "canvas_assignment_id"], name: "index_rise360_module_interactions_on_course_assignment"
-    t.index ["new", "canvas_course_id", "canvas_assignment_id", "user_id"], name: "index_rise360_module_interactions_on_new_course_assignment_user"
+    t.index ["canvas_course_id"], name: "index_rise360_module_interactions_on_canvas_course_id"
+    t.index ["new"], name: "index_rise360_module_interactions_on_new_true", where: "(new = true)"
+    t.index ["progress"], name: "index_rise360_module_interactions_on_progress_100_percent", where: "(progress = 100)"
     t.index ["user_id"], name: "index_rise360_module_interactions_on_user_id"
+    t.index ["verb"], name: "index_rise360_module_interactions_on_verb"
   end
 
   create_table "rise360_module_states", force: :cascade do |t|

@@ -204,7 +204,7 @@ private
       # Grade it now if they complete the module instead of waiting for the nightly task
       # so that they immediately see they get credit and feel good about that.
       if progress == 100
-        GradeModuleForUserJob.perform_later(user, lti_launch, rmi.canvas_course_id, rmi.canvas_assignment_id)
+        GradeRise360ModuleForUserJob.perform_later(user, lti_launch)
       end
     when Rise360ModuleInteraction::ANSWERED
       Rise360ModuleInteraction.create!(

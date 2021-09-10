@@ -23,16 +23,7 @@ class SyncCanvasGrades
         Rails.logger.info("Found #{submissions.count} submissions")
         submissions.each do |submission|
           Rails.logger.debug("Syncing canvas_submission_id=#{submission['id']}")
-          data = {
-            canvas_submission_id: submission['id'],
-            canvas_assignment_id: submission['assignment_id'],
-            canvas_user_id: submission['user_id'],
-            canvas_course_id: canvas_course_id,
-            score: submission['score'],
-            grade: submission['grade'],
-            graded_at: submission['graded_at'],
-            late: submission['late'],
-          }
+          data = CanvasSubmission.parse_attributes(submission, canvas_course_id)
           CanvasSubmission.upsert(data, unique_by: [:canvas_submission_id])
 
           if submission['rubric_assessment']

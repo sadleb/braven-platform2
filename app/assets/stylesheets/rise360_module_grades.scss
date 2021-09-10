@@ -1,0 +1,38 @@
+// Place all the styles related to the rise360_module_grades_controller here.
+// They will automatically be included in lti_canvas.css.
+// You can use Sass (SCSS) here: http://sass-lang.com/
+
+@import "shared/variables";
+
+div.rise360-module-grade-container {
+
+  // This was chosen b/c 1366px is a common size for smaller sized laptops
+  // which (empirically) give us about 752px of real-estate to work with
+  // when embedded in a Canvas iframe. So if we get it to fit horizontally
+  // when we have 752px to work with, then setting a max width here slightly
+  // above (b/c it happens to be a standard breakpoint) means it will look more
+  // or less the same for all laptops.
+  max-width: $grid-breakpoint-md;
+
+  div.grade-component p {
+    margin-bottom: 0;
+  }
+
+  div.grade-component-description {
+    font-size: 95%;
+    font-style: italic;
+  }
+
+  div.grade-component-description p {
+    margin-bottom: 1.1rem;
+  }
+
+  span.points-total-display {
+    color: $bv-black;
+  }
+
+  span.points-display {
+    color: $bv-silver-700;
+    font-weight: bold;
+  }
+}

@@ -139,7 +139,7 @@ RSpec.describe CourseRise360ModuleVersionsController, type: :controller do
       end
 
       context 'with student data' do
-        let!(:rise360_module_grade) { create(:rise360_module_grade, course_rise360_module_version: course_rise360_module_version) }
+        let!(:rise360_module_grade) { create(:rise360_module_grade_with_submission, course_rise360_module_version: course_rise360_module_version) }
 
         it 'redirects to before_publish_latest page to show a message' do
           subject
@@ -311,7 +311,7 @@ RSpec.describe CourseRise360ModuleVersionsController, type: :controller do
     end
 
     context 'with student data' do
-      let!(:rise360_module_grade) { create(:rise360_module_grade, course_rise360_module_version: course_rise360_module_version) }
+      let!(:rise360_module_grade) { create(:rise360_module_grade_with_submission, course_rise360_module_version: course_rise360_module_version) }
 
       it 'redirects to before_unpublish to show a message' do
         subject

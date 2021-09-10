@@ -350,47 +350,6 @@ RSpec.describe CanvasAPI do
     end
   end
 
-  describe "#latest_submission_manually_graded?" do
-    let(:course_id) { 132 }
-    let(:assignment_id) { latest_submission['assignment_id'] }
-    let(:user_id) { latest_submission['user_id'] }
-    let(:ta_user) { create(:canvas_user) }
-    let(:api_user) { create(:canvas_user) }
-    let(:grader_id) { api_user['id'] }
-    let(:latest_submission) { create(:canvas_submission, grader_id: grader_id) }
-
-    before(:each) do
-      latest_submission_url = "#{CANVAS_API_URL}/courses/#{course_id}/assignments/#{assignment_id}/submissions/#{user_id}"
-      stub_request(:get, latest_submission_url).to_return(body: latest_submission.to_json)
-      api_user_url = "#{CANVAS_API_URL}/users/self"
-      stub_request(:get, api_user_url).to_return(body: api_user.to_json)
-    end
-
-    context 'when grader_id is different than the current API user' do
-      let(:grader_id) { ta_user['id'] }
-      it 'returns true' do
-        manually_graded = canvas.latest_submission_manually_graded?(course_id, assignment_id, user_id)
-        expect(manually_graded).to eq(true)
-      end
-    end
-
-    context 'when grader_id is the current API user' do
-      let(:grader_id) { api_user['id'] }
-      it 'returns false' do
-        manually_graded = canvas.latest_submission_manually_graded?(course_id, assignment_id, user_id)
-        expect(manually_graded).to eq(false)
-      end
-    end
-
-    context 'when grader_id is nil' do
-      let(:grader_id) { nil }
-      it 'returns false' do
-        manually_graded = canvas.latest_submission_manually_graded?(course_id, assignment_id, user_id)
-        expect(manually_graded).to eq(false)
-      end
-    end
-  end
-
   describe '#get_submission_data' do
     let(:course_id) { 100 }
 
