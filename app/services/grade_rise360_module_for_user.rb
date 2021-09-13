@@ -21,6 +21,7 @@ class GradeRise360ModuleForUser
     @course_rise360_module_version = course_rise360_module_version
     @send_grade_to_canvas = send_grade_to_canvas
     @force_computation = force_computation
+    @existing_canvas_grade = nil # Do this before calling set_canvas_submission() b/c that takes care of initializing it.
     set_canvas_submission(canvas_submission) if canvas_submission.present?
 
     # Be careful to only add these common fields that are usually in the trace only to this span (with the prefix).
@@ -31,7 +32,6 @@ class GradeRise360ModuleForUser
     Honeycomb.add_field('grade_rise360_module_for_user.canvas.course.id', @course_rise360_module_version.course.canvas_course_id.to_s)
 
     @needs_grading = nil
-    @existing_canvas_grade = nil
     @existing_canvas_score_display = '-'
     @grader_full_name = nil
     @completed_at = nil
@@ -59,6 +59,7 @@ class GradeRise360ModuleForUser
   #    up to the moment we started running this computation. Otherwise, we'll keep thinking they did
   #    more work in the module and we have to re-grade it.
   def run
+
     # Select the max id at the very beginning, so we can use it at the bottom to mark only things
     # before this as old. If we don't do this, we run the risk of marking things as old that we
     # haven't actually processed yet, causing students to get missing or incorrect grades.
@@ -132,7 +133,7 @@ class GradeRise360ModuleForUser
   # 3) they get an extension of the due date
   # 4) due date has passed and they've never opened it -> grade them (need to 0 out folks)
   def needs_grading?
-    return @needs_grading if @needs_grading
+    return @needs_grading unless @needs_grading.nil?
 
     @needs_grading = false
     needs_grading_reason = 'Doesn\'t need grading. No new work, no due date extension, not manually overridden, and due date hasn\'t passed.'
