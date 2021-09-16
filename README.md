@@ -4,7 +4,7 @@
 [![Codacy Coverage Badge](https://api.codacy.com/project/badge/Coverage/f800f0c485164dacb4b493d8acfb19e6)](https://www.codacy.com/manual/bebraven/platform)
 
 This is the Braven Platform!
-
+  
 Add to this README please. It's easy to edit and see your changes locally using [grip](https://github.com/joeyespo/grip).
 
 ## Initial setup
