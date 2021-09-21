@@ -3,6 +3,7 @@
 <%= form_for [@course_survey_version, @survey_submission] do |f| %>
   <div class="bv-custom-content-container">
     <%== @course_survey_version.survey_version.body %>
+    <%= f.hidden_field :lti_launch_id, value: @lti_launch.id %>
     <div class="actions">
       <%= f.submit "Submit" %>
     </div>
