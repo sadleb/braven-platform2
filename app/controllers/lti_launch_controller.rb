@@ -84,7 +84,10 @@ class LtiLaunchController < ApplicationController
     # page, AND making people click a button to open the details in a new tab would
     # be painful for anyone going through the speedgrader, we still put the state
     # param directly into the URL.
-    when /#{rise360_module_grade_path('')}/
+    # TEMP FIX: Do the same for the Attendance Event Submission Answers path, since
+    # that shows up in "CLASS: blah" assignments, and we'll be modifying this soon
+    # anyway.
+    when /#{rise360_module_grade_path('')}/, /#{launch_attendance_event_submission_answers_path}/
       append_query_param(target_uri, "state=#{params[:state]}")
 
     # 3. For everyting else, redirect directly with an LTI Launch ID param.
