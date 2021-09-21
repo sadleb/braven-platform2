@@ -86,8 +86,11 @@ class LtiLaunchController < ApplicationController
     # param directly into the URL.
     # TEMP FIX: Do the same for the Attendance Event Submission Answers path, since
     # that shows up in "CLASS: blah" assignments, and we'll be modifying this soon
-    # anyway.
-    when /#{rise360_module_grade_path('')}/, /#{launch_attendance_event_submission_answers_path}/
+    # anyway. And the same for other things that show up in the grade details view,
+    # and nowhere else...
+    when /#{rise360_module_grade_path('')}/,
+         /#{launch_attendance_event_submission_answers_path}/,
+         /#{course_project_version_project_submission_path('.*', '')}\d+$/
       append_query_param(target_uri, "state=#{params[:state]}")
 
     # 3. For everyting else, redirect directly with an LTI Launch ID param.
