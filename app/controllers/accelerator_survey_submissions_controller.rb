@@ -136,7 +136,7 @@ private
   def instance_path(instance)
     send(
       "completed_#{@type}accelerator_survey_submissions_path",
-      state: params[:state],
+      lti_launch_id: params[:lti_launch_id],
     )
   end
 
@@ -150,7 +150,7 @@ private
   def completed_submissions_path
     send(
       "completed_#{@type}accelerator_survey_submissions_path",
-      state: @lti_launch.state
+      lti_launch_id: @lti_launch.id,
     )
   end
 
@@ -164,7 +164,7 @@ private
     @new_survey_url = send(
       "new_#{@type.downcase}accelerator_survey_submission_url",
       protocol: 'https',
-      state: @lti_launch.state,
+      lti_launch_id: @lti_launch.id,
     )
   end
 

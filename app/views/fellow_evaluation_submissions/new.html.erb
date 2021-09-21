@@ -74,7 +74,7 @@
       </fieldset>
     <% end %>
 
-    <input type="hidden" name="state" value="<%= @lti_launch.state %>">
+    <input type="hidden" name="lti_launch_id" value="<%= @lti_launch.id %>">
   <%= form.submit "Submit", class: 'btn btn-primary btn-block' %>
   <% end %>
 <% end %>

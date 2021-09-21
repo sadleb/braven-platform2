@@ -11,7 +11,9 @@
   <!-- Submit -->
   <%= react_component('Projects/ProjectSubmitButton', {
     hasSubmission: @has_previous_submission,
-    ltiLaunchState: params[:state],
+    # Note: this'll crash if lti_launch is nil. Switch to &. safe
+    # referencing once we can handle nil state in the JS.
+    ltiLaunchState: @lti_launch.state,
     courseContentVersionId: @course_project_version.id,
   })%>
 

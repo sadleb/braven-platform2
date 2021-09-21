@@ -10,9 +10,9 @@ class LinkedInAuthorizationController < ApplicationController
   include LtiHelper
 
   before_action :set_lti_launch_from_referrer, only: [:login]
-  # We only need set_lti_launch on #launch, because once the launch page loads
-  # it sets a same-domain cookie, and we don't have to worry about passing
-  # state around any more.
+  # We only need set_lti_launch on #launch (not #oauth_redirect), because
+  # once the launch page loads it sets a same-domain cookie, and we don't
+  # have to worry about passing the lti launch param around any more.
   before_action :set_lti_launch, only: [:launch]
 
   layout 'lti_canvas'

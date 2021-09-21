@@ -13,7 +13,8 @@ require 'rails_helper'
 RSpec.describe LtiHelper, type: :helper do
   let(:state) { LtiLaunchController.generate_state }
   let(:target_link_uri) { 'https://target/link' }
-  let(:lti_launch) { create(:lti_launch_assignment_selection, target_link_uri: target_link_uri, state: state) }
+  let(:user) { create(:fellow_user) }
+  let(:lti_launch) { create(:lti_launch_assignment_selection, target_link_uri: target_link_uri, state: state, canvas_user_id: user.canvas_user_id) }
   let(:content_items_url) { 'https://deep/link' }
   let(:expected_payload) { create(:lti_launch_assignment_selection).id_token_payload }
 
@@ -55,28 +56,29 @@ RSpec.describe LtiHelper, type: :helper do
     end
   end
 
-  describe 'LtiHelper.get_lti_state_from_referrer' do
+  describe 'LtiHelper.get_lti_launch_from_referrer' do
     let(:request) { ActionDispatch::Request.new({}) }
 
     context 'with Rise360 format' do
       before :each do
-        request.headers['Referer'] = 'https://example.org/?auth=LtiState%20test_state'
+        request.headers['Referer'] = "https://example.org/?auth=LtiState%20#{lti_launch.state}"
       end
 
-      it 'returns the correct state' do
-        lti_state = LtiHelper.get_lti_state_from_referrer(request)
-        expect(lti_state).to eq('test_state')
+      it 'returns the correct launch' do
+        got_launch = helper.get_lti_launch_from_referrer(request)
+        expect(got_launch).to eq(lti_launch)
       end
     end
 
     context 'with CustomContent format' do
       before :each do
-        request.headers['Referer'] = 'https://example.org/?state=test_state'
+        request.headers['Referer'] = "https://example.org/?lti_launch_id=#{lti_launch.id}"
+        allow(helper).to receive(:current_user).and_return(user)
       end
 
       it 'returns the correct state' do
-        lti_state = LtiHelper.get_lti_state_from_referrer(request)
-        expect(lti_state).to eq('test_state')
+        got_launch = helper.get_lti_launch_from_referrer(request)
+        expect(got_launch).to eq(lti_launch)
       end
     end
   end

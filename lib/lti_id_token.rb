@@ -34,8 +34,8 @@ class LtiIdToken
 
   # Parses the payload into the appropriate LtiRequestMessage
   def self.parse(payload)
-    message_type = payload[LtiLaunchRequestMessage::MESSAGE_TYPE_CLAIM]
-    MESSAGE_TYPE_TO_CLASS[message_type].new(payload)
+    message_type = payload&.dig(LtiLaunchRequestMessage::MESSAGE_TYPE_CLAIM)
+    MESSAGE_TYPE_TO_CLASS[message_type].new(payload) if message_type
   end
 
   def self.public_jwks

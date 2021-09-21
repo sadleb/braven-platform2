@@ -111,7 +111,7 @@ class ApplicationController < ActionController::Base
     # Abstract that out into a common utility / way for any controller or lib or service to be able to
     # access the state param of the current request. Perhaps using middleware? Like TracePropagation::Middleware does?
     # https://app.asana.com/0/1174274412967132/1191053265938819
-    params[:state]
+    helpers.get_lti_launch&.state
   end
   helper_method :current_state_param
 

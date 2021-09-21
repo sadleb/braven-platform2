@@ -16,6 +16,7 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
   let(:salesforce_client) { double(SalesforceAPI) }
 
   before(:each) do
+    sign_in user
     @lti_launch = create(
       :lti_launch_resource_link_request,
       canvas_course_id: lc_playbook_course.canvas_course_id,
@@ -45,7 +46,7 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
   end
 
   describe 'GET #launch' do
-    subject { get(:launch, params: { state: @lti_launch.state } ) }
+    subject { get(:launch, params: { lti_launch_id: @lti_launch.id } ) }
 
     shared_examples 'valid launch' do
       scenario 'creates a submission' do
@@ -61,7 +62,7 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
         expect(subject).to redirect_to edit_attendance_event_submission_path(
           AttendanceEventSubmission.last,
           section_id: launch_section.id,
-          state: @lti_launch.state,
+          lti_launch_id: @lti_launch.id,
         )
       end
     end
@@ -196,7 +197,7 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
 
     subject { get(:edit, params: {
       id: @attendance_event_submission.id,
-      state: @lti_launch.state,
+      lti_launch_id: @lti_launch.id,
     } ) }
 
     shared_examples 'no fellows' do
@@ -333,7 +334,7 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
               'in_attendance' => true,
             },
           },
-          state: @lti_launch.state,
+          lti_launch_id: @lti_launch.id,
         },
       )
     }
@@ -352,7 +353,7 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
         subject
         expect(response).to redirect_to edit_attendance_event_submission_path(
           attendance_event_submission,
-          state: @lti_launch.state,
+          lti_launch_id: @lti_launch.id,
         )
       end
 

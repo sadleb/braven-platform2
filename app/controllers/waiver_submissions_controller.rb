@@ -28,7 +28,7 @@ class WaiverSubmissionsController < FormAssemblyController
   def launch
     authorize :waiver_submission
 
-    redirect_to completed_waiver_submissions_path(state: params[:state]) and return if waivers_already_signed?
+    redirect_to completed_waiver_submissions_path(lti_launch_id: params[:lti_launch_id]) and return if waivers_already_signed?
 
     render layout: 'lti_canvas'
   end
@@ -91,7 +91,7 @@ private
   end
 
   def set_new_waivers_url
-    @new_waivers_url = "https://#{Rails.application.secrets.application_host}#{new_waiver_submission_path}?state=#{@lti_launch.state}"
+    @new_waivers_url = new_waiver_submission_url(lti_launch_id: @lti_launch.id)
   end
 
   def waivers_already_signed?

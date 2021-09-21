@@ -18,16 +18,22 @@ RSpec.describe ProjectSubmissionAnswersController, type: :controller do
     create :lti_launch_assignment, canvas_user_id: user_viewing_submission.canvas_user_id
   }
 
+  before :each do
+    sign_in user_viewing_submission
+    allow(LtiLaunch).to receive(:from_id)
+      .with(user_viewing_submission, lti_launch.id)
+      .and_return(lti_launch)
+  end
+
   describe 'GET #index' do
 
     before(:each) do
-      allow(LtiLaunch).to receive(:current).and_return(lti_launch)
       project_submission_answers
       get(
         :index,
         params: {
           project_submission_id: project_submission.id,
-          state: lti_launch.state,
+          lti_launch_id: lti_launch.id,
         },
         format: :json,
       )
@@ -69,12 +75,11 @@ RSpec.describe ProjectSubmissionAnswersController, type: :controller do
   describe 'POST #create' do
 
     before(:each) do
-      allow(LtiLaunch).to receive(:current).and_return(lti_launch)
       post(
         :create,
         params: {
           project_submission_id: project_submission.id,
-          state: lti_launch.state,
+          lti_launch_id: lti_launch.id,
           project_submission_answer: {
             input_name: 'test_input',
             input_value: 'test value',

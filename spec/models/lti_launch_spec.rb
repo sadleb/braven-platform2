@@ -39,30 +39,49 @@ RSpec.describe LtiLaunch, type: :model do
         end
 
         it 'sets id_token_payload' do
-          expect(LtiLaunch.current(state).id_token_payload).to eq(id_token_payload) 
+          expect(LtiLaunch.from_state(state).id_token_payload).to eq(id_token_payload)
         end
 
         it 'updates target_link_uri' do
-          expect(LtiLaunch.current(state).target_link_uri).to eq(payload_target_link_uri) 
+          expect(LtiLaunch.from_state(state).target_link_uri).to eq(payload_target_link_uri)
         end
       end
     end
 
-    describe '.current' do
+    describe '.from_state' do
       context 'when authenticated' do
-        let(:authenticated_launch) { create(:lti_launch_assignment) }
+        let(:user) { create(:fellow_user) }
+        let(:authenticated_launch) { create(:lti_launch_assignment, canvas_user_id: user.canvas_user_id) }
         it 'returns record' do
-          expect(LtiLaunch.current(authenticated_launch.state)).to eq(authenticated_launch)
+          expect(LtiLaunch.from_state(authenticated_launch.state)).to eq(authenticated_launch)
         end
       end
 
       context 'when unauthenticated' do
         let(:unauthenticated_launch) { create(:lti_launch_model) }
-        it 'raises error' do
-          expect { LtiLaunch.current(unauthenticated_launch.state) }.to raise_error(ActiveRecord::RecordNotFound)
+        it 'returns nil' do
+          expect(LtiLaunch.from_state(unauthenticated_launch.state)).to eq(nil)
         end
       end
     end
+
+    describe '.from_id' do
+      context 'when authenticated' do
+        let(:user) { create(:fellow_user) }
+        let(:authenticated_launch) { create(:lti_launch_assignment, canvas_user_id: user.canvas_user_id) }
+        it 'returns record' do
+          expect(LtiLaunch.from_id(authenticated_launch.user, authenticated_launch.id)).to eq(authenticated_launch)
+        end
+      end
+
+      context 'when unauthenticated' do
+        let(:unauthenticated_launch) { create(:lti_launch_model) }
+        it 'returns nil' do
+          expect(LtiLaunch.from_id(unauthenticated_launch.user, unauthenticated_launch.id)).to eq(nil)
+        end
+      end
+    end
+
 
     describe '#assignment_id' do
       let(:assignment_launch) { create(:lti_launch_assignment, canvas_assignment_id: 12345, canvas_course_id: 123) }
@@ -106,27 +125,27 @@ RSpec.describe LtiLaunch, type: :model do
 
       it 'sets the client_id' do
         expect(auth_params[:client_id]).to eq(lti_launch.client_id)
-      end 
+      end
 
       it 'sets the redirect_uri' do
         expect(auth_params[:redirect_uri]).to eq(REDIRECT_URI)
-      end 
+      end
 
       it 'sets the state' do
         expect(auth_params[:state]).to eq(lti_launch.state)
-      end 
+      end
 
       it 'sets the nonce' do
         expect(auth_params[:nonce]).to eq(lti_launch.nonce)
-      end 
+      end
 
       it 'sets the login_hint' do
         expect(auth_params[:login_hint]).to eq(lti_launch.login_hint)
-      end 
+      end
 
       it 'sets the lti_message_hint' do
         expect(auth_params[:lti_message_hint]).to eq(lti_launch.lti_message_hint)
-      end 
+      end
 
     end
 

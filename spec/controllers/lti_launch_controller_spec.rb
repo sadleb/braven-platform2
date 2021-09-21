@@ -1,6 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe LtiLaunchController, type: :controller do
+  render_views
+
   let(:state) { LtiLaunchController.generate_state }
 
   describe 'POST #login' do
@@ -40,16 +42,35 @@ RSpec.describe LtiLaunchController, type: :controller do
       end
 
       it 'authenticates the launch' do
-        lti_launch = LtiLaunch.current(state)
+        lti_launch = LtiLaunch.from_state(state)
         expect(lti_launch.id_token_payload).to eq(JSON.parse(id_token_payload))
-      end
-
-      it 'redirects to the target_link_uri with the state param' do
-        expect(response).to redirect_to(target_link_uri + "?state=#{state}")
       end
 
       it 'signs in the user with matching canvas_user_id' do
         expect(controller.current_user).to eq lti_user
+      end
+
+      context 'with non-assignment LTI placement target' do
+        let!(:target_link_uri) { lti_course_resources_url }
+
+        it 'renders the redirect form with state and target_uri with lti_launch_id param' do
+          expect(response.body).to match(/<form.*action="#{lti_redirector_path}"/)
+          expect(response.body).to match(/value="#{lti_launch.state}"/)
+        end
+      end
+
+      context 'with grade details target' do
+        let!(:target_link_uri) { rise360_module_grade_path('') }
+
+        it 'redirects to the target_link_uri with the state param' do
+          expect(response).to redirect_to(target_link_uri + "?state=#{lti_launch.state}")
+        end
+      end
+
+      context 'with other target' do
+        it 'redirects to the target_link_uri with the lti_launch_id param' do
+          expect(response).to redirect_to(target_link_uri + "?lti_launch_id=#{lti_launch.id}")
+        end
       end
     end
 
@@ -67,5 +88,34 @@ RSpec.describe LtiLaunchController, type: :controller do
     end
   end
 
-end
+  describe 'POST #redirector' do
+    let(:canvas_user_id) { 12345 }
+    let(:target_link_uri) { 'https://target/link' }
+    let!(:lti_launch) { create(:lti_launch_assignment, target_link_uri: target_link_uri, state: state, canvas_user_id: canvas_user_id) }
+    let(:lti_redirector_params) { { :state => state } }
 
+    context 'user in the launch payload matches a local user by canvas_user_id' do
+      let!(:lti_user) { create(:registered_user, canvas_user_id: canvas_user_id) }
+
+      before(:each) do
+        post :redirector, params: lti_redirector_params
+      end
+
+      it 'signs in the user with matching canvas_user_id' do
+        expect(controller.current_user).to eq lti_user
+      end
+
+      it 'redirects to the target_link_uri with the lti_launch_id param' do
+        expect(response).to redirect_to(target_link_uri + "?lti_launch_id=#{lti_launch.id}")
+      end
+    end
+
+    context 'user in the launch payload does not match a local user' do
+      it 'does not sign in the user' do
+        expect {
+          post :redirector, params: lti_redirector_params
+        }.to raise_error(Pundit::NotAuthorizedError)
+      end
+    end
+  end
+end

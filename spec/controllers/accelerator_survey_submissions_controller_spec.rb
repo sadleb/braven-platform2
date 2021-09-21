@@ -34,7 +34,7 @@ RSpec.describe AcceleratorSurveySubmissionsController, type: :controller do
   end
 
   describe 'GET #completed' do
-    subject { get :completed, params: { state: lti_launch.state } }
+    subject { get :completed, params: { lti_launch_id: lti_launch.id } }
 
     it 'returns a success response' do
       expect(response).to be_successful
@@ -53,7 +53,7 @@ RSpec.describe AcceleratorSurveySubmissionsController, type: :controller do
         allow(lti_advantage_api)
           .to receive(:get_result)
           .and_return(previous_submission)
-        get :launch, params: { type: type, state: lti_launch.state }
+        get :launch, params: { type: type, lti_launch_id: lti_launch.id }
       end
 
       ['Pre', 'Post'].each do | type |
@@ -91,7 +91,7 @@ RSpec.describe AcceleratorSurveySubmissionsController, type: :controller do
           it 'redirects to #completed' do
             url = send(
               "completed_#{type.downcase}accelerator_survey_submissions_url",
-              state: lti_launch.state,
+              lti_launch_id: lti_launch.id,
             )
             expect(response).to redirect_to(url)
           end
@@ -102,9 +102,9 @@ RSpec.describe AcceleratorSurveySubmissionsController, type: :controller do
     context 'invalid parameters' do
       it 'raises an error' do
         [
-          { type: 'Pre' }, # missing state
-          { state: lti_launch.state }, # missing type
-          { state: lti_launch.state, type: 'Foo' }, # invalid type
+          { type: 'Pre' }, # missing lti_launch_id
+          { lti_launch_id: lti_launch.id }, # missing type
+          { lti_launch_id: lti_launch.id, type: 'Foo' }, # invalid type
         ].each do | invalid_params |
           expect { get :new, params: invalid_params }. to raise_error
         end
@@ -137,7 +137,7 @@ RSpec.describe AcceleratorSurveySubmissionsController, type: :controller do
         allow(form_assembly_client)
           .to receive(:get_form_head_and_body)
           .and_return([form_head, form_body])
-        get :new, params: { type: type, state: lti_launch.state }
+        get :new, params: { type: type, lti_launch_id: lti_launch.id }
       end
 
       ['Pre', 'Post'].each do | type |
@@ -180,7 +180,7 @@ RSpec.describe AcceleratorSurveySubmissionsController, type: :controller do
           it 'redirects to #completed' do
             url = send(
               "completed_#{type.downcase}accelerator_survey_submissions_url",
-              state: lti_launch.state,
+              lti_launch_id: lti_launch.id,
             )
             expect(response).to redirect_to(url)
           end
@@ -192,8 +192,8 @@ RSpec.describe AcceleratorSurveySubmissionsController, type: :controller do
       it 'raises an error' do
         [
           { type: 'Pre' }, # missing state
-          { state: lti_launch.state }, # missing type
-          { state: lti_launch.state, type: 'Foo' }, # invalid type
+          { lti_launch_id: lti_launch.id }, # missing type
+          { lti_launch_id: lti_launch.id, type: 'Foo' }, # invalid type
         ].each do | invalid_params |
           expect { get :new, params: invalid_params }. to raise_error
         end
@@ -209,7 +209,7 @@ RSpec.describe AcceleratorSurveySubmissionsController, type: :controller do
         .and_return(previous_submission)
       allow(lti_advantage_api)
         .to receive(:create_score)
-      post :create, params: { type: type, state: lti_launch.state }
+      post :create, params: { type: type, lti_launch_id: lti_launch.id }
     end
 
     context 'valid parameters' do
@@ -237,7 +237,7 @@ RSpec.describe AcceleratorSurveySubmissionsController, type: :controller do
           it 'renders #create' do
             url = send(
               "completed_#{type.downcase}accelerator_survey_submissions_path",
-              state: lti_launch.state
+              lti_launch_id: lti_launch.id
             )
             expect(response.body).to match /Go Back To The Course/
           end

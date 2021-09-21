@@ -104,7 +104,7 @@ private
     # Get course and assignment IDs from the LtiLaunch specified in the auth header.
     # Header looks like "<prefix> <state>".
     state = authorization.split(LtiConstants::AUTH_HEADER_PREFIX).last.strip
-    LtiLaunch.current(state)
+    LtiLaunch.from_state(state)
   end
 
   private_class_method def self.save_state!(activity_id, state_id, data, lti_launch, user)

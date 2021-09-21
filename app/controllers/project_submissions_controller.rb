@@ -14,6 +14,8 @@ class ProjectSubmissionsController < ApplicationController
   layout 'lti_canvas'
 
   before_action :set_lti_launch
+  # TODO: evaluate removing this now that we don't use iframes.
+  # https://app.asana.com/0/1174274412967132/1200999775167872/f
   skip_before_action :verify_authenticity_token, only: [:create], if: :is_sessionless_lti_launch?
 
   before_action :set_has_previous_submission, only: [:edit, :new]
@@ -61,7 +63,7 @@ class ProjectSubmissionsController < ApplicationController
     # Note: This assumes Projects always allow resubmissions.
     redirect_to new_course_project_version_project_submission_path(
       @course_project_version,
-      state: @lti_launch.state
+      lti_launch_id: @lti_launch.id,
     )
   end
 
@@ -85,7 +87,7 @@ class ProjectSubmissionsController < ApplicationController
     redirect_to edit_course_project_version_project_submission_path(
       @course_project_version,
       @project_submission,
-      state: @lti_launch.state
+      lti_launch_id: @lti_launch.id,
     )
   end
 

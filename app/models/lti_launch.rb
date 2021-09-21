@@ -14,9 +14,25 @@ class LtiLaunch < ApplicationRecord
   scope :authenticated, -> { where.not id_token_payload: nil }
   scope :unauthenticated, -> { where id_token_payload: nil }
 
-  # The fully authenticated LtiLaunch for this state (aka launch session)
-  def self.current(state)
-    launch = LtiLaunch.where(state: state).authenticated.first!
+  # The fully authenticated LtiLaunch for this state (aka launch session).
+  # This method used to be called `LtiLaunch.current`.
+  def self.from_state(state)
+    launch = LtiLaunch.where(state: state).authenticated.first
+  end
+
+  # IMPORTANT NOTE: Never use the LtiLaunch returned from this function to
+  # log someone in! Only use `from_state` or `authenticate` for that!
+  # This is only for looking up launches to find the associated Canvas course/
+  # assignment IDs for LtiAdvantage or similar usecases.
+  def self.from_id(user, id)
+    # We use `where` instead of `find` so we can use the `authenticated`
+    # scope, but since we're selecting by ID, the `where` will only ever
+    # return one or zero launches.
+    launch = LtiLaunch.where(id: id&.to_i).authenticated.first
+    # ONLY return this LtiLaunch if it's owned by the current user.
+    if user && launch&.user == user
+      launch
+    end
   end
 
   # Alias for current but returns false if there is no authenticated LtiLaunch for this "state"
@@ -63,7 +79,7 @@ class LtiLaunch < ApplicationRecord
 
   # The user that this launch is for.
   def user
-    User.find_by(canvas_user_id: request_message.canvas_user_id)
+    User.find_by(canvas_user_id: request_message&.canvas_user_id)
   end
 
 # TODO: get rid of the following two accessors. Just have everyone use the request_message or resource_link_request_message

@@ -20,6 +20,7 @@ private
       :action,
       :commit,
       :state,
+      :lti_launch_id,
       :authenticity_token,
     ).permit!.to_h
   end

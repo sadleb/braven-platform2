@@ -75,25 +75,26 @@ private
       end
     end
 
-    # There are 5 possible locations where the lti state may be stored in a request:
-    # params[:state] is there for routes hit using LtiLaunchController
-    # params[:auth] is there when Rise360 packages load index.html. We piggyback off the "auth" query param that Rise
-    #               packages can be configured with and store it there when launching them.
-    # request.headers[:authorization] is there for Ajax requests from both Rise360 and Projects. For Rise360 this
-    #                                 is the result of configuring Tincan.js with the "auth" option in the launch.
-    # request.referrer contains a state token when an iframe is loaded *inside* Rise360 content.
-    # request.referrer contains a state token when an iframe is loaded *inside* CustomContent (Projects).
+    # There are 2 possible locations where the lti state may be stored in a request:
+    #
+    # * params[:state] is there for routes hit using LtiLaunchController
+    # * request.headers[:authorization] is there for Ajax requests from both Rise360 and Projects.
+    #   For Rise360 this is the result of configuring Tincan.js with the "auth" option in the launch.
+    #
+    # Important note: Be sure to never use any lti_launch_id param for authentication! That param
+    # is only to identify the launch in non-auth-related contexts, such as pulling the associated
+    # Canvas course/assignment IDs.
     def fetch_state
       lti_state = params[:state]
-      unless lti_state
-        lti_state = params[:auth][/#{LtiConstants::AUTH_HEADER_PREFIX} (.*)$/, 1] if params[:auth]
-      end
+      Honeycomb.add_field('lti_authentication.fetch_state_from', 'params[:state]') if lti_state
+
       unless lti_state
         lti_state = request.headers[:authorization][/#{LtiConstants::AUTH_HEADER_PREFIX} (.*)$/, 1] if request.headers[:authorization]
+        Honeycomb.add_field('lti_authentication.fetch_state_from', 'headers[:authorization]') if lti_state
       end
-      unless lti_state
-        lti_state = LtiHelper.get_lti_state_from_referrer(request)
-      end
+
+      Honeycomb.add_field('lti_authentication.fetch_state_from', 'none') unless lti_state
+
       lti_state
     end
 

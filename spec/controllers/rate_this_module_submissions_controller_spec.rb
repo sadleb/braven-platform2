@@ -17,6 +17,10 @@ RSpec.describe RateThisModuleSubmissionsController, type: :controller do
     )
   }
 
+  before :each do
+    sign_in user
+  end
+
   # Note: adding headers in controller specs is discouraged, but we're doing it
   # anyway because this specific usecase is very simple and this way is more
   # consistent with the rest of our specs.
@@ -49,7 +53,7 @@ RSpec.describe RateThisModuleSubmissionsController, type: :controller do
       it 'redirects to #edit' do
         expect(subject).to redirect_to edit_rate_this_module_submission_path(
           RateThisModuleSubmission.last,
-          state: lti_launch.state,
+          lti_launch_id: lti_launch.id,
         )
       end
     end
@@ -65,7 +69,7 @@ RSpec.describe RateThisModuleSubmissionsController, type: :controller do
 
     subject { get(:edit, params: {
         id: rate_this_module_submission.id,
-        state: lti_launch.state,
+        lti_launch_id: lti_launch.id,
       }.merge(other_params)
     ) }
 
@@ -109,7 +113,7 @@ RSpec.describe RateThisModuleSubmissionsController, type: :controller do
             'module_score': '9',
             'module_feedback': 'thanks i love it',
           },
-          state: lti_launch.state,
+          lti_launch_id: lti_launch.id,
         },
       )
     }
@@ -137,7 +141,7 @@ RSpec.describe RateThisModuleSubmissionsController, type: :controller do
         subject
         expect(response).to redirect_to edit_rate_this_module_submission_path(
           rate_this_module_submission,
-          state: lti_launch.state,
+          lti_launch_id: lti_launch.id,
           show_alert: true,
           submitted: true,
         )

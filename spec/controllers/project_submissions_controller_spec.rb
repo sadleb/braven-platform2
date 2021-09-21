@@ -15,17 +15,23 @@ RSpec.describe ProjectSubmissionsController, type: :controller do
     create :lti_launch_assignment, canvas_user_id: user_viewing_submission.canvas_user_id
   }
 
+  before :each do
+    sign_in user_viewing_submission
+    allow(LtiLaunch).to receive(:from_id)
+      .with(user_viewing_submission, lti_launch.id)
+      .and_return(lti_launch)
+  end
+
   describe 'GET #show' do
 
     before(:each) do
-      allow(LtiLaunch).to receive(:current).and_return(lti_launch)
       get(
         :show,
         params: {
           course_project_version_id: project_submission.course_project_version.id,
           id: project_submission.id,
           type: 'CourseProjectVersion',
-          state: lti_launch.state,
+          lti_launch_id: lti_launch.id,
         }
       )
     end
@@ -63,13 +69,12 @@ RSpec.describe ProjectSubmissionsController, type: :controller do
 
   describe 'GET #new' do
     subject(:new_request) do
-      allow(LtiLaunch).to receive(:current).and_return(lti_launch)
       get(
         :new,
         params: {
           course_project_version_id: course_project_version.id,
           type: 'CourseProjectVersion',
-          state: lti_launch.state,
+          lti_launch_id: lti_launch.id,
         }
       )
     end
@@ -87,7 +92,7 @@ RSpec.describe ProjectSubmissionsController, type: :controller do
         # in order to get the path. Instead, just bind to the submission created by
         # the controller to construct the path.
         expect(response).to redirect_to :action => :edit,
-          :id => assigns(:project_submission).id, :state => lti_launch.state
+          :id => assigns(:project_submission).id, :lti_launch_id => lti_launch.id
       end
 
     end
@@ -104,7 +109,7 @@ RSpec.describe ProjectSubmissionsController, type: :controller do
         edit_path = edit_course_project_version_project_submission_path(
           course_project_version,
           project_submission,
-          state: lti_launch.state
+          lti_launch_id: lti_launch.id
         )
 
         new_request
@@ -118,14 +123,13 @@ RSpec.describe ProjectSubmissionsController, type: :controller do
   describe 'GET #edit' do
 
     subject(:edit_request) do
-      allow(LtiLaunch).to receive(:current).and_return(lti_launch)
       get(
         :edit,
         params: {
           course_project_version_id: project_submission.course_project_version.id,
           id: project_submission.id,
           type: 'CourseProjectVersion',
-          state: lti_launch.state,
+          lti_launch_id: lti_launch.id,
         }
       )
     end
@@ -168,7 +172,7 @@ RSpec.describe ProjectSubmissionsController, type: :controller do
           params: {
             course_project_version_id: course_project_version.id,
             type: 'CourseProjectVersion',
-            state: lti_launch.state,
+            lti_launch_id: lti_launch.id,
           },
         )
       }.to change {ProjectSubmission.count}.by(1)

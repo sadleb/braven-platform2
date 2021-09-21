@@ -1,0 +1,6 @@
+<p>Click the button below to open <%= @resource_name %> in a new window.</p>
+
+<%= form_with(url: lti_redirector_path, method: 'POST', local: true) do |f| %>
+  <%= f.hidden_field(:state, value: @state) %>
+  <%= f.button "Load #{@resource_name} in a new window", class: 'btn btn-default btn-lg', formtarget: '_blank' %>
+<% end %>

@@ -12,6 +12,7 @@ RSpec.describe FellowEvaluationSubmissionsController, type: :controller do
   let(:salesforce_client) { double(SalesforceAPI) }
 
   before(:each) do
+    sign_in user
     @lti_launch = create(
       :lti_launch_assignment,
       canvas_user_id: user.canvas_user_id,
@@ -45,7 +46,7 @@ RSpec.describe FellowEvaluationSubmissionsController, type: :controller do
         :new,
         params: {
           course_id: lc_playbook_course.id,
-          state: @lti_launch.state,
+          lti_launch_id: @lti_launch.id,
         },
       )
     }
@@ -105,7 +106,7 @@ RSpec.describe FellowEvaluationSubmissionsController, type: :controller do
           subject
           expect(response).to redirect_to fellow_evaluation_submission_path(
             FellowEvaluationSubmission.last,
-            state: @lti_launch.state,
+            lti_launch_id: @lti_launch.id,
           )
         end
       end
@@ -134,7 +135,7 @@ RSpec.describe FellowEvaluationSubmissionsController, type: :controller do
               'how-ready-to-be-professional' => 'My answer value',
             },
           },
-          state: @lti_launch.state,
+          lti_launch_id: @lti_launch.id,
         },
       )
     }
@@ -158,7 +159,7 @@ RSpec.describe FellowEvaluationSubmissionsController, type: :controller do
       it 'redirects to #show' do
         expect(subject).to redirect_to fellow_evaluation_submission_path(
           FellowEvaluationSubmission.last,
-          state: @lti_launch.state,
+          lti_launch_id: @lti_launch.id,
         )
       end
     end
@@ -190,7 +191,7 @@ RSpec.describe FellowEvaluationSubmissionsController, type: :controller do
         params: {
           course_id: lc_playbook_course.id,
           id: fellow_evaluation_submission.id,
-          state: @lti_launch.state,
+          lti_launch_id: @lti_launch.id,
         },
       )
     }

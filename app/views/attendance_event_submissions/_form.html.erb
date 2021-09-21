@@ -22,7 +22,7 @@
       </select>
     </div>
 
-    <input type="hidden" name="state" value="<%= @lti_launch.state %>">
+    <input type="hidden" name="lti_launch_id" value="<%= @lti_launch.id %>">
     <input type="hidden" name="section_id" value="<%= @section.id %>">
 
     <div class="actions col">
@@ -46,7 +46,7 @@
         </select>
       </div>
 
-      <input type="hidden" name="state" value="<%= @lti_launch.state %>">
+      <input type="hidden" name="lti_launch_id" value="<%= @lti_launch.id %>">
       <input type="hidden" name="course_attendance_event_id" value="<%= @attendance_event_submission.course_attendance_event.id %>">
 
       <div class="actions col">
@@ -139,7 +139,7 @@
           <% end %>
         <% end %>
 
-        <input type="hidden" name="state" value="<%= @lti_launch.state %>">
+        <input type="hidden" name="lti_launch_id" value="<%= @lti_launch.id %>">
         <input type="hidden" name="section_id" value="<%= @section.id %>">
 
         <div class="actions">

@@ -11,7 +11,7 @@ package at various screen sizes. You probably want to avoid that.
     <% if params[:show_alert] %>
       <div class="alert alert-success alert-dismissible fade show show-alert" role="alert">
         <p>Feedback submitted. Thank you!</p>
-        <a href="<%= edit_rate_this_module_submission_path(@rate_this_module_submission, state: @lti_launch.state, submitted: true) %>"
+        <a href="<%= edit_rate_this_module_submission_path(@rate_this_module_submission, lti_launch_id: @lti_launch.id, submitted: true) %>"
            class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></a>
       </div>
     <% end %>
@@ -47,7 +47,7 @@ package at various screen sizes. You probably want to avoid that.
         ><%= @prefill_feedback %></textarea>
       </div>
 
-      <input type="hidden" name="state" value="<%= @lti_launch.state %>">
+      <input type="hidden" name="lti_launch_id" value="<%= @lti_launch.id %>">
 
       <div class="actions">
         <% submit_btn_message = (params[:submitted] ? 'Re-Submit' : 'Submit') %>

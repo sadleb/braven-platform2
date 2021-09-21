@@ -4,6 +4,7 @@
 <p>Can't edit previous submissions.</p>
 <p>Try editing your
 <%= link_to 'latest submission', new_course_project_version_project_submission_path(
-  @course_project_version,
-  state: @lti_launch.state) %>
+    @course_project_version,
+    lti_launch_id: @lti_launch.id,
+  ), 'data-turbolinks': false %>
 instead.</p>

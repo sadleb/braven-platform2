@@ -13,6 +13,10 @@ RSpec.describe SurveySubmissionsController, type: :controller do
       canvas_user_id: user.canvas_user_id,
     )
   }
+
+  before :each do
+    sign_in user
+  end
  
   describe 'GET #show' do
     # This creates the submission for the Fellow for that survey
@@ -30,7 +34,7 @@ RSpec.describe SurveySubmissionsController, type: :controller do
         params: {
           id: survey_submission.id,
           type: 'CourseSurveyVersion',
-          state: lti_launch.state,
+          lti_launch_id: lti_launch.id,
         },
       )
       expect(response).to be_successful
@@ -44,7 +48,7 @@ RSpec.describe SurveySubmissionsController, type: :controller do
         params: {
           course_survey_version_id: course_survey_version.id,
           type: 'CourseSurveyVersion',
-          state: lti_launch.state,
+          lti_launch_id: lti_launch.id,
         },
       )
       expect(response).to be_successful
@@ -60,10 +64,10 @@ RSpec.describe SurveySubmissionsController, type: :controller do
         params: {
           course_survey_version_id: course_survey_version.id,
           type: 'CourseSurveyVersion',
-          state: lti_launch.state,
+          lti_launch_id: lti_launch.id,
         },
       )
-      expect(response).to redirect_to survey_submission_path(SurveySubmission.last, state: lti_launch.state)
+      expect(response).to redirect_to survey_submission_path(SurveySubmission.last, lti_launch_id: lti_launch.id)
     end
   end
 
@@ -83,13 +87,13 @@ RSpec.describe SurveySubmissionsController, type: :controller do
           course_survey_version_id: course_survey_version.id,
           type: 'CourseSurveyVersion',
           unique_input_name: 'my test input',
-          state: lti_launch.state,
+          lti_launch_id: lti_launch.id,
         }
       )
     }
 
     it 'redirects to #show' do
-      expect(subject).to redirect_to survey_submission_path(SurveySubmission.last, state: lti_launch.state)
+      expect(subject).to redirect_to survey_submission_path(SurveySubmission.last, lti_launch_id: lti_launch.id)
     end
 
     it 'creates a survey submission' do

@@ -15,6 +15,8 @@ class FormAssemblyController < ApplicationController
 
   layout 'form_assembly'
 
+  # TODO: evaluate removing this now that we don't use iframes.
+  # https://app.asana.com/0/1174274412967132/1200999775167872/f
   skip_before_action :verify_authenticity_token, only: [:create], if: :is_sessionless_lti_launch?
 
   # The FormAssembly Javascript does an eval() and executes inline scripts so we need to loosen the CSP.

@@ -21,7 +21,9 @@ RSpec.describe WaiverSubmissionsController, type: :controller do
     }
 
     before(:each) do
-      allow(LtiLaunch).to receive(:current).and_return(lti_launch)
+      allow(LtiLaunch).to receive(:from_id)
+        .with(fellow_user, lti_launch.id)
+        .and_return(lti_launch)
       sign_in fellow_user
     end
 
@@ -32,7 +34,7 @@ RSpec.describe WaiverSubmissionsController, type: :controller do
       before(:each) do
         allow(lti_advantage_api).to receive(:get_result).and_return(waivers_submission_result)
         allow(LtiAdvantageAPI).to receive(:new).and_return(lti_advantage_api)
-        get :launch, params: { state: lti_launch.state }, session: valid_session
+        get :launch, params: { lti_launch_id: lti_launch.id }, session: valid_session
       end
 
       it 'returns a success response' do
@@ -45,7 +47,7 @@ RSpec.describe WaiverSubmissionsController, type: :controller do
 
       context 'when waivers havent been signed' do
         it 'shows the button to launch the waivers' do
-          new_waivers_regex = "/waiver_submissions/new?state=#{lti_launch.state}"
+          new_waivers_regex = "/waiver_submissions/new?lti_launch_id=#{lti_launch.id}"
           expect(response.body).to match /<a href=".*#{Regexp.escape(new_waivers_regex)}"/
         end
       end
@@ -53,7 +55,7 @@ RSpec.describe WaiverSubmissionsController, type: :controller do
       context 'when waivers are already signed' do
         let(:waivers_submission_result) { build(:lti_result) }
         it 'redirects to completed page' do
-          expect(response).to redirect_to completed_waiver_submissions_path(state: lti_launch.state)
+          expect(response).to redirect_to completed_waiver_submissions_path(lti_launch_id: lti_launch.id)
         end
       end
     end
@@ -84,7 +86,7 @@ RSpec.describe WaiverSubmissionsController, type: :controller do
           allow(sf_client).to receive(:get_participant_id).and_return(participant_id)
           allow(SalesforceAPI).to receive(:client).and_return(sf_client)
           allow(fa_client).to receive(:get_form_head_and_body).and_return([form_head, form_body])
-          get :new, params: { state: lti_launch.state }, session: valid_session
+          get :new, params: { lti_launch_id: lti_launch.id }, session: valid_session
         end
 
         it 'returns a success response' do
@@ -116,7 +118,7 @@ RSpec.describe WaiverSubmissionsController, type: :controller do
           allow(LtiAdvantageAPI).to receive(:new).and_raise("This shouldnt happen")
           allow(fa_client).to receive(:get_next_form_head_and_body).and_return([form_head, form_body])
 
-          get :new, params: { state: lti_launch.state, tfa_next: 'some/path/to/get/the/next/form' }, session: valid_session
+          get :new, params: { lti_launch_id: lti_launch.id, tfa_next: 'some/path/to/get/the/next/form' }, session: valid_session
         end
 
         it 'doesnt hit the SalesforceAPI' do
@@ -151,7 +153,7 @@ RSpec.describe WaiverSubmissionsController, type: :controller do
         allow(LtiScore).to receive(:new_full_credit_submission)
           .with(fellow_user.canvas_user_id, completed_waiver_submissions_url(protocol: 'https')).and_return(lti_score_request)
 
-        post :create, params: { state: lti_launch.state }, session: valid_session
+        post :create, params: { lti_launch_id: lti_launch.id }, session: valid_session
       end
 
       it 'returns a success response' do
@@ -171,12 +173,12 @@ RSpec.describe WaiverSubmissionsController, type: :controller do
 
     context '#completed' do
       it 'shows the thank you page' do
-        get :completed, params: { state: lti_launch.state }, session: valid_session
+        get :completed, params: { lti_launch_id: lti_launch.id }, session: valid_session
         expect(response.body).to match /Thank you/
       end
 
       it 'shows message about still needing to do email verification if they didnt' do
-        get :completed, params: { state: lti_launch.state }, session: valid_session
+        get :completed, params: { lti_launch_id: lti_launch.id }, session: valid_session
         expect(response.body).to match(/Please check your email and spam folder for a link to verify your waivers if you haven't already/)
       end
     end # '#completed'

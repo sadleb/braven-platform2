@@ -8,6 +8,7 @@ RSpec.describe CapstoneEvaluationSubmissionsController, type: :controller do
   let(:sf_client) { double(SalesforceAPI, get_accelerator_course_id_from_lc_playbook_course_id: nil) }
 
   before(:each) do
+    sign_in user
     @lti_launch = create(
       :lti_launch_assignment,
       canvas_user_id: user.canvas_user_id,
@@ -33,7 +34,7 @@ RSpec.describe CapstoneEvaluationSubmissionsController, type: :controller do
         params: {
           course_id: course.id,
           id: capstone_evaluation_submission.id,
-          state: @lti_launch.state,
+          lti_launch_id: @lti_launch.id,
         },
       )
       expect(response).to be_successful
@@ -49,7 +50,7 @@ RSpec.describe CapstoneEvaluationSubmissionsController, type: :controller do
         :new,
         params: {
           course_id: course.id,
-          state: @lti_launch.state,
+          lti_launch_id: @lti_launch.id,
         },
       )
     }
@@ -116,7 +117,7 @@ RSpec.describe CapstoneEvaluationSubmissionsController, type: :controller do
         subject
         expect(response).to redirect_to capstone_evaluation_submission_path(
           CapstoneEvaluationSubmission.last,
-          state: @lti_launch.state,
+          lti_launch_id: @lti_launch.id,
         )
       end
     end
@@ -150,7 +151,7 @@ RSpec.describe CapstoneEvaluationSubmissionsController, type: :controller do
         subject
         expect(response).to redirect_to capstone_evaluation_submission_path(
           CapstoneEvaluationSubmission.last,
-          state: @lti_launch.state,
+          lti_launch_id: @lti_launch.id,
         )
       end
     end
@@ -178,13 +179,13 @@ RSpec.describe CapstoneEvaluationSubmissionsController, type: :controller do
               question.id.to_s => 'My answer value',
             },
           },
-          state: @lti_launch.state,
+          lti_launch_id: @lti_launch.id,
         }
       )
     }
 
     it 'redirects to #show' do
-      expect(subject).to redirect_to capstone_evaluation_submission_path(CapstoneEvaluationSubmission.last, state: @lti_launch.state)
+      expect(subject).to redirect_to capstone_evaluation_submission_path(CapstoneEvaluationSubmission.last, lti_launch_id: @lti_launch.id)
     end
 
     it 'creates a capstone_evaluation submission' do

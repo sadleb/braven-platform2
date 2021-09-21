@@ -6,5 +6,5 @@
   user's permission to access their linked in data.
 -->
 <%= react_component('LinkedIn/LinkedInAuthorizationButton', {
-  url: linked_in_auth_path(state: @lti_launch.state),
+  url: linked_in_auth_path(lti_launch_id: @lti_launch.id),
 })%>

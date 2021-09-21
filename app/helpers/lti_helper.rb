@@ -17,46 +17,50 @@ module LtiHelper
     [deep_link.deep_link_return_url, jwt_response]
   end
 
+  def get_lti_launch
+    # State param in URL takes precedence over LTI Launch ID param in the URL.
+    # No particular reason for this choice, just make sure to document if you
+    # change it later.
+    lti_launch = LtiLaunch.from_state(params[:state]) if params[:state]
+    lti_launch ||= LtiLaunch.from_id(current_user, params[:lti_launch_id].to_i) if params[:lti_launch_id]&.to_i
+    lti_launch
+  end
+
+  def get_lti_launch_from_referrer(request)
+    # Two possible places for the LTI Launch to be referenced at this point.
+    # If neither is found, we return nil.
+    referrer = Addressable::URI.parse(request.referrer)
+
+    # The first occurs when the current page is iframed inside Rise360 content:
+    auth = referrer&.query_values&.dig('auth')
+    state = auth ? auth[/#{LtiConstants::AUTH_HEADER_PREFIX} (.*)$/, 1] : nil
+
+    # The second occurs when the current page is iframed inside CustomContent like Projects:
+    lti_launch_id = referrer&.query_values&.dig('lti_launch_id')&.to_i
+
+    # State from the auth header takes precedence over the lti_launch_id param.
+    # No particular reason for this choice, just make sure to document if you
+    # change it later.
+    lti_launch = LtiLaunch.from_state(state) if state
+    lti_launch ||= LtiLaunch.from_id(current_user, lti_launch_id) if lti_launch_id
+
+    lti_launch
+  end
+
   def set_lti_launch
     return if @lti_launch
-    @lti_launch = LtiLaunch.current(params[:state]) if params[:state]
+    @lti_launch = get_lti_launch
   end
 
   def set_lti_launch_from_referrer
     return if @lti_launch
     raise ActionController::BadRequest.new(), "No referrer set" unless request.referrer
-    state = LtiHelper.get_lti_state_from_referrer(request)
-    raise ActionController::BadRequest.new(), "Unable to find LTI state in referrer" unless state
-
-    @lti_launch = LtiLaunch.current(state)
+    @lti_launch = get_lti_launch_from_referrer(request)
+    raise ActionController::BadRequest.new(), "Unable to find LTI Launch from referrer" unless @lti_launch
   end
 
-  # We call this class method from the LTI middleware too.
-  def self.get_lti_state_from_referrer(request)
-    begin
-      referrer = Addressable::URI.parse(request.referrer)
-      referrer_query_params = referrer.query_values
-      # Two possible places for the state token to be at this point.
-      # If neither is found, we return nil.
-      if referrer_query_params['auth']
-        # The first occurs when the current page is iframed inside Rise360 content:
-        referrer_query_params['auth'][/#{LtiConstants::AUTH_HEADER_PREFIX} (.*)$/, 1]
-      else
-        # The second occurs when the current page is iframed inside CustomContent like Projects:
-        referrer_query_params['state']
-      end
-    rescue NoMethodError
-      # Using an exception-handler pattern here instead of checking proactively because:
-      # * There are several pieces of the above that can fail with the same exception.
-      # * All the "failure" cases are expected, and in fact more common than the single
-      #   "good" case.
-      # * Expected behavior when we run into any of the "failure" cases is the same -
-      #   continue happily.
-      # * The exception we're handling is specific and unlikely to mask other problems.
-      nil
-    end
-  end
-
+  # TODO: evaluate removing this now that we don't use iframes.
+  # https://app.asana.com/0/1174274412967132/1200999775167872/f
   def is_sessionless_lti_launch?
     set_lti_launch
     (@lti_launch ? @lti_launch.sessionless? : false )
@@ -82,7 +86,7 @@ module LtiHelper
     lrs_mock_url.path = LrsXapiMock::LRS_PATH
     {
       :endpoint => lrs_mock_url.to_s,
-      :auth => "#{LtiConstants::AUTH_HEADER_PREFIX} #{params[:state]}",
+      :auth => "#{LtiConstants::AUTH_HEADER_PREFIX} #{get_lti_launch&.state}",
       # Our LRS mock will ignore these, but Rise 360 modules complain if they're not set.
       # Send empty values to get the Rise 360 Tincan code won't error out on missing keys.
       :actor => '{"name":"'"#{USERNAME_PLACEHOLDER}"'", "mbox":["mailto:'"#{PASSWORD_PLACEHOLDER}"'"]}',
@@ -97,7 +101,7 @@ module LtiHelper
       # of the rise360_module_version. The IDs are defined in tincan.xml. See here for an example:
       # https://the-file-uploads-bucket.s3.amazonaws.com/lessons/ytec17h3ckbr92vcf7nklxmat4tc/tincan.xml
       #      :activity_id => url_encode('https://braven.instructure.com/courses/48/assignments/158')
-
     }
   end
+
 end

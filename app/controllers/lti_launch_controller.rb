@@ -48,18 +48,83 @@ class LtiLaunchController < ApplicationController
     # for each request to authenticate them instead of using session.
     sign_in_from_lti(ll)
 
-    authorize ll
+    authorize ll, policy_class: LtiLaunchPolicy
 
     # Step 4 in the flow, show the target resource now that we've saved the id_token payload that contains
     # user identifiers, course contextual data, custom data, etc.
-    target_uri_with_params = URI(ll.target_link_uri)
-    if target_uri_with_params.query
-      target_uri_with_params.query += "&state=#{params[:state]}"
+    target_uri = URI(ll.target_link_uri)
+
+    # We have three different paths we can choose at this point, based on the
+    # target URI:
+    case target_uri.path
+
+    # 1. For pages that are loaded by hardcoded LTI placements (not dynamically
+    # created assignments), and don't have a "always open in a new tab" setting,
+    # like Attendance and Course Resources, render a form here with a button that
+    # opens a new tab and POSTs the state parameter so that it doesn't show up
+    # in the URL. Additionally, add an lti_launch_id param (see #3 below) to identify
+    # the launch on the new page. We're technically duplicating information here
+    # by passing both the state and the ID, but it makes it easier to handle the
+    # path in the #redirector action, so whatever.
+    when /#{launch_attendance_event_submissions_path}/, /#{lti_course_resources_path}/
+      case target_uri.path
+      when /#{launch_attendance_event_submissions_path}/
+        @resource_name = 'Attendance'
+      when /#{lti_course_resources_path}/
+        @resource_name = 'Course Resources'
+      else
+        @resource_name = 'this resource'
+      end
+
+      @state = ll.state
+      return render :redirect_form, layout: 'lti_canvas'
+
+    # 2. For the Grade Details page, since it always opens inside a Canvas iframe,
+    # and there's not an easy way to accidentally share the direct link to the Platform
+    # page, AND making people click a button to open the details in a new tab would
+    # be painful for anyone going through the speedgrader, we still put the state
+    # param directly into the URL.
+    when /#{rise360_module_grade_path('')}/
+      append_query_param(target_uri, "state=#{params[:state]}")
+
+    # 3. For everyting else, redirect directly with an LTI Launch ID param.
+    # The key difference between the state param and the ID param is that the state
+    # param authenticates you (through the LTI middleware), while the ID param
+    # only identifies the launch and will only be used if it belongs to the 
+    # currently logged-in user. Note that we're making a big assumption here
+    # that any other link will be from a Canvas Assignment with the "open in
+    # new tab" setting turned on. Always use that setting for LTI assignments!
     else
-      target_uri_with_params.query = "state=#{params[:state]}"
+      append_query_param(target_uri, "lti_launch_id=#{ll.id}")
     end
 
-    redirect_to target_uri_with_params.to_s
+    redirect_to target_uri.to_s
+  end
+
+  # POST /lti/redirector
+  #
+  # This is to be used ONLY by the form rendered in #launch above.
+  def redirector
+    params.require([:state])
+
+    state = params[:state]
+
+    ll = LtiLaunch.from_state(state)
+
+    # Sign in the user on Platform.
+    # We do this again because when they were logged in from the #launch action,
+    # they were most likely inside an iframe, and the cookie we set would have
+    # been blocked as 3rd-party. Now that we're outside an iframe, we have to
+    # set a new cookie.
+    sign_in_from_lti(ll)
+
+    authorize ll, policy_class: LtiLaunchPolicy
+
+    # Parse the target URI back out of the LtiLaunch and add the launch ID param.
+    target_uri = URI(ll.target_link_uri)
+    append_query_param(target_uri, "lti_launch_id=#{ll.id}")
+
+    redirect_to target_uri.to_s
   end
 
   # Generates a globally unique value to use in the "state" parameter of an LTI Launch. This uniquely identifies
@@ -70,11 +135,24 @@ class LtiLaunchController < ApplicationController
 
   private
 
+  # Pass in a URI::Generic object to modify in-place.
+  # https://launchschool.medium.com/object-passing-in-ruby-pass-by-reference-or-pass-by-value-6886e8cdc34a
+  def append_query_param(uri, param)
+    if uri.query
+      uri.query += "&#{param}"
+    else
+      uri.query = "#{param}"
+    end
+  end
+
   # Grab the user ID out of the payload and tell devise that they are authenticated for this session.
   def sign_in_from_lti(ll)
-    if user = ll.user
+    user = ll&.user
+    if user
       sign_in user
       Rails.logger.debug("Done signing in LTI-authenticated user #{user.email}")
+    elsif ll.nil?
+      Rails.logger.debug("No LtiLaunch found for the given state")
     else
       Rails.logger.debug("Invalid user came through LTI launch: #{ll.request_message.inspect}")
     end
