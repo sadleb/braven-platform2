@@ -1,5 +1,5 @@
 <% content_for :head do %>
-  <%= javascript_pack_tag 'discord_schedule', 'data-turbolinks-track': 'reload' %>
+  <%= javascript_pack_tag 'local_datetime', 'data-turbolinks-track': 'reload' %>
 <% end %>
 
 <% content_for(:headline) do %>
@@ -21,7 +21,7 @@
         <% @jobs.filter { |j| j[:server_id] == server[:id] }.each do |job| %>
           <div class="row">
             <div class="col-sm-9">
-              <p>In <strong>#<%= job[:channel] %></strong> on <span class="datetime"><%= job[:at] %></span></p>
+              <p>In <strong>#<%= job[:channel] %></strong> on <span class="local-datetime"><%= job[:at] %></span></p>
             </div>
             <div class="col-sm-3">
               <p><%= link_to "Delete", discord_schedule_path(job[:id]), method: :delete, data: { confirm: 'This message will be deleted. Are you sure?' } %></p>

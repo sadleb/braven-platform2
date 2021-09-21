@@ -59,6 +59,8 @@ class ComputeRise360ModuleGrade
 
       on_time_grade = grade_completed_on_time(progressed_interactions)
 
+      completed_at = module_completed_at(progressed_interactions)
+
       # NOTE: Always use Rise360ModuleVersion.quiz_questions for this calculation,
       # since the base Module might have different questions than this Version.
       @total_quiz_questions = @course_rise360_module_version.rise360_module_version.quiz_questions
@@ -82,19 +84,20 @@ class ComputeRise360ModuleGrade
           GRADE_WEIGHTS[:on_time] * on_time_grade
         )
       end
-      return ComputedGradeBreakdown.new(total_grade, engagement_grade, quiz_grade, on_time_grade)
+      return ComputedGradeBreakdown.new(total_grade, engagement_grade, quiz_grade, on_time_grade, completed_at)
     end
   end
 
   # Represents the result of a grade computation broken down into it's various components.
   class ComputedGradeBreakdown
-    attr_reader :total_grade, :engagement_grade, :quiz_grade, :on_time_grade
+    attr_reader :total_grade, :engagement_grade, :quiz_grade, :on_time_grade, :completed_at
 
-    def initialize(total_grade, engagement_grade, quiz_grade, on_time_grade)
+    def initialize(total_grade, engagement_grade, quiz_grade, on_time_grade, completed_at)
        @total_grade = total_grade
        @engagement_grade = engagement_grade
        @quiz_grade = quiz_grade
        @on_time_grade = on_time_grade
+       @completed_at = completed_at
     end
 
     def on_time_credit_received?
@@ -193,6 +196,17 @@ private
     else
       100
     end
+  end
+
+  # Returns created_at for the 100% progress interaction, if it exists,
+  # otherwise returns nil.
+  def module_completed_at(interactions)
+    # There shouldn't ever be more than one, but select the earliest
+    # one anyway just in case.
+    interactions.where(progress: 100)
+      .order(:created_at)
+      .first
+      &.created_at
   end
 
   # Returns SQL that strips off _<timestamp> from the activity_id.

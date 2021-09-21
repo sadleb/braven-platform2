@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", _ => {
   // Convert UTC timestamps to the browser's local time.
-  document.querySelectorAll('span.datetime').forEach(e => {
+  document.querySelectorAll('span.local-datetime').forEach(e => {
     const date = new Date(e.innerText);
     e.innerText = date.toLocaleDateString('default', {
       year: 'numeric',

@@ -1,5 +1,8 @@
 <% content_for :title, 'About Your Module Grade' %>
 <% content_for :additional_container_css, 'rise360-module-grade-container' %>
+<% content_for :head do %>
+  <%= javascript_pack_tag 'local_datetime', 'data-turbolinks-track': 'reload' %>
+<% end %>
 
 <div class="row">
   <div class="col">
@@ -38,7 +41,13 @@
       </div>
     <% else %>
       <div class="row grade-component-description">
-        <div class="col"><p>Awarded when you complete 100% of the Module before the due date.</p></div>
+        <div class="col">
+          <p>Awarded when you complete 100% of the Module before the due date.
+            <% if @computed_grade_breakdown.completed_at %>
+              <br>You completed this module after the due date, at <strong><span class="local-datetime"><%= @computed_grade_breakdown.completed_at %></span></strong>.
+            <% end %>
+          </p>
+        </div>
       </div>
     <% end %>
     <hr class="mt-0 mb-2">
