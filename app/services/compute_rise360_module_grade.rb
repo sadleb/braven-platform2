@@ -48,7 +48,7 @@ class ComputeRise360ModuleGrade
       unless interactions.exists?
         Honeycomb.add_field('compute_rise360_module_grade.interactions.count', 0)
         Honeycomb.add_field('compute_rise360_module_grade.grade', 0)
-        return ComputedGradeBreakdown.new(0,0,0,0)
+        return ComputedGradeBreakdown.new(0,0,0,0,nil)
       end
 
       # Start computing grades.
