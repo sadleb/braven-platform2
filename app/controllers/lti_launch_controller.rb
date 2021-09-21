@@ -90,7 +90,13 @@ class LtiLaunchController < ApplicationController
     # and nowhere else...
     when /#{rise360_module_grade_path('')}/,
          /#{launch_attendance_event_submission_answers_path}/,
-         /#{course_project_version_project_submission_path('.*', '')}\d+$/
+         /#{course_project_version_project_submission_path('.*', '')}\d+$/,
+         /#{survey_submission_path('')}\d+$/,
+         /#{completed_waiver_submissions_path}/,
+         /#{completed_preaccelerator_survey_submissions_path}/,
+         /#{completed_postaccelerator_survey_submissions_path}/,
+         /#{capstone_evaluation_submission_path('')}\d+$/,
+         /#{fellow_evaluation_submission_path('')}\d+$/
       append_query_param(target_uri, "state=#{params[:state]}")
 
     # 3. For everyting else, redirect directly with an LTI Launch ID param.
