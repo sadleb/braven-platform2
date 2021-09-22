@@ -38,6 +38,7 @@ class SalesforceAPI
   LEADERSHIP_COACH = :'Leadership Coach'
   FELLOW = :Fellow
   TEACHING_ASSISTANT = :'Teaching Assistant'
+  MOCK_INTERVIEWER = :'Mock Interviewer'
 
   class SalesforceDataError < StandardError; end
   ParticipantNotOnSalesForceError = Class.new(StandardError)
@@ -375,6 +376,8 @@ class SalesforceAPI
     participants = get_participants(program_id, contact_id)
     raise ParticipantNotOnSalesForceError, "Contact ID #{contact_id}" if participants.empty?
 
+    # Temp fix: filter out mock interview participants!
+    participants = participants.filter { |p| p['Role']&.to_sym != MOCK_INTERVIEWER }
     # TODO: Figure out the criteria for in case of many participants
     participant = participants.first
 
