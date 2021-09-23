@@ -173,7 +173,7 @@ class GradeRise360ModuleForUser
     # See: rise360_module_versions_controller#ensure_submission
     elsif canvas_submission.is_placeholder?
       @needs_grading = false
-      needs_grading_reason = 'Doesn\'t need grading. They haven\'t opened the Module and it\'s not due yet.'
+      needs_grading_reason = 'Doesn\'t need grading. They haven\'t opened the Module and it\'s either not due yet or we already gave it a zero.'
     end
 
     Honeycomb.add_field('grade_rise360_module_for_user.needs_grading?', @needs_grading)
@@ -185,8 +185,8 @@ class GradeRise360ModuleForUser
   # Returns true if the computed grade is higher than the grade in Canvas and should be sent, else false.
   #
   # Notes:
-  # - If no grade exists in Canvas, this also returns true even if the computed grade is 0. It means
-  #   the due date has passed and we need to send a 0 score.
+  # - If no grade exists in Canvas, this also returns true even if the computed grade is 0 (as long as
+  #   we did actually compute a grade). It means the due date has passed and we need to send a 0 score.
   # - If the grade in Canvas is higher, we don't want to re-send that same higher grade back. That would
   #   reset the grader_id and we wouldn't know who gave the manual grade which is useful for troubleshooting
   #   and in the UI when folks view the submission. That's why this returns false in that case.
@@ -194,7 +194,7 @@ class GradeRise360ModuleForUser
     # If it needed grading, then it most likely changed and should be sent to Canvas.
     grade_changed = needs_grading?
 
-    unless @existing_canvas_grade.nil?
+    unless @existing_canvas_grade.nil? || @computed_grade_breakdown.nil?
       # We should never send a lower grade. A TA or admin could accidentally set the grade to something
       # lower manually or there could be edge cases we haven't thought about. Regardless, we want
       # to lean towards always giving the most credit possible.
