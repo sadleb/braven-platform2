@@ -360,11 +360,12 @@ class SalesforceAPI
   end
 
   # Gets a list SFParticipant structs for Participant records that have a Status set.
+  # Explicitly excludes Mock Interview participants.
   def find_participants_by(program_id:)
     participants = get_participants(program_id)
 
     ret = participants.map do |participant|
-      if (participant['ParticipantStatus'].present?)
+      if (participant['ParticipantStatus'].present? && participant['Role']&.to_sym != MOCK_INTERVIEWER)
         SalesforceAPI.participant_to_struct(participant)
       end
     end
