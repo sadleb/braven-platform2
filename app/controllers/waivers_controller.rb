@@ -13,7 +13,7 @@ require 'canvas_api'
 # Note: the FormAssembly e-Signature functionality requires access to cookies/local storage.
 # This doesn't work in Chrome incognito (and probably Firefox) b/c they disable third party cookies
 # by default. To get around this, we start with a launch view where you click a link to bring you
-# to the platform app instead of being inside an iFrame in Canvas. We serve the FormAssembly 
+# to the platform app instead of being inside an iFrame in Canvas. We serve the FormAssembly
 # form from our domain using their Rest API: https://help.formassembly.com/help/340360-use-a-server-side-script-api
 # so that everything works.
 #
@@ -33,8 +33,14 @@ class WaiversController < ApplicationController
   # MODULE: Lead Authentically, TODO: Complete Waivers
   WAIVERS_ASSIGNMENT_NAME = 'TODO: Complete Waivers'
 
+  WAIVERS_POINTS_POSSIBLE = 10.0
+
   def assignment_name
     WAIVERS_ASSIGNMENT_NAME
+  end
+
+  def points_possible
+    WAIVERS_POINTS_POSSIBLE
   end
 
   def lti_launch_url

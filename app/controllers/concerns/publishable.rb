@@ -77,12 +77,18 @@ module Publishable
     assignment = CanvasAPI.client.create_lti_assignment(
       @course.canvas_course_id,
       assignment_name,
+      nil,
+      points_possible
     )
 
     instance_variable.update!(
       canvas_assignment_id: assignment['id'],
     ) if model_class && instance_variable.respond_to?(:canvas_assignment_id)
 
+    # This needs to happen as a separate update because of projects and surveys,
+    # which require a canvas_assignment_id before you can save the record.
+    # But you need a saved record in order to get the new_submission_url.
+    # This was just the most straightforward way to break that dependency.
     CanvasAPI.client.update_assignment_lti_launch_url(
       @course.canvas_course_id,
       assignment['id'],
@@ -202,6 +208,12 @@ private
       return instance_variable.canvas_assignment_id
     end
     params.require(:canvas_assignment_id)
+  end
+
+  # Override me in the controller to provide the points_possible that should be set on this assignment.
+  # Defaults to nil which is translated to 0 in Canvas
+  def points_possible
+    nil
   end
 
   # Override me in the controller if there is logic that would prevent publish_latest

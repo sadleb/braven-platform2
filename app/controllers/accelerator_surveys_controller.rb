@@ -17,10 +17,16 @@ class AcceleratorSurveysController < ApplicationController
 
   prepend_before_action :set_type!
 
+  ACCELERATOR_SURVEY_POINTS_POSSIBLE = 5.0
+
 private
   # For Publishable
   def assignment_name
     "TODO: Complete #{@type}-Accelerator Survey"
+  end
+
+  def points_possible
+    ACCELERATOR_SURVEY_POINTS_POSSIBLE
   end
 
   def lti_launch_url

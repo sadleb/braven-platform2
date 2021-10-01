@@ -508,7 +508,7 @@ RSpec.describe CanvasAPI do
       canvas.create_lti_assignment(course_id, name)
 
       expect(WebMock).to have_requested(:post, request_url)
-        .with(body: 'assignment[name]=Test+Create+Assignment1&assignment[published]=true&assignment[submission_types][]=external_tool&assignment[external_tool_tag_attributes][url]&assignment[external_tool_tag_attributes][new_tab]=true').once
+        .with(body: 'assignment[name]=Test+Create+Assignment1&assignment[published]=true&assignment[submission_types][]=external_tool&assignment[points_possible]&assignment[external_tool_tag_attributes][url]&assignment[external_tool_tag_attributes][new_tab]=true').once
     end
 
     it 'hits the Canvas API correctly with launch_url' do
@@ -518,7 +518,7 @@ RSpec.describe CanvasAPI do
       canvas.create_lti_assignment(course_id, name, 'https://example/url')
 
       expect(WebMock).to have_requested(:post, request_url)
-        .with(body: 'assignment[name]=Test+Create+Assignment1&assignment[published]=true&assignment[submission_types][]=external_tool&assignment[external_tool_tag_attributes][url]=https%3A%2F%2Fexample%2Furl&assignment[external_tool_tag_attributes][new_tab]=true').once
+        .with(body: 'assignment[name]=Test+Create+Assignment1&assignment[published]=true&assignment[submission_types][]=external_tool&assignment[points_possible]&assignment[external_tool_tag_attributes][url]=https%3A%2F%2Fexample%2Furl&assignment[external_tool_tag_attributes][new_tab]=true').once
 
     end
   end

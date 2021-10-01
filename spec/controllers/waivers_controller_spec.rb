@@ -15,7 +15,7 @@ RSpec.describe WaiversController, type: :controller do
     let(:assignment_name) { WaiversController::WAIVERS_ASSIGNMENT_NAME }
     let(:created_canvas_assignment) { build(:canvas_assignment, course_id: course.canvas_course_id, name: assignment_name) }
     let(:canvas_client) { double(CanvasAPI) }
-  
+
     before(:each) do
       allow(CanvasAPI).to receive(:client).and_return(canvas_client)
       sign_in admin_user
@@ -44,7 +44,7 @@ RSpec.describe WaiversController, type: :controller do
           # Hardcoding the path so that if someone changes it they're forced to see this comment
           # and consider that it will break all previously published Waivers assignments.
           expect(canvas_client).to have_received(:create_lti_assignment)
-            .with(course.canvas_course_id, assignment_name).once
+            .with(course.canvas_course_id, assignment_name, nil, WaiversController::WAIVERS_POINTS_POSSIBLE).once
           expect(canvas_client).to have_received(:update_assignment_lti_launch_url)
             .with(
               course.canvas_course_id,

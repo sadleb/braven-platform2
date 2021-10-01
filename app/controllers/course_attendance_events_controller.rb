@@ -10,6 +10,8 @@ class CourseAttendanceEventsController < ApplicationController
 
   layout 'admin'
 
+  ATTENDANCE_EVENT_POINTS_POSSIBLE = 10.0
+
   def new
     authorize CourseAttendanceEvent
     @attendance_events = AttendanceEvent.all - @course.attendance_events
@@ -19,6 +21,10 @@ private
   # For Publishable
   def assignment_name
     @course_attendance_event.attendance_event.title
+  end
+
+  def points_possible
+    ATTENDANCE_EVENT_POINTS_POSSIBLE
   end
 
   def lti_launch_url

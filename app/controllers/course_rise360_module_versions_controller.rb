@@ -66,6 +66,10 @@ private
     @course_rise360_module_version.rise360_module_version.name
   end
 
+  def points_possible
+    Rise360Module::POINTS_POSSIBLE
+  end
+
   # This launch URL is different from Projects and Surveys, which use
   # new_*_submission_url(). This is because Rise360Modules are not submitted.
   # The rise360_zipfile automatically emits xAPI events for user interactions

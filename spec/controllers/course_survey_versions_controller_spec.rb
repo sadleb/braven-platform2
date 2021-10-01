@@ -75,7 +75,7 @@ RSpec.describe CourseSurveyVersionsController, type: :controller do
         subject
         expect(canvas_client)
           .to have_received(:create_lti_assignment)
-          .with(course.canvas_course_id, survey.title)
+          .with(course.canvas_course_id, survey.title, nil, nil)
           .once
         expect(canvas_client)
           .to have_received(:update_assignment_lti_launch_url)
