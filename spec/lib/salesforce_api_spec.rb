@@ -137,7 +137,6 @@ RSpec.describe SalesforceAPI do
     context 'with program_id only' do
       let(:request_url) { "#{SALESFORCE_INSTANCE_URL}/services/apexrest/participants/currentandfuture/?program_id=#{program_id}" }
       let(:participant_json) { "[#{FactoryBot.json(:salesforce_participant_fellow)}]" }
-
       before(:each) do
         stub_request(:get, request_url).to_return(body: participant_json)
       end
@@ -181,6 +180,22 @@ RSpec.describe SalesforceAPI do
             expect(response.count).to be(0)
           end
         end
+
+        context 'with participant roles other than fellow, ta or lc' do
+          let(:participant_json) { "[#{FactoryBot.json(:salesforce_participant_fellow)}, #{FactoryBot.json(:salesforce_participant_ta)}, #{FactoryBot.json(:salesforce_participant_lc)}, #{FactoryBot.json(:salesforce_participant_mi)}]" }
+
+          it 'returns all participants with the matching program_id with the roles fellow, ta or lc' do
+            response = SalesforceAPI.client.find_participants_by(program_id: program_id)
+
+            expect(response.count).to eq(3)
+            response.each do |struct|
+              expect(struct.role)
+                .to eq(SalesforceAPI::FELLOW)
+                .or eq(SalesforceAPI::TEACHING_ASSISTANT)
+                .or eq(SalesforceAPI::LEADERSHIP_COACH)
+            end
+          end
+        end
       end
     end
 
@@ -194,6 +209,20 @@ RSpec.describe SalesforceAPI do
 
         expect(WebMock).to have_requested(:get, request_url).once
         expect(response).to eq(JSON.parse(participant_json))
+      end
+    end
+
+
+    describe "#find_participant" do
+      context "when a matching participant with the role of fellow, ta or lc is found" do
+        let(:participant_json) { "[#{FactoryBot.json(:salesforce_participant_mi)}, #{FactoryBot.json(:salesforce_participant_fellow)}]" }
+        it 'returns the first matching participant' do
+          request_url = "#{SALESFORCE_INSTANCE_URL}/services/apexrest/participants/currentandfuture/?program_id=#{program_id}&contact_id=#{contact_id}"
+          stub_request(:get, request_url).to_return(body: participant_json)
+          response = SalesforceAPI.client.find_participant(contact_id: contact_id, program_id: program_id)
+
+          expect(response.role).to eq(SalesforceAPI::FELLOW)
+        end
       end
     end
   end

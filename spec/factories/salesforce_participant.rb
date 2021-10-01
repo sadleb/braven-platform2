@@ -55,6 +55,10 @@ FactoryBot.define do
       sequence(:VolunteerRole) { 'Coach Partner' }
     end
 
+    factory :salesforce_participant_mi do
+      sequence(:Role) { :'Mock Interviewer' }
+    end
+
     initialize_with { attributes.stringify_keys }
   end
 

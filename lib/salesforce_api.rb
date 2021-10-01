@@ -39,6 +39,7 @@ class SalesforceAPI
   FELLOW = :Fellow
   TEACHING_ASSISTANT = :'Teaching Assistant'
   MOCK_INTERVIEWER = :'Mock Interviewer'
+  FIND_BY_ROLES = [LEADERSHIP_COACH, FELLOW, TEACHING_ASSISTANT]
 
   class SalesforceDataError < StandardError; end
   ParticipantNotOnSalesForceError = Class.new(StandardError)
@@ -360,12 +361,12 @@ class SalesforceAPI
   end
 
   # Gets a list SFParticipant structs for Participant records that have a Status set.
-  # Explicitly excludes Mock Interview participants.
+  # Only finds participants with roles fellow, lc, or ta
   def find_participants_by(program_id:)
     participants = get_participants(program_id)
 
     ret = participants.map do |participant|
-      if (participant['ParticipantStatus'].present? && participant['Role']&.to_sym != MOCK_INTERVIEWER)
+      if (participant['ParticipantStatus'].present? && FIND_BY_ROLES.include?(participant['Role']&.to_sym))
         SalesforceAPI.participant_to_struct(participant)
       end
     end
@@ -377,8 +378,8 @@ class SalesforceAPI
     participants = get_participants(program_id, contact_id)
     raise ParticipantNotOnSalesForceError, "Contact ID #{contact_id}" if participants.empty?
 
-    # Temp fix: filter out mock interview participants!
-    participants = participants.filter { |p| p['Role']&.to_sym != MOCK_INTERVIEWER }
+    # only include participants with roles of fellow, leadership coach and teaching assistant
+    participants = participants.filter { |p| FIND_BY_ROLES.include?(p['Role']&.to_sym)}
     # TODO: Figure out the criteria for in case of many participants
     participant = participants.first
 
