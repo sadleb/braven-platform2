@@ -66,6 +66,13 @@ class ComputeRise360ModuleGrade
       @total_quiz_questions = @course_rise360_module_version.rise360_module_version.quiz_questions
       Honeycomb.add_field('compute_rise360_module_grade.quiz_questions_total', @total_quiz_questions)
 
+      # TODO: round the individual grade components to 1 decimal first (like what we do currently when showing
+      # the displayed grade breakdown). Then calculate the total from those rounded values so that it always
+      # matches without rounding errors. Send the raw rounded score up to Canvas
+      # instead of a percent as well: https://app.asana.com/0/1174274412967132/1201022023697611
+      # An example that needs to work is if you get 59.5% total. The total_grade sent to Canvas needs to
+      # be 6.0 and the breakdown rounded to one decimal place needs to add to 6.0.
+
       quiz_grade = nil
       total_grade = nil
       if @total_quiz_questions && @total_quiz_questions > 0
@@ -145,6 +152,13 @@ class ComputeRise360ModuleGrade
       "#{points_awarded.round(1)} / #{Rise360Module::POINTS_POSSIBLE.to_f.round(1)}"
     end
 
+    def ==(other)
+      return self.total_grade == other.total_grade &&
+             self.engagement_grade == other.engagement_grade &&
+             self.quiz_grade == other.quiz_grade &&
+             self.on_time_grade == other.on_time_grade &&
+             self.completed_at == other.completed_at
+    end
   end
 
 

@@ -215,310 +215,244 @@ RSpec.describe GradeRise360Modules do
     end
   end  # grade_course
 
-#####
-# TODO: reimplement me for refactored grading classes
-#####
-#  describe "#grade_assignment" do
-#    subject { grade_modules.grade_assignment(canvas_assignment_id, user_ids) }
-#
-#    let(:course) { create(:course) }
-#    let(:section) { create(:section, course: course) }
-#    # Arbitrary Canvas IDs.
-#    let!(:user_with_new_interactions) { create(:fellow_user, section: section, canvas_user_id: 1) }
-#    let!(:user_with_old_interactions) { create(:fellow_user, section: section, canvas_user_id: 2) }
-#    let!(:module_with_interactions) { create(:course_rise360_module_version, course: course) }
-#    let!(:module_without_interactions) { create(:course_rise360_module_version, course: course) }
-#    let!(:module_grade_for_user_with_new_interactions) {
-#      create :rise360_module_grade, course_rise360_module_version: module_with_interactions, user: user_with_new_interactions
-#    }
-#    let!(:module_grade_for_user_with_old_interactions) {
-#      create :rise360_module_grade, course_rise360_module_version: module_with_interactions, user: user_with_old_interactions
-#    }
-#    let(:course_rise360_module_versions) { [
-#      module_with_interactions,
-#      module_without_interactions,
-#    ] }
-#    let!(:interactions) { [
-#      # user_with_new_interactions
-#      create(:ungraded_progressed_module_interaction,
-#        canvas_course_id: course.canvas_course_id,
-#        user: user_with_new_interactions,
-#        canvas_assignment_id: user_with_new_interactions_assignment_id,
-#        progress: 50,
-#      ),
-#      create(:ungraded_progressed_module_interaction,
-#        canvas_course_id: course.canvas_course_id,
-#        user: user_with_new_interactions,
-#        canvas_assignment_id: user_with_new_interactions_assignment_id,
-#        progress: 100,
-#      ),
-#      create(:ungraded_answered_module_interaction,
-#        canvas_course_id: course.canvas_course_id,
-#        user: user_with_new_interactions,
-#        canvas_assignment_id: user_with_new_interactions_assignment_id,
-#        success: true,
-#      ),
-#      # user_with_old_interactions
-#      create(:graded_progressed_module_interaction,
-#        canvas_course_id: course.canvas_course_id,
-#        user: user_with_old_interactions,
-#        canvas_assignment_id: user_with_old_interactions_assignment_id,
-#        progress: 50,
-#        new: false,
-#      ),
-#      create(:graded_progressed_module_interaction,
-#        canvas_course_id: course.canvas_course_id,
-#        user: user_with_old_interactions,
-#        canvas_assignment_id: user_with_old_interactions_assignment_id,
-#        progress: 100,
-#      ),
-#      create(:graded_answered_module_interaction,
-#        canvas_course_id: course.canvas_course_id,
-#        user: user_with_old_interactions,
-#        canvas_assignment_id: user_with_old_interactions_assignment_id,
-#        success: true,
-#      ),
-#    ] }
-#    # Defaults. Override in context below.
-#    let(:user_ids) { [ user_with_old_interactions.id ] }
-#    let(:user_with_new_interactions_assignment_id) { module_with_interactions.canvas_assignment_id }
-#    let(:user_with_old_interactions_assignment_id) { module_with_interactions.canvas_assignment_id }
-#    let(:canvas_assignment_id) { module_without_interactions.canvas_assignment_id }
-#    let(:due_date_obj) { 1.day.from_now.utc }
-#    let(:due_date) { due_date_obj.to_time.iso8601 }
-#    let(:assignment_overrides) { [] }
-#
-#    context "with no matching interactions for assignment" do
-#      before :each do
-#        allow(canvas_client).to receive(:get_assignment_overrides)
-#        allow(CanvasAPI).to receive(:client).and_return(canvas_client)
-#      end
-#
-#      it "exits early" do
-#        subject
-#
-#        # Should exit before get_assignment_overrides call.
-#        expect(canvas_client).not_to have_received(:get_assignment_overrides)
-#      end
-#    end
-#
-#    context "with matching interactions for assignment" do
-#      let(:canvas_assignment_id) { module_with_interactions.canvas_assignment_id }
-#      let(:manually_graded) { false }
-#
-#      shared_examples "runs pre-compute tasks" do
-#        before :each do
-#          allow(canvas_client).to receive(:get_assignment_overrides).and_return(assignment_overrides)
-#          allow(canvas_client).to receive(:latest_submission_manually_graded?).and_return(manually_graded)
-#          allow(canvas_client).to receive(:update_grades)
-#          allow(CanvasAPI).to receive(:client).and_return(canvas_client)
-#
-#          allow(ComputeRise360ModuleGrade).to receive(:compute_grade)
-#          allow(ComputeRise360ModuleGrade).to receive(:due_date_for_user).and_return(due_date)
-#        end
-#
-#        context "when grades manually overridden" do
-#          let(:manually_graded) { true }
-#
-#          it "skips users" do
-#            subject
-#
-#            expect(ComputeRise360ModuleGrade).not_to have_received(:due_date_for_user)
-#            expect(ComputeRise360ModuleGrade).not_to have_received(:compute_grade)
-#          end
-#        end
-#
-#        context "when grades not manually overridden" do
-#          let(:manually_graded) { false }
-#
-#          it "calls due_date_for_user correctly for each user" do
-#            subject
-#
-#            expect(ComputeRise360ModuleGrade)
-#              .to have_received(:due_date_for_user)
-#              .exactly(user_ids.count)
-#              .times
-#            user_ids.each do |user_id|
-#              expect(ComputeRise360ModuleGrade)
-#                .to have_received(:due_date_for_user)
-#                .with(user_id, assignment_overrides)
-#            end
-#          end
-#        end
-#      end
-#
-#      shared_examples "computes and updates grades" do
-#        before :each do
-#          allow(canvas_client).to receive(:get_assignment_overrides).and_return(assignment_overrides)
-#          allow(canvas_client).to receive(:latest_submission_manually_graded?)
-#          allow(canvas_client).to receive(:update_grades)
-#          allow(CanvasAPI).to receive(:client).and_return(canvas_client)
-#
-#          allow(ComputeRise360ModuleGrade).to receive(:due_date_for_user).and_return(due_date)
-#        end
-#
-#        it "calls compute_grade correctly for each user" do
-#          allow(ComputeRise360ModuleGrade).to receive(:compute_grade)
-#
-#          subject
-#
-#          expect(ComputeRise360ModuleGrade)
-#            .to have_received(:compute_grade)
-#            .exactly(user_ids.count)
-#            .times
-#          user_ids.each do |user_id|
-#            expect(ComputeRise360ModuleGrade)
-#              .to have_received(:compute_grade)
-#              .with(user_id, canvas_assignment_id, assignment_overrides)
-#          end
-#        end
-#
-#        it "computes the correct grades" do
-#          expected_grade = '30.0'
-#          allow(ComputeRise360ModuleGrade).to receive(:compute_grade).and_return(expected_grade)
-#
-#          subject
-#
-#          grades = {}
-#          user_ids.each do |user_id|
-#            grades[User.find(user_id).canvas_user_id] = "#{expected_grade}%"
-#          end
-#          expect(canvas_client)
-#            .to have_received(:update_grades)
-#            .with(course.canvas_course_id, canvas_assignment_id, grades)
-#        end
-#
-#        it "calls update_grades once" do
-#          subject
-#
-#          expect(canvas_client).to have_received(:update_grades).once
-#        end
-#
-#        it "marks matching interactions as old" do
-#          subject
-#
-#          # Verify we only have matching interactions pre-max_id.
-#          expect(Rise360ModuleInteraction.all.count).to eq(interactions.count)
-#          # Verify all interactions are marked as old.
-#          Rise360ModuleInteraction.where(user_id: user_ids).each do |interaction|
-#            expect(interaction.new).to eq(false)
-#          end
-#        end
-#      end
-#
-#      context "with no new interactions for user, running before due_date" do
-#
-#        it_behaves_like "runs pre-compute tasks"
-#
-#        it "exits early" do
-#          allow(canvas_client).to receive(:get_assignment_overrides).and_return(assignment_overrides)
-#          allow(canvas_client).to receive(:latest_submission_manually_graded?)
-#          allow(CanvasAPI).to receive(:client).and_return(canvas_client)
-#
-#          allow(ComputeRise360ModuleGrade).to receive(:compute_grade)
-#          allow(ComputeRise360ModuleGrade).to receive(:due_date_for_user).and_return(due_date)
-#          puts "due_date here #{due_date}"
-#
-#          subject
-#
-#          expect(ComputeRise360ModuleGrade).not_to have_received(:compute_grade)
-#        end
-#      end
-#
-#      context "with no new interactions for user, running after due_date" do
-#        let(:due_date_obj) { -3.days.from_now.utc }
-#
-#        it_behaves_like "runs pre-compute tasks"
-#
-#        it_behaves_like "computes and updates grades"
-#      end
-#
-#      context "with new interactions for user" do
-#        let(:user_ids) { [ user_with_new_interactions.id ] }
-#
-#        it_behaves_like "runs pre-compute tasks"
-#
-#        it_behaves_like "computes and updates grades"
-#      end
-#    end
-#
-#  end  # grade_assignment
-#
-#  describe ".grading_disabled_for?" do
-#    let(:user) { create(:fellow_user) }
-#    let(:canvas_assignment_id) { course_rise360_module_version.canvas_assignment_id }
-#    let(:canvas_course_id) { course_rise360_module_version.course.canvas_course_id }
-#    let(:course_rise360_module_version) { create :course_rise360_module_version }
-#
-#    subject { GradeRise360Modules.grading_disabled_for?(canvas_course_id, canvas_assignment_id, user) }
-#
-#    before :each do
-#       allow(canvas_client).to receive(:latest_submission_manually_graded?)
-#       allow(CanvasAPI).to receive(:client).and_return(canvas_client)
-#    end
-#
-#    context "when user has never opened the module" do
-#      it "returns true" do
-#        expect(subject).to eq(true)
-#      end
-#
-#      it "doesn't hit the Canvas API" do
-#        subject
-#        expect(canvas_client).not_to have_received(:latest_submission_manually_graded?)
-#      end
-#
-#      it "doesn't create a Rise360ModuleGrade" do
-#        expect{subject}.to change(Rise360ModuleGrade, :count).by(0)
-#      end
-#    end
-#
-#    context "when not manually overridden" do
-#      let!(:rise360_module_grade) { create :rise360_module_grade, user: user, course_rise360_module_version: course_rise360_module_version }
-#
-#      before(:each) do
-#        allow(canvas_client).to receive(:latest_submission_manually_graded?).and_return(false)
-#      end
-#
-#      it "returns false" do
-#        expect(subject).to eq(false)
-#      end
-#
-#      it "hits the Canvas API to check" do
-#        subject
-#        expect(canvas_client).to have_received(:latest_submission_manually_graded?).once
-#      end
-#    end
-#
-#    context "when detecting manual override" do
-#      let!(:rise360_module_grade) { create :rise360_module_grade, user: user, course_rise360_module_version: course_rise360_module_version }
-#
-#      before(:each) do
-#        allow(canvas_client).to receive(:latest_submission_manually_graded?).and_return(true)
-#      end
-#
-#      it "returns true" do
-#        expect(subject).to eq(true)
-#      end
-#
-#      it "hits the Canvas API to check" do
-#        subject
-#        expect(canvas_client).to have_received(:latest_submission_manually_graded?).once
-#      end
-#    end
-#
-#    context "when already manually overridden in the past" do
-#      let!(:rise360_module_grade) { create :rise360_module_grade_overridden, user: user, course_rise360_module_version: course_rise360_module_version }
-#
-#      it "returns true" do
-#        expect(subject).to eq(true)
-#      end
-#
-#      it "doesn't hit the Canvas API" do
-#        subject
-#        expect(canvas_client).not_to have_received(:latest_submission_manually_graded?)
-#      end
-#    end
-#
-#  end
+  describe "#grade_assignment" do
+    let(:course) { create(:course) }
+    let(:section) { create(:section, course: course) }
+    let!(:user_with_new_interactions) { create(:fellow_user, section: section) }
+    let!(:user_with_no_interactions) { create(:fellow_user, section: section) }
+    # We process all StudentEnrollments in the course
+    let!(:user_ids) { [ user_with_new_interactions.id, user_with_no_interactions.id ] }
+    let!(:module_with_interactions) { create(:course_rise360_module_version, course: course) }
+    let!(:module_without_interactions) { create(:course_rise360_module_version, course: course) }
+    let!(:module_grade_for_user_with_new_interactions) {
+      create :rise360_module_grade, course_rise360_module_version: module_with_interactions, user: user_with_new_interactions
+    }
+    let(:course_rise360_module_versions) { [
+      module_with_interactions,
+      module_without_interactions,
+    ] }
+    let(:canvas_submission_for_user_with_new_interactions) {
+      create :canvas_submission_rise360_module_opened,
+        user_id: user_with_new_interactions.canvas_user_id,
+        assignment_id: canvas_assignment_id
+    }
+    let(:canvas_submission_for_user_with_no_interactions) {
+      create :canvas_submission_placeholder,
+        user_id: user_with_no_interactions.canvas_user_id,
+        assignment_id: canvas_assignment_id
+    }
+    let(:canvas_submissions) {
+      {
+        user_with_new_interactions.canvas_user_id => canvas_submission_for_user_with_new_interactions,
+        user_with_no_interactions.canvas_user_id => canvas_submission_for_user_with_no_interactions
+      }
+    }
+    # We need at least one interaction for a module in order for grading to run.
+    # This allows us to skip grading for things that no one has touched.
+    let!(:interaction) {
+      create(:ungraded_progressed_module_interaction,
+        canvas_course_id: course.canvas_course_id,
+        user: user_with_new_interactions,
+        canvas_assignment_id: module_with_interactions.canvas_assignment_id,
+        progress: 50,
+      )
+    }
+    let(:grade_breakdown_zero) { ComputeRise360ModuleGrade::ComputedGradeBreakdown.new(0,0,0,0,nil) }
+    let(:grade_breakdown_partial) { ComputeRise360ModuleGrade::ComputedGradeBreakdown.new(50,50,0,0,nil) }
+    let(:grade_breakdown_completed_on_time) { ComputeRise360ModuleGrade::ComputedGradeBreakdown.new(70,100,0,100,Time.now.utc.iso8601) }
+    let(:grade_breakdown_completed_late) { ComputeRise360ModuleGrade::ComputedGradeBreakdown.new(50,100,0,0,Time.now.utc.iso8601) }
+
+    # Defaults. Override in context below.
+    let(:canvas_assignment_id) { module_without_interactions.canvas_assignment_id }
+
+    subject { grade_modules.grade_assignment(canvas_assignment_id, user_ids) }
+
+    before :each do
+      allow(CanvasAPI).to receive(:client).and_return(canvas_client)
+      allow(canvas_client).to receive(:get_assignment_submissions)
+    end
+
+    context "with no matching interactions for assignment" do
+      let(:canvas_assignment_id) { module_without_interactions.canvas_assignment_id }
+      let(:grading_service) { double(GradeRise360ModuleForUser) }
+
+      # Note: We have this "exits early" code in place b/c we're running the sync for every current
+      # and future program and it would be really expensive to loop through ALL assignments.
+      it "exits early" do
+        allow(GradeRise360ModuleForUser).to receive(:new).and_return(grading_service)
+        allow(grading_service).to receive(:run)
+
+        subject
+
+        # Should exit before get_assignment_submissions call.
+        expect(canvas_client).not_to have_received(:get_assignment_submissions)
+        expect(grading_service).not_to have_received(:run)
+      end
+    end
+
+    context "with matching interactions for assignment" do
+      let(:canvas_assignment_id) { module_with_interactions.canvas_assignment_id }
+      let(:grading_service) { double(GradeRise360ModuleForUser) }
+
+      before :each do
+        expect(canvas_client).to receive(:get_assignment_submissions)
+          .with(course.canvas_course_id, canvas_assignment_id)
+          .and_return(canvas_submissions)
+        allow(canvas_client).to receive(:update_grades)
+        allow(GradeRise360ModuleForUser).to receive(:new).and_return(grading_service)
+      end
+
+      it "calls GradeRise360ModuleForUser#run correctly for each user" do
+        allow(grading_service).to receive(:run)
+        allow(grading_service).to receive(:grade_changed?)
+
+        subject
+
+        user_ids.each do |user_id|
+          user = User.find(user_id)
+          expect(GradeRise360ModuleForUser)
+            .to have_received(:new)
+            .with(user, module_with_interactions, false, false, canvas_submissions[user.canvas_user_id])
+            .once
+        end
+        expect(grading_service)
+          .to have_received(:run)
+          .exactly(user_ids.count)
+          .times
+      end
+
+      context "with no grade changes" do
+        it "exits early" do
+          allow(grading_service).to receive(:run).and_return(nil)
+          allow(grading_service).to receive(:grade_changed?).and_return(false)
+
+          subject
+
+          expect(canvas_client).not_to have_received(:update_grades)
+        end
+      end
+
+      shared_examples "sends grades to Canvas" do
+
+        it "calls update_grades once" do
+          subject
+          expect(canvas_client).to have_received(:update_grades).once
+        end
+
+        it "marks matching interactions as old" do
+
+          # Add an interaction for a different canvas_assignment_id to make sure it's not touched
+          create(:ungraded_progressed_module_interaction,
+            canvas_course_id: course.canvas_course_id,
+            user: user_with_new_interactions,
+            canvas_assignment_id: canvas_assignment_id + 1,
+            progress: 50,
+            new: true
+          )
+
+          # Sanity check that we have all new interactions
+          Rise360ModuleInteraction.where(user_id: user_ids).each do |interaction|
+            expect(interaction.new).to eq(true)
+          end
+
+          subject
+
+          Rise360ModuleInteraction.where(user_id: user_ids).each do |interaction|
+            expect(interaction.new).to eq(false) if interaction.canvas_assignment_id == canvas_assignment_id
+            expect(interaction.new).to eq(true) if interaction.canvas_assignment_id != canvas_assignment_id
+          end
+        end
+
+      end # "sends grades to Canvas"
+
+      context "with grade changes" do
+        let(:grade_breakdown1) { nil }
+        let(:grade_breakdown2) { nil }
+        let(:grade_for_canvas1) { "#{grade_breakdown1.total_grade}%" if grade_breakdown1 }
+        let(:grade_for_canvas2) { "#{grade_breakdown2.total_grade}%" if grade_breakdown2 }
+        let(:grading_service_for_user1) {
+          double(GradeRise360ModuleForUser,
+            :run => grade_for_canvas1,
+            :computed_grade_breakdown => grade_breakdown1
+          )
+        }
+        let(:grading_service_for_user2) {
+          double(GradeRise360ModuleForUser,
+            :run => grade_for_canvas2,
+            :computed_grade_breakdown => grade_breakdown2
+          )
+        }
+
+        before(:each) do
+          expect(GradeRise360ModuleForUser).to receive(:new)
+            .with(user_with_new_interactions, module_with_interactions, anything, anything, anything)
+            .and_return(grading_service_for_user1)
+          expect(GradeRise360ModuleForUser).to receive(:new)
+            .with(user_with_no_interactions, module_with_interactions, anything, anything, anything)
+            .and_return(grading_service_for_user2)
+        end
+
+        context "for only 1 user" do
+          let(:grade_breakdown1) { grade_breakdown_partial }
+
+          before(:each) do
+            allow(grading_service_for_user1).to receive(:grade_changed?).and_return(true)
+            allow(grading_service_for_user2).to receive(:grade_changed?).and_return(false)
+          end
+
+          it_behaves_like "sends grades to Canvas"
+
+          it "only sends grades to Canvas for the changed grade" do
+            subject
+            expect(canvas_client).to have_received(:update_grades)
+              .with(course.canvas_course_id, canvas_assignment_id, {user_with_new_interactions.canvas_user_id => grade_for_canvas1})
+              .once
+          end
+
+          context "when completed_at before due date" do
+            let(:grade_breakdown1) { grade_breakdown_completed_on_time }
+            it "caches the on_time_credit_received value" do
+              allow(grading_service_for_user1).to receive(:rise360_module_grade).and_return(module_grade_for_user_with_new_interactions)
+              expect{ subject }.to change{ module_grade_for_user_with_new_interactions.reload.on_time_credit_received }
+                .from(false).to(true)
+            end
+          end
+
+          context "when completed_at after due date" do
+            let(:grade_breakdown1) { grade_breakdown_completed_late }
+            it "does not cache the on_time_credit_received value" do
+              expect{ subject }.not_to change{ module_grade_for_user_with_new_interactions.reload.on_time_credit_received }
+            end
+          end
+        end
+
+        context "for both users" do
+          let(:grade_breakdown1) { grade_breakdown_partial }
+          let(:grade_breakdown2) { grade_breakdown_zero } # Mimic a zero grade being sent after due date passes.
+
+          before(:each) do
+            allow(grading_service_for_user1).to receive(:grade_changed?).and_return(true)
+            allow(grading_service_for_user2).to receive(:grade_changed?).and_return(true)
+          end
+
+          it_behaves_like "sends grades to Canvas"
+
+          it "sends grades to Canvas for the changed grades" do
+            subject
+            expect(canvas_client).to have_received(:update_grades)
+              .with(course.canvas_course_id, canvas_assignment_id,
+                {
+                  user_with_new_interactions.canvas_user_id => grade_for_canvas1,
+                  user_with_no_interactions.canvas_user_id => grade_for_canvas2,
+                }
+              ).once
+          end
+        end
+
+      end # "with grade changes"
+
+    end # "with matching interactions for assignment"
+
+  end  # grade_assignment
 
 end

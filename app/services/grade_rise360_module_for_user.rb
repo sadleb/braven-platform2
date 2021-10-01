@@ -89,6 +89,10 @@ class GradeRise360ModuleForUser
     # Only set the grade to send to Canvas if it changed and should be sent.
     grade_for_canvas = nil
     if grade_changed?
+      # TODO: change the grade_for_canvas from a percent to the raw score we calculate in the grade
+      # breakdown so that Canvas and our display of the breakdown always match and we don't rely on magic
+      # to handle Canvas rounding the values for us: https://app.asana.com/0/1174274412967132/1201022023697611
+      # See posted_grade here: https://canvas.instructure.com/doc/api/submissions.html
       grade_for_canvas = "#{@computed_grade_breakdown.total_grade}%"
       Honeycomb.add_field('grade_rise360_module_for_user.grade_for_canvas', grade_for_canvas)
     end
