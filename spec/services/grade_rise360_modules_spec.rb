@@ -257,10 +257,10 @@ RSpec.describe GradeRise360Modules do
         progress: 50,
       )
     }
-    let(:grade_breakdown_zero) { ComputeRise360ModuleGrade::ComputedGradeBreakdown.new(0,0,0,0,nil) }
-    let(:grade_breakdown_partial) { ComputeRise360ModuleGrade::ComputedGradeBreakdown.new(50,50,0,0,nil) }
-    let(:grade_breakdown_completed_on_time) { ComputeRise360ModuleGrade::ComputedGradeBreakdown.new(70,100,0,100,Time.now.utc.iso8601) }
-    let(:grade_breakdown_completed_late) { ComputeRise360ModuleGrade::ComputedGradeBreakdown.new(50,100,0,0,Time.now.utc.iso8601) }
+    let(:grade_breakdown_zero) { ComputeRise360ModuleGrade::ComputedGradeBreakdown.new(0,0,0) }
+    let(:grade_breakdown_partial) { ComputeRise360ModuleGrade::ComputedGradeBreakdown.new(50,0,0) }
+    let(:grade_breakdown_completed_on_time) { ComputeRise360ModuleGrade::ComputedGradeBreakdown.new(100,0,100,Time.now.utc) }
+    let(:grade_breakdown_completed_late) { ComputeRise360ModuleGrade::ComputedGradeBreakdown.new(100,0,0,Time.now.utc) }
 
     # Defaults. Override in context below.
     let(:canvas_assignment_id) { module_without_interactions.canvas_assignment_id }
@@ -368,8 +368,8 @@ RSpec.describe GradeRise360Modules do
       context "with grade changes" do
         let(:grade_breakdown1) { nil }
         let(:grade_breakdown2) { nil }
-        let(:grade_for_canvas1) { "#{grade_breakdown1.total_grade}%" if grade_breakdown1 }
-        let(:grade_for_canvas2) { "#{grade_breakdown2.total_grade}%" if grade_breakdown2 }
+        let(:grade_for_canvas1) { grade_breakdown1.total_score if grade_breakdown1 }
+        let(:grade_for_canvas2) { grade_breakdown2.total_score if grade_breakdown2 }
         let(:grading_service_for_user1) {
           double(GradeRise360ModuleForUser,
             :run => grade_for_canvas1,

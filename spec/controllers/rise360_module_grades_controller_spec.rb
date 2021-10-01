@@ -30,14 +30,12 @@ RSpec.describe Rise360ModuleGradesController, type: :controller do
   let(:canvas_client) { double(CanvasAPI) }
   let(:compute_service) { double(ComputeRise360ModuleGrade) }
 
-  let(:total_grade) { 0 }
   let(:engagement_grade) { 0 }
   let(:quiz_grade) { 0 }
   let(:on_time_grade) { 0 }
   let(:completed_at) { nil }
   let(:grade_breakdown) {
      ComputeRise360ModuleGrade::ComputedGradeBreakdown.new(
-       total_grade,
        engagement_grade,
        quiz_grade,
        on_time_grade,
@@ -85,7 +83,6 @@ RSpec.describe Rise360ModuleGradesController, type: :controller do
       end
 
       context 'when no progress' do
-        let(:total_grade) { 0 }
         let(:engagement_grade) { 0 }
         let(:quiz_grade) { 0 }
         let(:on_time_grade) { 0 }
@@ -116,7 +113,6 @@ RSpec.describe Rise360ModuleGradesController, type: :controller do
       end
 
       context 'when some progress' do
-        let(:total_grade) { (engagement_grade * 0.4) + (quiz_grade * 0.4) + (on_time_grade * 0.2) }
         let(:engagement_grade) { 50 }
         let(:quiz_grade) { 50 }
         let(:on_time_grade) { 0 }
@@ -147,11 +143,10 @@ RSpec.describe Rise360ModuleGradesController, type: :controller do
       end
 
       context 'when completed_at on time' do
-        let(:total_grade) { (engagement_grade * 0.4) + (quiz_grade * 0.4) + (on_time_grade * 0.2) }
         let(:engagement_grade) { 100 }
         let(:quiz_grade) { 75 }
         let(:on_time_grade) { 100 }
-        let(:completed_at) { (Time.now - 1.week).utc.iso8601 }
+        let(:completed_at) { (Time.now - 1.week).utc }
 
         it 'shows engagement score as 4.0 / 4.0 and 100% progress' do
           get_show
@@ -178,11 +173,10 @@ RSpec.describe Rise360ModuleGradesController, type: :controller do
       end
 
       context 'when completed_at late' do
-        let(:total_grade) { (engagement_grade * 0.4) + (quiz_grade * 0.4) + (on_time_grade * 0.2) }
         let(:engagement_grade) { 100 }
         let(:quiz_grade) { 97 }
         let(:on_time_grade) { 0 }
-        let(:completed_at) { Time.now.utc.iso8601 }
+        let(:completed_at) { Time.now.utc }
 
         it 'shows engagement score as 4.0 / 4.0 and 100% progress' do
           get_show
@@ -217,9 +211,11 @@ RSpec.describe Rise360ModuleGradesController, type: :controller do
     end
 
     shared_examples 'up to date' do
-      # Make the Canvas submission score match the computed total_grade
-      let(:submission_score) { 5.0 }
-      let(:total_grade) { 50 }
+      # Make the Canvas submission score match the computed total_score
+      # 4.0 + 2.0 = 6.0
+      let(:submission_score) { 6.0 }
+      let(:engagement_grade) { 100 } # worth 4.0
+      let(:on_time_grade) { 100 } # worth 2.0
 
       it 'doesnt show a message about the grade being out-of-date' do
         get_show
@@ -230,8 +226,8 @@ RSpec.describe Rise360ModuleGradesController, type: :controller do
     it_behaves_like 'up to date'
 
     context 'when grade is not up to date' do
-      let(:submission_score) { 4.0 } # must be lower than computed total_grade to be out of date
-      let(:total_grade) { 50 }
+      let(:submission_score) { 0.1 } # must be lower than computed total_score to be out of date
+      let(:engagement_grade) { 100 } # worth 4.0
 
       it 'shows a message about the grade being out-of-date' do
         get_show
@@ -240,8 +236,9 @@ RSpec.describe Rise360ModuleGradesController, type: :controller do
     end
 
     context 'when manually graded' do
-      let(:submission_score) { 6.0 } # Make sure this is higher than computed total_grade
-      let(:total_grade) { 50 }
+      let(:submission_score) { 6.0 } # Make sure this is higher than computed total_score
+      let(:engagement_grade) { 3 } # worth 3% of 4.0 points
+      let(:on_time_grade) { 0 } # worth 0% of 2.0
       let(:manual_grader_id) { canvas_api_user_id + 1 } # just needs to be different from the api user id
       let(:manual_grader_name) { 'Test GraderName' }
       let(:grader_id) { manual_grader_id }

@@ -28,7 +28,7 @@ class CanvasSubmission < ApplicationRecord
       # always get set to the effective due date for that user correctly. If that turns out not
       # to be the case, we'll have to put logic back in that goes through the assignment overrides
       # and calculates the due date manually.
-      due_at: submission['cached_due_date'],
+      due_at: (submission['cached_due_date'] ? Time.parse(submission['cached_due_date']) : nil),
     }
   end
 

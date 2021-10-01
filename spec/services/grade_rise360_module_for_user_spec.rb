@@ -41,14 +41,12 @@ RSpec.describe GradeRise360ModuleForUser do
   let(:canvas_client) { double(CanvasAPI) }
   let(:compute_service) { double(ComputeRise360ModuleGrade) }
 
-  let(:total_grade) { 0 }
   let(:engagement_grade) { 0 }
   let(:quiz_grade) { 0 }
   let(:on_time_grade) { 0 }
   let(:completed_at) { nil }
   let(:grade_breakdown) {
      ComputeRise360ModuleGrade::ComputedGradeBreakdown.new(
-       total_grade,
        engagement_grade,
        quiz_grade,
        on_time_grade,
@@ -95,17 +93,17 @@ RSpec.describe GradeRise360ModuleForUser do
       end
 
       context 'when computed grade is higher than Canvas grade' do
-        let(:submission_score) { 5.0 }
-        let(:total_grade) { 60 }
+        let(:submission_score) { 3.0 }
+        let(:engagement_grade) { 100 } # worth 4.0 points
         it 'computes and returns the new grade breakdown' do
           expect(compute_service).to receive(:run)
-          expect(run_service).to eq("60%")
+          expect(run_service).to eq(4.0)
         end
       end
 
       context 'when computed grade is lower than Canvas grade' do
         let(:submission_score) { 5.0 }
-        let(:total_grade) { 40 }
+        let(:engagement_grade) { 100 } # worth 4.0 points
         it 'computes and returns nil' do
           expect(compute_service).to receive(:run)
           expect(run_service).to eq(nil)
@@ -154,8 +152,8 @@ RSpec.describe GradeRise360ModuleForUser do
     end
 
     shared_examples 'grade sent to canvas' do
-      let(:submission_score) { 5.0 }
-      let(:total_grade) { 100 }
+      let(:submission_score) { 3.0 }
+      let(:engagement_grade) { 100 } # worth 4.0 points
 
       before(:each) do
         allow(canvas_client).to receive(:update_grade)
@@ -163,7 +161,7 @@ RSpec.describe GradeRise360ModuleForUser do
 
       it 'calls CanvasAPI#update_grade' do
         expect(canvas_client).to receive(:update_grade)
-          .with(course.canvas_course_id, canvas_assignment_id, user.canvas_user_id, "#{total_grade}%")
+          .with(course.canvas_course_id, canvas_assignment_id, user.canvas_user_id, grade_breakdown.total_score)
           .once
         run_service
       end

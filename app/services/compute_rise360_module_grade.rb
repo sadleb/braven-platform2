@@ -48,7 +48,7 @@ class ComputeRise360ModuleGrade
       unless interactions.exists?
         Honeycomb.add_field('compute_rise360_module_grade.interactions.count', 0)
         Honeycomb.add_field('compute_rise360_module_grade.grade', 0)
-        return ComputedGradeBreakdown.new(0,0,0,0,nil)
+        return ComputedGradeBreakdown.new(0,0,0)
       end
 
       # Start computing grades.
@@ -66,72 +66,65 @@ class ComputeRise360ModuleGrade
       @total_quiz_questions = @course_rise360_module_version.rise360_module_version.quiz_questions
       Honeycomb.add_field('compute_rise360_module_grade.quiz_questions_total', @total_quiz_questions)
 
-      # TODO: round the individual grade components to 1 decimal first (like what we do currently when showing
-      # the displayed grade breakdown). Then calculate the total from those rounded values so that it always
-      # matches without rounding errors. Send the raw rounded score up to Canvas
-      # instead of a percent as well: https://app.asana.com/0/1174274412967132/1201022023697611
-      # An example that needs to work is if you get 59.5% total. The total_grade sent to Canvas needs to
-      # be 6.0 and the breakdown rounded to one decimal place needs to add to 6.0.
-
       quiz_grade = nil
-      total_grade = nil
       if @total_quiz_questions && @total_quiz_questions > 0
         quiz_grade = grade_mastery_quiz(interactions.where(verb: Rise360ModuleInteraction::ANSWERED))
-
-        total_grade = (
-          GRADE_WEIGHTS[:module_engagement] * engagement_grade +
-          GRADE_WEIGHTS[:mastery_quiz] * quiz_grade +
-          GRADE_WEIGHTS[:on_time] * on_time_grade
-        )
-      else
-        # If there are no mastery questions, fold the mastery weight in with the engagement
-        # weight, so that engagement is just worth more.
-        total_grade = (
-          (GRADE_WEIGHTS[:module_engagement] + GRADE_WEIGHTS[:mastery_quiz]) * engagement_grade +
-          GRADE_WEIGHTS[:on_time] * on_time_grade
-        )
       end
-      return ComputedGradeBreakdown.new(total_grade, engagement_grade, quiz_grade, on_time_grade, completed_at)
+
+      return ComputedGradeBreakdown.new(engagement_grade, quiz_grade, on_time_grade, completed_at)
     end
   end
 
   # Represents the result of a grade computation broken down into it's various components.
+  # Responsible for turning the component grades into their corresponding raw scores as well
+  # as providing access to the total_score.
   class ComputedGradeBreakdown
-    attr_reader :total_grade, :engagement_grade, :quiz_grade, :on_time_grade, :completed_at
+    attr_reader :total_score, :engagement_score, :quiz_score, :on_time_score, :engagement_grade, :quiz_grade, :completed_at
 
-    def initialize(total_grade, engagement_grade, quiz_grade, on_time_grade, completed_at)
-       @total_grade = total_grade
-       @engagement_grade = engagement_grade
-       @quiz_grade = quiz_grade
-       @on_time_grade = on_time_grade
+      POINTS_POSSIBLE = {
+        module_engagement: (GRADE_WEIGHTS[:module_engagement] * Rise360Module::POINTS_POSSIBLE).round(1),
+        mastery_quiz: (GRADE_WEIGHTS[:mastery_quiz] * Rise360Module::POINTS_POSSIBLE).round(1),
+        on_time: (GRADE_WEIGHTS[:on_time] * Rise360Module::POINTS_POSSIBLE).round(1)
+      }
+
+    def initialize(engagement_grade, quiz_grade, on_time_grade, completed_at = nil)
        @completed_at = completed_at
+       @engagement_grade = engagement_grade
+       effective_engagement_weight = GRADE_WEIGHTS[:module_engagement]
+       # If there are no mastery questions to grade. Full grade is just engagement + on time
+       effective_engagement_weight += GRADE_WEIGHTS[:mastery_quiz] if quiz_grade.nil?
+       @engagement_score = get_score(effective_engagement_weight, engagement_grade)
+       @quiz_grade = quiz_grade
+       @quiz_score = get_score(GRADE_WEIGHTS[:mastery_quiz], quiz_grade) unless quiz_grade.nil?
+       @on_time_grade = on_time_grade
+       @on_time_score = get_score(GRADE_WEIGHTS[:on_time], on_time_grade)
+
+       # Note: we calculate by adding the rounded components to ensure that the total
+       # matches the rounded components.
+       @total_score = @engagement_score + @on_time_score
+       @total_score += @quiz_score unless quiz_grade.nil?
+
+       # Still have to round b/c floating point numbers are imprecise and adding something like
+       # the following can still end up with trailing decimals:
+       # 0.1 + 2.0 + 0.8 = 2.9000000000000004
+       # See here for more context: https://stackoverflow.com/questions/13847917/ruby-floats-add-up-to-different-values-depending-on-the-order
+       @total_score = @total_score.round(1)
     end
 
     def on_time_credit_received?
-      on_time_grade > 0
+      @on_time_grade > 0
     end
 
     # Returns a string like "0.0 / 2.0" or "2.0 / 2.0" for the points they were awarded out of the max
     # they can get for the on-time portion of the grade.
     def on_time_points_display
-      points_total = GRADE_WEIGHTS[:on_time] * Rise360Module::POINTS_POSSIBLE
-      percent_of_grade_awarded = GRADE_WEIGHTS[:on_time] * (@on_time_grade.to_f / 100)
-      points_awarded = Rise360Module::POINTS_POSSIBLE * percent_of_grade_awarded
-      "#{points_awarded.round(1)} / #{points_total.round(1)}"
+      "#{@on_time_score} / #{POINTS_POSSIBLE[:on_time]}"
     end
 
     # Returns a string like "3.3 / 4.0" for the points they were awarded out of the max
     # they can get for the engagement portion of the grade.
     def engagement_points_display
-      effective_grade_weight = GRADE_WEIGHTS[:module_engagement]
-
-      # If there are no mastery questions to grade. Full grade is just engagement + on time
-      effective_grade_weight += GRADE_WEIGHTS[:mastery_quiz] if @quiz_grade.nil?
-
-      points_total = effective_grade_weight * Rise360Module::POINTS_POSSIBLE
-      percent_of_grade_awarded = effective_grade_weight * (@engagement_grade.to_f / 100)
-      points_awarded = Rise360Module::POINTS_POSSIBLE * percent_of_grade_awarded
-      "#{points_awarded.round(1)} / #{points_total.round(1)}"
+      "#{@engagement_score} / #{POINTS_POSSIBLE[:module_engagement]}"
     end
 
     # Returns a string like "3.3 / 4.0" for the points they were awarded out of the max
@@ -139,25 +132,24 @@ class ComputeRise360ModuleGrade
     def mastery_points_display
       return 'N/A' if @quiz_grade.nil? # This shouldn't happen. Let's just be safe if a Module doesn't have mastery questions
 
-      points_total = GRADE_WEIGHTS[:mastery_quiz] * Rise360Module::POINTS_POSSIBLE
-      percent_of_grade_awarded = GRADE_WEIGHTS[:mastery_quiz] * (@quiz_grade.to_f / 100)
-      points_awarded = Rise360Module::POINTS_POSSIBLE * percent_of_grade_awarded
-      "#{points_awarded.round(1)} / #{points_total.round(1)}"
+      "#{@quiz_score} / #{POINTS_POSSIBLE[:mastery_quiz]}"
     end
 
     # Returns a string like "3.3 / 10.0" for the total points they were awarded
     def total_points_display
-      percent_of_grade_awarded = (@total_grade.to_f / 100)
-      points_awarded = Rise360Module::POINTS_POSSIBLE * percent_of_grade_awarded
-      "#{points_awarded.round(1)} / #{Rise360Module::POINTS_POSSIBLE.to_f.round(1)}"
+      "#{@total_score} / #{Rise360Module::POINTS_POSSIBLE}"
     end
 
     def ==(other)
-      return self.total_grade == other.total_grade &&
-             self.engagement_grade == other.engagement_grade &&
-             self.quiz_grade == other.quiz_grade &&
-             self.on_time_grade == other.on_time_grade &&
+      return self.engagement_score == other.engagement_score &&
+             self.quiz_score == other.quiz_score &&
+             self.on_time_score == other.on_time_score &&
              self.completed_at == other.completed_at
+    end
+  private
+    def get_score(weight, grade)
+      percent_of_grade_awarded = weight * (grade.to_f / 100)
+      (Rise360Module::POINTS_POSSIBLE * percent_of_grade_awarded).round(1)
     end
   end
 
@@ -212,8 +204,8 @@ private
     end
   end
 
-  # Returns created_at for the 100% progress interaction, if it exists,
-  # otherwise returns nil.
+  # Returns created_at (as a ActiveSupport::TimeWithZone) for the 100% progress interaction,
+  # if it exists, otherwise returns nil.
   def module_completed_at(interactions)
     # There shouldn't ever be more than one, but select the earliest
     # one anyway just in case.

@@ -21,7 +21,7 @@ class GradeRise360ModuleForUser
     @course_rise360_module_version = course_rise360_module_version
     @send_grade_to_canvas = send_grade_to_canvas
     @force_computation = force_computation
-    @existing_canvas_grade = nil # Do this before calling set_canvas_submission() b/c that takes care of initializing it.
+    @existing_canvas_score = nil # Do this before calling set_canvas_submission() b/c that takes care of initializing it.
     set_canvas_submission(canvas_submission) if canvas_submission.present?
 
     # Be careful to only add these common fields that are usually in the trace only to this span (with the prefix).
@@ -89,11 +89,7 @@ class GradeRise360ModuleForUser
     # Only set the grade to send to Canvas if it changed and should be sent.
     grade_for_canvas = nil
     if grade_changed?
-      # TODO: change the grade_for_canvas from a percent to the raw score we calculate in the grade
-      # breakdown so that Canvas and our display of the breakdown always match and we don't rely on magic
-      # to handle Canvas rounding the values for us: https://app.asana.com/0/1174274412967132/1201022023697611
-      # See posted_grade here: https://canvas.instructure.com/doc/api/submissions.html
-      grade_for_canvas = "#{@computed_grade_breakdown.total_grade}%"
+      grade_for_canvas = @computed_grade_breakdown.total_score
       Honeycomb.add_field('grade_rise360_module_for_user.grade_for_canvas', grade_for_canvas)
     end
 
@@ -198,11 +194,11 @@ class GradeRise360ModuleForUser
     # If it needed grading, then it most likely changed and should be sent to Canvas.
     grade_changed = needs_grading?
 
-    unless @existing_canvas_grade.nil? || @computed_grade_breakdown.nil?
+    unless @existing_canvas_score.nil? || @computed_grade_breakdown.nil?
       # We should never send a lower grade. A TA or admin could accidentally set the grade to something
       # lower manually or there could be edge cases we haven't thought about. Regardless, we want
       # to lean towards always giving the most credit possible.
-      grade_changed = @existing_canvas_grade < computed_grade_breakdown.total_grade
+      grade_changed = @existing_canvas_score < computed_grade_breakdown.total_score
     end
 
     Honeycomb.add_field('grade_rise360_module_for_user.grade_changed?', grade_changed)
@@ -255,7 +251,7 @@ class GradeRise360ModuleForUser
   # Returns a string like "4.3 / 10.0" for the total points awarded that is already
   # stored in Canvas on the submission. If it hasn't been graded, returns "- / 10.0"
   def existing_total_points_display
-    "#{@existing_canvas_score_display} / #{Rise360Module::POINTS_POSSIBLE.to_f.round(1)}"
+    "#{@existing_canvas_score_display} / #{Rise360Module::POINTS_POSSIBLE}"
   end
 
   def total_quiz_questions
@@ -352,12 +348,9 @@ private
 
     # Parse out the existing grade in an easier format to use for this class
     if @canvas_submission.is_graded?
-      # The submission doesn't have the points_possible so we can't determine the grade as a percent
-      # without looking at the assignment. See the comments on Rise360Module::POINTS_POSSIBLE for changes
-      # we need to make this not be insanely brittle.
-      @existing_canvas_grade = 100 * (@canvas_submission.score.to_f / Rise360Module::POINTS_POSSIBLE.to_f)
-      Honeycomb.add_field('canvas.submission.existing.grade', "#{@existing_canvas_grade}%")
-      @existing_canvas_score_display = @canvas_submission.score.round(1)
+      @existing_canvas_score = @canvas_submission.score.to_f.round(1)
+      Honeycomb.add_field('canvas.submission.existing.grade', @existing_canvas_score)
+      @existing_canvas_score_display = @existing_canvas_score # Defaults to '-' unless this line is hit.
     end
     Honeycomb.add_field('canvas.submission.existing.score', @existing_canvas_score_display)
 

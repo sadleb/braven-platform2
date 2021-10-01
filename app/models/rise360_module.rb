@@ -7,13 +7,13 @@ require 'rise360_util'
 class Rise360Module < ApplicationRecord
   include Versionable
 
-  # TODO: this constant is used to convert a score into a percent in the grading
+  # TODO: this constant is used to convert between scores and percents in the grading
   # code. To make this not be insanely brittle, we should actually use this to set
   # the points_possible when we publish a Module. We should also prevent folks from
   # changing it in the Canvas UI. Currently, we assume Designers properly go set all Modules to
   # be worth 10 points. Grading will BREAK if that doesn't happen.
   # https://app.asana.com/0/1174274412967132/1199231117515061
-  POINTS_POSSIBLE=10
+  POINTS_POSSIBLE=10.0
 
   after_save :set_rise360_zipfile_changed, if: :saved_change_to_rise360_zipfile?
   after_commit :publish, if: :rise360_zipfile_changed?

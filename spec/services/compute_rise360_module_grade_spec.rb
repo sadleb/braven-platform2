@@ -33,7 +33,7 @@ RSpec.describe ComputeRise360ModuleGrade do
         expect(interactions).to be_empty
 
         grade = compute_service.run()
-        expect(grade).to eq(ComputeRise360ModuleGrade::ComputedGradeBreakdown.new(0,0,0,0,nil))
+        expect(grade).to eq(ComputeRise360ModuleGrade::ComputedGradeBreakdown.new(0,0,0))
       end
     end
 
@@ -75,7 +75,8 @@ RSpec.describe ComputeRise360ModuleGrade do
           .to have_received(:grade_mastery_quiz)
           .once
 
-        expect(grade).to eq(ComputeRise360ModuleGrade::ComputedGradeBreakdown.new(100,100,100,100,completed_interaction.created_at))
+        # They get full credit
+        expect(grade.total_score).to eq(Rise360Module::POINTS_POSSIBLE)
       end
     end
 
@@ -115,7 +116,8 @@ RSpec.describe ComputeRise360ModuleGrade do
           .to have_received(:grade_module_engagement)
           .once
 
-        expect(grade).to eq(ComputeRise360ModuleGrade::ComputedGradeBreakdown.new(100,100,nil,100,completed_interaction.created_at))
+        # They get full credit
+        expect(grade.total_score).to eq(Rise360Module::POINTS_POSSIBLE)
       end
     end
 
@@ -158,7 +160,7 @@ RSpec.describe ComputeRise360ModuleGrade do
 
       it "computes the correct grade" do
         grade = compute_service.run()
-        expect(grade).to eq( ComputeRise360ModuleGrade::ComputedGradeBreakdown.new(50*0.4 + 50*0.4 + 0*0.2, 50, 50, 0, nil) )
+        expect(grade.total_score).to eq( 0.5*4.0 + 0.5*4.0 + 0.0*2.0 )
       end
     end
 
@@ -201,7 +203,7 @@ RSpec.describe ComputeRise360ModuleGrade do
 
       it "still computes the correct grade" do
         grade = compute_service.run()
-        expect(grade).to eq( ComputeRise360ModuleGrade::ComputedGradeBreakdown.new(50*0.4 + 50*0.4 + 0*0.2, 50, 50, 0, nil) )
+        expect(grade.total_score).to eq( 0.5*4.0 + 0.5*4.0 + 0.0*2.0 )
       end
     end
 
@@ -245,7 +247,7 @@ RSpec.describe ComputeRise360ModuleGrade do
 
       it "computes the correct grade" do
         grade = compute_service.run()
-        expect(grade).to eq( ComputeRise360ModuleGrade::ComputedGradeBreakdown.new(100*0.4 + 50*0.4 + 100*0.2, 100, 50, 100, completed_interaction.created_at) )
+        expect(grade.total_score).to eq( 1.0*4.0 + 0.5*4.0 + 1.0*2.0 )
       end
     end
 
@@ -288,7 +290,7 @@ RSpec.describe ComputeRise360ModuleGrade do
 
       it "computes the correct grade" do
         grade = compute_service.run()
-        expect(grade).to eq( ComputeRise360ModuleGrade::ComputedGradeBreakdown.new(50*0.4 + 100*0.4 + 0*0.2, 50, 100, 0, nil) )
+        expect(grade.total_score).to eq( 0.5*4.0 + 1.0*4.0 + 0.0*2.0 )
       end
     end
 
@@ -388,18 +390,18 @@ RSpec.describe ComputeRise360ModuleGrade do
     end
 
     context "on-time grade" do
-      subject { compute_service.run().on_time_grade }
+      subject { compute_service.run().on_time_score }
 
       let(:interactions) { Rise360ModuleInteraction.all }
       let(:due_date_obj) { 1.day.from_now.utc }
       let(:due_date) { due_date_obj.to_time.iso8601 }
 
       shared_examples 'incomplete module' do
-        it { is_expected.to eq(0) }
+        it { is_expected.to eq(0.0) }
       end
 
       shared_examples 'completed module' do
-        it { is_expected.to eq(100) }
+        it { is_expected.to eq(2.0) }
       end
 
       context "with no interactions" do
@@ -494,10 +496,51 @@ RSpec.describe ComputeRise360ModuleGrade do
 
   end  # run
 
-  # TODO: add a new describe for ComputedGradeBreakdown and add unit tests for the display points logic
-  # including that the individual components add up to the total computed grade
-  # I just do a very basic test of the points display in the controller but here use rand() to loop over
-  # a bunch of values from 0 to 100 and make sure the math all works out.
-  # https://app.asana.com/0/1174274412967132/1201022023697611
+end
+
+# I just do a very basic test of the points display in the controller but here we
+# loop over a bunch of values from 0 to 100 and make sure the math all works out.
+# https://app.asana.com/0/1174274412967132/1201022023697611
+# Note that I tried nesting this RSpec.describe inside the ComputeRise360ModuleGrade one
+# but it needs to be at the top level
+RSpec.describe ComputeRise360ModuleGrade::ComputedGradeBreakdown do
+
+  describe '#total_score' do
+
+    # Loop over all permutations of engagement scores and on time scores with a representative
+    # sample of mastery quiz scores to make sure the math in the computed breakdown matches the total
+    # that is sent to Canvas and displayed. Note: this is currently 15K permutations and I did catch
+    # a bug by running it, woo!
+    it 'computes the correct total_score' do
+
+     # 11 is arbitrary. I just wanted to cover a reasonable set of numbers that could result in bad floating point math.
+      mastery_grades = []
+      [*1..11].each do |total_questions|
+        [*0..total_questions].each do |correct_answers|
+          mastery_grades << 100 * (correct_answers.to_f / total_questions.to_f)
+        end
+      end
+
+      [*0..100].each do |engagement_grade|
+        mastery_grades.each do |mastery_grade|
+          [0, 100].each do |on_time_grade|
+            gb = ComputeRise360ModuleGrade::ComputedGradeBreakdown.new(engagement_grade, mastery_grade, on_time_grade)
+            expect(gb.total_score).to eq((gb.engagement_score + gb.quiz_score + gb.on_time_score).round(1))
+          end
+        end
+      end
+    end
+  end
+
+  describe "POINTS_POSSIBLE" do
+    it "sums up to Rise360Module::POINTS_POSSIBLE" do
+      total = 0.0
+      ComputeRise360ModuleGrade::ComputedGradeBreakdown::POINTS_POSSIBLE.each do |key, score|
+        total += score
+      end
+      expect(total.round(1)).to eq(Rise360Module::POINTS_POSSIBLE)
+    end
+  end
+
 
 end
