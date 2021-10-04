@@ -125,7 +125,11 @@ table[class=body] .article {
                     <tr>
                       <td style="font-family: georgia,serif; font-size: 16px; vertical-align: top;" valign="top">
                         <p style="color: #000000; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0; margin-bottom: 15px;">Hi <%= @resource.first_name %>!</p>
-                        <p style="color: #000000; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0; margin-bottom: 25px;">Please <strong>click the button</strong> below to activate your account with this email.</p>
+                        <p style="color: #000000; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0; margin-bottom: 15px;">Please <strong>click the button</strong> below to activate your account with this email.</p>
+                        <p style="color: #000000; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0; margin-bottom: 15px;">After activating your account, log into the Braven Portal by going to this link in the future: <a href="<%= Rails.application.secrets.canvas_url %>" style="color: #2E6D99; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0;"><%= Rails.application.secrets.canvas_url %></a></p>
+                        <%# Note: Email clients usually convert emails to mailto links. That's why we explicitly put this in a <a> tag and
+                                  link to nowhere. This isn't an email they should be clicking on to actually send an email. %>
+                        <p style="color: #000000; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0; margin-bottom: 25px;">When logging in, use the email: <a style="color: #2E6D99; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0;"><%= @resource.after_confirmation_login_email %></a> and the password you created.</p>
                         <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="btn btn-primary" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; box-sizing: border-box; width: 100%;" width="100%">
                           <tbody>
                             <tr>
@@ -142,12 +146,6 @@ table[class=body] .article {
                           </tbody>
                         </table>
                         <br>
-                        <%# Note: Email clients usually convert emails to mailto links. That's why we explicitly put this in a <a> tag and
-                                  link to nowhere. This isn't an email they should be clicking on to actually send an email. %>
-                        <p style="color: #000000; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0; margin-bottom: 15px;">Going forward, you can log in with</p>
-                        <p style="color: #000000; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0; margin-left: 15px; margin-bottom: 10px;"><a style="color: #2E6D99; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0;"><%= @resource.after_confirmation_login_email %></a></p>
-                        <p style="color: #000000; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0; margin-bottom: 15px;">and the password you created.</p>
-                        <p style="color: #000000; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0; margin-left: 15px; margin-bottom: 20px;"></a></p>
                         <p style="color: #000000; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0; margin-bottom: 15px;">- The Braven Team</p>
                         <br>
                         <p style="color: #000000; font-family: georgia,serif; font-size: 16px; font-weight: normal; margin: 0; margin-bottom: 15px;"><small>Note: please ignore this if you aren't expecting to use this email address to log in to Braven. Nothing about your Braven account will change.</small></p>
