@@ -42,6 +42,7 @@ class ZoomAPI
 
   def add_registrant(meeting_id, body)
     post("/meetings/#{meeting_id}/registrants", body)
+
   rescue RestClient::BadRequest,
          RestClient::NotFound => e
 
@@ -110,6 +111,24 @@ class ZoomAPI
     path = "/meetings/#{meeting_id}/registrants/status"
     body = { 'action' => 'cancel', 'registrants' => registrants }
     put(path, body)
+  rescue RestClient::NotFound => e
+
+    response = JSON.parse(e.http_body)
+
+    case response['code']
+
+    # {
+    #   "code":3001,
+    #   "message":"Meeting does not exist: 85617842328."
+    # }
+    when 3001
+      raise ZoomMeetingDoesNotExistError,
+        "We cannot cancel the Zoom registration for email(s): '#{registrant_emails.inspect}'. " +
+        "Zoom Meeting ID = #{meeting_id} doesn't exist. Maybe it was deleted or the ID is wrong?"
+
+    else
+      raise
+    end
   end
 
 # TODO: I think this was intended to fix up meetings with incorrect settings, but I don't

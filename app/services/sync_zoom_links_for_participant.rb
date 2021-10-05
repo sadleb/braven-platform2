@@ -60,10 +60,9 @@ private
     cancellation_1 = cancel_registration(@salesforce_participant.zoom_meeting_id_1) if @salesforce_participant.zoom_meeting_link_1
     cancellation_2 = cancel_registration(@salesforce_participant.zoom_meeting_id_2) if @salesforce_participant.zoom_meeting_link_2
 
-    # Note: a successful cancellation returns RestClient::Response with code 204, which returns false for .present?
-    # That's why we explicitly check for nil, which happens when the API isn't called at all.
-    cancellations_happened = !(cancellation_1.nil? && cancellation_2.nil?)
+    cancellations_happened = (cancellation_1 || cancellation_2)
     Honeycomb.add_field('sync_zoom_links_for_participant.cancelled', cancellations_happened)
+
     if cancellations_happened
       Rails.logger.debug('  - Registrations cancelled. Updating Salesforce to clear out links')
       SalesforceAPI.client.update_zoom_links(@salesforce_participant.id, nil, nil)
@@ -89,10 +88,22 @@ private
   end
 
   def cancel_registration(meeting_id)
-    Rails.logger.debug("  - Cancelling registration for Meeting Id: #{meeting_id}, Email: #{@salesforce_participant.email}")
-    Honeycomb.add_field('sync_zoom_links_for_participant.registration_cancelled', meeting_id)
+    begin
+      if meeting_id.present?
+        Rails.logger.debug("  - Cancelling registration for Meeting Id: #{meeting_id}, Email: #{@salesforce_participant.email}")
+        ZoomAPI.client.cancel_registrants(meeting_id, [@salesforce_participant.email])
+        Honeycomb.add_field('sync_zoom_links_for_participant.registration_cancelled', meeting_id)
+      else
+        Honeycomb.add_field('zoom.participant.skip_reason', 'Zoom Meeting ID was deleted from Salesforce. Just clear their links.')
+      end
+    rescue ZoomAPI::ZoomMeetingDoesNotExistError => e
+      # If the meeting has been deleted (b/c it's over most likely), just go ahead and say
+      # that the registration has been cancelled since the link is useless anyway.
+      Honeycomb.add_field('zoom.participant.skip_reason', e.message)
+      Rails.logger.debug(e.message)
+    end
 
-    ZoomAPI.client.cancel_registrants(meeting_id, [@salesforce_participant.email])
+    return true
   end
 
   # We prefix their first names to help with managing breakout rooms. Regional folks need to be

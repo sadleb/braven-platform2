@@ -205,12 +205,16 @@ RSpec.describe SyncZoomLinksForParticipant do
           let(:meeting_link_2) { nil }
 
           it 'cancels only that registration and clears the links from their Salesforce Participant record' do
-            expect(zoom_client).to receive(:cancel_registrants)
-              .with(meeting_id_1, [salesforce_participant_struct.email])
-              .and_return(no_content_response).once
+            if meeting_id_1.present?
+              expect(zoom_client).to receive(:cancel_registrants)
+                .with(meeting_id_1, [salesforce_participant_struct.email])
+                .and_return(no_content_response).once
+            end
 
-            expect(zoom_client).not_to receive(:cancel_registrants)
-              .with(meeting_id_2, anything)
+            if meeting_id_2.present?
+              expect(zoom_client).not_to receive(:cancel_registrants)
+                .with(meeting_id_2, anything)
+            end
 
             expect(sf_client).to receive(:update_zoom_links).with(salesforce_participant_struct.id, nil, nil)
 
@@ -223,13 +227,17 @@ RSpec.describe SyncZoomLinksForParticipant do
           let(:meeting_link_2) { zoom_registrant2['join_url'] }
 
           it 'cancels both registrations and clears the links from their Salesforce Participant record' do
-            expect(zoom_client).to receive(:cancel_registrants)
-              .with(meeting_id_1, [salesforce_participant_struct.email])
-              .and_return(no_content_response).once
+            if meeting_id_1.present?
+              expect(zoom_client).to receive(:cancel_registrants)
+                .with(meeting_id_1, [salesforce_participant_struct.email])
+                .and_return(no_content_response).once
+            end
 
-            expect(zoom_client).to receive(:cancel_registrants)
-              .with(meeting_id_2, [salesforce_participant_struct.email])
-              .and_return(no_content_response).once
+            if meeting_id_2.present?
+              expect(zoom_client).to receive(:cancel_registrants)
+                .with(meeting_id_2, [salesforce_participant_struct.email])
+                .and_return(no_content_response).once
+            end
 
             expect(sf_client).to receive(:update_zoom_links).with(salesforce_participant_struct.id, nil, nil)
 
@@ -237,6 +245,30 @@ RSpec.describe SyncZoomLinksForParticipant do
           end
         end
 
+        # Make sure that this particular error is not treated as a sync failure. No need to cancel the registration
+        # of a non-existent meeting.
+        context 'when Zoom meeting deleted' do
+          let(:meeting_link_1) { zoom_registrant1['join_url'] }
+          let(:meeting_link_2) { zoom_registrant2['join_url'] }
+
+          it 'still deletes the links from Salesforce and ignores the ZoomAPI error' do
+            if meeting_id_1.present?
+              expect(zoom_client).to receive(:cancel_registrants)
+                .with(meeting_id_1, [salesforce_participant_struct.email])
+                .and_raise(ZoomAPI::ZoomMeetingDoesNotExistError, 'We cannot cancel the Zoom registration for email(s)')
+            end
+
+            if meeting_id_2.present?
+              expect(zoom_client).to receive(:cancel_registrants)
+                .with(meeting_id_2, [salesforce_participant_struct.email])
+                .and_return(no_content_response).once
+            end
+
+            expect(sf_client).to receive(:update_zoom_links).with(salesforce_participant_struct.id, nil, nil).once
+
+            run_sync
+          end
+        end
       end # END 'Dropped Participants'
 
       context 'Dropped Fellow' do
