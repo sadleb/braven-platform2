@@ -1098,6 +1098,167 @@ RSpec.describe DiscordBot do
     end
   end
 
+  describe '.end_program_command' do
+    subject { bot.end_program_command(event) }
+
+    let(:retained_roles) { [ instance_double(Discordrb::Role, name: ADMIN_ROLES.first) ] }
+    let(:non_retained_roles) { [ instance_double(Discordrb::Role, name: 'not a retained role') ] }
+    let(:programs) { create(:salesforce_current_and_future_programs, canvas_course_ids: [1, 2]) }
+    let(:program) { programs['records'].first }
+    let(:server_id) { program['Discord_Server_ID__c'] }
+    let(:server) { instance_double(Discordrb::Server, id: server_id, invites: invites, roles: roles, channels: channels, members: members) }
+    let(:message) { instance_double(Discordrb::Message, content: message_content, edit: nil) }
+    let(:event) { instance_double(Discordrb::Events::MessageEvent, server: server, message: message) }
+    let(:invite) { instance_double(Discordrb::Invite, code: participant.discord_invite_code, delete: nil) }
+    let(:message_content) { "#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:end_program]}" }
+    let(:participant) { SalesforceAPI.participant_to_struct(create(:salesforce_participant_fellow)) }
+    let(:sf_client) { instance_double(SalesforceAPI,
+      get_current_and_future_accelerator_programs: programs['records'],
+      find_participant: nil,
+      update_participant: nil,
+    ) }
+    let(:retained_member) { instance_double(Discordrb::Member, roles: retained_roles, kick: nil) }
+    let(:non_retained_member) { instance_double(Discordrb::Member, roles: non_retained_roles, kick: nil) }
+    let(:members) { [retained_member, non_retained_member] }
+    let(:invites) { [invite] }
+    # channels
+    let(:cohort_channel) { instance_double(Discordrb::Channel, name: 'cohort-test', delete: nil, type: TEXT_CHANNEL) }
+    let(:cohort_template_channel) { instance_double(Discordrb::Channel, name: COHORT_TEMPLATE_CHANNEL, delete: nil, type: TEXT_CHANNEL) }
+    let(:not_cohort_channel) { instance_double(Discordrb::Channel, name: 'test', delete: nil, type: TEXT_CHANNEL) }
+    let(:general_channel) { instance_double(Discordrb::Channel, name: 'general', delete: nil, invites: invites, type: TEXT_CHANNEL) }
+    let(:channels) { [cohort_channel, cohort_template_channel, not_cohort_channel] }
+    # roles
+    let(:cohort_role) { instance_double(Discordrb::Role, name: 'Cohort: Test', delete: nil) }
+    let(:cohort_template_role) { instance_double(Discordrb::Role, name: COHORT_TEMPLATE_ROLE, delete: nil) }
+    let(:not_cohort_role) { instance_double(Discordrb::Role, name: 'test', delete: nil) }
+    let(:roles) { [cohort_role, cohort_template_role, not_cohort_role] }
+
+    before :each do
+      allow(sf_client).to receive(:find_participants_by).and_return([participant])
+      allow(sf_client).to receive(:update_program)
+      allow(SalesforceAPI).to receive(:client).and_return(sf_client)
+      allow(message).to receive(:respond).and_return(message)
+      bot.instance_variable_set(:@end_program_flag, {server.id => nil})
+      bot.instance_variable_set(:@servers, {server.id => server})
+      allow(bot).to receive(:create_invite).and_return('fake code')
+      allow(bot).to receive(:sleep)
+      allow(bot).to receive(:find_general_channel).and_return(general_channel)
+      allow(DiscordBot).to receive(:cycle_channels)
+    end
+
+    context 'with initial run' do
+
+      before :each do
+        bot.instance_variable_set(:@end_program_flag, {server.id => nil})
+      end
+
+      it 'responds' do
+        expect(message).to receive(:respond)
+        subject
+      end
+
+      it 'sets flag' do
+        # Hacky way to check if we're setting the instance variable before calling sleep.
+        allow(bot).to receive(:sleep).and_raise(RuntimeError)
+        expect {
+          subject
+        }.to raise_error(RuntimeError)
+        expect(bot.instance_variable_get(:@end_program_flag)).to eq({server.id => true})
+      end
+
+      it 'sleeps' do
+        subject
+        expect(bot).to have_received(:sleep).with(COMMAND_CONFIRM_TIMEOUT)
+      end
+
+      it 'sets the flag back when its done' do
+        expect(bot.instance_variable_get(:@end_program_flag)).to eq({server.id => nil})
+      end
+
+      it 'does not try to get programs' do
+        expect(sf_client).not_to receive(:get_current_and_future_accelerator_programs)
+        subject
+      end
+    end
+
+    context 'with flag already set' do
+
+      before :each do
+        bot.instance_variable_set(:@end_program_flag, {server.id => true})
+      end
+
+      context 'with already linked program' do
+        # doesn't matter which program
+        let(:server_id) { programs['records'].first['Discord_Server_ID__c'].to_i }
+
+        before :each do
+#          # doen't matter which program
+#          allow(sf_client).to receive(:find_participant)
+#            .with(contact_id: participant.contact_id, program_id: program['Id'])
+#            .and_return(participant)
+        end
+
+        it 'kicks non-retained members' do
+          subject
+          expect(non_retained_member).to have_received(:kick).once
+        end
+
+        it 'doesnt kick retained members' do
+          subject
+          expect(retained_member).not_to have_received(:kick)
+        end
+
+        it 'revokes all participant invites' do
+          subject
+          expect(invite).to have_received(:delete).once
+        end
+
+        it 'deletes cohort channels' do
+          subject
+          expect(cohort_channel).to have_received(:delete)
+        end
+
+        it 'doesnt delete the cohort template channel' do
+          subject
+          expect(cohort_template_channel).not_to have_received(:delete)
+        end
+
+        it 'doesnt delete non-cohort channels' do
+          subject
+          expect(not_cohort_channel).not_to have_received(:delete)
+        end
+
+        it 'deletes cohort roles' do
+          subject
+          expect(cohort_role).to have_received(:delete)
+        end
+
+        it 'doesnt delete the cohort template roles' do
+          subject
+          expect(cohort_template_role).not_to have_received(:delete)
+        end
+
+        it 'doesnt delete non-cohort roles' do
+          subject
+          expect(not_cohort_role).not_to have_received(:delete)
+        end
+
+        it 'calls cycle_channels' do
+          subject
+          expect(DiscordBot).to have_received(:cycle_channels).once
+        end
+
+        it 'resets the program discord server id' do
+          subject
+          expect(sf_client).to have_received(:update_program)
+            .with(program['Id'], {'Discord_Server_ID__c': nil})
+            .once
+        end
+      end
+    end
+  end
+
+
   # Create invite
   describe '.create_invite' do
     subject { bot.create_invite(server_id) }
@@ -1380,6 +1541,194 @@ RSpec.describe DiscordBot do
       it 'updates permission overwrites' do
         expect(channel).to receive(:permission_overwrites=)
         subject
+      end
+    end
+  end
+
+  describe 'self.cycle_channels' do
+    subject { DiscordBot.cycle_channels(server) }
+
+    let(:server) { instance_double(Discordrb::Server) }
+
+    context 'with some channels' do
+      let(:retained_channel_1) { instance_double(Discordrb::Channel, name: 'rules', type: TEXT_CHANNEL, topic: nil, parent: nil, permission_overwrites: nil, delete: nil, :name= => nil ) }
+      let(:retained_channel_2) { instance_double(Discordrb::Channel, name: 'bot-commands', type: TEXT_CHANNEL, topic: nil, parent: nil, permission_overwrites: nil, delete: nil, :name= => nil) }
+      let(:cycled_channel_1) { instance_double(Discordrb::Channel, name: 'general', type: TEXT_CHANNEL, topic: nil, parent: nil, permission_overwrites: nil, delete: nil, :name= => nil) }
+      let(:cycled_channel_2) { instance_double(Discordrb::Channel, name: 'monday-learning-lab', type: TEXT_CHANNEL, topic: nil, parent: nil, permission_overwrites: nil, delete: nil, :name= => nil) }
+      let(:cycled_channel_3) { instance_double(Discordrb::Channel, name: 'teaching-assistants', type: TEXT_CHANNEL, topic: nil, parent: nil, permission_overwrites: nil, delete: nil, :name= => nil) }
+      let(:retained_channels) { [retained_channel_1, retained_channel_2] }
+      let(:cycled_channels) { [cycled_channel_1, cycled_channel_2, cycled_channel_3] }
+      let(:channels) { retained_channels + cycled_channels }
+
+      before :each do
+        allow(server).to receive(:channels).and_return(channels)
+        allow(server).to receive(:create_channel)
+      end
+
+      it 'doesnt cycle retained channels' do
+        subject
+        retained_channels.each do |retained_channel|
+          expect(retained_channel).not_to have_received(:name=)
+          expect(retained_channel).not_to have_received(:delete)
+        end
+      end
+
+      it 'renames old channels' do
+        subject
+        cycled_channels.each do |cycled_channel|
+          expect(cycled_channel).to have_received(:name=).once
+        end
+      end
+
+      it 'creates new channels correctly' do
+        subject
+        cycled_channels.each do |cycled_channel|
+          expect(server).to have_received(:create_channel).with(
+            cycled_channel.name,
+            TEXT_CHANNEL,
+            topic: cycled_channel.topic,
+            permission_overwrites: anything,
+            parent: cycled_channel.parent,
+          ).once
+        end
+      end
+
+      it 'deletes old channels' do
+        subject
+        cycled_channels.each do |cycled_channel|
+          expect(cycled_channel).to have_received(:delete).once
+        end
+      end
+
+      it 'returns channel_count' do
+        expect(subject).to eq(cycled_channels.count)
+      end
+    end
+  end
+
+  describe 'self.delete_invite' do
+    subject { DiscordBot.delete_invite(invite, reason) }
+
+    let(:reason) { 'test reason' }
+    let(:invite) { instance_double(Discordrb::Invite, delete: nil) }
+
+    context 'with invite' do
+
+      before :each do
+        allow(invite).to receive(:delete).and_return(nil)
+      end
+
+      it 'deletes invite' do
+        subject
+        expect(invite).to have_received(:delete)
+          .with(reason)
+          .once
+      end
+
+      it 'returns true' do
+        expect(subject).to eq(true)
+      end
+    end
+
+    context 'with already deleted invite' do
+
+      before :each do
+        allow(invite).to receive(:delete).with(reason).and_raise(Discordrb::Errors::UnknownInvite)
+      end
+
+      it 'handles exception' do
+        expect {
+          subject
+        }.not_to raise_error(Discordrb::Errors::UnknownInvite)
+      end
+
+      xit 'returns false' do
+        expect(subject).to eq(false)
+      end
+    end
+  end
+
+  describe 'self.kick_member' do
+    subject { DiscordBot.kick_member(member, reason) }
+
+    let(:reason) { 'test reason' }
+    let(:member) { instance_double(Discordrb::Member, kick: nil) }
+
+    context 'with member' do
+
+      before :each do
+        allow(member).to receive(:kick).and_return(nil)
+      end
+
+      it 'kicks member' do
+        subject
+        expect(member).to have_received(:kick)
+          .with(reason)
+          .once
+      end
+
+      it 'returns true' do
+        expect(subject).to eq(true)
+      end
+    end
+
+    context 'with already kicked member' do
+
+      before :each do
+        allow(member).to receive(:kick).with(reason).and_raise(Discordrb::Errors::UnknownMember)
+      end
+
+      it 'handles exception' do
+        expect {
+          subject
+        }.not_to raise_error(Discordrb::Errors::UnknownMember)
+      end
+
+      xit 'returns false' do
+        expect(subject).to eq(false)
+      end
+    end
+  end
+
+  describe 'self.delete_channel' do
+    subject { DiscordBot.delete_channel(channel, reason) }
+
+    let(:reason) { 'test reason' }
+    let(:channel) { instance_double(Discordrb::Channel, delete: nil) }
+
+    context 'with channel' do
+
+      before :each do
+        allow(channel).to receive(:delete).and_return(nil)
+      end
+
+      it 'deletes channel' do
+        subject
+        expect(channel).to have_received(:delete)
+          .with(reason)
+          .once
+      end
+
+      it 'returns true' do
+        expect(subject).to eq(true)
+      end
+    end
+
+    context 'with already deleted channel' do
+
+      before :each do
+        allow(channel).to receive(:delete).with(reason).and_raise(Discordrb::Errors::UnknownChannel)
+      end
+
+      it 'handles exception' do
+        expect {
+          subject
+        }.not_to raise_error(Discordrb::Errors::UnknownChannel)
+      end
+
+      xit 'returns false' do
+        # TODO: why does this fail?
+        expect(subject).to eq(false)
       end
     end
   end

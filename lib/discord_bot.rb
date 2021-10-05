@@ -33,11 +33,21 @@ ADMIN_COMMANDS = {
   configure_member: 'configure_member',
   list_misconfigured: 'list_misconfigured',
   create_invite: 'create_invite',
+  end_program: 'end_program',
 }
 # Roles that are allowed to run admin commands.
 ADMIN_ROLES = [
   'Admin',
   'Braven Staff',
+]
+# Roles that we don't want to kick out when a program ends.
+RETAINED_ROLES = ADMIN_ROLES + [
+  'Bot',
+  # Below is the role assigned to our production bot by Discord, but we
+  # shouldn't rely on it to remain unchanged. Always manually assign the
+  # 'Bot' role above to the bot, as described in the Tech/Product Support
+  # Discord Guide, so we have a fallback.
+  'Braven Discord Integration',
 ]
 # Other role names.
 TA_ROLE = 'Teaching Assistant'
@@ -50,15 +60,26 @@ EVERYONE_ROLE = '@everyone'
 TEXT_CHANNEL = 0
 CHANNEL_CATEGORY = 4
 
+RETAINED_CHANNELS = [
+  'rules',
+  'admin-discord-news',
+  'bot-commands',
+]
+
 # Stuff for dynamic cohort channels/roles.
 COHORT_CHANNEL_CATEGORY = 'Cohorts'
 COHORT_CHANNEL_DESCRIPTION = 'This channel is a space for communication and collaboration with your Accelerator Cohort.'
 COHORT_TEMPLATE_CHANNEL = 'cohort-template'
 COHORT_TEMPLATE_ROLE = 'Cohort: Template'
 COHORT_TEMPLATE_LC_ROLE = 'Cohort: LC Template'
+COHORT_CHANNEL_PREFIX = 'cohort-'
+COHORT_ROLE_PREFIX = 'Cohort: '
 
 # Other channel names.
 GENERAL_CHANNEL = 'general'
+
+# Other.
+COMMAND_CONFIRM_TIMEOUT = 30
 
 # Global logger.
 LOGGER = Logger.new(STDOUT)
@@ -96,6 +117,17 @@ class DiscordBot
 
     # { server_id => Channel }
     @general_channels = {}
+
+    # Per-server global flag for when the end_program admin command has been
+    # started. Hash values will be true if someone started the command but
+    # hasn't confirmed, and nil otherwise. We need this to be an instance
+    # variable so that we can read/write it from different threads, each
+    # running the end_program_command method.
+    # Note: Ruby member variables aren't technically thread-safe:
+    # https://bearmetal.eu/theden/how-do-i-know-whether-my-rails-app-is-thread-safe-or-not/
+    # ...but for our purposes here, they're thread-safe-enough.
+    # { server_id => boolean }
+    @end_program_flag = {}
 
     # Start time set in ready event handler.
     @start_time = nil
@@ -342,6 +374,10 @@ class DiscordBot
       LOGGER.debug "create_invite command"
       Honeycomb.add_field('command', 'create_invite')
       create_invite_command(event)
+    when /^#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:end_program]}/
+      LOGGER.debug "end_program command"
+      Honeycomb.add_field('command', 'end_program')
+      end_program_command(event)
     else
       LOGGER.debug "unknown command"
       Honeycomb.add_field('command', 'unknown')
@@ -406,7 +442,7 @@ class DiscordBot
         LOGGER.warn "Attempted to reference same Discord user from multiple Contacts. Kicking the new user."
         record_error(e)
         LOGGER.warn "Probably a result of duplicate contacts, please fix the contacts."
-        member.kick("Duplicate Contacts. Contact Support if you think this was a mistake.")
+        DiscordBot.kick_member(member, "Duplicate Contacts. Contact Support if you think this was a mistake.")
         return
       end
 
@@ -415,14 +451,7 @@ class DiscordBot
 
       # Once everything else is done, delete the invite, so it can't be used again.
       LOGGER.debug "Deleting invite"
-      begin
-        invite.delete
-        Honeycomb.add_field('configure_member.invite_deleted', true)
-      rescue Discordrb::Errors::UnknownInvite
-        # Probably another instance of the bot got to it first.
-        LOGGER.debug "Invite already deleted"
-        Honeycomb.add_field('configure_member.invite_deleted', false)
-      end
+      DiscordBot.delete_invite(invite, "Invite was used")
     end
   end
 
@@ -610,14 +639,7 @@ class DiscordBot
     if participant.discord_invite_code
       invite = server.invites.find { |i| i.code == participant.discord_invite_code }
       if invite
-        begin
-          invite.delete
-          Honeycomb.add_field('configure_member.invite_deleted', true)
-        rescue Discordrb::Errors::UnknownInvite
-          # Probably another instance of the bot got to it first.
-          LOGGER.debug "Invite already deleted"
-          Honeycomb.add_field('configure_member.invite_deleted', false)
-        end
+        DiscordBot.delete_invite(invite, "configure_member command called manually")
         message_content << "\n✅ Deleted Discord Invite Code for Participant #{participant.id}..."
         message.edit(message_content)
       end
@@ -816,15 +838,10 @@ class DiscordBot
     if participant.discord_invite_code
       invite = server.invites.find { |i| i.code == participant.discord_invite_code }
       if invite
-        begin
-          invite.delete
-          Honeycomb.add_field('create_invite.invite_deleted', true)
+        if DiscordBot.delete_invite(invite, "Replaced by create_invite command")
           message_content << "\nℹ️ Deleted existing invite ||#{invite.code}||."
           message.edit(message_content)
-        rescue Discordrb::Errors::UnknownInvite
-          # Probably another instance of the bot got to it first.
-          LOGGER.debug "Invite already deleted"
-          Honeycomb.add_field('create_invite.invite_deleted', false)
+        else
           message_content << "\nℹ️ Old invite ||#{invite.code}|| not found on this server."
           message.edit(message_content)
         end
@@ -844,6 +861,156 @@ class DiscordBot
 
     SalesforceAPI.client.update_participant(participant.id, {'Discord_Invite_Code__c': invite_code})
     message_content << "\n✅ Updated Participant #{participant.id} in Salesforce..."
+    message_content << "\nAll done!"
+    message.edit(message_content)
+  end
+
+  # Usage:
+  #
+  # End a program and get ready for a new program launch.
+  # Clears out old channels/messages, kicks old users, etc.
+  # This command can run in two states: initial mode (sets a global flag, then exits),
+  # and confirmation mode (reads the global flag, and continues).
+  #
+  #   end_program
+  def end_program_command(event)
+    server = event.server
+
+    # First, we want to make absolutely certain someone meant to run this command.
+    # Check the global flag to see if this is the initial run of this command, or
+    # a confirmation.
+    if @end_program_flag[server.id].nil?
+      Honeycomb.add_field('end_program_flag', false)
+      message_content = "Starting end program..."
+      message = event.message.respond(message_content)
+
+      message_content << "\n⚠️ Are you sure?! This will delete all message content and kick all non-staff!"
+      message_content << "\n⚠️ This is irreversible! Make sure you're in the correct Discord server."
+      message_content << "\nType `!end_program` again to confirm. If you do nothing, this process will cancel in #{COMMAND_CONFIRM_TIMEOUT} seconds."
+      message.edit(message_content)
+
+      # Set the global flag to `true` for this server.
+      @end_program_flag[server.id] = true
+
+      # Give them a chance to confirm by running the command again.
+      # If they run this command again before the sleep finishes, the flag
+      # will still be `true`, and we'll skip this confirmation block.
+      sleep COMMAND_CONFIRM_TIMEOUT
+
+      # If they still haven't confirmed, the flag will still be true.
+      if @end_program_flag[server.id]
+        # Expire the global flag, so we're back in the initial state.
+        @end_program_flag[server.id] = nil
+        # And print out a "cancelled" message.
+        event.message.respond("🚫 Cancelled program end.")
+      end
+
+      return
+    end
+
+    Honeycomb.add_field('end_program_flag', true)
+
+    message_content = "✅ Confirmed program end! Looking up pre-configured Program..."
+    message = event.message.respond(message_content)
+
+    # Reset the global flag back to the initial state.
+    @end_program_flag[server.id] = nil
+
+    # Make sure we're actually tied to a Program.
+    # Look for a current/future Program with this Discord Server ID.
+    programs = SalesforceAPI.client.get_current_and_future_accelerator_programs
+    program = programs.find { |program| program['Discord_Server_ID__c'].to_i == server.id.to_i }
+
+    # If no program was found, print some help info and stop.
+    if program.nil?
+      message_content << "\n❌ No Program found for this Discord server."
+      message_content << "\nRun `#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:sync_salesforce]}` with the Program ID you want to link, like:"
+      message_content << "\n`#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:sync_salesforce]} a2Y11000002HY5mEAX`"
+      message.edit(message_content)
+      return
+    end
+
+    # If we did find a program tied to this server, continue.
+    Honeycomb.add_field('program.id', program['Id'])
+    message_content << "\n✅ Found Program #{program['Id']} in Salesforce..."
+    message.edit(message_content)
+
+    #
+    # Start the program-end process!
+    #
+
+    # Kick all server members that don't have an admin/staff role.
+    kicked_count = 0
+    # Use .dup so we're not modifying the members list in-place as we loop over it.
+    server.members.dup.each do |member|
+      # Skip if the member has any "retained" roles.
+      next if (RETAINED_ROLES & member.roles.map { |r| r.name }).any?
+
+      kicked_count += 1
+      DiscordBot.kick_member(member, "Program end")
+    end
+    Honeycomb.add_field('end_program.kicked_members.count', kicked_count)
+    message_content << "\n✅ Kicked #{kicked_count} non-staff members..."
+    message.edit(message_content)
+
+    # Revoke all invites tied to Salesforce Participants in this Program.
+    participants = SalesforceAPI.client.find_participants_by(program_id: program['Id'])
+    Honeycomb.add_field('participants.count', participants&.count)
+    message_content << "\nℹ️ Checking #{participants&.count} program participants..."
+    message.edit(message_content)
+
+    revoked_count = 0
+    participants.each do |participant|
+      if participant.discord_invite_code
+        invite = server.invites.find { |i| i.code == participant.discord_invite_code }
+        if invite
+          revoked_count += 1
+          DiscordBot.delete_invite(invite, 'Program end')
+        end
+      end
+    end
+    Honeycomb.add_field('end_program.revoked_invites.count', kicked_count)
+    message_content << "\n✅ Revoked #{revoked_count} invites..."
+    message.edit(message_content)
+
+    # Delete all cohort channels (but not the cohort-template channel!)
+    channel_count = 0
+    # Use .dup so we're not modifying the channels list in-place as we loop over it.
+    server.channels.dup.each do |channel|
+      next unless channel.name.start_with? COHORT_CHANNEL_PREFIX
+      next if channel.name == COHORT_TEMPLATE_CHANNEL
+
+      channel_count += 1
+      DiscordBot.delete_channel(channel, 'Program end')
+    end
+    Honeycomb.add_field('end_program.deleted_cohort_channels.count', channel_count)
+    message_content << "\n✅ Deleted #{channel_count} old cohort channels..."
+    message.edit(message_content)
+
+    # Delete all cohort roles (but not the cohort template roles!)
+    role_count = 0
+    # Use .dup so we're not modifying the roles list in-place as we loop over it.
+    server.roles.dup.each do |role|
+      next unless role.name.start_with? COHORT_ROLE_PREFIX
+      next if [COHORT_TEMPLATE_ROLE, COHORT_TEMPLATE_LC_ROLE].include? role.name
+
+      role_count += 1
+      role.delete('Program end')
+    end
+    Honeycomb.add_field('end_program.deleted_cohort_roles.count', role_count)
+    message_content << "\n✅ Deleted #{role_count} old cohort roles..."
+    message.edit(message_content)
+
+    # "Cycle" most of the other channels, to remove all their content but keep
+    # their name/permissions intact.
+    channel_count = DiscordBot.cycle_channels(server)
+    Honeycomb.add_field('end_program.cycled_channels.count', channel_count)
+    message_content << "\n✅ Cycled #{channel_count} old channels..."
+    message.edit(message_content)
+
+    # We no longer want to sync this server to this Program, so let's detach them.
+    SalesforceAPI.client.update_program(program['Id'], {'Discord_Server_ID__c': nil})
+    message_content << "\n✅ Removed this Discord server from the Program..."
     message_content << "\nAll done!"
     message.edit(message_content)
   end
@@ -906,14 +1073,7 @@ class DiscordBot
 
           invite = @servers[server_id]&.invites&.find { |i| i.code == participant.discord_invite_code }
           if invite
-            begin
-              invite.delete("Participant record was marked as Dropped.")
-              Honeycomb.add_field('sync_salesforce_participant.invite_deleted', true)
-            rescue Discordrb::Errors::UnknownInvite
-              # Probably another instance of the bot got to it first.
-              LOGGER.debug "Invite already deleted"
-              Honeycomb.add_field('sync_salesforce_participant.invite_deleted', false)
-            end
+            DiscordBot.delete_invite(invite, "Participant record was marked as Dropped.")
           end
 
           # Remove the discord code from their Participant record too, so if
@@ -939,7 +1099,7 @@ class DiscordBot
               # Kick them out.
               LOGGER.debug "Kicking dropped participant"
 
-              member.kick("Participant record was marked as Dropped.")
+              DiscordBot.kick_member(member, "Participant record was marked as Dropped.")
 
               Honeycomb.add_field('sync_salesforce_participant.kicked_user', true)
 
@@ -1255,6 +1415,82 @@ class DiscordBot
       Honeycomb.add_field('channel.name', channel.name)
       LOGGER.debug "Permissions assigned"
     end
+  end
+
+  # Clone/delete text channels to clear out their contents while retaining
+  # their settings.
+  def self.cycle_channels(server)
+    channel_count = 0
+    Honeycomb.start_span(name: 'bot.cycle_channels') do
+      # Use .dup so we're not modifying the channels list in-place as we loop over it.
+      server.channels.dup.each do |old_channel|
+        LOGGER.debug "Found channel ##{old_channel.name}"
+        # Skip everything but text channels.
+        next unless old_channel.type == TEXT_CHANNEL
+        # Some channels, like #rules, have special settings in Discord. We don't
+        # want to delete those. Others, like #bot-commands, are just easier to
+        # keep, and have no risk of exposing student PII because they're staff-only.
+        next if RETAINED_CHANNELS.include? old_channel.name
+        LOGGER.debug "Cycling ##{old_channel.name}"
+
+        channel_count += 1
+
+        # Rename the channel to *-old.
+        channel_name = old_channel.name
+        old_channel.name = "#{channel_name}-old"
+
+        # Copy the old channel settings to create a new channel.
+        server.create_channel(
+          channel_name,
+          TEXT_CHANNEL,
+          topic: old_channel.topic,
+          permission_overwrites: old_channel.permission_overwrites&.map { |k, v| Discordrb::Overwrite.from_other(v) },
+          parent: old_channel.parent,
+        )
+
+        # Delete the old channel.
+        DiscordBot.delete_channel(old_channel, 'Program end')
+      end
+    end
+    channel_count
+  end
+
+  # Safe-delete methods that handle race conditions when multiple instances of
+  # the bot are running at once.
+
+  # Returns true if deleted, false otherwise.
+  def self.delete_invite(invite, reason=nil)
+    invite.delete(reason)
+    Honeycomb.add_field('invite_deleted', true)
+    return true
+  rescue Discordrb::Errors::UnknownInvite
+    # Probably another instance of the bot got to it first.
+    LOGGER.debug "Invite already deleted"
+    Honeycomb.add_field('invite_deleted', false)
+    Honeycomb.add_field('invite_delete_failed', true)
+    return false
+  end
+
+  # Returns true if deleted, false otherwise.
+  def self.kick_member(member, reason=nil)
+    member.kick(reason)
+    return true
+  rescue Discordrb::Errors::UnknownMember
+    # Probably another instance of the bot got to it first.
+    LOGGER.debug "Member already kicked"
+    Honeycomb.add_field('member_kick_failed', true)
+    return false
+  end
+
+  # Returns true if deleted, false otherwise.
+  def self.delete_channel(channel, reason=nil)
+    channel.delete(reason)
+    return true
+  rescue Discordrb::Errors::UnknownChannel
+    # Probably another instance of the bot got to it first.
+    LOGGER.debug "Channel already deleted"
+    Honeycomb.add_field('channel_delete_failed', true)
+    return false
   end
 
 private
