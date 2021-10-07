@@ -37,7 +37,11 @@
     </div>
     <% if @computed_grade_breakdown.on_time_credit_received? %>
       <div class="row grade-component-description">
-        <div class="col"><p>You completed the Module before the due date - good job!</p></div>
+        <div class="col">
+          <p>You completed the Module before the due date - good job!
+          <br>You completed this module on <strong><span class="local-datetime"><%= @computed_grade_breakdown.completed_at %></span></strong>.
+          </p>
+        </div>
       </div>
     <% else %>
       <div class="row grade-component-description">
@@ -45,6 +49,8 @@
           <p>Awarded when you complete 100% of the Module before the due date.
             <% if @computed_grade_breakdown.completed_at %>
               <br>You completed this module after the due date, at <strong><span class="local-datetime"><%= @computed_grade_breakdown.completed_at %></span></strong>.
+            <% else %>
+              <br>You did not complete 100% of the module on time (see Engagement section for your completion percentage).
             <% end %>
           </p>
         </div>
