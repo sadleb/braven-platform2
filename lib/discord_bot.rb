@@ -139,22 +139,24 @@ class DiscordBot
       on_ready(event)
     end
 
-    # Event handler: The bot was added to a new server.
-    # We use a different server for each Region (or pilot program, etc)
-    # because 1) it's how the course Slacks worked before, and 2) it simplifies
-    # role/channel/permission management by one dimension.
-    @bot.server_create do |event|
-      on_server_create(event)
-    end
+    unless @sync_and_exit
+      # Event handler: The bot was added to a new server.
+      # We use a different server for each Region (or pilot program, etc)
+      # because 1) it's how the course Slacks worked before, and 2) it simplifies
+      # role/channel/permission management by one dimension.
+      @bot.server_create do |event|
+        on_server_create(event)
+      end
 
-    # Event handler: A message was received on any channel in any server.
-    @bot.message do |event|
-      on_message(event)
-    end
+      # Event handler: A message was received on any channel in any server.
+      @bot.message do |event|
+        on_message(event)
+      end
 
-    # Event handler: A new member was added to the server.
-    @bot.member_join do |event|
-      on_member_join(event)
+      # Event handler: A new member was added to the server.
+      @bot.member_join do |event|
+        on_member_join(event)
+      end
     end
 
     # Shut down gracefully if we get SIGTERM/SIGINT.
