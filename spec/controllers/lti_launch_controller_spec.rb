@@ -106,7 +106,7 @@ RSpec.describe LtiLaunchController, type: :controller do
       end
 
       it 'redirects to the target_link_uri with the lti_launch_id param' do
-        expect(response).to redirect_to(target_link_uri + "?lti_launch_id=#{lti_launch.id}")
+        expect(response.body).to match /<meta http-equiv="refresh" content="0; url = #{target_link_uri}\?lti_launch_id=#{lti_launch.id}" \/>/
       end
     end
 

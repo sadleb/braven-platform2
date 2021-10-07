@@ -1,0 +1,8 @@
+<% content_for :title, "Redirecting..." %>
+
+<% content_for :head do %>
+  <meta http-equiv="refresh" content="0; url = <%= @redirect_uri %>" />
+<% end %>
+
+<p>You are being redirected.</p>
+<p>Please <%= link_to "click here", @redirect_uri %> if you are not automatically redirected within a few seconds.</p>

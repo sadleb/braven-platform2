@@ -136,7 +136,11 @@ class LtiLaunchController < ApplicationController
     target_uri = URI(ll.target_link_uri)
     append_query_param(target_uri, "lti_launch_id=#{ll.id}")
 
-    redirect_to target_uri.to_s
+    # Render a page with a redirect meta tag, instead of redirecting from the
+    # controller, to fix Safari not setting cookies correctly if a page isn't
+    # rendered.
+    @redirect_uri = target_uri.to_s
+    render :redirect, layout: 'lti_canvas'
   end
 
   # Generates a globally unique value to use in the "state" parameter of an LTI Launch. This uniquely identifies
