@@ -5,7 +5,7 @@ class UsersController < ApplicationController
   UserAdminError = Class.new(StandardError)
 
   # Note that DryCrud takes care of the standard actions
-  before_action :find_user, only: %i[confirm register show_send_signup_email send_signup_email]
+  before_action :find_user, only: %i[show_send_signup_email send_signup_email send_confirm_email]
 
   def index
     authorize User
@@ -72,36 +72,26 @@ class UsersController < ApplicationController
     end
   end
 
-  def confirm
+  def send_confirm_email
     authorize @user
-
-    if @user.confirmed?
-      redirect_to user_path(@user), notice: 'User already confirmed'
-    else
-      @user.confirm
-      redirect_to user_path(@user), notice: 'User has been confirmed'
-    end
+    raise UserAdminError.new('Cannot send confirmation email to unregistered user') unless @user.registered?
+    raise UserAdminError.new('Cannot send confirmation email to already confirmed user') if @user.confirmed?
+    @user.send_confirmation_instructions
+    redirect_to user_path(@user), notice: 'New confirmation email sent! When they click "Confirm Email" they will have finished their account setup.'
   end
 
-  def register
-    authorize @user
-
-    if @user.registered_at.present?
-      redirect_to user_path(@user), notice: 'User already registered'
-    else
-      @user.update!(registered_at: DateTime.now)
-      redirect_to user_path(@user), notice: 'User has been registered'
-    end
-  end
-
+  # TODO: enhance this so that if the token has expired or is somehow otherwise invalid, it
+  # prevents you from sending the email and instead gives you the option to generate a new valid
+  # sign-up token and store it in Salesforce too.
+  # https://app.asana.com/0/1174274412967132/1201142798375307
   def show_send_signup_email
     authorize @user
-    raise UserAdminError.new('Cannot send sign-up email to already registered user') if @user.registered_at.present?
+    raise UserAdminError.new('Cannot send sign-up email to already registered user') if @user.registered?
   end
 
   def send_signup_email
     authorize @user
-    raise UserAdminError.new('Cannot send sign-up email to already registered user') if @user.registered_at.present?
+    raise UserAdminError.new('Cannot send sign-up email to already registered user') if @user.registered?
 
     @user.send_signup_email!
     redirect_to send_new_signup_email_user_path(@user), notice: 'Email sent!'

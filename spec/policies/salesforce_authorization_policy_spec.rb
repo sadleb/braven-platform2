@@ -41,14 +41,14 @@ RSpec.describe SalesforceAuthorizationPolicy, type: :policy do
 
   permissions :confirm_send_signup_emails? do
     before(:each) do
-      user.add_role RoleConstants::CAN_SEND_NEW_SIGNUP_EMAIL
+      user.add_role RoleConstants::CAN_SEND_ACCOUNT_CREATION_EMAILS
     end
     it_behaves_like 'admin or CanSyncFromSalesforce policy'
 
-    context 'for non-admin user without :CanSendNewSignupEmail role' do
+    context 'for non-admin user without :CanSendAccountCreationEmails role' do
       it 'disallows send signup emails page' do
         user.remove_role RoleConstants::ADMIN
-        user.remove_role RoleConstants::CAN_SEND_NEW_SIGNUP_EMAIL
+        user.remove_role RoleConstants::CAN_SEND_ACCOUNT_CREATION_EMAILS
         user.add_role RoleConstants::CAN_SYNC_FROM_SALESFORCE
         expect(subject).not_to permit(user)
       end

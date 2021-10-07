@@ -10,7 +10,7 @@ class RoleConstants
   ADMIN = :admin
   CAN_TAKE_ATTENDANCE_FOR_ALL = :CanTakeAttendanceForAll
   CAN_SYNC_FROM_SALESFORCE = :CanSyncFromSalesforce
-  CAN_SEND_NEW_SIGNUP_EMAIL = :CanSendNewSignupEmail
+  CAN_SEND_ACCOUNT_CREATION_EMAILS = :CanSendAccountCreationEmails
   CAN_SCHEDULE_DISCORD = :CanScheduleDiscord
 
   # Local roles.

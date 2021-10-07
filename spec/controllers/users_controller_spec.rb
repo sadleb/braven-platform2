@@ -54,14 +54,9 @@ RSpec.describe UsersController, type: :controller do
           expect(response.body).to match(/<a.*href="\/users\/#{user.id.to_s}\/send_new_signup_email">Send New Sign-up Email\<\/a\>/)
         end
 
-        it 'shows the "Register Account" button' do
+        it 'doesnt show the "Send Confirmation Email" button' do
           run_show
-          expect(response.body).to match(/<a.*href="\/users\/#{user.id.to_s}\/register">Register Account\<\/a>/)
-        end
-
-        it 'shows the "Confirm Account" button' do
-          run_show
-          expect(response.body).to match(/<a.*href="\/users\/#{user.id.to_s}\/confirm">Confirm Account\<\/a>/)
+          expect(response.body).not_to match(/send_confirm_email/)
         end
       end
 
@@ -71,17 +66,12 @@ RSpec.describe UsersController, type: :controller do
         # This email is a link to register. We don't want registered folks to use that.
         it 'doesnt show "Send New Sign-Up Email" button' do
           run_show
-          expect(response.body).not_to match(/<a.*href="\/users\/#{user.id.to_s}\/send_new_signup_email">Send New Sign-up Email\<\/a\>/)
+          expect(response.body).not_to match(/send_new_signup_email/)
         end
 
-        it 'doesnt show the "Register Account" button' do
+        it 'shows the "Send Confirmation Email" button' do
           run_show
-          expect(response.body).not_to match(/<a.*href="\/users\/#{user.id.to_s}\/register">Register Account\<\/a>/)
-        end
-
-        it 'shows the "Confirm Account" button' do
-          run_show
-          expect(response.body).to match(/<a.*href="\/users\/#{user.id.to_s}\/confirm">Confirm Account\<\/a>/)
+          expect(response.body).to match(/<a.*href="\/users\/#{user.id.to_s}\/send_confirm_email">Send Confirmation Email\<\/a\>/)
         end
       end
 
@@ -90,20 +80,14 @@ RSpec.describe UsersController, type: :controller do
 
         it 'doesnt show "Send New Sign-Up Email" button' do
           run_show
-          expect(response.body).not_to match(/<a.*href="\/users\/#{user.id.to_s}\/send_new_signup_email">Send New Sign-up Email\<\/a\>/)
+          expect(response.body).not_to match(/send_new_signup_email/)
         end
 
-        it 'doesnt show the "Register Account" button' do
+        it 'doesnt show the "Send Confirmation Email" button' do
           run_show
-          expect(response.body).not_to match(/<a.*href="\/users\/#{user.id.to_s}\/register">Register Account\<\/a>/)
-        end
-
-        it 'doesnt show the "Confirm Account" button' do
-          run_show
-          expect(response.body).not_to match(/<a.*href="\/users\/#{user.id.to_s}\/confirm">Confirm Account\<\/a>/)
+          expect(response.body).not_to match(/send_confirm_email/)
         end
       end
-
     end
 
     describe "GET #new" do
@@ -150,27 +134,42 @@ RSpec.describe UsersController, type: :controller do
       end
     end
 
-    describe "POST #confirm" do
-      let(:user_attributes) { attributes_for(:fellow_user) }
-      it "sets the user confirmation time" do
-        post :create, params: { user: user_attributes }
-        user = User.last
-        user.update!(confirmed_at: nil)
-        post :confirm, params: { id: user.id }
-        expect(User.find(user.id).confirmed_at).not_to eq(nil)
+    describe "POST #send_confirm_email" do
+
+      subject(:run_send_confirm_email) do
+        post :send_confirm_email, params: { id: user.id }
+      end
+
+      context 'for aleady registered' do
+        context 'but unconfirmed user' do
+          let(:user) { create :unconfirmed_user }
+          it 'sends the email' do
+            Devise.mailer.deliveries.clear()
+            expect(Devise.mailer.deliveries.count).to eq 0
+            run_send_confirm_email
+            expect(Devise.mailer.deliveries.count).to eq 1
+          end
+        end
+
+        # The button to get here shouldnt have been shown. They are already confirmed
+        context 'and confirmed user' do
+          let(:user) { create :registered_user }
+          it 'raises error' do
+            expect{ run_send_confirm_email }.to raise_error(UsersController::UserAdminError)
+          end
+        end
+      end
+
+      context 'for unregistered user' do
+        let(:user) { create :unregistered_user }
+
+        # The button to get here shouldnt have been shown. They need to create their account first.
+        it 'raises error' do
+          expect{ run_send_confirm_email }.to raise_error(UsersController::UserAdminError)
+        end
       end
     end
 
-    describe "POST #register" do
-      let(:user_attributes) { attributes_for(:fellow_user) }
-      it "sets the user registered_at time" do
-        post :create, params: { user: user_attributes }
-        user = User.last
-        user.update!(registered_at: nil)
-        post :register, params: { id: user.id }
-        expect(User.find(user.id).registered_at).not_to eq(nil)
-      end
-    end
 
     describe "GET #show_send_signup_email" do
 

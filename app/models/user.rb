@@ -107,8 +107,8 @@ class User < ApplicationRecord
     admin? or has_role? RoleConstants::CAN_SYNC_FROM_SALESFORCE
   end
 
-  def can_send_new_signup_email?
-    admin? or has_role? RoleConstants::CAN_SEND_NEW_SIGNUP_EMAIL
+  def can_send_account_creation_emails?
+    admin? or has_role? RoleConstants::CAN_SEND_ACCOUNT_CREATION_EMAILS
   end
 
   def can_schedule_discord?

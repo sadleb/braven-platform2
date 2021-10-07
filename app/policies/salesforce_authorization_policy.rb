@@ -5,7 +5,7 @@ class SalesforceAuthorizationPolicy < ApplicationPolicy
   end
 
   def confirm_send_signup_emails?
-    user.can_sync_from_salesforce? && user.can_send_new_signup_email?
+    user.can_sync_from_salesforce? && user.can_send_account_creation_emails?
   end
 
   def sync_from_salesforce_program?
