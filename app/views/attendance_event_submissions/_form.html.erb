@@ -100,6 +100,7 @@
                       type="radio"
                       name="<%= radio_name %>"
                       value="true"
+                      required
                       <%= input_checked(prefill&.in_attendance == true) %>>
                 <label for="<%= input_id_prefix %>-present" class="pl-1">Present</label>
                 </div>
@@ -109,6 +110,7 @@
                       type="radio"
                       name="<%= radio_name %>"
                       value="false"
+                      required
                       <%= input_checked(prefill&.in_attendance == false) %>>
                 <label for="<%= input_id_prefix %>-absent" class="pl-1">Absent</label>
                 </div>
@@ -155,3 +157,4 @@
     <% end %>
   </div>
 </div>
+

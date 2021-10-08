@@ -280,6 +280,12 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
         end
 
 
+        it "has a required attribute on the present and absent radio buttons" do
+          subject
+          expect(response.body).to match(/type="radio"[^>]* required.* type="radio"[^>]* required/m)
+        end
+
+
         it "shows the Fellow's name in standard attendance form" do
           subject
           expect(response.body).to include("</form>")
