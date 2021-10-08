@@ -23,7 +23,7 @@
 
 // Add custom styles to overwrite the Rise360 ones that we need here.
 
-/** Links */ 
+/** Links */
 .page__content .brand--linkColor a {
   color: $bv-oceanblue-600 !important;
   fill: $bv-oceanblue-600 !important;
@@ -56,7 +56,7 @@
 
     // Checkmark inside radio for selected correct answer
     .icon.brand--color {
-      color: green !important; 
+      color: green !important;
     }
 
     // Checkmark inside checkbox for correct answer (selected or not)
@@ -66,7 +66,7 @@
 
     // Border box around selected correct answer (both radios and checkboxes)
     .brand--beforeBorder:before {
-      border-color: green !important; 
+      border-color: green !important;
     }
   }
 
@@ -107,8 +107,12 @@
   // content height for various screen width breakpoints.
   overflow: unset !important; // Originally set to hidden. Causes iframe content to not fill the space
   height: unset !important; // Originally set to 0 which causes stuff below to smoosh up.
-  padding-bottom: 0; // Originally set to 56.25% which causes a crazy big whitespace
-  margin-bottom: 0; // Originally 2rem. Remove it (and padding) so we can add a buffer to min-height of the iframe
+
+  // Originally set to random big values (like 56.25% or even 107.143%). Seems to depend on whether an
+  // absolute height is set in pixels when authoring the content. It caused crazy big whitespace
+  // and led to folks thinking they were done with the entire Module.
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important; // Originally 2rem. Remove it (and padding) so we can add a buffer to min-height of the iframe
 
   iframe.rate-this-module {
     position: unset !important; // Originally set to absolute causing the divs after this to smoosh up into this
@@ -118,9 +122,12 @@
     //
     // Get rid of the scrollber by setting the height of the iframe to be big enough
     // for the content at various screen sizes (with a 40px buffer). Note that this could still
-    // cause a scrollbar for some if their base font size is set bigger for example. The breakpoints
-    // are non-standard to account for the fact that we're iframed inside Canvas which takes up some of
-    // the screen for it's own stuff.
+    // cause a scrollbar for some if their base font size is set bigger for example.
+
+   // TODO: we're no longer iframed inside of Canvas. We should adjust the breakpoints and also the min heights.
+   // https://app.asana.com/0/1174274412967132/1201150384153474
+   // The breakpoints are non-standard to account for the fact that we're iframed inside Canvas
+   // which takes up some of the screen for it's own stuff.
     // These measurements taken empirically just reflect my system, but different browsers
     // or resolutions or font settings could cause the content to be bigger. That's why a JS solution
     // to actually measure it would be better.
@@ -145,4 +152,12 @@
 section.block-embed__item--border.rate-this-module {
   padding: 0;
   border: 0;
+}
+
+// Ignore the padding-bottom set in the iframe content settings. This is meant to be
+// the very last thing in the Module and we want the scroll to hit 100% so they get
+// full credit, so any extra whitespace here can make them think they're done and not
+// keep scrolling.
+.block-embed.rate-this-module {
+  padding-bottom: 0 !important;
 }
