@@ -31,28 +31,13 @@ export async function main() {
   // iframe and all parent nodes up to the top one we need to target
   // in rise360_content.scss (if it's there) so that we can distinguish
   // a Rise360 block with an iframed RTM view vs some random thing iframed in.
-  async function addRateThisModuleCSS() {
+  async function addRateThisModuleCSS(rate_this_module_iframe) {
     const honeySpan = new HoneycombAddToSpan('rise360_module_versions', 'addRateThisModuleCSS');
+    honeySpan.addField('iframe_found', true);
     try {
-      // Even though the DOM is loaded at this point, empirically it can take another 2.5 seconds
-      // or so for Rise360 to insert this element into the DOM. Loop for up to 10 seconds looking
-      // for it before giving up (1/2sec * 20 times = 10 seconds).
-      let iframeSelector = 'iframe[src*=rate_this_module_submissions]';
-      var currentNode = iframeDocument.body.querySelector(iframeSelector);
-      let waitTimeMillis = 500;
-      var count = 0;
-      while (count < 20 && !currentNode) {
-        count++;
-        await new Promise(r => setTimeout(r, waitTimeMillis));
-        currentNode = iframeDocument.body.querySelector(iframeSelector);
-      }
-      honeySpan.addField('iframe_search_time', count * waitTimeMillis);
-
-      if (currentNode) {
-        honeySpan.addField('iframe_found', 'true');
-
-        // Example HTML after running the below:
-        /*
+      // Example HTML after running the below:
+      /*
+      <section aria-label="Lesson Content" class="blocks-lesson" data-ba="lessonPreview.container">
         <div class="noOutline rate-this-module">
           <div class="rate-this-module">
             <div class="block-embed rate-this-module">
@@ -65,36 +50,84 @@ export async function main() {
                                 class="rate-this-module">
                           ...
                         </iframe>
-        ...
-        */
-        while (currentNode && currentNode.classList.contains('noOutline') == false) {
-          currentNode.classList.add('rate-this-module');
-          currentNode = currentNode.parentNode;
-        }
+      ...
+      */
+      var currentNode = rate_this_module_iframe;
+      while (currentNode && !currentNode.matches('section.blocks-lesson')) {
+        currentNode.classList.add('rate-this-module');
+        currentNode = currentNode.parentNode;
+      }
 
-        // Add it to the top-level <div class="noOutline"> as well.
-        if (currentNode) {
-          currentNode.classList.add('rate-this-module');
-        } else {
-          honeySpan.addErrorDetails('Failed to find the noOutline div. Stopped at root element.', '');
-          return;
-        }
-      } else {
-        honeySpan.addField('iframe_found', 'false');
+      if (!currentNode) {
+        honeySpan.addErrorDetails('Failed to find the <section class="blocks-lesson"> div. Stopped at root element.', '');
+        return; // addErrorDetails() sends the beacon immediately.
       }
       honeySpan.sendNow();
     } catch (err) {
         const errorMsg = 'Failed to apply custom CSS to make Rate This Module iframes look ok.';
         honeySpan.addErrorDetails(errorMsg, err);
     }
-
   } // END: function addRateThisModuleCSS()
+
+  // When the Module loads, the Rate This Module iframe may not be in the DOM. It's loaded dynamically
+  // using AJAX when navigating to a lesson with it embedded or when loading the Module with that lesson
+  // set as the initial bookmark. This sets up a MutationObserver to monitor the DOM and add the
+  // the classes we need if/when the iframe is loaded.
+  //
+  // See https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver.
+  //
+  // Some notes:
+  // - We're monitoring all mutations in the DOM b/c it's MUCH simpler. If this ends up performing badly
+  //   and needs optimization, here are some things to keep in mind if you try to observe less stuff.
+  // - Initially, the following is all that's in the DOM: <body><div id="app"></div></body>
+  //   The rest is AJAX loaded. You won't see this when printing the DOM b/c it happens so fast and
+  //   console.log() prints what is there at the time it's logged, not when the code is run.
+  // - When opening a Rise360Module for the first time (or clicking on the title in the upper left)
+  //   it shows an overview page. You have to click "View Module" or "Resume Module" to enter it.
+  //   If the overview is showing there will be a <div id="overview"> element and if content is
+  //   showing there will be a <div id="page-wrap"> element.
+  // - Once you get past the above to issues, you can setup a MutationObserver on the following element
+  //   and only look for childlist mutations. This is the direct parent of the element that is swapped
+  //   in (and out) when the contet for each lesson or quiz is loaded.
+  //   <div class="page-wrap" id="page-wrap">
+  //     <main aria-label="Lesson Content" class="page page-transition-complete">
+  // - There are two mutations that happen when you navigate between lessons (and quizzes). One to add
+  //   the new node and one to remove the old node. You can limit the logic to only run on the node
+  //   added with something like this:
+  //   if (mutationsList[0] && mutationsList[0].addedNodes && mutationsList[0].addedNodes.length > 0)
+  function onRise360DOMMutated() {
+    try {
+      const nodeToObserve = iframeDocument.getElementById('app');
+
+      // Options for the observer (which mutations to observe).
+      const config = { attributes: false, childList: true, subtree: true};
+
+      // Callback function to execute when mutations are observed.
+      const callback = function(mutationsList, observer) {
+        // Get the Rate This Module iframe only if it doesn't already have the rate-this-module class on it.
+        const rate_this_module_iframe = iframeDocument.body.querySelector('iframe[src*=rate_this_module_submissions]:not(.rate-this-module)');
+        if (rate_this_module_iframe) {
+          addRateThisModuleCSS(rate_this_module_iframe);
+        }
+      };
+
+      // Create an observer instance linked to the callback function
+      const observer = new MutationObserver(callback);
+
+      // Start observing the target node for configured mutations
+      observer.observe(nodeToObserve, config);
+    } catch (err) {
+        const errorMsg = 'Failed to setup MutationObserver to add Rate This Module CSS when its loaded.';
+        const honeySpan = new HoneycombAddToSpan('rise360_module_versions', 'onRise360DOMMutated');
+        honeySpan.addErrorDetails(errorMsg, err);
+    }
+  } // onRise360DOMMutated()
 
   //////////////////////////////
   // Actually run the functions
   //////////////////////////////
   injectStylesheet();
-  addRateThisModuleCSS();
+  onRise360DOMMutated();
 
 } // END: main
 
