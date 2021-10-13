@@ -40,7 +40,7 @@ class LrsXapiMock
       raise LrsXapiMockError.new("no auth header") unless request.authorization&.start_with? LtiConstants::AUTH_HEADER_PREFIX
       lti_launch = get_lti_launch(request.authorization)
       lti_launch&.add_to_honeycomb_trace()
-      unless lti_launch.course_id && lti_launch.assignment_id
+      unless lti_launch&.course_id && lti_launch&.assignment_id
         return {
           code: 403,  # Forbidden
           body: 'Refusing to process xAPI request without assignment.',
