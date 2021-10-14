@@ -37,7 +37,12 @@ class LrsXapiMock
       # Get the current LtiLaunch, and exit early if it doesn't have the
       # required context. We don't save interactions for things that aren't
       # assignments (e.g. Course Resources).
-      raise LrsXapiMockError.new("no auth header") unless request.authorization&.start_with? LtiConstants::AUTH_HEADER_PREFIX
+      unless request.authorization&.start_with? LtiConstants::AUTH_HEADER_PREFIX
+        return {
+          code: 403,  # Forbidden
+          body: 'Refusing to process xAPI request without assignment.',
+        }
+      end
       lti_launch = get_lti_launch(request.authorization)
       lti_launch&.add_to_honeycomb_trace()
       unless lti_launch&.course_id && lti_launch&.assignment_id
