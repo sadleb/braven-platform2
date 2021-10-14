@@ -6,7 +6,7 @@ class DiscordSignupsController < ApplicationController
   def launch
     authorize :discord_signups
 
-    if !current_user.discord_token
+    if current_user.discord_token
       response = Discordrb::API::User.profile("Bearer #{current_user.discord_token}")
       @discord_user = JSON.parse(response.body)
 
