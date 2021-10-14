@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_10_07_130920) do
+ActiveRecord::Schema.define(version: 2021_10_12_190238) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
@@ -624,6 +624,7 @@ ActiveRecord::Schema.define(version: 2021_10_07_130920) do
     t.string "signup_token"
     t.datetime "signup_token_sent_at"
     t.string "uuid", default: -> { "gen_random_uuid()" }, null: false
+    t.string "discord_token"
     t.index ["canvas_user_id"], name: "index_users_on_canvas_user_id", unique: true
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email"

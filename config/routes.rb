@@ -209,6 +209,13 @@ Rails.application.routes.draw do
 
   # Schedule Discord messages
   resources :discord_schedule, only: [:index, :new, :create, :destroy]
+  resources :discord_signups, only: [] do
+    collection do
+      get :launch
+      get :oauth
+    end
+  end
+
 
   # RubyCAS Routes
   resources :cas, except: [:show]
