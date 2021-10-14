@@ -42,6 +42,13 @@ fi
 # Run yarn. Must be BEFORE any rake/rails calls.
 yarn install --check-files
 
+# Wait for Redis to be fully up. Must be BEFORE any rake/rails calls.
+echo "Waiting for Redis. This can take a while..."
+while  [[ $(exec 3<>/dev/tcp/redis-persistent/6379 && echo -e "PING\r\n" >&3 && head -c 7 <&3) != $'+PONG\r' ]]; do
+  sleep 1
+done
+echo "Redis is up!"
+
 # Migrate the db, if needed.
 bundle exec rake db:migrate
 
