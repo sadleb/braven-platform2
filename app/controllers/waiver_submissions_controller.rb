@@ -26,7 +26,7 @@ class WaiverSubmissionsController < FormAssemblyController
   #
   # GET /waiver_submissions/launch
   def launch
-    authorize :waiver_submission
+    authorize @course, policy_class: WaiverSubmissionPolicy
 
     redirect_to completed_waiver_submissions_path(lti_launch_id: params[:lti_launch_id]) and return if waivers_already_signed?
 
