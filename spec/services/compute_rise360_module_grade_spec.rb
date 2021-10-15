@@ -488,6 +488,19 @@ RSpec.describe ComputeRise360ModuleGrade do
             new: true,
             created_at: due_date_obj - 3.days
           )
+          # Create progress less than 100 created_at after the 100 progress. This can
+          # happen when jumping back and forth after doing the module. Need to make
+          # sure we always use the 100 progress to calculate on-time grade
+          Rise360ModuleInteraction.create!(
+            verb: Rise360ModuleInteraction::PROGRESSED,
+            user: user,
+            canvas_course_id: course.canvas_course_id,
+            canvas_assignment_id: canvas_assignment_id,
+            activity_id: activity_id,
+            progress: 99,
+            new: true,
+            created_at: due_date_obj - 2.days
+          )
         end
 
         it_behaves_like "completed module"

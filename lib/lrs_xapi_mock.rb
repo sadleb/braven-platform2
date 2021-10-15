@@ -198,19 +198,9 @@ private
       progress = payload.dig('result', 'extensions',
         'http://w3id.org/xapi/cmi5/result/extensions/progress'
       )
-      rmi = Rise360ModuleInteraction.create!(
-        verb: verb,
-        user: user,
-        canvas_course_id: lti_launch.course_id,
-        canvas_assignment_id: lti_launch.assignment_id,
-        activity_id: activity_id,
-        progress: progress,
+      Rise360ModuleInteraction.create_progress_interaction(
+        user, lti_launch, activity_id, progress
       )
-      # Grade it now if they complete the module instead of waiting for the nightly task
-      # so that they immediately see they get credit and feel good about that.
-      if progress == 100
-        GradeRise360ModuleForUserJob.perform_later(user, lti_launch)
-      end
     when Rise360ModuleInteraction::ANSWERED
       Rise360ModuleInteraction.create!(
         verb: verb,

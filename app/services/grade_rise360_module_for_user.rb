@@ -329,6 +329,9 @@ private
   def completed_at
     return @completed_at if @completed_at_set
 
+    # Note that there are currently dupes but this code still works b/c the first one returned
+    # will have the earliest created_at date
+    # TODO: add unique DB constraint https://app.asana.com/0/1174274412967132/1201176917466766
     @completed_at = Rise360ModuleInteraction.find_by(
       user: @user,
       canvas_assignment_id: @course_rise360_module_version.canvas_assignment_id,

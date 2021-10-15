@@ -29,6 +29,8 @@ RSpec.describe RateThisModuleSubmissionsController, type: :controller do
     subject { get(:launch) }
 
     before :each do
+      allow(Rise360ModuleInteraction).to receive(:create_progress_interaction).and_return(nil)
+
       # Set the LTI state from the referrer header.
       request.headers['Referer'] = "https://example.org/?auth=LtiState%20#{lti_launch.state}"
     end
@@ -55,6 +57,13 @@ RSpec.describe RateThisModuleSubmissionsController, type: :controller do
           RateThisModuleSubmission.last,
           lti_launch_id: lti_launch.id,
         )
+      end
+
+      it 'marks the Module 100% complete' do
+        subject
+        expect(Rise360ModuleInteraction).to have_received(:create_progress_interaction)
+          .with(user, lti_launch, course_rise360_module_version.rise360_module_version.activity_id, 100)
+          .once
       end
     end
   end
@@ -120,7 +129,7 @@ RSpec.describe RateThisModuleSubmissionsController, type: :controller do
 
     context 'with valid params' do
       it 'uses existing submission' do
-        rate_this_module_submission 
+        rate_this_module_submission
         expect { subject }.not_to change(RateThisModuleSubmission, :count)
       end
 

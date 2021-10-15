@@ -57,9 +57,9 @@ class ComputeRise360ModuleGrade
 
       engagement_grade = grade_module_engagement(progressed_interactions)
 
-      on_time_grade = grade_completed_on_time(progressed_interactions)
-
       completed_at = module_completed_at(progressed_interactions)
+
+      on_time_grade = grade_completed_on_time(completed_at)
 
       # NOTE: Always use Rise360ModuleVersion.quiz_questions for this calculation,
       # since the base Module might have different questions than this Version.
@@ -188,19 +188,14 @@ private
 
   # Returns 0 *or* 100, representing whether the user reached 100%
   # progression before the due date.
-  def grade_completed_on_time(interactions)
+  def grade_completed_on_time(completed_at)
     # Use due_date unless it's nil, then fall back to current date.
     due_date_obj = @due_date.nil? ? Time.now.utc : @due_date
 
-    on_time_progress = interactions.where('created_at <= ?', due_date_obj)
-      .order(:created_at)
-      .last
-      &.progress
-
-    if on_time_progress.nil? or on_time_progress < 100
-      0
-    else
+    if completed_at && completed_at <= due_date_obj
       100
+    else
+      0
     end
   end
 
@@ -208,7 +203,7 @@ private
   # if it exists, otherwise returns nil.
   def module_completed_at(interactions)
     # There shouldn't ever be more than one, but select the earliest
-    # one anyway just in case.
+    # one anyway just in case. TODO: DB constraint https://app.asana.com/0/1174274412967132/1201176917466766
     interactions.where(progress: 100)
       .order(:created_at)
       .first

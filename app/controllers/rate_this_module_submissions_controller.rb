@@ -23,6 +23,21 @@ class RateThisModuleSubmissionsController < ApplicationController
       user: current_user,
       course_rise360_module_version: @course_rise360_module_version,
     )
+
+    # Rate This Module is the last thing in a Module. Instead of waiting for
+    # the user to scroll all the way to the bottom and relying on Rise360
+    # packages to send the 100% progress interaction, send one now. Once they get
+    # here, they are done. We had an issue where the styling created a lot of
+    # whitespace and hundreds of instances where folks didn't get full credit
+    # b/c they hit the big red "Submit" button and then closed the Module
+    # thinking they were done: https://github.com/bebraven/platform/pull/869
+    Rise360ModuleInteraction.create_progress_interaction(
+      current_user,
+      @lti_launch,
+      @course_rise360_module_version.rise360_module_version.activity_id,
+      100
+    )
+
     redirect_to edit_rate_this_module_submission_path(
       rate_this_module_submission,
       lti_launch_id: @lti_launch.id,
