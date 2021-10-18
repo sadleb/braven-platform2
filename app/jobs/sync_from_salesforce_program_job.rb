@@ -4,6 +4,7 @@ class SyncFromSalesforceProgramJob < ApplicationJob
   queue_as :default
 
   def perform(program_id, email, send_signup_emails = false, force_zoom_update = false)
+    Honeycomb.add_field('active_job.email', email)
     sync_service = SyncPortalEnrollmentsForProgram.new(
       salesforce_program_id: program_id,
       send_signup_emails: send_signup_emails,
