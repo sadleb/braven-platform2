@@ -53,6 +53,37 @@ class ApplicationController < ActionController::Base
   end
   helper_method :new_session_path
 
+  # When successfully logging in, tell Devise what path to send them to.
+  # Example "Devise paths" are things like resetting your password or posting
+  # to the login endpoint.
+  #
+  # We have two main entry points for the Braven apps when signing in, either
+  # Canvas or the Platform. The Platform is only meant for staff (aka admin role)
+  # and Canvas is meant for everyone else. Since we currently only have
+  # Admin tools available when logging in directly, anyone who signs in to
+  # a platform page directly who isn't staff should be sent to Canvas instead b/c
+  # that's the most likely place they're trying to go and we have edge cases that
+  # end up at the login path which would show "Not Authorized" if we send them to
+  # the root platform path like we did by default before. One scenario I know about
+  # is if the service param gets messed for /cas/login b/c you enter invalid creds.
+  # Usually, login should redirect to the service param without hitting this.
+  #
+  # Note: there is similar redirect logic that uses CasHelper#default_service_url_for(user)
+  # which is slighty different from this. This is the final target path we send them
+  # to after login while that is to decide the CAS service that should handle SSO
+  # ticket negotiation. This ONLY APPLIES when trying to access a Platform page directly
+  # and have to log in. This means that if you came from Canvas or use a Canvas SSO
+  # login service, the CAS SSO stuff will send you back to Canvas without hitting this.
+  #
+  # See: https://github.com/heartcombo/devise/blob/5d5636f03ac19e8188d99c044d4b5e90124313af/lib/devise/controllers/helpers.rb#L188
+  def after_sign_in_path_for(resource)
+    if resource&.is_a?(User) && resource.admin?
+      super
+    else
+      canvas_url
+    end
+  end
+
   def canvas_url
     CanvasConstants::CANVAS_URL
   end

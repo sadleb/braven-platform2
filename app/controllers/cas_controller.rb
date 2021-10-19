@@ -60,6 +60,12 @@ class CasController < ApplicationController
     end
 
     if tgt && !tgt_error
+      # Already signed in but hitting the /cas/login path directly. Ideally, we would redirect them
+      # to the proper place using something like the following, but the current_user isn't set as part
+      # of this CAS stuff which we'd also ideally do, but I don't want to get deep into the CAS stuff
+      # so I'm leaving the current behavior in for now.
+      # redirect_to after_sign_in_path_for(current_user) and return
+
       @message = {
         :type => 'notice',
         :message => "You are currently logged in as '#{tgt.username}'. If this is not you, please log in below."

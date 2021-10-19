@@ -32,7 +32,7 @@ Rails.application.routes.draw do
     registrations: 'users/registrations',
     confirmations: 'users/confirmations',
     passwords: 'users/passwords',
-    cas_sessions: 'users/cas_sessions' }
+  }
 
   devise_scope :user do
     get 'users/password/check_email', to: "users/passwords#check_email"
