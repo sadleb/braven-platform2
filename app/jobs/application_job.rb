@@ -2,6 +2,7 @@
 
 # Base application job
 class ApplicationJob < ActiveJob::Base
+  HONEYCOMB_RUNNING_USER_EMAIL_FIELD = 'active_job.email'
   # Automatically retry jobs that encountered a deadlock
   # retry_on ActiveRecord::Deadlocked
 

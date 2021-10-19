@@ -4,8 +4,8 @@ class GenerateZoomLinksJob < ApplicationJob
   queue_as :default
 
   def perform(meeting_id, email, participants)
+    Honeycomb.add_field(ApplicationJob::HONEYCOMB_RUNNING_USER_EMAIL_FIELD, email)
     Honeycomb.add_field('generate_zoom_links.meeting_id', meeting_id)
-    Honeycomb.add_field('generate_zoom_links.email', email)
     Honeycomb.add_field('generate_zoom_links.participants', participants)
     Honeycomb.add_field('generate_zoom_links.participants.count', participants.count)
     generate_service = GenerateZoomLinks.new(meeting_id: meeting_id, participants: participants)
