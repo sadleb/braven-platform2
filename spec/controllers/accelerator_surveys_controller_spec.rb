@@ -32,7 +32,8 @@ RSpec.describe AcceleratorSurveysController, type: :controller do
             course.canvas_course_id,
             title,
             nil,
-            AcceleratorSurveysController::ACCELERATOR_SURVEY_POINTS_POSSIBLE
+            AcceleratorSurveysController::ACCELERATOR_SURVEY_POINTS_POSSIBLE,
+            true
           )
           .once
       end

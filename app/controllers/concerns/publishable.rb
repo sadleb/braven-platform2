@@ -78,7 +78,8 @@ module Publishable
       @course.canvas_course_id,
       assignment_name,
       nil,
-      points_possible
+      points_possible,
+      open_in_new_tab
     )
 
     instance_variable.update!(
@@ -214,6 +215,14 @@ private
   # Defaults to nil which is translated to 0 in Canvas
   def points_possible
     nil
+  end
+
+  # Override me if this assignment should be loaded in an iframe. Be very careful though
+  # b/c Safari and other browsers tend to not allow cookies or redirects with the full
+  # Location path in the header when cross-site in an iframe. Thoroughly test across browsers
+  # if you set this false.
+  def open_in_new_tab
+    true
   end
 
   # Override me in the controller if there is logic that would prevent publish_latest

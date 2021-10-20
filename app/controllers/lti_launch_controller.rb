@@ -83,11 +83,11 @@ class LtiLaunchController < ApplicationController
     # and there's not an easy way to accidentally share the direct link to the Platform
     # page, AND making people click a button to open the details in a new tab would
     # be painful for anyone going through the speedgrader, we still put the state
-    # param directly into the URL.
-    # TEMP FIX: Do the same for the Attendance Event Submission Answers path, since
-    # that shows up in "CLASS: blah" assignments, and we'll be modifying this soon
-    # anyway. And the same for other things that show up in the grade details view,
-    # and nowhere else...
+    # param directly into the URL. The same goes for the CLASS assignment where we
+    # show the Zoom link. We don't want to add the friction of having to open it in
+    # a new tab to access the link. See course_attendance_events_controller#open_in_new_tab
+    # TEMP FIX: And the same for other things that show up in the grade details view
+    # (aka submission view), and nowhere else...
     when /#{rise360_module_grade_path('')}/,
          /#{launch_attendance_event_submission_answers_path}/,
          /#{course_project_version_project_submission_path('.*', '')}\d+$/,
@@ -102,7 +102,7 @@ class LtiLaunchController < ApplicationController
     # 3. For everyting else, redirect directly with an LTI Launch ID param.
     # The key difference between the state param and the ID param is that the state
     # param authenticates you (through the LTI middleware), while the ID param
-    # only identifies the launch and will only be used if it belongs to the 
+    # only identifies the launch and will only be used if it belongs to the
     # currently logged-in user. Note that we're making a big assumption here
     # that any other link will be from a Canvas Assignment with the "open in
     # new tab" setting turned on. Always use that setting for LTI assignments!

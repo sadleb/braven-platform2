@@ -482,7 +482,7 @@ class CanvasAPI
   # Creates an assignment that will launch an LTI External Tool
   # Note: if you don't specificy a launch_url, you'll have to call
   # back in using update_assignment_lti_launch_url() to set it.
-  def create_lti_assignment(course_id, name, launch_url = nil, points_possible = nil)
+  def create_lti_assignment(course_id, name, launch_url = nil, points_possible = nil, open_in_new_tab = true)
     body = { :assignment =>
       {
         :name => name,
@@ -491,7 +491,7 @@ class CanvasAPI
         :points_possible => points_possible, # nil just defaults to 0 points
         :external_tool_tag_attributes => {
           :url => launch_url,
-          :new_tab => true,
+          :new_tab => open_in_new_tab,
         }
       }
     }

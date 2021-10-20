@@ -230,7 +230,7 @@ RSpec.describe CourseRise360ModuleVersionsController, type: :controller do
       )
       expect(canvas_client)
         .to have_received(:create_lti_assignment)
-        .with(course.canvas_course_id, rise360_module.name, nil, Rise360Module::POINTS_POSSIBLE)
+        .with(course.canvas_course_id, rise360_module.name, nil, Rise360Module::POINTS_POSSIBLE, true)
         .once
       expect(canvas_client)
         .to have_received(:update_assignment_lti_launch_url)
