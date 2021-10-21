@@ -6,7 +6,7 @@ RSpec.describe RegisterUserAccount do
   describe '#run' do
     let(:enrollment_status) { SalesforceAPI::ENROLLED }
     let(:salesforce_contact) { create(:salesforce_contact) }
-    let(:salesforce_participant) { 
+    let(:salesforce_participant) {
       sp = SalesforceAPI::SFParticipant.new('firstName', 'lastName', 'email@email.com', nil, nil, salesforce_contact['Id'])
       sp.status = enrollment_status
       sp
@@ -17,7 +17,7 @@ RSpec.describe RegisterUserAccount do
     let(:raw_signup_token) { user.set_signup_token! }
     let(:sign_up_params) { {password: 'some_password', password_confirmation: 'some_password', signup_token: raw_signup_token} }
     let(:sf_client) { instance_double(SalesforceAPI,
-      find_participant: salesforce_participant,
+      find_participants_by_contact_id: [salesforce_participant],
       find_program: SalesforceAPI::SFProgram.new,
       update_contact: nil,
     ) }
@@ -43,9 +43,11 @@ RSpec.describe RegisterUserAccount do
     end
 
     context 'when not enrolled status' do
-      let(:enrollment_status) { SalesforceAPI::DROPPED }
+      before(:each) do
+        allow(sf_client).to receive(:find_participants_by_contact_id).and_return([])
+      end
+
       it 'raises an error' do
-        enrollment_status = SalesforceAPI::DROPPED
         expect { RegisterUserAccount.new(sign_up_params).run }.to raise_error(RegisterUserAccount::RegisterUserAccountError)
       end
     end

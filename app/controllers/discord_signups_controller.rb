@@ -16,9 +16,16 @@ class DiscordSignupsController < ApplicationController
       @discord_user = JSON.parse(response.body)
 
       if @discord_user['email'] && @discord_user['verified']
-        # TODO: use the current course in addition to the current_user to ensure that we get the
-        # correct Participant. See: https://app.asana.com/0/1201131148207877/1201217979889309
-        participant = SalesforceAPI.client.find_participant(contact_id: current_user.salesforce_id)
+
+        # TODO: there is a bug here where we just use the first Enrolled Participant we find.
+        # We haven't made a decision on where this page will live yet and whether we'll have
+        # access to an lti_launch in order to get the course and then program. Once that decision
+        # is made, fix this to get the Participant for the program in this context.
+        # and then we should enroll them in all Programs they are Enrolled Participants for:
+        # https://app.asana.com/0/1201131148207877/1201246645700111
+        participant = SalesforceAPI.client.find_participants_by_contact_id(
+          contact_id: current_user.salesforce_id, filter_by_status: SalesforceAPI::ENROLLED
+        ).first
 
         discord_server_id = participant.discord_server_id
         raise DiscordServerIdError, "No Discord Server Id found for Participant.Id = #{participant.id}" if discord_server_id.nil?

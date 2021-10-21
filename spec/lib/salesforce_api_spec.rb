@@ -131,15 +131,18 @@ RSpec.describe SalesforceAPI do
   end
 
   describe '#get_participants()' do
-    let(:program_id) { '003170000125IpSAAU' }
-    let(:contact_id) { '004170000125IpSAOX' }
+    # Defaults. Override in tests
+    let(:participant_json) { [] }
+    let(:request_url) { nil }
+
+    before(:each) do
+      stub_request(:get, request_url).to_return(body: participant_json)
+    end
 
     context 'with program_id only' do
+      let(:program_id) { '003170000125IpSAAU' }
       let(:request_url) { "#{SALESFORCE_INSTANCE_URL}/services/apexrest/participants/currentandfuture/?program_id=#{program_id}" }
       let(:participant_json) { "[#{FactoryBot.json(:salesforce_participant_fellow)}]" }
-      before(:each) do
-        stub_request(:get, request_url).to_return(body: participant_json)
-      end
 
       it 'calls the correct endpoint' do
         response = SalesforceAPI.client.get_participants(program_id)
@@ -199,29 +202,109 @@ RSpec.describe SalesforceAPI do
       end
     end
 
-    context 'with program_id and contact_id' do
-      it 'calls the correct endpoint' do
-        request_url = "#{SALESFORCE_INSTANCE_URL}/services/apexrest/participants/currentandfuture/?program_id=#{program_id}&contact_id=#{contact_id}"
-        participant_json = "[#{FactoryBot.json(:salesforce_participant_fellow)}]"
-        stub_request(:get, request_url).to_return(body: participant_json)
+    context 'with contact_id only' do
+      let(:contact_id) { '004170000125IpSAOX' }
+      let(:request_url) { "#{SALESFORCE_INSTANCE_URL}/services/apexrest/participants/currentandfuture/?contact_id=#{contact_id}" }
+      let(:filter_by_status) { nil }
 
-        response = SalesforceAPI.client.get_participants(program_id, contact_id)
+      # This is a wrapper function for get_participants()
+      describe '#find_participants_by_contact_id' do
+        let(:enrolled_fellow_participant) { create :salesforce_participant_fellow, :ParticipantStatus => 'Enrolled' }
+        let(:dropped_lc_participant) { create :salesforce_participant_fellow, :ParticipantStatus => 'Dropped' }
+        let(:mock_interview_participant) { create :salesforce_participant_mi }
+        let(:participant_json) { "[#{dropped_lc_participant.to_json}, #{enrolled_fellow_participant.to_json}, #{mock_interview_participant.to_json}]" }
 
-        expect(WebMock).to have_requested(:get, request_url).once
-        expect(response).to eq(JSON.parse(participant_json))
+        subject(:run_find_participants_by_contact_id) do
+          SalesforceAPI.client.find_participants_by_contact_id(contact_id: contact_id, filter_by_status: filter_by_status)
+        end
+
+        context 'when missing contact_id' do
+          let(:contact_id) { nil }
+          it 'raises ArgumentError' do
+            expect{ run_find_participants_by_contact_id }.to raise_error(ArgumentError)
+          end
+        end
+
+        context 'when no filter_by_status' do
+          let(:filter_by_status) { nil }
+
+          it 'returns all statuses for lc, ta, and fellow roles' do
+            participants = run_find_participants_by_contact_id
+            expect(participants.count).to eq(2)
+            expect(participants.map(&:id)).to contain_exactly(dropped_lc_participant['Id'], enrolled_fellow_participant['Id'])
+          end
+        end
+
+        context 'when filtered by Enrolled' do
+          let(:filter_by_status) { SalesforceAPI::ENROLLED }
+
+          it 'returns only Enrolled Participants for lc, ta, and fellow roles' do
+            participants = run_find_participants_by_contact_id
+            expect(participants.count).to eq(1)
+            expect(participants.map(&:id)).to contain_exactly(enrolled_fellow_participant['Id'])
+          end
+        end
       end
     end
 
+    context 'with program_id and contact_id' do
+      let(:program_id) { '003170000125IpSAAU' }
+      let(:contact_id) { '004170000125IpSAOX' }
+      let(:request_url) { "#{SALESFORCE_INSTANCE_URL}/services/apexrest/participants/currentandfuture/?program_id=#{program_id}&contact_id=#{contact_id}" }
+      let(:participant_json) { "[#{FactoryBot.json(:salesforce_participant_fellow)}]" }
 
-    describe "#find_participant" do
-      context "when a matching participant with the role of fellow, ta or lc is found" do
-        let(:participant_json) { "[#{FactoryBot.json(:salesforce_participant_mi)}, #{FactoryBot.json(:salesforce_participant_fellow)}]" }
-        it 'returns the first matching participant' do
-          request_url = "#{SALESFORCE_INSTANCE_URL}/services/apexrest/participants/currentandfuture/?program_id=#{program_id}&contact_id=#{contact_id}"
-          stub_request(:get, request_url).to_return(body: participant_json)
-          response = SalesforceAPI.client.find_participant(contact_id: contact_id, program_id: program_id)
+      it 'calls the correct endpoint' do
+        response = SalesforceAPI.client.get_participants(program_id, contact_id)
+        expect(WebMock).to have_requested(:get, request_url).once
+        expect(response).to eq(JSON.parse(participant_json))
+      end
 
-          expect(response.role).to eq(SalesforceAPI::FELLOW)
+      # This is a wrapper function for get_participants()
+      describe "#find_participant" do
+        subject(:run_find_participant) do
+          SalesforceAPI.client.find_participant(contact_id: contact_id, program_id: program_id)
+        end
+
+        context 'when missing contact_id' do
+          let(:contact_id) { nil }
+          it 'raises ArgumentError' do
+            expect{ run_find_participant }.to raise_error(ArgumentError)
+          end
+        end
+
+        context 'when missing program_id' do
+          let(:program_id) { nil }
+          it 'raises ArgumentError' do
+            expect{ run_find_participant }.to raise_error(ArgumentError)
+          end
+        end
+
+        context "when a participant without the role of fellow, ta or lc is found" do
+          # Note: order matters here. Make sure the first one is the Mock Interviewer Participant.
+          let(:participant_json) { "[#{FactoryBot.json(:salesforce_participant_mi)}, #{FactoryBot.json(:salesforce_participant_fellow)}]" }
+          it 'ignores the non-matching participant and returns the matching one' do
+            response = run_find_participant
+            expect(response.role).to eq(SalesforceAPI::FELLOW)
+          end
+        end
+
+        context "when duplicate participants with a fellow, ta or lc is found" do
+          let(:first_participant) { create :salesforce_participant_lc }
+          let(:participant_json) { "[#{first_participant.to_json}, #{FactoryBot.json(:salesforce_participant_fellow)}]" }
+
+          before(:each) do
+            allow(Honeycomb).to receive(:add_field)
+          end
+
+          # The behavior is undefined if there are duplicate Participants in a Program with a Role
+          # that impacts how they're enrolled in Canvas. Let's start monitoring when this happens
+          # so that we can fix things up, making sure the proper Participant is Enrolled with the proper info.
+          # Ideally we also fix the root cause in Salesforce so that dupes can't happen.
+          it 'sends Honeycomb alert' do
+            response = run_find_participant
+            expect(response.id).to eq(first_participant['Id'])
+            expect(Honeycomb).to have_received(:add_field).with('alert.salesforce_api.duplicate_participants_for_program', anything).once
+          end
         end
       end
     end

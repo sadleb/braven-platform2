@@ -155,7 +155,7 @@ RSpec.describe Users::RegistrationsController, type: :controller do
     subject { post :create, params: params }
 
     let(:sf_client) { double(SalesforceAPI,
-      find_participant: SalesforceAPI::SFParticipant.new(user.first_name, user.last_name, user.email),
+      find_participants_by_contact_id: [SalesforceAPI::SFParticipant.new(user.first_name, user.last_name, user.email)],
       find_program: SalesforceAPI::SFProgram.new,
     ) }
     let(:service) { double(RegisterUserAccount, run: nil) }

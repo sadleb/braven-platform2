@@ -18,11 +18,25 @@ class RegisterUserAccount
     # Keep a reference to the params so we know which token(s) to check for expiry.
     @sign_up_params = sign_up_params
 
-    # If the user doesn't exist, we'll error out at this point.
+    # If the user doesn't have an Enrolled Participant, we'll error out at this point.
     # This doesn't expose user enumeration in RegistrationsController#create because
     # we've already verified the user by token there. But if that changes, or we use
     # this service elsewhere, be sure to appropriately handle this exception.
-    @salesforce_participant = sf_client.find_participant(contact_id: @user.salesforce_id)
+    #
+    # TODO: there is a bug here where we just use the first Participant we find. Instead,
+    # we should only use the Contact information to create their registered User account
+    # and then we should enroll them in all Programs they are Enrolled Participants for:
+    # https://app.asana.com/0/1201131148207877/1201246645700107
+    @salesforce_participant = sf_client.find_participants_by_contact_id(
+      contact_id: @user.salesforce_id, filter_by_status: SalesforceAPI::ENROLLED
+    ).first
+
+    # If someone's not currently enrolled, show a 500 error page, and don't
+    # let them sign up.
+    unless @salesforce_participant.present?
+      raise RegisterUserAccountError, "Salesforce Contact ID not enrolled: #{@user.salesforce_id}"
+    end
+
     @salesforce_program = sf_client.find_program(id: @salesforce_participant.program_id)
 
     # When we update the user, pass in the password and the latest Salesforce info.
@@ -51,12 +65,6 @@ class RegisterUserAccount
         @user.errors.add(:reset_password_token, :expired)
         yield @user if block_given?
         return
-      end
-
-      # If someone's not currently enrolled, show a 500 error page, and don't
-      # let them sign up.
-      unless salesforce_participant_enrolled?
-        raise RegisterUserAccountError, "Salesforce Contact ID not enrolled: #{@user.salesforce_id}"
       end
 
       # Don't send confirmation email yet; we do it explicitly below.
@@ -159,10 +167,6 @@ private
       first_name: @salesforce_participant.first_name,
       last_name: @salesforce_participant.last_name,
     }
-  end
-
-  def salesforce_participant_enrolled?
-    @salesforce_participant.status.eql?(SalesforceAPI::ENROLLED)
   end
 
   def sf_client

@@ -42,7 +42,7 @@ class SalesforceAPI
   FIND_BY_ROLES = [LEADERSHIP_COACH, FELLOW, TEACHING_ASSISTANT]
 
   class SalesforceDataError < StandardError; end
-  ParticipantNotOnSalesForceError = Class.new(StandardError)
+  ParticipantNotOnSalesforceError = Class.new(StandardError)
   ProgramNotOnSalesforceError = Class.new(StandardError)
 
   # TODO: Figure out how to make this work with a single instance
@@ -362,6 +362,8 @@ class SalesforceAPI
 
   # Gets a list SFParticipant structs for Participant records that have a Status set.
   # Only finds participants with roles fellow, lc, or ta
+  # TODO: rename to find_participants_by_program_id()
+  # https://app.asana.com/0/1201131148207877/1201217979889312
   def find_participants_by(program_id:)
     participants = get_participants(program_id)
 
@@ -373,17 +375,52 @@ class SalesforceAPI
     ret.compact()
   end
 
+  # Gets a list of SFParticipant structs for all Participant records that have a Status set.
+  # Only finds participants with roles fellow, lc, or ta. Returns empty array if none found.
+  #
+  # If you only want Participants with a certain status returned, pass in
+  # a filter_by_status. E.g.:
+  # find_participants_by_contact_id(contact_id: some_id, filter_by_status: SalesforceAPI::ENROLLED)
+  def find_participants_by_contact_id(contact_id:, filter_by_status: nil)
+    raise ArgumentError.new('contact_id is nil') if contact_id.nil?
 
-  def find_participant(contact_id:, program_id: nil)
+    participants = get_participants(nil, contact_id)
+    ret = participants.map do |participant|
+      # Having no Status set is treated as though they are not a Participant at all.
+      # We sometimes set this if there are duplicates or test Participants who should
+      # just be skipped but we don't want to delete them for whatever reason.
+      if participant['ParticipantStatus'].present? && FIND_BY_ROLES.include?(participant['Role']&.to_sym)
+        if filter_by_status
+          SalesforceAPI.participant_to_struct(participant) if participant['ParticipantStatus'] == filter_by_status
+        else
+          SalesforceAPI.participant_to_struct(participant)
+        end
+      end
+    end
+    ret.compact()
+  end
+
+  # Finds the Participant for a Contact in a Program.
+  #
+  # A Contact / Program pair should uniquely identify a Participant with any Role in the FIND_BY_ROLES array.
+  # In other words, per program there should only be one Fellow, LC, or TA Participant per contact.
+  # Returns the first found if there are duplicates and sends an alert to Honeycomb
+  def find_participant(contact_id:, program_id:)
+    raise ArgumentError.new('contact_id is nil') if contact_id.nil?
+    raise ArgumentError.new('program_id is nil') if program_id.nil?
+
     participants = get_participants(program_id, contact_id)
-    raise ParticipantNotOnSalesForceError, "Contact ID #{contact_id}" if participants.empty?
+    raise ParticipantNotOnSalesforceError, "Contact ID: #{contact_id}, Program ID: #{program_id}" if participants.empty?
 
     # only include participants with roles of fellow, leadership coach and teaching assistant
     participants = participants.filter { |p| FIND_BY_ROLES.include?(p['Role']&.to_sym)}
-    # TODO: Figure out the criteria for in case of many participants
-    participant = participants.first
 
-    SalesforceAPI.participant_to_struct(participant)
+    if participants.count > 1
+      Honeycomb.add_field('alert.salesforce_api.duplicate_participants_for_program',
+                          "for Contact ID: #{contact_id}, Program ID: #{program_id}")
+    end
+
+    SalesforceAPI.participant_to_struct(participants.first)
   end
 
   def update_zoom_links(id, link1, link2)
