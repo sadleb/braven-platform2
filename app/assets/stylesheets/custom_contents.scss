@@ -133,3 +133,8 @@ div.content > blockquote:focus > small {
   color: $bv-black;
   background: none;
 }
+
+// Make alert text black
+div.h4.alert-heading {
+  color: $bv-black;
+}

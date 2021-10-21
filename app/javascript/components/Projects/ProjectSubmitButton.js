@@ -104,7 +104,7 @@ class ProjectSubmitButton extends React.Component {
         dismissible
         onClose={() => {this.setState({alert: null})}}
         variant={variant}>
-        <Alert.Heading variant={variant}>
+        <Alert.Heading>
           {heading}
         </Alert.Heading>
         <p>{body}</p>
