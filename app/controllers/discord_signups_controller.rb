@@ -1,6 +1,7 @@
 # frozen_string_literal: true
-require "discordrb"
-require "salesforce_api"
+require 'discordrb'
+require 'salesforce_api'
+require 'discord_bot'
 
 #TODO:implement everything --> this is demo
 class DiscordSignupsController < ApplicationController
@@ -18,16 +19,20 @@ class DiscordSignupsController < ApplicationController
         # TODO: use the current course in addition to the current_user to ensure that we get the
         # correct Participant. See: https://app.asana.com/0/1201131148207877/1201217979889309
         participant = SalesforceAPI.client.find_participant(contact_id: current_user.salesforce_id)
-        discord_server_id = participant.discord_server_id
 
+        discord_server_id = participant.discord_server_id
         raise DiscordServerIdError, "No Discord Server Id found for Participant.Id = #{participant.id}" if discord_server_id.nil?
+
+        contact = SalesforceAPI.client.get_contact_info(participant.contact_id)
+        nickname = DiscordBot.compute_nickname(contact)
 
         # Add user to their Discord Server
         Discordrb::API::Server.add_member(
           "Bot #{Rails.application.secrets.bot_token}",
           discord_server_id,
           @discord_user['id'],
-          current_user.discord_token
+          current_user.discord_token,
+          nickname
         )
       end
     end
