@@ -2,50 +2,54 @@
 <h1>Get Started With Discord</h1>
 
 <% if @discord_user.nil? %>
-  <p>Complete step one, then come back to complete the following steps.</p>
+  <p>Complete step one, then come back to complete each of the following steps.</p>
 
-  <h2>Step 1: Sign up/Register</h2>
-  <p>If you have a Discord account sign in here: <a href="https://discord.com/login">https://discord.com/login</a></p>
+  <h2>Step 1: Sign up or Register for Discord</h2>
+  <p>If you already have a Discord account, sign in here: <a href="https://discord.com/login">https://discord.com/login</a></p>
 
-  <p>If you don't have a Discord account register here: <a href="https://discord.com/register">https://discord.com/register</a></p>
+  <p>If you do not have a Discord account, please register for one here: <a href="https://discord.com/register">https://discord.com/register</a></p>
 
   <h2>Step 2: Authorize Your Discord Account</h2>
-  <p><a href="https://discord.com/api/oauth2/authorize?client_id=<%= Rails.application.secrets.discord_client_id %>&redirect_uri=<%= ERB::Util.url_encode(Rails.application.secrets.discord_redirect_uri) %>&response_type=code&scope=identify%20email%20guilds%20guilds.join">Authorize Braven to access your Discord account</a></p>
+  <p><a href="https://discord.com/api/oauth2/authorize?client_id=<%= Rails.application.secrets.discord_client_id %>&redirect_uri=<%= ERB::Util.url_encode(Rails.application.secrets.discord_redirect_uri) %>&response_type=code&scope=identify%20email%20guilds%20guilds.join">Click here to authorize access to Braven's Discord server</a></p>
 
 <% else %>
   <% if @discord_user["email"].nil? %>
-    <p>Follow the instructions to set an email address and password for your account.</p>
+    <p>Follow these instructions to set an email address and password for your account:</p>
 
-    <p>Go to your <a href="https://discord.com/channels/@me">Discord home page </a></p>
+    <p>Step 1: Go to your <a href="https://discord.com/channels/@me">Discord homepage </a></p>
 
-    <p>Click the gear in the lower left corner to go to your user settings.</p>
+    <p>Step 2: Click the gear icon in the lower left corner to go to your user settings.</p>
     <img src="https://res.cloudinary.com/dsxuuory9/image/upload/v1634239612/discorddemo/Screen_Shot_2021-10-14_at_3.26.45_PM_sgdr3l.png" alt="" class="discord-demo">
 
-    <p>At the top of the user settings in red, click the button that says "Claim Your Account"</p>
+    <p>Step 3: At the top of the user settings in red, click the "Claim Your Account" button.</p>
     <img src="https://res.cloudinary.com/dsxuuory9/image/upload/v1634239518/discorddemo/Screen_Shot_2021-10-14_at_2.07.26_PM_oxxhgg.png" alt="" class="discord-demo">
 
-    <p>A pop up box should appear to enter a email and password. You may enter any email and password you would like to register.</p>
+    <p>Step 4: A pop-up box will appear for you to enter an email address and password. You may enter any email and password that you would like to register.</p>
     <img src="https://res.cloudinary.com/dsxuuory9/image/upload/v1634239518/discorddemo/Screen_Shot_2021-10-14_at_2.08.20_PM_jekh6i.png" alt="" class="discord-demo">
 
-    <p>You can close out of the next pop up that says a confirmation email has been sent to you.</p>  
+    <p>Step 5: Close out of the next pop-up that says a confirmation email has been sent to you. Be sure to verify your email address by clicking on the verification link in the confirmation email!</p>
     <img src="https://res.cloudinary.com/dsxuuory9/image/upload/v1634239518/discorddemo/Screen_Shot_2021-10-14_at_2.10.21_PM_uytllz.png" alt="" class="discord-demo">
   <% end %>
 
   <% unless @discord_user["verified"] %>
-    <p>Go to your email, find the confirmation email from Discord with the subject "Verify Your Email Address for Discord". </p>
+    <p>Follow these instructions to verify the email associated with your Discord account:</p>
+
+    <p>Step 1: Navigate to the email that you used to sign up for Discord. Locate the Discord confirmation email with the subject "Verify Your Email Address for Discord." </p>
     <img src="https://res.cloudinary.com/dsxuuory9/image/upload/v1634239519/discorddemo/Screen_Shot_2021-10-14_at_2.12.57_PM_woyh1q.png" alt="" class="discord-demo">
 
-    <p>Click into the email and click the blue button that says "Verify Email"</p>
+    <p>Step 2: Open the email and click the blue "Verify Email" button. If you are successful in finding this email, skip to Step 6. If you cannot find the email, continue to Step 3.</p>
     <img src="https://res.cloudinary.com/dsxuuory9/image/upload/v1634239518/discorddemo/Screen_Shot_2021-10-14_at_2.12.33_PM_qagfqy.png" alt="" class="discord-demo">
 
-    <p>If you don't see the email, go to your <a href="https://discord.com/channels/@me">Discord home page </a></p>
+    <p>[Optional] Step 3: If you cannot find the email, go to your <a href="https://discord.com/channels/@me">Discord homepage</a>.</p>
 
-    <p>Click the gear in the lower left corner to go to your user settings.</p>
+    <p>[Optional] Step 4: Click the gear in the lower left corner to go to your user settings.</p>
     <img src="https://res.cloudinary.com/dsxuuory9/image/upload/v1634239612/discorddemo/Screen_Shot_2021-10-14_at_3.26.45_PM_sgdr3l.png" alt="" class="discord-demo">
 
-    <p>At the top of the user settings , click the button that says "Resend Verification Email"</p>
+    <p>[Optional] Step 5: At the top of the user settings, click the "Resend Verification Email" button. Navigate to your email, open the verification email, and click the blue "Verify Email" button. For further assistance, please submit a <a href="<%=Rails.application.secrets.support_ticket_url%>">help ticket</a> to the Braven Product Support Team.</p>
     <img src="https://res.cloudinary.com/dsxuuory9/image/upload/v1634239519/discorddemo/Screen_Shot_2021-10-14_at_2.21.15_PM_irmrvy.png" alt="" class="discord-demo">
   <% end %>
 
-  <p class="discord-demo-bottom-text">Once you're all set up, continue to the <a href="https://discord.com/channels/722098701878689933/846463735961878598">Braven Discord Server</a></p>
+  <%# TODO: update hard-coded link to Discord server to be a dynamic link %>
+  <%# https://app.asana.com/0/1201131148207877/1201272447836880/f %>
+  <p class="discord-demo-bottom-text">Once you're all set up, continue to the <a href="https://discord.com/channels/722098701878689933/846463735961878598">Braven Discord Server</a>! Feel free to start exploring the server. We'll walk through the ins and outs of how to use Discord during the Learning Lab.</p>
 <% end %>
