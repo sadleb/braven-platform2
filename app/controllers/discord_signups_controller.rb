@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 require 'discordrb'
+require 'discordrb/webhooks'
+
 require 'salesforce_api'
 require 'discord_bot'
 
@@ -33,6 +35,17 @@ class DiscordSignupsController < ApplicationController
         contact = SalesforceAPI.client.get_contact_info(participant.contact_id)
         nickname = DiscordBot.compute_nickname(contact)
 
+        # TODO: Decide how we want to add Discord server records to the db
+        # See: https://app.asana.com/0/0/1201263861485591/f
+        discord_server = DiscordServer.find_by(discord_server_id: discord_server_id)
+        raise DiscordServerIdError, "No Discord Server found in the database with the discord_server_id = #{discord_server_id}" if discord_server.nil?
+
+        client = Discordrb::Webhooks::Client.new(id: discord_server.webhook_id , token: discord_server.webhook_token)
+
+        client.execute do |builder|
+          builder.content = "!configure_member #{@discord_user['id']} #{contact['Id']}"
+        end
+
         # Add user to their Discord Server
         Discordrb::API::Server.add_member(
           "Bot #{Rails.application.secrets.bot_token}",
@@ -62,9 +75,7 @@ class DiscordSignupsController < ApplicationController
       },
       content_type: 'application/x-www-form-urlencoded'
     )
-
     current_user.update!(discord_token: JSON.parse(response.body)['access_token'])
-
     redirect_to launch_discord_signups_url
   end
 end
