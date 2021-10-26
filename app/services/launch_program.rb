@@ -21,7 +21,7 @@ class LaunchProgram
     # Wait till they are cloned and initialized before updating Salesforce
     @fellow_destination_course = fellow_clone_service.wait_and_initialize
     @lc_destination_course = lc_clone_service.wait_and_initialize
- 
+
     # Update Salesforce program with the new Canvas course IDs.
     sf_client.set_canvas_course_ids(
       @salesforce_program.id,
@@ -29,9 +29,9 @@ class LaunchProgram
       @lc_destination_course.canvas_course_id
     )
 
-    # We're all set and everything worked. Mark the courses as launched.
-    @fellow_destination_course.update!(is_launched: true)
-    @lc_destination_course.update!(is_launched: true)
+    # We're all set and everything worked. Mark the courses as launched and map them to the Program.
+    @fellow_destination_course.update!(is_launched: true, salesforce_program_id: @salesforce_program.id)
+    @lc_destination_course.update!(is_launched: true, salesforce_program_id: @salesforce_program.id)
   end
 
 private

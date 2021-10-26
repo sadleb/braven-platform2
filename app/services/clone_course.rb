@@ -24,6 +24,7 @@ class CloneCourse
     @destination_course = @source_course.dup
     @destination_course.name = @destination_course_name
     @destination_course.canvas_course_id = nil
+    @destination_course.salesforce_program_id = nil
     # By default everything is unlaunched. Only LaunchNewProgram should set this true.
     @destination_course.is_launched = false
     @destination_course.save!

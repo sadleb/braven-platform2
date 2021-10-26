@@ -3,11 +3,12 @@
 require 'rails_helper'
 
 RSpec.describe SyncPortalEnrollmentsForProgram do
-  let(:fellow_canvas_course_id) { 11 }
+  let!(:fellow_course) { create :course_launched, canvas_course_id: sf_program_struct.fellow_course_id }
+  let(:fellow_canvas_course_id) { fellow_course.canvas_course_id }
   let(:sf_participants) { [] }
-  let(:sf_program) { SalesforceAPI::SFProgram.new('00355500001iyvbbbbQ', 'Some Program', 'Some School', fellow_canvas_course_id) }
+  let(:sf_program_struct) { SalesforceAPI.program_to_struct(create(:salesforce_program_record)) }
   let(:lms_client) { double(CanvasAPI, find_user_by: nil) }
-  let(:sf_client) { double(SalesforceAPI, update_contact: nil, find_program: sf_program) }
+  let(:sf_client) { double(SalesforceAPI, update_contact: nil, find_program: sf_program_struct) }
   let(:sync_account_service) { double(SyncPortalEnrollmentForAccount, run: nil) }
   let(:sync_zoom_service) { double(SyncZoomLinksForParticipant, run: nil) }
 
@@ -20,7 +21,54 @@ RSpec.describe SyncPortalEnrollmentsForProgram do
 
   describe '#run' do
     before(:each) do
-      allow(sf_client).to receive(:find_participants_by).with(program_id: sf_program.id).and_return(sf_participants)
+      allow(sf_client).to receive(:find_participants_by).with(program_id: sf_program_struct.id).and_return(sf_participants)
+    end
+
+    context 'with missing Course model' do
+      # make the canvas_course_id not match the program
+      let!(:fellow_course) { create :course_launched, canvas_course_id: sf_program_struct.fellow_course_id + 1 }
+
+      it 'raises an error' do
+        expect{ SyncPortalEnrollmentsForProgram.new(salesforce_program_id: sf_program_struct.id).run }
+          .to raise_error(SyncPortalEnrollmentsForProgram::SyncPortalEnrollmentsForProgramError, /Missing Course/)
+      end
+    end
+
+    describe '#sync_program_id' do
+      subject(:run_sync) do
+        SyncPortalEnrollmentsForProgram.new(salesforce_program_id: sf_program_struct.id).run
+      end
+
+      context 'when Program Id out of sync with Course model' do
+        it 'updates the models' do
+          mismatched_program_id = sf_program_struct.id.reverse
+          fellow_course.update!(salesforce_program_id: mismatched_program_id)
+          expect{ run_sync }.to change{ fellow_course.reload.salesforce_program_id}
+            .from(mismatched_program_id).to(sf_program_struct.id)
+        end
+
+        it 'clears the mistmatched models' do
+          mismatched_program_id = sf_program_struct.id.reverse
+          fellow_course.update!(salesforce_program_id: mismatched_program_id)
+          old_fellow_course = create(:course_launched,
+            canvas_course_id: fellow_course.canvas_course_id + 1, salesforce_program_id: sf_program_struct.id
+          )
+          expect{ run_sync }.to change{ old_fellow_course.reload.salesforce_program_id}
+            .from(sf_program_struct.id).to(nil)
+        end
+      end
+
+      context 'when Program Id matches' do
+        let!(:fellow_course) { create :course_launched,
+          canvas_course_id: sf_program_struct.fellow_course_id,
+          salesforce_program_id: sf_program_struct.id
+        }
+
+        it 'is a NOOP' do
+          expect(fellow_course.salesforce_program_id).to eq(sf_program_struct.id)
+          expect{ run_sync }.not_to change{ fellow_course.reload.salesforce_program_id }
+        end
+      end
     end
 
     # These are Participants where we are running Sync From Salesforce for the first time since they
@@ -29,7 +77,7 @@ RSpec.describe SyncPortalEnrollmentsForProgram do
     # account if they lost, can't find, or don't think to look for their welcome email asking
     # them to create an account.
     context 'with new participants' do
-      let(:new_sf_participant) { create :salesforce_participant }
+      let(:new_sf_participant) { create :salesforce_participant, program_id: sf_program_struct.id }
       let(:new_sf_participant_struct) { SalesforceAPI.participant_to_struct(new_sf_participant) }
       let(:sf_participants) { [new_sf_participant_struct] }
       let(:new_user) { double(User).as_null_object }
@@ -40,7 +88,7 @@ RSpec.describe SyncPortalEnrollmentsForProgram do
       end
 
       subject(:run_sync) do
-        SyncPortalEnrollmentsForProgram.new(salesforce_program_id: sf_program.id).run
+        SyncPortalEnrollmentsForProgram.new(salesforce_program_id: sf_program_struct.id).run
       end
 
       it 'creates a new User record' do
@@ -117,7 +165,7 @@ RSpec.describe SyncPortalEnrollmentsForProgram do
           allow(new_user).to receive(:signup_token).and_return(nil)
           allow(new_user).to receive(:set_signup_token!).and_return(fake_token)
           expect(new_user).to receive(:send_signup_email!).with(fake_token).once
-          SyncPortalEnrollmentsForProgram.new(salesforce_program_id: sf_program.id, send_signup_emails: true).run
+          SyncPortalEnrollmentsForProgram.new(salesforce_program_id: sf_program_struct.id, send_signup_emails: true).run
         end
       end
     end
@@ -145,7 +193,7 @@ RSpec.describe SyncPortalEnrollmentsForProgram do
       }
       # Note the order here matters. fail first, then success
       let(:sf_participants) { [sf_participant_fail, sf_participant_success] }
-      let(:sync_program_service) { SyncPortalEnrollmentsForProgram.new(salesforce_program_id: sf_program.id) }
+      let(:sync_program_service) { SyncPortalEnrollmentsForProgram.new(salesforce_program_id: sf_program_struct.id) }
 
       context 'for general failure' do
         before(:each) do

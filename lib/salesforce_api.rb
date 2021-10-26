@@ -335,6 +335,11 @@ class SalesforceAPI
     program = get_program_info(id)
     raise ProgramNotOnSalesforceError, "Program ID: #{id} not found on Salesforce. Please enter a valid Program ID" if program.nil?
 
+    SalesforceAPI.program_to_struct(program)
+  end
+
+  # Turns a Program hash as returned by Salesforce into an SFProgram struct
+  def self.program_to_struct(program)
     SFProgram.new(program['Id'], program['Name'], program['SchoolId'],
               program['Canvas_Cloud_Accelerator_Course_ID__c'].to_i,
               program['Canvas_Cloud_LC_Playbook_Course_ID__c'].to_i,

@@ -3,12 +3,12 @@
 require 'rails_helper'
 
 RSpec.describe LaunchProgram do
-  let(:sf_program_id) { 'TestSalesforceProgramID' }
+  let(:sf_program_id) { salesforce_program['Id'] }
   let(:fellow_course_name) { 'Test Fellow Course Name' }
   let(:fellow_source_course) { create(:course, is_launched: false, canvas_course_id: 67675) }
   let(:lc_source_course) { create(:course, is_launched: false, canvas_course_id: 87566) }
   let(:lc_course_name) { 'Test LC Course Name' }
-  let(:salesforce_program) { build(:salesforce_program_record, program_id: sf_program_id) }
+  let(:salesforce_program) { build(:salesforce_program_record) }
   let(:fellow_section_names) { [] }
   let(:sf_api_client) { SalesforceAPI.new }
 
@@ -32,7 +32,7 @@ RSpec.describe LaunchProgram do
         expect { launch_program }.not_to raise_error
       end
     end
-    
+
     context 'with invalid Program' do
       it "raises error with bad Program ID" do
         allow(sf_api_client).to receive(:get_program_info).and_raise RestClient::BadRequest
@@ -49,14 +49,14 @@ RSpec.describe LaunchProgram do
     let(:fellow_section_names) { [ 'Test CohortSchedule 1', 'Test CohortSchedule 2' ] }
     let(:new_fellow_canvas_course_id) { 782374 }
     let(:new_lc_canvas_course_id) { 893576 }
-    let(:new_fellow_course) { 
+    let(:new_fellow_course) {
       newc = fellow_source_course.dup
       newc.name = fellow_course_name
       newc.canvas_course_id = new_fellow_canvas_course_id
       newc.save!
       newc
     }
-    let(:new_lc_course) { 
+    let(:new_lc_course) {
       newc = lc_source_course.dup
       newc.name = lc_course_name
       newc.canvas_course_id = new_lc_canvas_course_id
@@ -98,6 +98,12 @@ RSpec.describe LaunchProgram do
         launch_program.run
         expect(new_fellow_course.is_launched).to eq(true)
         expect(new_lc_course.is_launched).to eq(true)
+      end
+
+      it "sets the Salesforce Program.Id" do
+        launch_program.run
+        expect(new_fellow_course.salesforce_program_id).to eq(salesforce_program['Id'])
+        expect(new_lc_course.salesforce_program_id).to eq(salesforce_program['Id'])
       end
 
     end

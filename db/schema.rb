@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_10_12_190238) do
+ActiveRecord::Schema.define(version: 2021_10_22_101424) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
@@ -281,6 +281,7 @@ ActiveRecord::Schema.define(version: 2021_10_12_190238) do
     t.bigint "canvas_course_id"
     t.bigint "course_resource_id"
     t.boolean "is_launched", default: false
+    t.string "salesforce_program_id", limit: 18
     t.index ["course_resource_id"], name: "index_courses_on_course_resource_id"
     t.index ["name"], name: "index_courses_on_name", unique: true
   end

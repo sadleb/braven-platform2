@@ -5,7 +5,7 @@ FactoryBot.define do
   factory :salesforce_program, class: Hash do
     skip_create # This isn't stored in the DB.
     transient do
-      sequence(:program_id) { |i| "a2Y1700000#{i}WLxqEAG" }
+      sequence(:program_id) { |i| "a2Y1%011dEAG" % i }
     end
     done { true }
     records { [ build(:salesforce_program_record, program_id: program_id) ] }
@@ -16,7 +16,7 @@ FactoryBot.define do
   factory :salesforce_program_record, class: Hash do
     skip_create # This isn't stored in the DB.
     transient do
-      sequence(:program_id) { |i| "a2Y1700000#{i}WLxqEAG" }
+      sequence(:program_id) { |i| "a2Y1%011dEAH" % i }
       sequence(:discord_server_id) { |i| "#{i}" }
     end
     Default_Timezone__c { 'America/Los_Angeles' }

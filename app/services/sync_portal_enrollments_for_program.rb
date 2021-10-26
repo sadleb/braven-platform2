@@ -28,6 +28,16 @@ class SyncPortalEnrollmentsForProgram
     Honeycomb.add_field('sync_portal_enrollments_for_program.send_signup_emails', @send_signup_emails)
     Honeycomb.add_field('sync_portal_enrollments_for_program.force_zoom_update', @force_zoom_update)
 
+    # If you try running a sync in an environment that doesn't have the corresponding local course(s),
+    # this is a NOOP. This is mostly in place to prevent developers from accidentally sync'ing another
+    # dev's test program which would invalidate the signup tokens and other stuff.
+    if courses_for_program.blank?
+      Honeycomb.add_field('alert.sync_portal_enrollments_for_program.missing_courses', sf_program.inspect)
+      raise SyncPortalEnrollmentsForProgramError, "Missing Course models for Salesforce Program: #{sf_program.inspect}"
+    end
+
+    sync_program_id()
+
     program_participants.each do |participant|
       begin
         # Note that putting the span inside the begin/rescue and letting exceptions bubble through
@@ -92,6 +102,25 @@ class SyncPortalEnrollmentsForProgram
   end
 
   private
+
+  # When developing or QA'ing we sometimes change which Courses a given Program is configured for.
+  # This updates the local database to match Salesforce for this Program.
+  def sync_program_id
+    return unless courses_for_program.any? { |c| c.salesforce_program_id != sf_program.id }
+
+    # This should be uncommon enough in prod Salesforce that an alert is worthwhile so we
+    # can keep an eye on it b/c if the IDs change for an actual launched Program and not a test/QA one
+    # that's not good.
+    Honeycomb.add_field('alert.mismatched_salesforce_program.id', sf_program.id)
+
+    # Clear out the courses currently mapped to this salesforce_program_id so we can map the new ones
+    old_courses = Course.where(salesforce_program_id: sf_program.id)
+    old_courses.update_all(salesforce_program_id: nil)
+    Honeycomb.add_field('mismatched_salesforce_program.old_courses', old_courses.inspect)
+
+    courses_for_program.update_all(salesforce_program_id: sf_program.id)
+    Honeycomb.add_field('mismatched_salesforce_program.new_courses', courses_for_program.inspect)
+  end
 
   def sync_portal_enrollment!(user, portal_user, participant)
     SyncPortalEnrollmentForAccount
@@ -216,6 +245,10 @@ EOF
     participants = sf_client.find_participants_by(program_id: sf_program.id)
     @count = participants.count || 0
     participants
+  end
+
+  def courses_for_program
+    @courses_for_program ||= Course.where(canvas_course_id: [sf_program.fellow_course_id, sf_program.leadership_coach_course_id])
   end
 
   def sf_program
