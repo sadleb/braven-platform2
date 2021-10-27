@@ -285,15 +285,21 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
           expect(response.body).to match(/type="radio"[^>]* required.* type="radio"[^>]* required/m)
         end
 
+        context 'with learning lab event' do
+          let(:course_attendance_event) { create(
+            :learning_lab_course_attendance_event,
+            course: accelerator_course,
+          ) }
 
-        it "shows the Fellow's name in standard attendance form" do
-          subject
-          expect(response.body).to include("</form>")
-          expect(response.body).to include(fellow_user1.full_name)
-          expect(response.body).to include(fellow_user2.full_name)
-          expect(response.body).to include(fellow_user3.full_name)
-          expect(response.body).to include('type="radio"')
-          expect(response.body).not_to include(user.full_name)
+          it "shows the Fellow's name in learning lab attendance form" do
+            subject
+            expect(response.body).to include("</form>")
+            expect(response.body).to include(fellow_user1.full_name)
+            expect(response.body).to include(fellow_user2.full_name)
+            expect(response.body).to include(fellow_user3.full_name)
+            expect(response.body).to include('type="radio"')
+            expect(response.body).not_to include(user.full_name)
+          end
         end
 
         context 'with 1:1 event' do

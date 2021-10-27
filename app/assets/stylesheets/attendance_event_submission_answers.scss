@@ -1,0 +1,14 @@
+// Place all the styles related to the attendance_event_submission_answers controller here.
+// They will automatically be included in lti_canvas.css.
+// You can use Sass (SCSS) here: http://sass-lang.com/
+@import "shared/variables";
+
+div.attendance-event-submission-answers-container {
+
+  // Don't center it. This is iframed in and Canvas already has a lot of
+  // space on the left so it looks weird to push it further right when centered.
+  // Also, give a little more space on larger screens since this is just text.
+  margin: 0;
+  max-width: $grid-breakpoint-md;
+}
+

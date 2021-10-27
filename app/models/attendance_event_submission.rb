@@ -38,6 +38,6 @@ class AttendanceEventSubmission < ApplicationRecord
 
   # Should this event submission render with the simple checkbox-only form?
   def simple_form?
-    attendance_event.event_type&.to_sym == AttendanceEvent::SIMPLE_EVENT
+    attendance_event.event_type&.to_sym == AttendanceEvent::LEADERSHIP_COACH_1_1
   end
 end

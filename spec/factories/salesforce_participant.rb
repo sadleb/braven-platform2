@@ -6,9 +6,11 @@ FactoryBot.define do
     skip_create # This isn't stored in the DB.
 
     transient do
-      sequence(:program_id) { |i| "a2Y1700000#{i}WLxqAUX" }
+      sequence(:program_id) { |i| "a2Y1%011dAUX" % i }
       sequence(:discord_invite_code) { |i| "code#{i}" }
       sequence(:discord_user_id) { |i| "#{i}" }
+      zoom_meeting_link1 { nil }
+      zoom_meeting_link2 { nil }
       cohort_schedule_day { 'Monday' }
     end
 
@@ -33,9 +35,9 @@ FactoryBot.define do
     sequence(:DiscordUserId) { discord_user_id }
     sequence(:ZoomPrefix) { |i| "ZoomPrefix#{1}" }
     sequence(:ZoomMeetingId1) { |i| "%010d" % i}
-    sequence(:ZoomMeetingLink1) { nil }
+    sequence(:ZoomMeetingLink1) { zoom_meeting_link1 }
     sequence(:ZoomMeetingId2) { |i| "%010d" % (i + 10000)}
-    sequence(:ZoomMeetingLink2) { nil }
+    sequence(:ZoomMeetingLink2) { zoom_meeting_link2 }
 
     factory :salesforce_participant_fellow do
       sequence(:Role) { :Fellow }

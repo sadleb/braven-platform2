@@ -80,7 +80,8 @@ ActiveRecord::Schema.define(version: 2021_10_22_194529) do
     t.string "title", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.string "event_type"
+    t.string "event_type", null: false
+    t.check_constraint "(event_type)::text = ANY ((ARRAY['learning_lab'::character varying, 'orientation'::character varying, 'leadership_coach_1_1'::character varying])::text[])", name: "chk_attendance_events_event_type"
   end
 
   create_table "canvas_rubric_criterion", force: :cascade do |t|

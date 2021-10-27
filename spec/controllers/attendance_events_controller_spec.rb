@@ -18,7 +18,7 @@ RSpec.describe AttendanceEventsController, type: :controller do
 
     context 'with attendance events' do
       let!(:attendence_events) { create_list :attendance_event, 3 }
-      
+
       it 'returns a success response' do
         get :index
         expect(response). to be_successful
@@ -30,6 +30,15 @@ RSpec.describe AttendanceEventsController, type: :controller do
     it 'returns a success response' do
       get :new
       expect(response).to be_successful
+    end
+
+    it 'has an Event Type dropdown' do
+      get :new
+      assert_select 'select#attendance_event_event_type' do
+        assert_select 'option[value=learning_lab]', 'Learning Lab'
+        assert_select 'option[value=leadership_coach_1_1]', 'Leadership Coach 1-1'
+        assert_select 'option[value=orientation]', 'Orientation'
+      end
     end
   end
 
@@ -49,7 +58,7 @@ RSpec.describe AttendanceEventsController, type: :controller do
     subject { post :create, params: params }
 
     context "with valid params" do
-      let(:valid_attributes) { { title: 'Attendance Event Title' } }
+      let(:valid_attributes) { { title: 'Attendance Event Title', event_type: AttendanceEvent::ORIENTATION } }
       let(:params) { { attendance_event: valid_attributes } }
 
       it "creates a new AttendanceEvent" do
@@ -61,6 +70,11 @@ RSpec.describe AttendanceEventsController, type: :controller do
         expect(AttendanceEvent.last.title).to eq(valid_attributes[:title])
       end
 
+      it "saves the event_type" do
+        subject
+        expect(AttendanceEvent.last.event_type.to_sym).to eq(valid_attributes[:event_type])
+      end
+
       it_behaves_like 'a successful update'
 
       context 'with custom redirect' do
@@ -68,6 +82,7 @@ RSpec.describe AttendanceEventsController, type: :controller do
         let(:custom_path) { edit_course_path(course) }
         let(:valid_attributes) { {
           title: 'Attendance Event Title',
+          event_type: AttendanceEvent::LEARNING_LAB,
           redirect_to_course: course.id,
         } }
 

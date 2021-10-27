@@ -7,8 +7,9 @@
   <div class="form-group w-50">
     <%= f.label :event_type %><br />
     <%= f.select :event_type, [
-      ["Standard (Learning Labs, etc)", AttendanceEvent::STANDARD_EVENT],
-      ["Simple (1:1s)", AttendanceEvent::SIMPLE_EVENT],
+      ["Learning Lab", AttendanceEvent::LEARNING_LAB],
+      ["Leadership Coach 1-1", AttendanceEvent::LEADERSHIP_COACH_1_1],
+      ["Orientation", AttendanceEvent::ORIENTATION],
     ], {}, class: "form-control" %>
   </div>
 

@@ -1,10 +1,17 @@
 <% content_for :title, @attendance_event.title %>
+<% content_for :additional_container_css, 'attendance-event-submission-answers-container' %>
 
-  <% if @attendance_event.event_type&.to_sym == AttendanceEvent::STANDARD_EVENT %>
-    <p>No action required here, other than attending this specific Learning Lab (class)!</p>
-    <p>When your Leadership Coach takes attendance for this Learning Lab, you will be given credit for this assignment. Refer to your syllabus for more information on how attendance impacts your grade.</p>
-  <% else %>
-    <%# Currently, there are normal standard attendance events OR 1-1's. This copy is for 1-1's %>
-    <p>No action required here, other than doing your 1-1 with your Leadership Coach.</p>
-    <p>When your Leadership Coach records that this happened, you will be given credit for this assignment. Refer to your syllabus for more information on how this impacts your grade.</p>
-  <% end%>
+<% if @zoom_meeting_link %>
+  <p>
+    <a href="<%= @zoom_meeting_link %>" target="_blank">Click here to join the Zoom <%= @event_name_display %> (opens in new tab)!</a>
+  </p>
+  <p>
+    This assignment provides quick access to your unique Zoom link for the <%= @event_name_display %>.
+<% else %>
+  <p>
+    This assignment is a reminder to attend your <%= @event_name_display %>.
+<% end %>
+    No action needs to be taken other than attending your <%= @event_name_display %>!
+  </p>
+  <p>You will be given credit for this assignment once your Leadership Coach takes attendance. You can refer to your syllabus for more information on how attendance impacts your grade.</p>
+

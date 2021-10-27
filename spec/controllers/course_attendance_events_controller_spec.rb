@@ -25,7 +25,7 @@ RSpec.describe CourseAttendanceEventsController, type: :controller do
     end
 
     it 'excludes attendance events that have already been added to the course' do
-      unpublished_attendance_event = AttendanceEvent.create!(title: 'New Event')
+      unpublished_attendance_event = AttendanceEvent.create!(title: 'New Event', event_type: AttendanceEvent::LEARNING_LAB)
       get :new, params: { course_id: course.id }
       expect(response.body).to match /<option value="#{unpublished_attendance_event.id}">#{unpublished_attendance_event.title}<\/option>/
       expect(response.body).not_to match /<option.*>#{course_attendance_event.attendance_event.title}<\/option>/

@@ -28,9 +28,13 @@ RSpec.describe CourseAttendanceEventPolicy, type: :policy do
   end
 
   permissions :launch? do
-    it 'allows admin users' do
+    # We'd have to implement a whole thing for admins. Just disallow with the same error
+    # message for non-enrolled users for now.
+    it 'disallows admin users' do
       user.add_role :admin
-      expect(subject).to permit(user, course_attendance_event)
+      expect{
+        expect(subject).not_to permit(user, course_attendance_event)
+      }.to raise_error(Pundit::NotAuthorizedError, /Please Masquerade.*Only an Enrolled Participant/)
     end
 
     it 'allows enrolled (Fellow) users' do
@@ -44,7 +48,9 @@ RSpec.describe CourseAttendanceEventPolicy, type: :policy do
     end
 
     it 'disallows non-enrolled users' do
-      expect(subject).not_to permit(user, course_attendance_event)
+      expect{
+        expect(subject).not_to permit(user, course_attendance_event)
+      }.to raise_error(Pundit::NotAuthorizedError, /^Only an Enrolled Participant/)
     end
   end
 end
