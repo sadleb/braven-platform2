@@ -89,6 +89,13 @@ Rails.application.routes.draw do
       end
     end
 
+    resources :discord_signups, only: [] do
+      collection do
+        post :publish
+        delete :unpublish
+      end
+    end
+
     resources :capstone_evaluations, only: [] do
       collection do
         post :publish

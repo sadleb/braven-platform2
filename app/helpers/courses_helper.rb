@@ -59,4 +59,16 @@ module CoursesHelper
   def canvas_fellow_evaluation_assignment_id
     @canvas_assignment_info.canvas_fellow_evaluation_assignment_id
   end
+
+  def has_discord_signups_assignment?
+    !!canvas_discord_signups_url
+  end
+
+  def canvas_discord_signups_url
+    @canvas_assignment_info.canvas_discord_signups_url
+  end
+
+  def canvas_discord_signups_assignment_id
+    @canvas_assignment_info.canvas_discord_signups_assignment_id
+  end
 end

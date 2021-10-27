@@ -7,11 +7,23 @@ require 'discord_bot'
 
 #TODO:implement everything --> this is demo
 class DiscordSignupsController < ApplicationController
+  include DryCrud::Controllers::Nestable
+  nested_resource_of Course
+
+  # Adds the #publish, #publish_latest, #unpublish actions
+  include Publishable
+
   layout 'lti_canvas'
+
   class DiscordServerIdError  < StandardError; end
+    # Note: this is the actual name of the assignment. The convention
+  # for assignment naming is things like: CLASS: Learning Lab2,
+  # MODULE: Lead Authentically, TODO: Complete Waivers
+  DISCORD_ASSIGNMENT_NAME = 'TODO: Complete Discord Signup'
+  DISCORD_POINTS_POSSIBLE = 10.0
 
   def launch
-    authorize :discord_signups
+    authorize :discord_signup
 
     if current_user.discord_token
       response = Discordrb::API::User.profile("Bearer #{current_user.discord_token}")
@@ -59,7 +71,7 @@ class DiscordSignupsController < ApplicationController
   end
 
   def oauth
-    authorize :discord_signups
+    authorize :discord_signup
 
     response = Discordrb::API.request(
       :oauth2_token,
@@ -77,5 +89,24 @@ class DiscordSignupsController < ApplicationController
     )
     current_user.update!(discord_token: JSON.parse(response.body)['access_token'])
     redirect_to launch_discord_signups_url
+  end
+
+private
+  # Used by #publish and #publish_latest to set the Canvas assignment's name
+  def assignment_name
+    DISCORD_ASSIGNMENT_NAME
+  end
+
+  def points_possible
+    DISCORD_POINTS_POSSIBLE
+  end
+
+  # Used by #publish to set the URL the Canvas assigment redirects to
+  def lti_launch_url
+    launch_discord_signups_url(protocol: 'https')
+  end
+
+  def can_publish_latest?
+    false
   end
 end

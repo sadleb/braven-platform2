@@ -122,6 +122,24 @@
           </div>
         </div>
 
+        <div class="form-group">
+          <div class="row">
+            <span class="col-md-3">Discord Signups</span>
+            <span class="col-md-9 align-right"><small><em>Note: add this to Accelerator (not LC Playbook) courses</em></small></span>
+          </div>
+          <div class="row">
+            <% if has_discord_signups_assignment? %>
+              <%= link_to 'View Discord Signups Assignment', canvas_discord_signups_url, class: 'col-md-10' %>
+              <%= link_to 'Delete', unpublish_course_discord_signups_path(@course, canvas_assignment_id: canvas_discord_signups_assignment_id),
+                                    method: :delete, class: 'btn btn-secondary col-md-2 my-0',
+                                    data: { confirm: 'Are you sure you want to delete the Discord Signups assignment?' } %>
+            <% else %>
+              <span class="col-md-10"><em>No Discord Signups Assignment</em></span>
+              <%= link_to 'Add', publish_course_discord_signups_path(@course), method: :post, class: 'btn btn-secondary col-md-2 my-0' %>
+            <% end %>
+          </div>
+        </div>
+
         <div class="actions">
           <%= form.submit 'Update Settings', class: 'btn btn-secondary' %>
           <%= link_to 'Cancel', courses_path, class: 'btn btn-secondary'%>

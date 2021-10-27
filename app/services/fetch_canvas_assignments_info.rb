@@ -15,6 +15,7 @@ class FetchCanvasAssignmentsInfo
               :canvas_postaccelerator_survey_url, :canvas_postaccelerator_survey_assignment_id,
               :canvas_capstone_evaluations_url, :canvas_capstone_evaluations_assignment_id,
               :canvas_fellow_evaluation_url, :canvas_fellow_evaluation_assignment_id,
+              :canvas_discord_signups_url, :canvas_discord_signups_assignment_id,
               :course_project_versions, :course_survey_versions,
               :course_custom_content_versions_mapping,  # Maps the fetched canvas assignment ID to the cccv.
               :course_attendance_events_mapping,
@@ -38,6 +39,9 @@ class FetchCanvasAssignmentsInfo
 
     @canvas_fellow_evaluation_url = nil
     @canvas_fellow_evaluation_assignment_id = nil
+
+    @canvas_discord_signups_url = nil
+    @canvas_discord_signups_assignment_id = nil
 
     @course_project_versions = nil
     @course_survey_versions = nil
@@ -111,6 +115,9 @@ private
     waivers_launch_path = launch_waiver_submissions_path
     add_waivers_info(canvas_assignment) and return if lti_launch_url =~ /#{waivers_launch_path}/
 
+    discord_signups_launch_path = launch_discord_signups_path
+    add_discord_signups_info(canvas_assignment) and return if lti_launch_url =~ /#{discord_signups_launch_path}/
+
     preaccelerator_survey_submission_path = launch_preaccelerator_survey_submissions_path
     add_preaccelerator_survey_info(canvas_assignment) and return if lti_launch_url =~ /#{preaccelerator_survey_submission_path}/
 
@@ -145,6 +152,15 @@ private
     else
       @canvas_waivers_url = canvas_assignment['html_url']
       @canvas_waivers_assignment_id = canvas_assignment['id']
+    end
+  end
+  
+  def add_discord_signups_info(canvas_assignment)
+    if @canvas_discord_signups_url
+      raise FetchCanvasAssignmentsInfoError, "Second assignment with Discord Signups found. First[#{@canvas_discord_signups_url}]. Second[#{canvas_assignment['html_url']}]"
+    else
+      @canvas_discord_signups_url = canvas_assignment['html_url']
+      @canvas_discord_signups_assignment_id = canvas_assignment['id']
     end
   end
 
