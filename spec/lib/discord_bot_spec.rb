@@ -145,7 +145,7 @@ RSpec.describe DiscordBot do
     let(:message_content) { 'test message' }
     let(:server) { instance_double(Discordrb::Server, id: 'fake-server-id') }
     let(:user) { instance_double(Discordrb::User, id: 'fake-user-id', username: 'fake-username', discriminator: 1234) }
-    let(:member) { instance_double(Discordrb::Member, id: 'fake-member-id', roles: roles) }
+    let(:member) { instance_double(Discordrb::Member, id: 'fake-member-id', roles: roles, webhook?: false) }
     let(:message) { instance_double(Discordrb::Message, content: message_content, author: member, respond: nil) }
     let(:event) { instance_double(Discordrb::Events::MessageEvent, server: server, author: member, message: message) }
     let(:roles) { [] }
@@ -169,7 +169,16 @@ RSpec.describe DiscordBot do
         end
       end
 
-      context 'with message from non-admin' do
+      context 'with message from webhook' do
+        let(:member) { instance_double(Discordrb::Member, id: 'fake-member-id', webhook?: true) }
+
+        it 'processes message as admin command' do
+          expect(bot).to receive(:process_admin_command).with(event).once
+          subject
+        end
+      end
+
+      context 'with message from non-admin and non-webhook' do
         let(:roles) { [
           instance_double(Discordrb::Role, name: 'Fellow'),
         ] }

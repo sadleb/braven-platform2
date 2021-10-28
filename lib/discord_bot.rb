@@ -276,7 +276,7 @@ class DiscordBot
         # Try to add the DN if this is a member.
         Honeycomb.add_field('member.display_name', event.author.display_name) if event.author.respond_to?(:display_name)
 
-        if event.message.author.roles.find { |r| ADMIN_ROLES.include? r.name }
+        if event.message.author.webhook? || event.message.author.roles.find { |r| ADMIN_ROLES.include? r.name }
           LOGGER.debug "Admin command"
           process_admin_command(event)
         else
