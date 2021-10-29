@@ -9,7 +9,7 @@ class SendDiscordMessage
     @server_id = server_id.to_i
     @channel_name = channel_name
     @message_content = message_content
-    @token = ENV['BOT_TOKEN']
+    @token = ENV['DISCORD_BOT_TOKEN']
   end
 
   def run

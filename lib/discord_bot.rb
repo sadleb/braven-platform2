@@ -86,7 +86,7 @@ LOGGER = Logger.new(STDOUT)
 
 class DiscordBot
   def initialize(
-    token: ENV['BOT_TOKEN'],
+    token: ENV['DISCORD_BOT_TOKEN'],
     log_level: ENV.fetch('LOG_LEVEL', 'DEBUG'),
     enabled: ENV['BOT_ENABLED'],
     sync_and_exit: false

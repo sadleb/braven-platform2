@@ -53,7 +53,7 @@ class DiscordSignupsController < ApplicationController
 
         # Add user to their Discord Server
         Discordrb::API::Server.add_member(
-          "Bot #{Rails.application.secrets.bot_token}",
+          "Bot #{Rails.application.secrets.discord_bot_token}",
           @discord_server_id,
           @discord_user['id'],
           current_user.discord_token,
