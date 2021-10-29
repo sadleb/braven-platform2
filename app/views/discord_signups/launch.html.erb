@@ -19,34 +19,34 @@
     <p>Step 1: Go to your <a href="https://discord.com/channels/@me">Discord homepage </a></p>
 
     <p>Step 2: Click the gear icon in the lower left corner to go to your user settings.</p>
-    <img src="https://res.cloudinary.com/dsxuuory9/image/upload/v1634239612/discorddemo/Screen_Shot_2021-10-14_at_3.26.45_PM_sgdr3l.png" alt="" class="discord-demo">
+    <img src="https://platform-prod-assets.s3.amazonaws.com/Discord+Signup+Images/discord-settings-gear.png" alt="" class="discord-demo">
 
     <p>Step 3: At the top of the user settings in red, click the "Claim Your Account" button.</p>
-    <img src="https://res.cloudinary.com/dsxuuory9/image/upload/v1634239518/discorddemo/Screen_Shot_2021-10-14_at_2.07.26_PM_oxxhgg.png" alt="" class="discord-demo">
+    <img src="https://platform-prod-assets.s3.amazonaws.com/Discord+Signup+Images/discord-claim-account.png" alt="" class="discord-demo">
 
     <p>Step 4: A pop-up box will appear for you to enter an email address and password. You may enter any email and password that you would like to register.</p>
-    <img src="https://res.cloudinary.com/dsxuuory9/image/upload/v1634239518/discorddemo/Screen_Shot_2021-10-14_at_2.08.20_PM_jekh6i.png" alt="" class="discord-demo">
+    <img src="https://platform-prod-assets.s3.amazonaws.com/Discord+Signup+Images/discord-register-email.png" alt="" class="discord-demo">
 
     <p>Step 5: Close out of the next pop-up that says a confirmation email has been sent to you. Be sure to verify your email address by clicking on the verification link in the confirmation email!</p>
-    <img src="https://res.cloudinary.com/dsxuuory9/image/upload/v1634239518/discorddemo/Screen_Shot_2021-10-14_at_2.10.21_PM_uytllz.png" alt="" class="discord-demo">
+    <img src="https://platform-prod-assets.s3.amazonaws.com/Discord+Signup+Images/discord-confirmation-email-popup-notification.png" alt="" class="discord-demo">
   <% end %>
 
   <% unless @discord_user["verified"] %>
     <p>Follow these instructions to verify the email associated with your Discord account:</p>
 
     <p>Step 1: Navigate to the email that you used to sign up for Discord. Locate the Discord confirmation email with the subject "Verify Your Email Address for Discord." </p>
-    <img src="https://res.cloudinary.com/dsxuuory9/image/upload/v1634239519/discorddemo/Screen_Shot_2021-10-14_at_2.12.57_PM_woyh1q.png" alt="" class="discord-demo">
+    <img src="https://platform-prod-assets.s3.amazonaws.com/Discord+Signup+Images/discord-verify-email-subject.png" alt="" class="discord-demo">
 
     <p>Step 2: Open the email and click the blue "Verify Email" button. If you are successful in finding this email, skip to Step 6. If you cannot find the email, continue to Step 3.</p>
-    <img src="https://res.cloudinary.com/dsxuuory9/image/upload/v1634239518/discorddemo/Screen_Shot_2021-10-14_at_2.12.33_PM_qagfqy.png" alt="" class="discord-demo">
+    <img src="https://platform-prod-assets.s3.amazonaws.com/Discord+Signup+Images/discord-verify-email-button.png" alt="" class="discord-demo">
 
     <p>[Optional] Step 3: If you cannot find the email, go to your <a href="https://discord.com/channels/@me">Discord homepage</a>.</p>
 
     <p>[Optional] Step 4: Click the gear in the lower left corner to go to your user settings.</p>
-    <img src="https://res.cloudinary.com/dsxuuory9/image/upload/v1634239612/discorddemo/Screen_Shot_2021-10-14_at_3.26.45_PM_sgdr3l.png" alt="" class="discord-demo">
+    <img src="https://platform-prod-assets.s3.amazonaws.com/Discord+Signup+Images/discord-settings-gear.png" alt="" class="discord-demo">
 
     <p>[Optional] Step 5: At the top of the user settings, click the "Resend Verification Email" button. Navigate to your email, open the verification email, and click the blue "Verify Email" button. For further assistance, please submit a <a href="<%=Rails.application.secrets.support_ticket_url%>">help ticket</a> to the Braven Product Support Team.</p>
-    <img src="https://res.cloudinary.com/dsxuuory9/image/upload/v1634239519/discorddemo/Screen_Shot_2021-10-14_at_2.21.15_PM_irmrvy.png" alt="" class="discord-demo">
+    <img src="https://platform-prod-assets.s3.amazonaws.com/Discord+Signup+Images/discord-resend-verification-email.png" alt="" class="discord-demo">
   <% end %>
 
   <p class="discord-demo-bottom-text">Once you're all set up, continue to the <a href="https://discord.com/channels/<%= @discord_server_id %>">Braven Discord Server</a>! Feel free to start exploring the server. We'll walk through the ins and outs of how to use Discord during the Learning Lab.</p>
