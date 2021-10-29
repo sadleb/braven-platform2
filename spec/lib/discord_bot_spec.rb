@@ -1511,6 +1511,7 @@ RSpec.describe DiscordBot do
     before :each do
       member.instance_variable_set(:@user, user)
       allow(Discordrb::Overwrite).to receive(:from_other).and_return(overwrite)
+      allow(lc_overwrite).to receive(:dup).and_return(lc_overwrite)
     end
 
     context 'with Fellow' do
@@ -1548,7 +1549,17 @@ RSpec.describe DiscordBot do
       let(:participant) { SalesforceAPI.participant_to_struct(create(:salesforce_participant_lc)) }
 
       it 'updates permission overwrites' do
+        channels.each do |c|
+          expect(c).to receive(:permission_overwrites).and_return([])
+        end
         expect(channel).to receive(:permission_overwrites=)
+        subject
+      end
+
+      it 'removes permission overwrites on old channels' do
+        expect(DiscordBot).to receive(:remove_permission_overwrites)
+          .with(member, except_channel_name: channel.name)
+          .once
         subject
       end
     end
@@ -1611,6 +1622,79 @@ RSpec.describe DiscordBot do
 
       it 'returns channel_count' do
         expect(subject).to eq(cycled_channels.count)
+      end
+    end
+  end
+
+  describe 'self.remove_permission_overwrites' do
+    subject { DiscordBot.remove_permission_overwrites(member, except_channel_name: except_channel_name) }
+
+    let(:except_channel_name) { 'skip-this-channel' }
+    let(:member_id) { 'fake-member-id' }
+    let(:member) { instance_double(Discordrb::Member, id: member_id, server: server) }
+    let(:server) { instance_double(Discordrb::Server, id: 'fake-server-id', channels: channels) }
+    let(:matching_overwrite) { instance_double(Discordrb::Overwrite, id: member_id, type: :member) }
+    let(:not_matching_overwrite) { instance_double(Discordrb::Overwrite, id: 'not-member-id', type: :member) }
+    let(:channel_with_matching_overwrite) { instance_double(Discordrb::Channel, name: 'test-channel-1', permission_overwrites: {
+      matching_overwrite.id => matching_overwrite,
+      not_matching_overwrite.id => not_matching_overwrite,
+    }) }
+    let(:except_channel) { instance_double(Discordrb::Channel, name: except_channel_name, permission_overwrites: {
+      matching_overwrite.id => matching_overwrite,
+      not_matching_overwrite.id => not_matching_overwrite,
+    }) }
+    let(:channels) { [channel_with_matching_overwrite, except_channel] }
+
+    before :each do
+      expect(DiscordBot).to receive(:get_overwrite_channels).and_return(channels)
+      channels.each do |c|
+        allow(c).to receive(:permission_overwrites=)
+      end
+    end
+
+    it 'removes matching overwrites' do
+      expect(channel_with_matching_overwrite).to receive(:permission_overwrites=).with({
+        not_matching_overwrite.id => not_matching_overwrite,
+      })
+      subject
+    end
+
+    it 'skips the excluded channel' do
+      expect(except_channel).not_to receive(:permission_overwrites=)
+      subject
+    end
+  end
+
+  describe 'self.get_overwrite_channels' do
+    subject { DiscordBot.get_overwrite_channels(member) }
+
+    let(:member_id) { 'fake-member-id' }
+    let(:member) { instance_double(Discordrb::Member, id: member_id, server: server) }
+    let(:server) { instance_double(Discordrb::Server, id: 'fake-server-id', channels: channels) }
+    let(:matching_overwrite) { instance_double(Discordrb::Overwrite, id: member_id, type: :member) }
+    let(:not_matching_overwrite) { instance_double(Discordrb::Overwrite, id: 'not-member-id', type: :member) }
+    let(:channel_with_matching_overwrite) { instance_double(Discordrb::Channel, name: 'test-channel-1', permission_overwrites: {
+      matching_overwrite.id => matching_overwrite,
+      not_matching_overwrite.id => not_matching_overwrite,
+    }) }
+    let(:channel_without_matching_overwrite) { instance_double(Discordrb::Channel, name: 'test-channel-2', permission_overwrites: {
+      not_matching_overwrite.id => not_matching_overwrite,
+    }) }
+    let(:channels) { [] }
+
+    context 'with channels with a matching overwrite' do
+      let(:channels) { [channel_with_matching_overwrite, channel_without_matching_overwrite] }
+
+      it 'returns channels with a matching overwrite' do
+        expect(subject).to eq([channel_with_matching_overwrite])
+      end
+    end
+
+    context 'with no channels with a matching overwrite' do
+      let(:channels) { [channel_without_matching_overwrite] }
+
+      it 'returns an empty list' do
+        expect(subject).to eq([])
       end
     end
   end

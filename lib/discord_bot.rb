@@ -1393,6 +1393,10 @@ class DiscordBot
       # the channel. (We can't just have cohort-channel:LC-role permissions, because we
       # don't want LCs to have management permissions in all Cohort channels, only their own.)
       if SalesforceAPI.is_lc?(participant)
+        # Remove any existing overwrites on other channels, in case the LC's cohort name has changed.
+        LOGGER.debug "Checking/removing old cohort channel overwrites for LC"
+        DiscordBot.remove_permission_overwrites(member, except_channel_name: channel.name)
+
         # Same as channel:role stuff above, we copy from a template permissions overwrite
         # to create a new channel:member permissions overwrite.
         LOGGER.debug "Adding channel:member permission overwrite, since participant is an LC"
@@ -1400,7 +1404,10 @@ class DiscordBot
         Honeycomb.add_field('lc_template_channel.id', template_channel&.id.to_s)
         lc_template_role = server.roles.find { |r| r.name == COHORT_TEMPLATE_LC_ROLE }
         Honeycomb.add_field('lc_template_role.id', lc_template_role&.id.to_s)
-        lc_template_overwrite = template_channel.overwrites[lc_template_role.id]
+        # MUST call .dup on this assignment, otherwise we end up modifying the
+        # template channel's overwrites in the local cache, and break the stuff
+        # in remove_permission_overwrites in subsequent calls.
+        lc_template_overwrite = template_channel.overwrites[lc_template_role.id].dup
         Honeycomb.add_field('lc_template_overwrite.id', lc_template_overwrite&.id.to_s)
         # Change overwrite type from 'role' to 'member', since the template is a role but
         # we're creating a member-specific overwrite.
@@ -1455,6 +1462,47 @@ class DiscordBot
       end
     end
     channel_count
+  end
+
+  # Remove permission overwrites for a given member, everywhere except a given channel name.
+  # This duplicates some of the logic from get_overwrite_channels, but it's easier to test
+  # if we do get and remove in separate steps.
+  def self.remove_permission_overwrites(member, except_channel_name: nil)
+    LOGGER.debug "Removing permission overwrites for member in all channels"
+    Honeycomb.start_span(name: 'bot.remove_permission_overwrites') do
+      Honeycomb.add_field('member.id', member.id.to_s)
+      Honeycomb.add_field('server.id', member.server.id.to_s)
+      Honeycomb.add_field('remove_permission_overwrites.except_channel_name', except_channel_name)
+
+      DiscordBot.get_overwrite_channels(member).each do |channel|
+        next if channel.name == except_channel_name
+        filtered_overwrites = channel.permission_overwrites.reject {
+          |k, v| v.type == :member && v.id == member.id
+        }
+        channel.permission_overwrites = filtered_overwrites
+      end
+    end
+  end
+
+  # Get all channels where a given member has permission overwrites.
+  def self.get_overwrite_channels(member)
+    LOGGER.debug "Checking permission overwrites for member in all channels"
+    Honeycomb.start_span(name: 'bot.get_overwrite_channels') do
+      Honeycomb.add_field('member.id', member.id.to_s)
+      Honeycomb.add_field('server.id', member.server.id.to_s)
+
+      channels = []
+      member.server.channels.each do |channel|
+        channels << channel if channel.permission_overwrites.any? {
+          |k, v| v.type == :member && v.id == member.id
+        }
+      end
+
+      Honeycomb.add_field('permission_overwrite_channels.channel_names', channels.map { |c| c.name })
+      Honeycomb.add_field('permission_overwrite_channels.count', channels.count)
+
+      channels
+    end
   end
 
   # Safe-delete methods that handle race conditions when multiple instances of
