@@ -10,7 +10,5 @@ p.discord-demo-bottom-text {
 
 .discord-refresh-btn {
   text-decoration: none;
-  display: block;
-  width: 200px;
-  margin: 5px auto 10px auto;
-}
+  max-width: 16rem;
+} 
