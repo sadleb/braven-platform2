@@ -15,7 +15,7 @@
 <% else %>
   <% if @discord_user["email"].nil? %>
     <h2>Claim Your Account</h2>
-    <p>Follow these instructions to set an email address and password for your account:</p>
+    <p>Follow these instructions to set an email address and password for your Discord account (<strong><%= @discord_user["username"] %>#<%= @discord_user["discriminator"] %></strong>):</p>
 
     <p>Step 1: Go to your <a href="https://discord.com/channels/@me">Discord homepage </a></p>
 
@@ -34,9 +34,14 @@
 
   <% unless @discord_user["verified"] %>
     <h2>Verify Your Email</h2>
-    <p>Follow these instructions to verify the email associated with your Discord account:</p>
+    <p>Follow these instructions to verify the email associated with your Discord account (<strong><%= @discord_user["username"] %>#<%= @discord_user["discriminator"] %></strong>):</p>
 
-    <p>Step 1: Navigate to the email that you used to sign up for Discord. Locate the Discord confirmation email with the subject "Verify Your Email Address for Discord."</p>
+    <% if @discord_user["email"] %>
+      <p>Step 1: Navigate to the email that you used to sign up for Discord (<strong><%= @discord_user["email"] %></strong>).
+    <% else %>
+      <p>Step 1: Navigate to the email that you used to sign up for Discord.
+    <% end %>
+      Locate the Discord confirmation email with the subject "Verify Your Email Address for Discord".</p>
     <img src="https://platform-prod-assets.s3.amazonaws.com/Discord+Signup+Images/discord-verify-email-subject.png" alt="" class="discord-demo">
 
     <p>Step 2: Open the email and click the blue "Verify Email" button. Then come back here and refresh the page.</p>
