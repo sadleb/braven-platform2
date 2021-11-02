@@ -3,10 +3,9 @@
 
 <% if @zoom_meeting_link %>
   <p>
-    <a href="<%= @zoom_meeting_link %>" target="_blank">Click here to join the Zoom <%= @event_name_display %> (opens in new tab)!</a> Check your syllabus (on the homepage of this course) to determine if you are on Zoom or in person.
+    <a href="<%= @zoom_meeting_link %>" target="_blank">Click here to join the Zoom <%= @event_name_display %> (opens in new tab)!</a> Check your syllabus or Discord to determine if you are on Zoom or in person.
   </p>
   <p>
-    This assignment provides quick access to your unique Zoom link for the <%= @event_name_display %>.
 <% else %>
   <p>
     This assignment is a reminder to attend your <%= @event_name_display %>.
