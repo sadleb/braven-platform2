@@ -151,6 +151,10 @@ private
           raise TypeError, "Unexpected platform_role: #{platform_role.inspect}"
         end
       end
+
+      def add_to_honeycomb_span
+        each_pair { |attr, value| Honeycomb.add_field("salesforce.participant.#{attr}", value) }
+      end
     end
 
     SalesforceProgram = Struct.new(

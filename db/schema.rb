@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_10_22_194529) do
+ActiveRecord::Schema.define(version: 2021_10_26_153707) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
@@ -651,6 +651,23 @@ ActiveRecord::Schema.define(version: 2021_10_22_194529) do
     t.index ["role_id"], name: "index_users_roles_on_role_id"
     t.index ["user_id", "role_id"], name: "index_users_roles_on_user_id_and_role_id"
     t.index ["user_id"], name: "index_users_roles_on_user_id"
+  end
+
+  create_table "zoom_link_infos", force: :cascade do |t|
+    t.string "salesforce_participant_id", null: false
+    t.string "salesforce_meeting_id_attribute", null: false
+    t.string "meeting_id", null: false
+    t.string "first_name", null: false
+    t.string "last_name", null: false
+    t.string "email", null: false
+    t.string "prefix"
+    t.string "registrant_id", null: false
+    t.datetime "created_at", precision: 6, default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.datetime "updated_at", precision: 6, default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.index ["registrant_id"], name: "index_zoom_link_infos_on_registrant_id", unique: true
+    t.index ["salesforce_participant_id", "salesforce_meeting_id_attribute"], name: "index_zoom_link_infos_uniqueness", unique: true
+    t.check_constraint "(salesforce_meeting_id_attribute)::text = ANY ((ARRAY['zoom_meeting_id_1'::character varying, 'zoom_meeting_id_2'::character varying])::text[])", name: "chk_zoom_link_infos_sf_meeting_id_attribute"
+    t.check_constraint "char_length((salesforce_participant_id)::text) = 18", name: "chk_zoom_link_infos_salesforce_participant_id_length"
   end
 
   add_foreign_key "access_tokens", "users"

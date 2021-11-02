@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'rest-client'
+require 'honeycomb-beeline'
 
 # TODO: Get rid of ActiveSupport dependency in this lib.
 require "active_support"
@@ -17,6 +18,7 @@ class SalesforceAPI
   DATA_SERVICE_PATH = '/services/data/v49.0'
 
   SFContact = Struct.new(:id, :email, :first_name, :last_name)
+
   SFParticipant = Struct.new(:first_name, :last_name, :email, :role,
                              :program_id, :contact_id, :status, :student_id,
                              :cohort, :cohort_schedule, :cohort_id,
@@ -24,7 +26,12 @@ class SalesforceAPI
                              :volunteer_role, :zoom_prefix,
                              :zoom_meeting_id_1, :zoom_meeting_id_2,
                              :zoom_meeting_link_1, :zoom_meeting_link_2,
-                            )
+                            ) do
+    def add_to_honeycomb_span
+      each_pair { |attr, value| Honeycomb.add_field("salesforce.participant.#{attr}", value) }
+    end
+  end
+
   SFProgram = Struct.new(:id, :name, :school_id, :fellow_course_id,
                          :leadership_coach_course_id,
                          :leadership_coach_course_section_name, :timezone,
@@ -481,6 +488,14 @@ class SalesforceAPI
   def self.is_lc?(salesforce_participant)
     salesforce_participant.role&.to_sym == SalesforceAPI::LEADERSHIP_COACH &&
       salesforce_participant.volunteer_role != SalesforceAPI::COACH_PARTNER
+  end
+
+  # Returns true if a SFParticipant struct is for a Teaching Assistant
+  #
+  # Note: at the time of writing, staff members are also setup with a TA
+  # role. In the future, we may want to distinguish staff from actual TAs.
+  def self.is_teaching_assistant?(salesforce_participant)
+    salesforce_participant.role&.to_sym == SalesforceAPI::TEACHING_ASSISTANT
   end
 
   # Returns true if a SFParticipant struct is for a Coach Partner

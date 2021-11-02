@@ -23,9 +23,9 @@ RSpec.describe GenerateZoomLinks do
       let(:participants) { build_list(:zoom_participant, 3) }
 
       it 'calls the Zoom API correctly' do
-        expect(zoom_client).to receive(:add_registrant).with(meeting_id, participants[0]).once
-        expect(zoom_client).to receive(:add_registrant).with(meeting_id, participants[1]).once
-        expect(zoom_client).to receive(:add_registrant).with(meeting_id, participants[2]).once
+        expect(zoom_client).to receive(:add_registrant).with(meeting_id, *participants[0].values).once
+        expect(zoom_client).to receive(:add_registrant).with(meeting_id, *participants[1].values).once
+        expect(zoom_client).to receive(:add_registrant).with(meeting_id, *participants[2].values).once
         run_generate
       end
 
@@ -49,9 +49,9 @@ RSpec.describe GenerateZoomLinks do
         let(:meeting_id_no_whitespace) { '1234567890' }
 
         it 'removes whitespace' do
-          expect(zoom_client).to receive(:add_registrant).with(meeting_id_no_whitespace, participants[0]).once
-          expect(zoom_client).to receive(:add_registrant).with(meeting_id_no_whitespace, participants[1]).once
-          expect(zoom_client).to receive(:add_registrant).with(meeting_id_no_whitespace, participants[2]).once
+          expect(zoom_client).to receive(:add_registrant).with(meeting_id_no_whitespace, *participants[0].values).once
+          expect(zoom_client).to receive(:add_registrant).with(meeting_id_no_whitespace, *participants[1].values).once
+          expect(zoom_client).to receive(:add_registrant).with(meeting_id_no_whitespace, *participants[2].values).once
           run_generate
         end
       end

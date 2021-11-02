@@ -44,7 +44,12 @@ private
     @participants_to_register.map.with_index do |participant, i|
       csv_row_with_link = nil
       begin
-        response = ZoomAPI.client.add_registrant(@meeting_id, participant)
+        response = ZoomAPI.client.add_registrant(
+          @meeting_id,
+          participant['email'],
+          participant['first_name'],
+          participant['last_name']
+        )
         csv_row_with_link = participant.merge({ 'join_url' => response['join_url'] })
       rescue ZoomAPI::RegistrationNotEnabledForZoomMeetingError,
              ZoomAPI::ZoomMeetingDoesNotExistError,

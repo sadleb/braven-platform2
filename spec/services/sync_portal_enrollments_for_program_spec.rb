@@ -282,6 +282,19 @@ RSpec.describe SyncPortalEnrollmentsForProgram do
           end
         end
 
+        context 'when too many changes requiring a new Zoom link' do
+          let(:error_message) { 'We temporarily cannot create a Zoom link' }
+          before(:each) do
+            expect(sync_zoom_service).to receive(:run).and_raise(ZoomAPI::TooManyRequestsError, error_message)
+          end
+
+          # Just make sure that this particular error is propogated to the
+          # aggregated error that is used to send the email to help product support troubleshoot.
+          it 'shows a nice error message' do
+            expect{ sync_program_service.run }.to raise_error(SyncPortalEnrollmentsForProgram::SyncPortalEnrollmentsForProgramError, /#{error_message}/)
+          end
+        end
+
         # context 'when syncing Host of Zoom meeting' do
         #   See: sync_zoom_links_for_participant_spec.rb
         #   for how the ZoomAPI::HostCantRegisterForZoomMeetingError is handled

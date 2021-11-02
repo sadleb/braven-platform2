@@ -221,6 +221,7 @@ EOF
           e.is_a?(ZoomAPI::ZoomMeetingEndedError) ||
           e.is_a?(ZoomAPI::RegistrationNotEnabledForZoomMeetingError) ||
           e.is_a?(ZoomAPI::ZoomMeetingDoesNotExistError) ||
+          e.is_a?(ZoomAPI::TooManyRequestsError) ||
           e.is_a?(ZoomAPI::BadZoomRegistrantFieldError)
       error_detail = e.message
     elsif e.is_a?(CanvasAPI::TimeoutError)
