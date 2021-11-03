@@ -18,19 +18,19 @@
     <h2>Claim Your Account</h2>
     <p>Follow these instructions to set an email address and password for your Discord account (<strong><%= @discord_user["username"] %>#<%= @discord_user["discriminator"] %></strong>):</p>
 
-    <p>Step 1: Go to your <a href="https://discord.com/channels/@me">Discord homepage</a>.</p>
+    <p><strong>Step 1</strong>: Go to your <a href="https://discord.com/channels/@me">Discord homepage</a>.</p>
 
-    <p>Step 2: Click the gear icon in the lower left corner to go to your user settings.</p>
-    <img src="https://platform-prod-assets.s3.amazonaws.com/Discord+Signup+Images/discord-settings-gear.png" alt="" class="discord-demo">
+    <p><strong>Step 2</strong>: Click the gear icon in the lower left corner to go to your user settings.</p>
+    <img src="https://platform-prod-assets.s3.amazonaws.com/Discord+Signup+Images/discord-settings-gear.png" alt="" class="discord-signup">
 
-    <p>Step 3: At the top of the user settings, in the big red box, click the "Claim Your Account" button.</p>
-    <img src="https://platform-prod-assets.s3.amazonaws.com/Discord+Signup+Images/discord-claim-account.png" alt="" class="discord-demo">
+    <p><strong>Step 3</strong>: At the top of the user settings, in the big red box, click the "Claim Your Account" button.</p>
+    <img src="https://platform-prod-assets.s3.amazonaws.com/Discord+Signup+Images/discord-claim-account.png" alt="" class="discord-signup">
 
-    <p>Step 4: A pop-up box will appear for you to enter an email address and password. You may enter any email and password that you would like to use with Discord. This does not have to match the email you use for Braven.</p>
-    <img src="https://platform-prod-assets.s3.amazonaws.com/Discord+Signup+Images/discord-register-email.png" alt="" class="discord-demo">
+    <p><strong>Step 4</strong>: A pop-up box will appear for you to enter an email address and password. You may enter any email and password that you would like to use with Discord. This does not have to match the email you use for Braven.</p>
+    <img src="https://platform-prod-assets.s3.amazonaws.com/Discord+Signup+Images/discord-register-email.png" alt="" class="discord-signup">
 
-    <p>Step 5: Close out of the next pop-up that says a confirmation email has been sent to you.</p>
-    <img src="https://platform-prod-assets.s3.amazonaws.com/Discord+Signup+Images/discord-confirmation-email-popup-notification.png" alt="" class="discord-demo">
+    <p><strong>Step 5</strong>: Close out of the next pop-up that says a confirmation email has been sent to you.</p>
+    <img src="https://platform-prod-assets.s3.amazonaws.com/Discord+Signup+Images/discord-confirmation-email-popup-notification.png" alt="" class="discord-signup">
   <% end %>
 
   <% unless @discord_user["verified"] %>
@@ -38,31 +38,31 @@
     <p>Follow these instructions to verify the email associated with your Discord account (<strong><%= @discord_user["username"] %>#<%= @discord_user["discriminator"] %></strong>):</p>
 
     <% if @discord_user["email"] %>
-      <p>Step 1: Navigate to the email that you used to sign up for Discord (<strong><%= @discord_user["email"] %></strong>).
+      <p><strong>Step 1</strong>: Navigate to the email that you used to sign up for Discord (<strong><%= @discord_user["email"] %></strong>).
     <% else %>
-      <p>Step 1: Navigate to the email that you used to sign up for Discord.
+      <p><strong>Step 1</strong>: Navigate to the email that you used to sign up for Discord.
     <% end %>
       Locate the Discord confirmation email with the subject "Verify Your Email Address for Discord".</p>
-    <img src="https://platform-prod-assets.s3.amazonaws.com/Discord+Signup+Images/discord-verify-email-subject.png" alt="" class="discord-demo">
+    <img src="https://platform-prod-assets.s3.amazonaws.com/Discord+Signup+Images/discord-verify-email-subject.png" alt="" class="discord-signup">
 
-    <p>Step 2: Open the email and click the blue "Verify Email" button. Then come back here and refresh this page to be added to the Braven Discord server!</p>
+    <p><strong>Step 2</strong>: Open the email and click the blue "Verify Email" button. Then come back here and refresh this page to be added to the Braven Discord server!</p>
 
     <div class="d-flex justify-content-center">
       <%= link_to "Refresh", launch_discord_signups_path(lti_launch_id: @lti_launch.id), class: "btn btn-lg btn-primary  btn-block discord-refresh-btn" %>
     </div>
 
-    <p>If you cannot find the email, continue to Step 3 below.</p>
-    <img src="https://platform-prod-assets.s3.amazonaws.com/Discord+Signup+Images/discord-verify-email-button.png" alt="" class="discord-demo">
+    <p>If you cannot find the email, continue to <strong>Step 3</strong> below.</p>
+    <img src="https://platform-prod-assets.s3.amazonaws.com/Discord+Signup+Images/discord-verify-email-button.png" alt="" class="discord-signup">
 
-    <p>[Optional] Step 3: If you cannot find the email, go to your <a href="https://discord.com/channels/@me">Discord homepage</a>.</p>
+    <p>[Optional] <strong>Step 3</strong>: If you cannot find the email, go to your <a href="https://discord.com/channels/@me">Discord homepage</a>.</p>
 
-    <p>[Optional] Step 4: Click the gear in the lower left corner to go to your user settings.</p>
-    <img src="https://platform-prod-assets.s3.amazonaws.com/Discord+Signup+Images/discord-settings-gear.png" alt="" class="discord-demo">
+    <p>[Optional] <strong>Step 4</strong>: Click the gear in the lower left corner to go to your user settings.</p>
+    <img src="https://platform-prod-assets.s3.amazonaws.com/Discord+Signup+Images/discord-settings-gear.png" alt="" class="discord-signup">
 
-    <p>[Optional] Step 5: At the top of the user settings, click the "Resend Verification Email" button. Navigate to your email, open the verification email, and click the blue "Verify Email" button. For further assistance, please submit a <a href="<%=Rails.application.secrets.support_ticket_url%>">help ticket</a> to the Braven Product Support Team.</p>
-    <img src="https://platform-prod-assets.s3.amazonaws.com/Discord+Signup+Images/discord-resend-verification-email.png" alt="" class="discord-demo">
+    <p>[Optional] <strong>Step 5</strong>: At the top of the user settings, click the "Resend Verification Email" button. Navigate to your email, open the verification email, and click the blue "Verify Email" button. For further assistance, please submit a <a href="<%=Rails.application.secrets.support_ticket_url%>">help ticket</a> to the Braven Product Support Team.</p>
+    <img src="https://platform-prod-assets.s3.amazonaws.com/Discord+Signup+Images/discord-resend-verification-email.png" alt="" class="discord-signup">
 
-    <p>Step 6: Once you're all set up, click the button below to refresh this page and be added to the Braven Discord server!</p>
+    <p><strong>Step 6</strong>: Once you're all set up, click the button below to refresh this page and be added to the Braven Discord server!</p>
 
     <div class="d-flex justify-content-center">
       <%= link_to "Refresh", launch_discord_signups_path(lti_launch_id: @lti_launch.id), class: "btn btn-lg btn-primary  btn-block discord-refresh-btn" %>
