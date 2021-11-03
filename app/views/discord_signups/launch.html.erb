@@ -69,5 +69,13 @@
 
   <% end %>
 
-  <p class="discord-demo-bottom-text">You're all set up with Discord! Head over to the <a href="https://discord.com/channels/<%= @discord_server_id %>">Braven Discord Server</a>! Feel free to start exploring the server. We'll walk through the ins and outs of how to use Discord during the Learning Lab.</p>
+  <p>You're all set up with Discord! Head over to the <a href="https://discord.com/channels/<%= @discord_server_id %>">Braven Discord Server</a>! Feel free to start exploring the server. We'll walk through the ins and outs of how to use Discord during the Learning Lab.</p>
+
+  <% unless @discord_user["email"].nil? %>
+    <p>Just in case you forget, your Discord account information is:</p>
+    <ul>
+      <li>Discord Login Email: <strong><%= @discord_user["email"] %></strong></li>
+      <li>Discord Username: <strong><%= @discord_user["username"] %>#<%= @discord_user["discriminator"] %></strong></li>
+    </ul>
+  <% end %>
 <% end %>
