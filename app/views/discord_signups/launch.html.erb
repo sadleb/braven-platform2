@@ -10,8 +10,9 @@
   <p>If you do not have a Discord account, please <a href="https://discord.com/register" target="_blank">create a Discord account (opens in new tab)</a>.</p>
 
   <h2>Step 2: Authorize Your Discord Account</h2>
+
   <p>In order to add you to the Braven Discord server, Braven needs temporary access to your Discord account. After you're all set up, you can revoke Braven's access at any time from your Discord account settings.</p>
-  <p><a href="https://discord.com/api/oauth2/authorize?client_id=<%= Rails.application.secrets.discord_client_id %>&redirect_uri=<%= ERB::Util.url_encode(Rails.application.secrets.discord_redirect_uri) %>&response_type=code&scope=identify%20email%20guilds%20guilds.join">Authorize Braven to access your Discord account</a>.</p>
+  <p><a href="https://discord.com/api/oauth2/authorize?client_id=<%= Rails.application.secrets.discord_client_id %>&redirect_uri=<%= ERB::Util.url_encode(Rails.application.secrets.discord_redirect_uri) %>&response_type=code&scope=identify%20email%20guilds%20guilds.join&state=<%= @discord_state %>">Click here to authorize access to Braven's Discord server</a></p>
 
 <% else %>
   <% if @discord_user["email"].nil? %>

@@ -28,6 +28,12 @@ class DiscordSignupsController < ApplicationController
   def launch
     authorize :discord_signup
 
+    @discord_state = SecureRandom.hex + ",#{@lti_launch.id}"
+    Honeycomb.add_field('user.discord_state', @discord_state)
+
+    # Save a CSRF token so we can verify in #oauth
+    current_user.update!(discord_state: @discord_state)
+
     if current_user.discord_token
       response = Discordrb::API::User.profile("Bearer #{current_user.discord_token}")
       @discord_user = JSON.parse(response.body)
@@ -72,22 +78,35 @@ class DiscordSignupsController < ApplicationController
   def oauth
     authorize :discord_signup
 
-    response = Discordrb::API.request(
-      :oauth2_token,
-      nil,
-      :post,
-      'https://discord.com/api/v8/oauth2/token',
-      {
-        client_id: Rails.application.secrets.discord_client_id,
-        client_secret: Rails.application.secrets.discord_client_secret,
-        grant_type: 'authorization_code',
-        code: params[:code],
-        redirect_uri: Rails.application.secrets.discord_redirect_uri
-      },
-      content_type: 'application/x-www-form-urlencoded'
-    )
-    current_user.update!(discord_token: JSON.parse(response.body)['access_token'])
-    redirect_to launch_discord_signups_url
+    begin
+      # Verify the CSRF token
+      state, lti_launch_id = params[:state].split(",")
+      raise SecurityError if current_user.discord_state != params[:state]
+
+      # User authorized access
+      # See: https://docs.microsoft.com/en-us/linkedin/shared/authentication/authorization-code-flow#your-application-is-approved
+      response = Discordrb::API.request(
+        :oauth2_token,
+        nil,
+        :post,
+        'https://discord.com/api/v8/oauth2/token',
+        {
+          client_id: Rails.application.secrets.discord_client_id,
+          client_secret: Rails.application.secrets.discord_client_secret,
+          grant_type: 'authorization_code',
+          code: params[:code],
+          redirect_uri: Rails.application.secrets.discord_redirect_uri
+        },
+        content_type: 'application/x-www-form-urlencoded'
+      )
+      current_user.update!(discord_token: JSON.parse(response.body)['access_token'])
+    ensure
+      # Consume the CSRF token
+      current_user.discord_state = ''
+      current_user.save!
+    end
+
+    redirect_to launch_discord_signups_url(lti_launch_id: lti_launch_id)
   end
 
 private
