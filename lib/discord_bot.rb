@@ -34,6 +34,7 @@ ADMIN_COMMANDS = {
   list_misconfigured: 'list_misconfigured',
   create_invite: 'create_invite',
   end_program: 'end_program',
+  stop: 'stop',
 }
 # Roles that are allowed to run admin commands.
 ADMIN_ROLES = [
@@ -380,6 +381,10 @@ class DiscordBot
       LOGGER.debug "end_program command"
       Honeycomb.add_field('command', 'end_program')
       end_program_command(event)
+    when /^#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:stop]}/
+      LOGGER.debug "stop command"
+      Honeycomb.add_field('command', 'stop')
+      stop_command(event)
     else
       LOGGER.debug "unknown command"
       Honeycomb.add_field('command', 'unknown')
@@ -389,7 +394,12 @@ class DiscordBot
     # Simplify error handling for bot commands.
     message_content = "❌ Encountered an error!"
     message_content << "\n#{e.class.name}: #{e.message}"
-    event.message.respond message_content
+    begin
+      event.message.respond message_content
+    rescue Discordrb::Errors::InvalidFormBody
+      # Post a truncated response with an arbitrary max length, less than 4000.
+      event.message.respond message_content.slice(0, 250)
+    end
     raise e
   end
 
@@ -1017,6 +1027,11 @@ class DiscordBot
     message.edit(message_content)
   end
 
+  def stop_command(event)
+    event.message.respond("Stopping the bot!")
+    exit
+  end
+
   #
   # Lower-level Utilities
   #
@@ -1603,7 +1618,7 @@ private
     Honeycomb.add_field('find_general_channel.server_id', server_id.to_s)
     Honeycomb.add_field('find_general_channel.servers_channels', @servers.transform_values { |s| s.channels.map { |c| [c.id, c.name, c.type] } }.to_s)
     Honeycomb.add_field('find_general_channel.bot_servers_channels', @bot.servers.transform_values { |s| s.channels.map { |c| [c.id, c.name, c.type] } }.to_s)
-    Honeycomb.add_field('find_general_channel.general_channels', @general_channels.transform_values { |c| [c.id, c.name, c.type] }.to_s)
+    Honeycomb.add_field('find_general_channel.general_channels', @general_channels.transform_values { |c| [c&.id, c&.name, c&.type] }.to_s)
 
     @general_channels[server_id] ||= @servers[server_id].channels.find { |channel|
       channel.name == GENERAL_CHANNEL && channel.type == TEXT_CHANNEL
