@@ -1194,6 +1194,8 @@ class DiscordBot
     # Discord invites are attached to channels for some weird, probably legacy reason.
     # Always generate invites for the #general channel.
     general_channel = find_general_channel(server_id)
+    Honeycomb.add_field('alert.nil_general_channel', true) if general_channel.nil?
+
     # Last parameters are: temporary=false, unique=true.
     invite = general_channel.make_invite(INVITE_MAX_AGE, INVITE_MAX_USES, false, true)
     @invites[server_id] ||= {}
@@ -1596,6 +1598,13 @@ private
   # Attempts to find the channel in the cache first, otherwise looks it up
   # and caches it for the next time.
   def find_general_channel(server_id)
+    Honeycomb.add_field('find_general_channel.server_ids', @servers.keys.to_s)
+    Honeycomb.add_field('find_general_channel.bot_server_ids', @bot.servers.keys.to_s)
+    Honeycomb.add_field('find_general_channel.server_id', server_id.to_s)
+    Honeycomb.add_field('find_general_channel.servers_channels', @servers.transform_values { |s| s.channels.map { |c| [c.id, c.name, c.type] } }.to_s)
+    Honeycomb.add_field('find_general_channel.bot_servers_channels', @bot.servers.transform_values { |s| s.channels.map { |c| [c.id, c.name, c.type] } }.to_s)
+    Honeycomb.add_field('find_general_channel.general_channels', @general_channels.transform_values { |c| [c.id, c.name, c.type] }.to_s)
+
     @general_channels[server_id] ||= @servers[server_id].channels.find { |channel|
       channel.name == GENERAL_CHANNEL && channel.type == TEXT_CHANNEL
     }
