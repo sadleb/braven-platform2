@@ -1481,17 +1481,17 @@ class DiscordBot
     channel_count
   end
 
-  # Remove permission overwrites for a given member, everywhere except a given channel name.
+  # Remove permission overwrites for a given member, in all cohort channels except a given channel name.
   # This duplicates some of the logic from get_overwrite_channels, but it's easier to test
   # if we do get and remove in separate steps.
   def self.remove_permission_overwrites(member, except_channel_name: nil)
-    LOGGER.debug "Removing permission overwrites for member in all channels"
+    LOGGER.debug "Removing permission overwrites for member in all cohort channels"
     Honeycomb.start_span(name: 'bot.remove_permission_overwrites') do
       Honeycomb.add_field('member.id', member.id.to_s)
       Honeycomb.add_field('server.id', member.server.id.to_s)
       Honeycomb.add_field('remove_permission_overwrites.except_channel_name', except_channel_name)
 
-      DiscordBot.get_overwrite_channels(member).each do |channel|
+      DiscordBot.get_overwrite_cohort_channels(member).each do |channel|
         next if channel.name == except_channel_name
         filtered_overwrites = channel.permission_overwrites.reject {
           |k, v| v.type == :member && v.id == member.id
@@ -1501,9 +1501,9 @@ class DiscordBot
     end
   end
 
-  # Get all channels where a given member has permission overwrites.
-  def self.get_overwrite_channels(member)
-    LOGGER.debug "Checking permission overwrites for member in all channels"
+  # Get all cohort channels where a given member has permission overwrites.
+  def self.get_overwrite_cohort_channels(member)
+    LOGGER.debug "Checking permission overwrites for member in all cohort channels"
     Honeycomb.start_span(name: 'bot.get_overwrite_channels') do
       Honeycomb.add_field('member.id', member.id.to_s)
       Honeycomb.add_field('server.id', member.server.id.to_s)
@@ -1512,7 +1512,7 @@ class DiscordBot
       member.server.channels.each do |channel|
         channels << channel if channel.permission_overwrites.any? {
           |k, v| v.type == :member && v.id == member.id
-        }
+        } && channel.parent&.name == COHORT_CHANNEL_CATEGORY
       end
 
       Honeycomb.add_field('permission_overwrite_channels.channel_names', channels.map { |c| c.name })

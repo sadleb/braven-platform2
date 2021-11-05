@@ -1646,7 +1646,7 @@ RSpec.describe DiscordBot do
     let(:channels) { [channel_with_matching_overwrite, except_channel] }
 
     before :each do
-      expect(DiscordBot).to receive(:get_overwrite_channels).and_return(channels)
+      expect(DiscordBot).to receive(:get_overwrite_cohort_channels).and_return(channels)
       channels.each do |c|
         allow(c).to receive(:permission_overwrites=)
       end
@@ -1665,33 +1665,39 @@ RSpec.describe DiscordBot do
     end
   end
 
-  describe 'self.get_overwrite_channels' do
-    subject { DiscordBot.get_overwrite_channels(member) }
+  describe 'self.get_overwrite_cohort_channels' do
+    subject { DiscordBot.get_overwrite_cohort_channels(member) }
 
     let(:member_id) { 'fake-member-id' }
     let(:member) { instance_double(Discordrb::Member, id: member_id, server: server) }
     let(:server) { instance_double(Discordrb::Server, id: 'fake-server-id', channels: channels) }
     let(:matching_overwrite) { instance_double(Discordrb::Overwrite, id: member_id, type: :member) }
     let(:not_matching_overwrite) { instance_double(Discordrb::Overwrite, id: 'not-member-id', type: :member) }
-    let(:channel_with_matching_overwrite) { instance_double(Discordrb::Channel, name: 'test-channel-1', permission_overwrites: {
+    let(:cohort_channel_category) { instance_double(Discordrb::Channel, name: COHORT_CHANNEL_CATEGORY) }
+    let(:not_cohort_channel_category) { instance_double(Discordrb::Channel, name: 'Test Category') }
+    let(:channel_with_matching_overwrite) { instance_double(Discordrb::Channel, name: 'test-channel-1', parent: cohort_channel_category, permission_overwrites: {
       matching_overwrite.id => matching_overwrite,
       not_matching_overwrite.id => not_matching_overwrite,
     }) }
-    let(:channel_without_matching_overwrite) { instance_double(Discordrb::Channel, name: 'test-channel-2', permission_overwrites: {
+    let(:channel_without_matching_overwrite) { instance_double(Discordrb::Channel, name: 'test-channel-2', parent: cohort_channel_category, permission_overwrites: {
+      not_matching_overwrite.id => not_matching_overwrite,
+    }) }
+    let(:channel_without_matching_parent) { instance_double(Discordrb::Channel, name: 'test-channel-3', parent: not_cohort_channel_category, permission_overwrites: {
+      matching_overwrite.id => matching_overwrite,
       not_matching_overwrite.id => not_matching_overwrite,
     }) }
     let(:channels) { [] }
 
-    context 'with channels with a matching overwrite' do
-      let(:channels) { [channel_with_matching_overwrite, channel_without_matching_overwrite] }
+    context 'with channels with a matching overwrite and parent' do
+      let(:channels) { [channel_with_matching_overwrite, channel_without_matching_overwrite, channel_without_matching_parent] }
 
-      it 'returns channels with a matching overwrite' do
+      it 'returns channels with a matching overwrite and parent' do
         expect(subject).to eq([channel_with_matching_overwrite])
       end
     end
 
-    context 'with no channels with a matching overwrite' do
-      let(:channels) { [channel_without_matching_overwrite] }
+    context 'with no channels with a matching overwrite or parent' do
+      let(:channels) { [channel_without_matching_overwrite, channel_without_matching_parent] }
 
       it 'returns an empty list' do
         expect(subject).to eq([])
