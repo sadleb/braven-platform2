@@ -1,0 +1,36 @@
+<div class="col-lg-8">
+  <%= form_for(@discord_server, method: "post", local: true) do |f| %>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="form-group">
+          <%= f.label('name', 'Server name') %>
+          <%= f.text_field('name', required: true, class: 'form-control', placeholder: 'SJSU') %>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="form-group">
+          <%= f.label('discord_server_id', 'Server ID') %>
+          <%= f.number_field('discord_server_id', required: true, class: 'form-control', placeholder: '722098701878689933') %>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="form-group">
+          <%= f.label('webhook_url', 'Webhook URL') %>
+          <%= f.text_field('webhook_url', required: true, class: 'form-control', placeholder: "#{DiscordServer::WEBHOOK_URL_BASE}/905892705857589278/ReallyLongBunchOfLettersAndNumbersAndSymbols") %>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <div class="form-group actions">
+          <%= f.submit "Add server" %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>

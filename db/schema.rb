@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_11_02_205619) do
+ActiveRecord::Schema.define(version: 2021_11_04_201737) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
@@ -310,11 +310,14 @@ ActiveRecord::Schema.define(version: 2021_11_02_205619) do
 
   create_table "discord_servers", force: :cascade do |t|
     t.string "discord_server_id", null: false
-    t.string "name"
-    t.string "webhook_id"
-    t.string "webhook_token"
+    t.string "name", null: false
+    t.string "webhook_id", null: false
+    t.string "webhook_token", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.index ["discord_server_id"], name: "index_discord_servers_on_discord_server_id", unique: true
+    t.index ["name"], name: "index_discord_servers_on_name", unique: true
+    t.index ["webhook_id"], name: "index_discord_servers_on_webhook_id", unique: true
   end
 
   create_table "fellow_evaluation_submission_answers", force: :cascade do |t|

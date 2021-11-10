@@ -28,7 +28,7 @@ class DiscordScheduleController < ApplicationController
     # server ID. Sort by name.
     server_ids = @jobs.map { |j| j[:server_id] }.uniq
     @servers = server_ids.map { |id| {
-      name: DiscordConstants::NAME_FROM_ID[id],
+      name: DiscordServer.find_by(discord_server_id: id.to_s).name,
       id: id
     } }.sort_by! { |s| s[:name] }
   end

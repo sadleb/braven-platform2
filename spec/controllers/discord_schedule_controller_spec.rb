@@ -5,13 +5,14 @@ RSpec.describe DiscordScheduleController, type: :controller do
 
   context "with normal signin" do
     let(:user) { create :admin_user }
+    let(:discord_server) { create :discord_server }
     let(:scheduled_set) { instance_double(Sidekiq::ScheduledSet,
       map: job_maps,
       find_job: job,
     ) }
     let(:job_maps) { [
       { at: 3.days.from_now, info: {
-        'arguments' => [DiscordConstants::TEST_ID, 'test-channel', 'test-msg'],
+        'arguments' => [discord_server.discord_server_id, 'test-channel', 'test-msg'],
         'job_class' => 'SendDiscordMessageJob',
       }, id: 'fake' }
     ] }
@@ -31,7 +32,7 @@ RSpec.describe DiscordScheduleController, type: :controller do
 
       it "lists scheduled jobs" do
         get :index
-        expect(response.body).to match /<h2.*>Server: #{DiscordConstants::TEST}/
+        expect(response.body).to match /<h2.*>Server: #{discord_server.name}/
         expect(response.body).to match /#test-channel/
         expect(response.body).to match /test-msg/
       end

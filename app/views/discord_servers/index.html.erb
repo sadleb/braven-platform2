@@ -1,0 +1,25 @@
+<% content_for(:headline) do %>
+ Discord Servers
+<% end %>
+
+<div class="col-lg-8">
+
+  <div class="row mb-3">
+    <div class="col">
+      <%= link_to "Add new server", new_discord_server_path, class: "btn btn-default btn-lg" %>
+    </div>
+  </div>
+
+  <% @discord_servers.each do |server| %>
+    <div class="row">
+      <div class="col-sm-9">
+        <p><%= server.name %></p>
+      </div>
+      <div class="col-sm-3">
+        <p><%= link_to "Open", server.server_url %>
+         | <%= link_to "Delete", discord_server_path(server.id), method: :delete, data: { confirm: 'This server will be removed from Platform. Are you sure?' } %></p>
+      </div>
+    </div>
+  <% end %>
+
+</div>

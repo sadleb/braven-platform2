@@ -1,0 +1,2 @@
+class DiscordServerPolicy < ApplicationPolicy
+end

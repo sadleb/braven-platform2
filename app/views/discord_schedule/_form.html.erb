@@ -6,7 +6,7 @@
           <%= f.label('server_id', 'Discord server') %>
           <%= f.select('server_id',
             # Update the Discord Server Constants if/when we add more.
-            DiscordConstants::SERVERS,
+            DiscordServer.all.map { |s| [s.name, s.discord_server_id] }.sort,
           {}, required: true, class: 'form-control') %>
         </div>
       </div>
