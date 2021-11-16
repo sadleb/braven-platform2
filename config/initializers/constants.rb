@@ -31,6 +31,7 @@ end
 # Sections
 class SectionConstants
   DEFAULT_SECTION = 'Default Section'
+  # TODO: rename to DEFAULT_TA_SECTION: https://app.asana.com/0/1201131148207877/1201324882801066
   TA_SECTION = 'Teaching Assistants'
 end
 

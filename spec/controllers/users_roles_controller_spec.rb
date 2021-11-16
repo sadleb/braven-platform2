@@ -14,7 +14,7 @@ RSpec.describe UsersRolesController, type: :controller do
     let(:canvas_user_id) { 92837 }
     let!(:test_user) { create :registered_user, canvas_user_id: canvas_user_id }
     let(:canvas_client) { double(CanvasAPI) }
-  
+
     before(:each) do
       allow(CanvasAPI).to receive(:client).and_return(canvas_client)
       sign_in admin_user
@@ -53,6 +53,7 @@ RSpec.describe UsersRolesController, type: :controller do
 
         before(:each) do
           allow(canvas_client).to receive(:find_section_by)
+          allow(canvas_client).to receive(:find_enrollments_for_course_and_user)
           allow(canvas_client).to receive(:create_lms_section).and_return(canvas_section)
           allow(canvas_client).to receive(:find_enrollment)
           allow(canvas_client).to receive(:enroll_user_in_course)
@@ -65,13 +66,13 @@ RSpec.describe UsersRolesController, type: :controller do
 
         it 'creates the platform Section' do
           platform_section = Section.find_by!(canvas_section_id: canvas_section.id)
-          expect(platform_section.name).to eq(canvas_section.name) 
-          expect(platform_section.course_id).to eq(course.id) 
-          expect(platform_section.canvas_section_id).to eq(canvas_section.id) 
+          expect(platform_section.name).to eq(canvas_section.name)
+          expect(platform_section.course_id).to eq(course.id)
+          expect(platform_section.canvas_section_id).to eq(canvas_section.id)
         end
 
         it 'adds the UsersRole' do
-          platform_section = Section.find_by!(canvas_section_id: canvas_section.id)  
+          platform_section = Section.find_by!(canvas_section_id: canvas_section.id)
           expect(test_user.has_role?(enrollment_type, platform_section)).to be(true)
         end
 
@@ -104,7 +105,7 @@ RSpec.describe UsersRolesController, type: :controller do
          } }
 
         before(:each) do
-          allow(canvas_client).to receive(:find_enrollment).and_return(canvas_enrollment)
+          allow(canvas_client).to receive(:find_enrollments_for_course_and_user).and_return([canvas_enrollment])
           allow(canvas_client).to receive(:delete_enrollment)
           test_user.add_role enrollment_type, section
           delete :destroy, params: valid_delete_params, session: valid_session

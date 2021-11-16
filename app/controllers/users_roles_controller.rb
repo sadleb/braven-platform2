@@ -60,6 +60,7 @@ class UsersRolesController < ApplicationController
       @user.first_name,
       @user.last_name,
       @user.salesforce_id,
+      [],
     )
 
     sf_program = nil
@@ -101,6 +102,7 @@ class UsersRolesController < ApplicationController
       @user.first_name,
       @user.last_name,
       @user.salesforce_id,
+      [],
     )
 
     # Hacky. If this is a TaEnrollment, the real code assumes it's a Leadership Coach and
@@ -140,6 +142,7 @@ private
       :first_name,
       :last_name,
       :contact_id,
+      :teaching_assistant_sections,
     ) do
       def role
         case platform_role

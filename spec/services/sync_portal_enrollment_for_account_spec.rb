@@ -34,6 +34,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
   let(:lms_client) { double(
     CanvasAPI,
     find_enrollment: fellow_lms_enrollment,
+    find_enrollments_for_course_and_user: [fellow_lms_enrollment],
     find_section_by: fellow_lms_section,
     enroll_user_in_course: nil,
     create_lms_section: fellow_lms_section,
@@ -44,6 +45,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
     create_assignment_overrides: nil,
   ) }
   let(:sync_from_salesforce_service) { double(SyncFromSalesforceContact) }
+  let(:sync_ta_caseload_for_participant_service) { double(SyncTaCaseloadForParticipant) }
   # Create local models, with the assumption that a user that exists on Canvas must already exist locally too.
   # This all falls apart if that assumption is untrue (the tests will pass, but the code won't work), so be careful
   # if anything changes in this code in the future.
@@ -57,6 +59,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 
   before(:each) do
     allow(SyncFromSalesforceContact).to receive(:new).and_return(sync_from_salesforce_service)
+    allow(SyncTaCaseloadForParticipant).to receive(:new).and_return(sync_ta_caseload_for_participant_service)
     allow(CanvasAPI).to receive(:client).and_return(lms_client)
   end
 
@@ -75,6 +78,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
         sf_participant.role = SalesforceAPI::TEACHING_ASSISTANT
         sf_participant.status = SalesforceAPI::ENROLLED
         allow(lms_client).to receive(:assign_account_role)
+        allow(sync_ta_caseload_for_participant_service).to receive(:run)
       end
 
       it 'enrolls in the fellow course with limit removed' do
@@ -102,22 +106,28 @@ RSpec.describe SyncPortalEnrollmentForAccount do
         expect(lms_client).to receive(:assign_account_role).with(portal_user.id, CanvasConstants::STAFF_ACCOUNT_ROLE_ID).once
         run_sync
       end
+
+      it 'syncs the TA Caseload sections' do
+        expect(sync_ta_caseload_for_participant_service).to receive(:run).once
+        run_sync
+      end
     end
 
     context 'for enrolled fellow participant' do
       before(:each) do
         sf_participant.role = SalesforceAPI::FELLOW
         sf_participant.status = SalesforceAPI::ENROLLED
+        allow(sync_ta_caseload_for_participant_service).to receive(:run)
       end
 
       it 'creates a section if it does not exists' do
-        allow(lms_client).to receive(:find_section_by).and_return(nil)
-        run_sync
-        expect(lms_client).to have_received(:create_lms_section)
+        allow(Section).to receive(:find_by).and_return(nil)
+        expect{ run_sync }.to change(Section, :count).by(1)
       end
 
 
-      it 'creates a default section if no section on salesforce' do
+      it 'creates a default section in Canvas if no section on salesforce' do
+        allow(Section).to receive(:find_by).and_return(nil)
         allow(lms_client).to receive(:find_section_by).and_return(nil)
         run_sync
         expect(lms_client)
@@ -128,6 +138,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
       # Add tests for other sections when implemented
 
       it 'does not create a section if it exists' do
+        allow(Section).to receive(:find_by).and_return(fellow_section)
         run_sync
         expect(lms_client).not_to have_received(:create_lms_section)
       end
@@ -138,25 +149,25 @@ RSpec.describe SyncPortalEnrollmentForAccount do
       end
 
       it 'de-enrols a user if section changes' do
-        new_section = CanvasAPI::LMSSection.new(28374)
+        new_section = create(:section, course_id: fellow_course.id, canvas_section_id: fellow_lms_section.id + 1)
         allow(lms_client).to receive(:find_enrollment).and_return(fellow_lms_enrollment)
-        allow(lms_client).to receive(:find_section_by).and_return(new_section)
+        allow(Section).to receive(:find_by).and_return(new_section)
         run_sync
         expect(lms_client).to have_received(:delete_enrollment).once
       end
 
       it 'reenrols the user if section changes' do
-        new_section = CanvasAPI::LMSSection.new(97863)
+        new_section = create(:section, course_id: fellow_course.id, canvas_section_id: fellow_lms_section.id + 1)
         allow(lms_client).to receive(:find_enrollment).and_return(fellow_lms_enrollment)
-        allow(lms_client).to receive(:find_section_by).and_return(new_section)
+        allow(Section).to receive(:find_by).and_return(new_section)
         run_sync
         expect(lms_client).to have_received(:enroll_user_in_course).once
       end
 
       it 're-creates assignment overrides if section changes' do
-        new_section = CanvasAPI::LMSSection.new(97863)
+        new_section = create(:section, course_id: fellow_course.id, canvas_section_id: fellow_lms_section.id + 1)
         allow(lms_client).to receive(:find_enrollment).and_return(fellow_lms_enrollment)
-        allow(lms_client).to receive(:find_section_by).and_return(new_section)
+        allow(Section).to receive(:find_by).and_return(new_section)
 
         run_sync
 
@@ -179,6 +190,11 @@ RSpec.describe SyncPortalEnrollmentForAccount do
         allow(lms_client).to receive(:find_enrollment).and_return(new_enrollment)
         run_sync
         expect(lms_client).to have_received(:enroll_user_in_course).once
+      end
+
+      it 'syncs the TA Caseload sections' do
+        expect(sync_ta_caseload_for_participant_service).to receive(:run).once
+        run_sync
       end
     end
 
@@ -349,12 +365,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
     end
 
     context "when canvas section does not already exist" do
-      before :each do
-        allow(lms_client).to receive(:find_section_by).and_return(
-          nil,  # first call
-          fellow_lms_section,  # second call, looking for the cohort-schedule section
-        )
-      end
+      let!(:fellow_section) { build(:section, course_id: fellow_course.id, canvas_section_id: fellow_lms_section.id, name: fellow_lms_section.name) }
 
       context "when participant in cohort-schedule only" do
         before :each do
@@ -393,7 +404,9 @@ RSpec.describe SyncPortalEnrollmentForAccount do
                 salesforce_program: sf_program)
             .send(:find_or_create_section, fellow_canvas_course_id, fellow_lms_section.name)
 
-          expect(local_section).to eq(fellow_section)
+          expect(local_section.course_id).to eq(fellow_section.course_id)
+          expect(local_section.canvas_section_id).to eq(fellow_section.canvas_section_id)
+          expect(local_section.name).to eq(fellow_section.name)
         end
       end
 
@@ -401,7 +414,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
         # fellow_lms_section should be the cohort-schedule section.
         let(:fellow_lms_section) { CanvasAPI::LMSSection.new(11, "test cohort-schedule section") }
         let(:lms_cohort_section) { CanvasAPI::LMSSection.new(10, "test cohort section") }
-        let!(:fellow_section) { create(:section, course_id: fellow_course.id, canvas_section_id: lms_cohort_section.id, name: lms_cohort_section.name) }
+        let!(:fellow_section) { build(:section, course_id: fellow_course.id, canvas_section_id: lms_cohort_section.id, name: lms_cohort_section.name) }
 
         before :each do
           sf_participant.cohort_schedule = fellow_lms_section.name
@@ -441,7 +454,9 @@ RSpec.describe SyncPortalEnrollmentForAccount do
                 salesforce_program: sf_program)
             .send(:find_or_create_section, fellow_canvas_course_id, lms_cohort_section.name)
 
-          expect(local_section).to eq(fellow_section)
+          expect(local_section.course_id).to eq(fellow_section.course_id)
+          expect(local_section.canvas_section_id).to eq(fellow_section.canvas_section_id)
+          expect(local_section.name).to eq(fellow_section.name)
         end
       end
     end

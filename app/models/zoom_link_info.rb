@@ -1,3 +1,5 @@
+require 'salesforce_api'
+
 # This represents the information about a Zoom link that we create for a Participant.
 # The purpose is to be able to make decisions on whether to generate, update, or cancel a link.
 #

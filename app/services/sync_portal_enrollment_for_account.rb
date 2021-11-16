@@ -53,19 +53,23 @@ class SyncPortalEnrollmentForAccount
   def add_enrollment!
     case sf_participant.role
     when SalesforceAPI::LEADERSHIP_COACH
-      sync_enrollment(sf_program.fellow_course_id, RoleConstants::TA_ENROLLMENT,
+      sync_primary_enrollment(sf_program.fellow_course_id, RoleConstants::TA_ENROLLMENT,
                       course_section_name)
-      sync_enrollment(sf_program.leadership_coach_course_id,
+      sync_primary_enrollment(sf_program.leadership_coach_course_id,
                       RoleConstants::STUDENT_ENROLLMENT,
                       SectionConstants::DEFAULT_SECTION)
+
     when SalesforceAPI::FELLOW
-      sync_enrollment(sf_program.fellow_course_id, RoleConstants::STUDENT_ENROLLMENT,
+      sync_primary_enrollment(sf_program.fellow_course_id, RoleConstants::STUDENT_ENROLLMENT,
                       course_section_name)
+      SyncTaCaseloadForParticipant.new(@user, sf_participant, sf_program).run
+
     when SalesforceAPI::TEACHING_ASSISTANT
-      sync_enrollment(sf_program.fellow_course_id, RoleConstants::TA_ENROLLMENT,
-                      SectionConstants::TA_SECTION, limit_privileges_to_course_section=false)
-      sync_enrollment(sf_program.leadership_coach_course_id, RoleConstants::TA_ENROLLMENT,
-                      SectionConstants::TA_SECTION, limit_privileges_to_course_section=false)
+      sync_primary_enrollment(sf_program.fellow_course_id, RoleConstants::TA_ENROLLMENT,
+                        SectionConstants::TA_SECTION, limit_privileges_to_course_section=false)
+      sync_primary_enrollment(sf_program.leadership_coach_course_id, RoleConstants::TA_ENROLLMENT,
+                        SectionConstants::TA_SECTION, limit_privileges_to_course_section=false)
+      SyncTaCaseloadForParticipant.new(@user, sf_participant, sf_program).run
       give_ta_permissions()
     else
       logger.warn("Got unknown role #{sf_participant.role} from SF")
@@ -83,13 +87,13 @@ class SyncPortalEnrollmentForAccount
   def drop_enrollment!
     case sf_participant.role
     when SalesforceAPI::LEADERSHIP_COACH
-      drop_course_enrollment(sf_program.leadership_coach_course_id)
-      drop_course_enrollment(sf_program.fellow_course_id)
+      drop_course_enrollments(sf_program.leadership_coach_course_id)
+      drop_course_enrollments(sf_program.fellow_course_id)
     when SalesforceAPI::FELLOW
-      drop_course_enrollment(sf_program.fellow_course_id)
+      drop_course_enrollments(sf_program.fellow_course_id)
     when SalesforceAPI::TEACHING_ASSISTANT
-      drop_course_enrollment(sf_program.fellow_course_id)
-      drop_course_enrollment(sf_program.leadership_coach_course_id)
+      drop_course_enrollments(sf_program.fellow_course_id)
+      drop_course_enrollments(sf_program.leadership_coach_course_id)
       remove_ta_permissions()
     else
       logger.warn("Got unknown role #{sf_participant.role} from SF")
@@ -101,19 +105,26 @@ class SyncPortalEnrollmentForAccount
     # We haven't figured out this yet
   end
 
-  def drop_course_enrollment(canvas_course_id)
-    enrollment = find_user_enrollment(canvas_course_id)
-    return if enrollment.nil?
+  def drop_course_enrollments(canvas_course_id)
+    enrollments = canvas_client.find_enrollments_for_course_and_user(canvas_course_id, user.canvas_user_id)
+    Honeycomb.add_field('canvas.enrollments.count', enrollments&.count)
+    return if enrollments.blank?
 
-    logger.info('Removing user enrollment from canvas')
-    canvas_client.delete_enrollment(enrollment: enrollment)
-    section = Section.find_by!(canvas_section_id: enrollment.section_id)
-    # remove_role passes if the role doesn't exist.
-    user.remove_role enrollment.type, section
+    logger.info('Removing user enrollments from canvas')
+    enrollments.each { |enrollment|
+      canvas_client.delete_enrollment(enrollment: enrollment)
+      # There may be enrollments in Canvas without a local section. E.g. TA Caseloads.
+      # Those are just skipped.
+      section = Section.find_by(canvas_section_id: enrollment.section_id)
+      # remove_role passes if the role doesn't exist.
+      user.remove_role enrollment.type, section if section
+    }
   end
 
-  # Enroll or update their enrollment in the proper course and section
-  def sync_enrollment(canvas_course_id, role, section_name, limit_privileges_to_course_section=true)
+  # Enroll or update their primary enrollment in the proper course and section
+  # The primary enrollment controls the due dates and corresponds to either their
+  # Cohort or Cohort Schedule in Salesforce (or some default section if neither applies).
+  def sync_primary_enrollment(canvas_course_id, role, section_name, limit_privileges_to_course_section=true)
     section_name = section_name.blank? ? SectionConstants::DEFAULT_SECTION : section_name
     section = find_or_create_section(canvas_course_id, section_name)
 
@@ -122,10 +133,11 @@ class SyncPortalEnrollmentForAccount
     Honeycomb.add_field('canvas.section.id', section.canvas_section_id.to_s)
     Honeycomb.add_field('canvas.section.role', role)
 
-    enrollment = find_user_enrollment(canvas_course_id)
+    enrollment = find_user_enrollment(section.canvas_section_id)
     if enrollment.nil?
       Honeycomb.add_field('sync_portal_enrollment_for_account.new_enrollment', true)
       enroll_user(canvas_course_id, role, section, limit_privileges_to_course_section)
+
     elsif !enrollment.section_id.eql?(section.canvas_section_id) || !enrollment.type.eql?(role)
       # Section or role has changed.
       # Fetch assignment overrides, so we can replace ones that get deleted in the next step.
@@ -135,7 +147,7 @@ class SyncPortalEnrollmentForAccount
 
       # Remove the old enrollment and add the new one.
       Honeycomb.add_field('sync_portal_enrollment_for_account.new_enrollment', false)
-      drop_course_enrollment(canvas_course_id)
+      drop_course_enrollments(canvas_course_id)
       enroll_user(canvas_course_id, role, section, limit_privileges_to_course_section)
 
       # Add back overrides for this user.
@@ -184,52 +196,55 @@ class SyncPortalEnrollmentForAccount
     )
   end
 
-  # Creates a local DB Section and a Canvas section, but only returns the local one.
+  # Finds or creates a local DB Section and a Canvas section, but only returns the local one.
   # Also handles copying Canvas assignment overrides when appropriate.
   def find_or_create_section(canvas_course_id, section_name)
-    # This section may be a cohort section or a cohort-schedule section, depending on course_section_name.
-    canvas_section = find_canvas_course_section(canvas_course_id, section_name)
-    if canvas_section.nil?
-      # If the Canvas section didn't already exist, create it now.
-      canvas_section = canvas_client.create_lms_section(course_id: canvas_course_id, name: section_name)
+    course = Course.find_by!(canvas_course_id: canvas_course_id)
+    existing_section = Section.find_by(
+      course_id: course.id,
+      name: section_name,
+    )
+    return existing_section if existing_section.present?
 
-      if sf_participant.cohort
-        # The user has been added to a cohort without an existing section.
-        # Copy the due dates from the cohort-schedule section to the new section.
-        # Note: This also means canvas_section is guaranteed to be a cohort section.
-        cohort_schedule_section = find_canvas_course_section(canvas_course_id, sf_participant.cohort_schedule)
-        # In the edge case where the cohort-schedule section doesn't already
-        # exist in Canvas, we just skip all this assignment-override stuff.
-        if cohort_schedule_section
-          cohort_schedule_overrides = []
-          # Unfortunately, the only way to get a list of overrides from Canvas is to
-          # check each assignment in the course. One API call per assignment.
-          assignment_ids = canvas_client.get_assignments(canvas_course_id).map { |a| a['id'] }
-          assignment_ids.each do |assignment_id|
-            overrides = canvas_client.get_assignment_overrides(canvas_course_id, assignment_id)
-            # Exit early if there aren't any overrides for this assignment.
-            next unless overrides
+    # If the Canvas section didn't already exist, create it now.
+    canvas_section = canvas_client.create_lms_section(course_id: canvas_course_id, name: section_name)
 
-            # For assignment overrides in the cohort-schedule section, update the override
-            # config to point to the new section, remove the override ID, and add the
-            # override to a big list of all overrides to copy to the new section.
-            overrides.each do |override|
-              if override['course_section_id'] == cohort_schedule_section.id
-                override['course_section_id'] = canvas_section.id
-                override.delete('id')
-                cohort_schedule_overrides << override
-              end
+    # The above section may be a cohort section or a cohort-schedule section, depending on course_section_name.
+    if sf_participant.cohort
+      # The user has been added to a cohort without an existing section.
+      # Copy the due dates from the cohort-schedule section to the new section.
+      # Note: This also means canvas_section is guaranteed to be a cohort section.
+      cohort_schedule_section = find_canvas_course_section(canvas_course_id, sf_participant.cohort_schedule)
+      # In the edge case where the cohort-schedule section doesn't already
+      # exist in Canvas, we just skip all this assignment-override stuff.
+      if cohort_schedule_section
+        cohort_schedule_overrides = []
+        # Unfortunately, the only way to get a list of overrides from Canvas is to
+        # check each assignment in the course. One API call per assignment.
+        assignment_ids = canvas_client.get_assignments(canvas_course_id).map { |a| a['id'] }
+        assignment_ids.each do |assignment_id|
+          overrides = canvas_client.get_assignment_overrides(canvas_course_id, assignment_id)
+          # Exit early if there aren't any overrides for this assignment.
+          next unless overrides
+
+          # For assignment overrides in the cohort-schedule section, update the override
+          # config to point to the new section, remove the override ID, and add the
+          # override to a big list of all overrides to copy to the new section.
+          overrides.each do |override|
+            if override['course_section_id'] == cohort_schedule_section.id
+              override['course_section_id'] = canvas_section.id
+              override.delete('id')
+              cohort_schedule_overrides << override
             end
           end
-          # Copy all the overrides at once, to reduce the number of API calls.
-          canvas_client.create_assignment_overrides(canvas_course_id, cohort_schedule_overrides)
         end
+        # Copy all the overrides at once, to reduce the number of API calls.
+        canvas_client.create_assignment_overrides(canvas_course_id, cohort_schedule_overrides)
       end
     end
 
     # Now that all the Canvas stuff is done, create a local section and return that.
-    course = Course.find_by!(canvas_course_id: canvas_course_id)
-    Section.find_or_create_by!(
+    Section.create!(
       course_id: course.id,
       name: section_name,
       canvas_section_id: canvas_section.id
@@ -272,8 +287,8 @@ class SyncPortalEnrollmentForAccount
     canvas_client.find_section_by(course_id: canvas_course_id, name: section_name)
   end
 
-  def find_user_enrollment(canvas_course_id)
-    canvas_client.find_enrollment(user_id: portal_user.id, course_id: canvas_course_id)
+  def find_user_enrollment(canvas_section_id)
+    canvas_client.find_enrollment(canvas_user_id: portal_user.id, canvas_section_id: canvas_section_id)
   end
 
   def canvas_client

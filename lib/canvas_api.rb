@@ -344,23 +344,48 @@ class CanvasAPI
   end
 
   # Same as get_enrollments() but just for a single user
+  # TODO: I think this method is obsolete. Delete me?
+  # https://app.asana.com/0/1201131148207877/1201348317908953
   def get_user_enrollments(user_id, course_id=nil, types=[])
     query_params = "per_page=100"
     types.each { |t| query_params += "&type[]=#{t}"}
     response = get("/users/#{user_id}/enrollments")
     # TODO: if course_id is sent, filter the response to only include those for that course
+    # actually, get rid of this param and call the new find_enrollments_for_course_and_user() instead?
     enrollments = get_all_from_pagination(response)
     (enrollments.blank? ? nil : enrollments) # No enrollments returns an empty array and nil is nicer to deal with.
   end
 
-  def find_enrollment(user_id:, course_id:)
-    enrollment = get_user_enrollments(user_id, course_id)
-      &.filter { |e| e['course_id']&.to_i.eql?(course_id&.to_i) }
-      &.last
-    return enrollment if enrollment.nil?
+  def find_enrollment(canvas_user_id:, canvas_section_id:)
+    response = get("/sections/#{canvas_section_id}/enrollments?user_id=#{canvas_user_id}")
+    enrollments = JSON.parse(response.body)
+    return nil if enrollments.blank?
 
+    if enrollments.count > 1
+      # This can only happen if they are enrolled with multiple roles in the same section.
+      # Canvas won't create dupe enrollments for a given section/user/role
+      Honeycomb.add_field('alert.canvas_api.duplicate_enrollments_for_user', true)
+      Honeycomb.add_field('canvas.user.id', canvas_user_id.to_s)
+      Honeycomb.add_field('canvas.section.id', canvas_section_id.to_s)
+    end
+
+    enrollment = enrollments.first
     LMSEnrollment.new(enrollment['id'], enrollment['course_id'],
                       enrollment['type'].to_sym, enrollment['course_section_id'])
+  end
+
+  def find_enrollments_for_course_and_user(canvas_course_id, canvas_user_id)
+    response = get("/courses/#{canvas_course_id}/enrollments?user_id=#{canvas_user_id}")
+    enrollments = get_all_from_pagination(response)
+    return nil if enrollments.blank?
+    enrollments.map { |enrollment|
+      LMSEnrollment.new(
+        enrollment['id'],
+        enrollment['course_id'],
+        enrollment['type'].to_sym,
+        enrollment['course_section_id']
+      )
+    }
   end
 
   # Enrolls the user in the new course, without modifying any existing data
@@ -430,6 +455,12 @@ class CanvasAPI
     return nil if section.nil?
 
     LMSSection.new(section['id'], section['name'])
+  end
+
+  def find_sections_by_course_id(canvas_course_id)
+    sections = get_sections(canvas_course_id)
+    return nil unless sections.present?
+    sections.map { |s| LMSSection.new(s['id'], s['name']) }
   end
 
   def get_sections(course_id)

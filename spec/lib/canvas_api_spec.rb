@@ -146,6 +146,11 @@ RSpec.describe CanvasAPI do
     end
   end
 
+  # TODO: write specs for the following (https://app.asana.com/0/1201131148207877/1201348317908959):
+  # describe '#find_enrollment' do
+  # describe '#find_enrollments_for_course_and_user' do
+  # describe '#find_sections_by_course_id' do
+
   describe '#enroll_user_in_course' do
     let(:course_id) { 71 }
     let(:user_id) { 100 }
