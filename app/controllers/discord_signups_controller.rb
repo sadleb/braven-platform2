@@ -39,6 +39,11 @@ class DiscordSignupsController < ApplicationController
       @discord_state = user_discord_state
     end
 
+    # If a user's discord_token expired, reset it to nil
+    if current_user.discord_expires_at && current_user.discord_expires_at < Time.now.utc
+      current_user.update!(discord_token: nil)
+    end
+
     if current_user.discord_token
       response = Discordrb::API::User.profile("Bearer #{current_user.discord_token}")
       @discord_user = JSON.parse(response.body)
@@ -107,7 +112,13 @@ class DiscordSignupsController < ApplicationController
         },
         content_type: 'application/x-www-form-urlencoded'
       )
-      current_user.update!(discord_token: JSON.parse(response.body)['access_token'])
+
+      discord_response = JSON.parse(response.body)
+      discord_token_expiration = Time.now.utc + discord_response['expires_in']
+      current_user.update!(
+        discord_token: discord_response['access_token'],
+        discord_expires_at: discord_token_expiration,
+      )
     rescue Discordrb::Errors::UnknownError => discorderror
       if params[:error]
         Sentry.capture_exception(discorderror)
