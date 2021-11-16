@@ -28,11 +28,16 @@ class DiscordSignupsController < ApplicationController
   def launch
     authorize :discord_signup
 
-    @discord_state = SecureRandom.hex + ",#{@lti_launch.id}"
-    Honeycomb.add_field('user.discord_state', @discord_state)
+    user_discord_state = current_user.discord_state
+    if user_discord_state.blank?
+      @discord_state = SecureRandom.hex + ",#{@lti_launch.id}"
+      Honeycomb.add_field('user.discord_state', @discord_state)
 
-    # Save a CSRF token so we can verify in #oauth
-    current_user.update!(discord_state: @discord_state)
+      # Save a CSRF token so we can verify in #oauth
+      current_user.update!(discord_state: @discord_state)
+    else
+      @discord_state = user_discord_state
+    end
 
     if current_user.discord_token
       response = Discordrb::API::User.profile("Bearer #{current_user.discord_token}")
@@ -57,19 +62,22 @@ class DiscordSignupsController < ApplicationController
         discord_server = DiscordServer.find_by(discord_server_id: @discord_server_id)
         raise DiscordServerIdError, "No Discord Server found in the database with the discord_server_id = #{@discord_server_id}" if discord_server.nil?
 
-        # Add user to their Discord Server
-        Discordrb::API::Server.add_member(
-          "Bot #{Rails.application.secrets.discord_bot_token}",
-          @discord_server_id,
-          @discord_user['id'],
-          current_user.discord_token,
-          nickname
-        )
+        # If the user is not already in their Discord Server, add them
+        unless user_in_server?(participant)
+          response = Discordrb::API::Server.add_member(
+            "Bot #{Rails.application.secrets.discord_bot_token}",
+            @discord_server_id,
+            @discord_user['id'],
+            current_user.discord_token,
+            nickname
+          )
+          Honeycomb.add_field('discord_web_hook.add_member', response)
 
-        client = Discordrb::Webhooks::Client.new(id: discord_server.webhook_id , token: discord_server.webhook_token)
+          client = Discordrb::Webhooks::Client.new(id: discord_server.webhook_id , token: discord_server.webhook_token)
 
-        client.execute do |builder|
-          builder.content = "!configure_member #{@discord_user['id']} #{contact['Id']}"
+          client.execute do |builder|
+            builder.content = "!configure_member #{@discord_user['id']} #{contact['Id']}"
+          end
         end
       end
     end
@@ -100,8 +108,14 @@ class DiscordSignupsController < ApplicationController
         content_type: 'application/x-www-form-urlencoded'
       )
       current_user.update!(discord_token: JSON.parse(response.body)['access_token'])
+    rescue Discordrb::Errors::UnknownError => discorderror
+      if params[:error]
+        Sentry.capture_exception(discorderror)
+        redirect_to launch_discord_signups_url(lti_launch_id: lti_launch_id), alert: 'You clicked cancel instead of authorize. Try again and click Authorize to be added to the Braven Discord server.' and return
+      else
+        raise
+      end
     ensure
-      # Consume the CSRF token
       current_user.discord_state = ''
       current_user.save!
     end
@@ -126,5 +140,14 @@ private
 
   def can_publish_latest?
     false
+  end
+
+  def user_in_server?(participant)
+    return false unless participant.discord_user_id.present?
+
+    user_servers_response = Discordrb::API::User.servers("Bearer #{current_user.discord_token}")
+    current_user_discord_servers = JSON.parse(user_servers_response.body)
+
+    current_user_discord_servers.find { |server| server['id'] == participant.discord_server_id }.present?
   end
 end
