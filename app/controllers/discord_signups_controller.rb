@@ -37,6 +37,7 @@ class DiscordSignupsController < ApplicationController
     participant = SalesforceAPI.client.find_participant(
       contact_id: current_user.salesforce_id, program_id: program_id
     )
+    participant.add_to_honeycomb_span()
 
     # Show Staff/Faculty/Test TAs a different page, so they can't use this.
     # Note: We will likely adjust how this is determined later. See the Slack
@@ -63,14 +64,12 @@ class DiscordSignupsController < ApplicationController
     if current_user.discord_token
       response = Discordrb::API::User.profile("Bearer #{current_user.discord_token}")
       @discord_user = JSON.parse(response.body)
+      Honeycomb.add_field('discord_user', @discord_user)
 
       if @discord_user['email'] && @discord_user['verified']
-
         @discord_server_id = participant.discord_server_id
+        Honeycomb.add_field('salesforce.participant.discord_server_id', @discord_server_id)
         raise DiscordServerIdError, "No Discord Server Id found for Participant.Id = #{participant.id}" if @discord_server_id.nil?
-
-        contact = SalesforceAPI.client.get_contact_info(participant.contact_id)
-        nickname = DiscordBot.compute_nickname(contact)
 
         # TODO: Decide how we want to add Discord server records to the db
         # See: https://app.asana.com/0/0/1201263861485591/f
@@ -83,15 +82,14 @@ class DiscordSignupsController < ApplicationController
             "Bot #{Rails.application.secrets.discord_bot_token}",
             @discord_server_id,
             @discord_user['id'],
-            current_user.discord_token,
-            nickname
+            current_user.discord_token
           )
           Honeycomb.add_field('discord_web_hook.add_member', response)
 
           client = Discordrb::Webhooks::Client.new(id: discord_server.webhook_id , token: discord_server.webhook_token)
 
           client.execute do |builder|
-            builder.content = "!configure_member #{@discord_user['id']} #{contact['Id']}"
+            builder.content = "!configure_member #{@discord_user['id']} #{participant.contact_id}"
           end
 
           # Only users enrolled as students can create a submission
@@ -135,12 +133,14 @@ class DiscordSignupsController < ApplicationController
 
       discord_response = JSON.parse(response.body)
       discord_token_expiration = Time.now.utc + discord_response['expires_in']
+      Honeycomb.add_field('user.discord_expires_at', discord_token_expiration)
       current_user.update!(
         discord_token: discord_response['access_token'],
         discord_expires_at: discord_token_expiration,
       )
     rescue Discordrb::Errors::UnknownError => discorderror
       if params[:error]
+        Honeycomb.add_field('alert.discord_authorization_cancelled', true)
         Sentry.capture_exception(discorderror)
         redirect_to launch_discord_signups_url(lti_launch_id: lti_launch_id), alert: 'You clicked cancel instead of authorize. Try again and click Authorize to be added to the Braven Discord server.' and return
       else
