@@ -2,16 +2,21 @@
 <h1>Get Started With Discord</h1>
 
 <% if @discord_user.nil? %>
-  <p>Complete Step 1, then come back to this page and complete the remaining steps.</p>
+  <p>Complete Step 1, then come back to this page and complete the remaining steps. These steps are specific to you and your Discord account, so they may change as you go through the process.</p>
 
   <h2>Step 1: Sign In or Register for Discord</h2>
   <p>If you already have a Discord account, <a href="https://discord.com/login" target="_blank">sign in to Discord (opens in new tab)</a>.</p>
 
   <p>If you do not have a Discord account, please <a href="https://discord.com/register" target="_blank">create a Discord account (opens in new tab)</a>.</p>
 
-  <h2>Step 2: Authorize Your Discord Account</h2>
+  <h2>Step 2: Come Back Here</h2>
+
+  <p>After completing Step 1 above in a different tab, come back to this page to finish getting into the Braven Discord server.</p>
+
+  <h2>Step 3: Authorize Your Discord Account</h2>
 
   <p>In order to add you to the Braven Discord server, Braven needs temporary access to your Discord account. After you're all set up, you can revoke Braven's access at any time from your Discord account settings.</p>
+
   <p><a href="https://discord.com/api/oauth2/authorize?client_id=<%= Rails.application.secrets.discord_client_id %>&redirect_uri=<%= ERB::Util.url_encode(Rails.application.secrets.discord_redirect_uri) %>&response_type=code&scope=identify%20email%20guilds%20guilds.join&state=<%= @discord_state %>">Authorize Braven to access your Discord account</a>.</p>
 
 <% else %>
@@ -71,12 +76,20 @@
 
     <p>If you need further assistance, please submit a <a href="<%=Rails.application.secrets.support_ticket_url%>">help ticket</a> to the Braven Product Support Team.</p>
   <% else %>
-    <p>You're all set up with Discord! Head over to the <a href="https://discord.com/channels/<%= @discord_server_id %>">Braven Discord Server</a>, and feel free to start exploring. We'll walk through the ins and outs of how to use Discord during the Learning Lab.</p>
+    <p>You're all set up with Discord! You can now leave this page and head over to the <a href="https://discord.com/channels/<%= @discord_server_id %>">Braven Discord Server</a>. Feel free to start exploring! We'll walk through the ins and outs of how to use Discord during the Learning Lab.</p>
 
     <p>Just in case you forget, your Discord account information is:</p>
     <ul>
       <li>Discord Login Email: <strong><%= @discord_user["email"] %></strong></li>
       <li>Discord Username: <strong><%= @discord_user["username"] %>#<%= @discord_user["discriminator"] %></strong></li>
     </ul>
+
+    <p>If you need to get back to the Braven Discord server in the future, you can always find it by opening Discord.com or the Discord app, and looking for the Braven icon on the left side of the screen.</p>
+    <img src="https://platform-prod-assets.s3.amazonaws.com/Discord+Signup+Images/discord-server-icon.png" alt="Find the Braven server in the Discord servers navigation list" class="discord-signup">
+
+    <p>To find out what Discord account you are currently using, look for the name and four numbers in the lower left corner of the screen, and make sure those match the Discord Username listed above.</p>
+    <img src="https://platform-prod-assets.s3.amazonaws.com/Discord+Signup+Images/discord-username.png" alt="Find your Discord username on the 'Click to copy username' button, near the mute/deafen buttons" class="discord-signup">
+
+    <p><em>It is now safe to leave this page.</em></p>
   <% end %>
 <% end %>
