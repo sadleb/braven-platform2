@@ -30,15 +30,14 @@ class DiscordSignupsController < ApplicationController
   def launch
     authorize :discord_signup
 
-    user_discord_state = current_user.discord_state
-    if user_discord_state.blank?
+    if needs_new_discord_state?
       @discord_state = SecureRandom.hex + ",#{@lti_launch.id}"
       Honeycomb.add_field('user.discord_state', @discord_state)
 
       # Save a CSRF token so we can verify in #oauth
       current_user.update!(discord_state: @discord_state)
     else
-      @discord_state = user_discord_state
+      @discord_state = current_user.discord_state
     end
 
     # If a user's discord_token expired, reset it to nil
@@ -185,5 +184,12 @@ private
 
   def lti_advantage_api_client
     @lti_advantage_api_client ||= LtiAdvantageAPI.new(@lti_launch)
+  end
+
+  # Returns true if the LtiLaunch ID stored in the discord_state has already been
+  # deleted, or if there is no discord state at all.
+  def needs_new_discord_state?
+    return true if current_user.discord_state.blank?
+    LtiLaunch.from_id(current_user, current_user.discord_state&.split(',')&.last).nil?
   end
 end
