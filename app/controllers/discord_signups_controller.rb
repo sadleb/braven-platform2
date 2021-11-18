@@ -28,7 +28,22 @@ class DiscordSignupsController < ApplicationController
   DISCORD_POINTS_POSSIBLE = 10.0
 
   def launch
-    authorize :discord_signup
+    # Pass the current course into authorize so we can check enrollment.
+    course = Course.find_by_canvas_course_id!(@lti_launch.course_id)
+    authorize course, policy_class: DiscordSignupPolicy
+
+    program_id = course.salesforce_program_id
+
+    participant = SalesforceAPI.client.find_participant(
+      contact_id: current_user.salesforce_id, program_id: program_id
+    )
+
+    # Show Staff/Faculty/Test TAs a different page, so they can't use this.
+    # Note: We will likely adjust how this is determined later. See the Slack
+    # discussions in this task for more info: https://app.asana.com/0/0/1201314155101899/f
+    if participant.role == SalesforceAPI::TEACHING_ASSISTANT && participant.volunteer_role != 'Teaching Assistant'
+      return render :no_discord
+    end
 
     if needs_new_discord_state?
       @discord_state = SecureRandom.hex + ",#{@lti_launch.id}"
@@ -50,12 +65,6 @@ class DiscordSignupsController < ApplicationController
       @discord_user = JSON.parse(response.body)
 
       if @discord_user['email'] && @discord_user['verified']
-        course = Course.find_by_canvas_course_id!(@lti_launch.course_id)
-        program_id = course.salesforce_program_id
-
-        participant = SalesforceAPI.client.find_participant(
-          contact_id: current_user.salesforce_id, program_id: program_id
-        )
 
         @discord_server_id = participant.discord_server_id
         raise DiscordServerIdError, "No Discord Server Id found for Participant.Id = #{participant.id}" if @discord_server_id.nil?
