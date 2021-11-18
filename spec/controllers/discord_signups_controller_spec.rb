@@ -1,2 +1,14 @@
-# TODO add tests for Discord signup
-# Asana task: https://app.asana.com/0/0/1201263861485595/f
+require 'rails_helper'
+
+RSpec.describe DiscordSignupsController, type: :controller do
+  render_views
+
+  describe 'GET #launch' do
+  end
+
+  describe 'GET #oauth' do
+  end
+
+  describe 'GET #completed' do
+  end
+end
