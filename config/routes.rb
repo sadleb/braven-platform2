@@ -221,6 +221,7 @@ Rails.application.routes.draw do
     collection do
       get :launch
       get :oauth
+      get :completed
     end
   end
 

@@ -7,6 +7,10 @@ class DiscordSignupPolicy < ApplicationPolicy
     !!user
   end
 
+  def completed?
+    !!user
+  end
+
   def publish?
     edit?
   end

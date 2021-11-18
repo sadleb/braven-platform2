@@ -3,6 +3,8 @@ require 'discordrb'
 require 'discordrb/webhooks'
 
 require 'salesforce_api'
+require 'lti_advantage_api'
+require 'lti_score'
 require 'discord_bot'
 
 #TODO:implement everything --> this is demo
@@ -83,6 +85,16 @@ class DiscordSignupsController < ApplicationController
           client.execute do |builder|
             builder.content = "!configure_member #{@discord_user['id']} #{contact['Id']}"
           end
+
+          # Only users enrolled as students can create a submission
+          # The LTIAdvantageAPI call to Canvas fails for all other enrollments.
+          if current_user.is_enrolled_as_student?(course)
+            lti_score = LtiScore.new_full_credit_submission(
+              current_user.canvas_user_id,
+              completed_discord_signups_url(protocol: 'https'),
+            )
+            lti_advantage_api_client.create_score(lti_score)
+          end
         end
       end
     end
@@ -134,6 +146,15 @@ class DiscordSignupsController < ApplicationController
     redirect_to launch_discord_signups_url(lti_launch_id: lti_launch_id)
   end
 
+  # Shows a "Discord Signup Complete" page. Note that since there is no
+  # local discord_signup model, we use completed instead of show b/c it's a static endpoint with
+  # no id.
+  # GET /discord_signups/completed
+  def completed
+    authorize :discord_signup
+    render layout: 'lti_canvas'
+  end
+
 private
   # Used by #publish and #publish_latest to set the Canvas assignment's name
   def assignment_name
@@ -160,5 +181,9 @@ private
     current_user_discord_servers = JSON.parse(user_servers_response.body)
 
     current_user_discord_servers.find { |server| server['id'] == participant.discord_server_id }.present?
+  end
+
+  def lti_advantage_api_client
+    @lti_advantage_api_client ||= LtiAdvantageAPI.new(@lti_launch)
   end
 end

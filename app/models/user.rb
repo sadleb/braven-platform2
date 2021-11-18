@@ -73,6 +73,13 @@ class User < ApplicationRecord
     return ta_for?(target_user, course) || lc_for?(target_user, course)
   end
 
+  def is_enrolled_as_student?(course)
+    course.sections.each do |section|
+      return true if has_role? RoleConstants::STUDENT_ENROLLMENT, section
+    end
+    false
+  end
+
   # True iff the user is enrolled in SectionConstants::TA_SECTION for the course
   # and the target_user is a Fellow in the same course
   def ta_for?(target_user, course)
