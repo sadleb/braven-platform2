@@ -80,6 +80,9 @@ RSpec.describe AttendanceGradeCalculator do
         expect(grades).to eq({fellow_user.canvas_user_id => '100%'})
       end
     end
+
+    # TODO: write specs for it skipping folks without a Canvas account:
+    # https://app.asana.com/0/1201131148207877/1201399664994348
   end
 
 end

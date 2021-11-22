@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 require 'salesforce_api'
-require 'canvas_api'
 
 class SignupTokenError < StandardError; end
 
@@ -45,14 +44,37 @@ class User < ApplicationRecord
     Section.with_roles(role_name, self).distinct
   end
 
+  # All sections for a specific course.
+  def sections_by_course(course)
+   Section.with_roles(section_roles.map(&:name), self).where(course: course)
+  end
+
   # List of roles for Sections (aka roles excluding admin)
   def section_roles
     roles.where(resource_type: 'Section')
   end
 
+  # List all roles for a given section
+  def roles_by_section(section)
+    roles.where(resource_type: 'Section', resource_id: section.id)
+  end
+
   # The section with a student role in a given course.
   def student_section_by_course(course)
-    sections_with_role(RoleConstants::STUDENT_ENROLLMENT).find_by(course: course)
+    section_with_role_by_course(RoleConstants::STUDENT_ENROLLMENT, course)
+  end
+
+  # The section with the specified role in a given course.
+  def section_with_role_by_course(role, course)
+    sections_with_role(role).find_by(course: course)
+  end
+
+  # Removes the roles for all Sections in the specified course
+  def remove_section_roles(course)
+    RoleConstants::SECTION_ROLES.each { |role|
+      section = sections_with_role(role).find_by(course: course)
+      remove_role role, section if section
+    }
   end
 
   # True if the user has confirmed their account and can log in.
@@ -63,6 +85,10 @@ class User < ApplicationRecord
   # True if the user set their password through the initial sign_up flow.
   def registered?
     !!registered_at
+  end
+
+  def has_canvas_account?
+    canvas_user_id.present?
   end
 
   def admin?
@@ -243,6 +269,25 @@ protected
   # empty passwords once the user goes through the sign_up
   # flow and sets their password for the first time.
   def password_required?
+    return false unless registered?
+    super
+  end
+
+  # Override Devise's method in devise/models/confirmable.rb
+  # to only send reconfirmation emails for registered users.
+  # We want to be able to change their email at any time without
+  # notifying them before they've actually created their account.
+  def reconfirmation_required?
+    return false unless registered?
+    super
+  end
+
+  # Override Devise's method in devise/models/confirmable.rb
+  # to directly change the email instead of setting the unconfirmed_email
+  # column unless they are registered.
+  # We want to be able to change their email at any time without
+  # notifying them before they've actually created their account.
+  def postpone_email_change?
     return false unless registered?
     super
   end

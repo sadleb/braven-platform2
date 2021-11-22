@@ -221,31 +221,7 @@ class CanvasAPI
     JSON.parse(response.body)
   end
 
-  def find_user_by!(email:)
-    user = find_user_in_canvas(email)
-    raise UserNotOnCanvas, "Email: #{email}" if user.nil?
-
-    # See comment in find_user_by() about login_id vs email
-    LMSUser.new(user['id'], user['login_id'])
-  end
-
-  def find_user_by(email:, salesforce_contact_id:, student_id:)
-    user = find_user_in_canvas(email)
-    if user.nil?
-      user = find_user_in_canvas(
-        format_to_sis_id(salesforce_contact_id, student_id)
-      )
-    end
-
-    return nil if user.nil?
-
-    # login_id is the email they use to login which may be different from the email they
-    # use for notifications. We care about their login email since that is what matches
-    # Salesforce and Platform email fields.
-    LMSUser.new(user['id'], user['login_id'])
-  end
-
-  def find_user_in_canvas(search_term)
+  def search_for_user_in_canvas(search_term)
     # Note: Don't use CGI.escape on search_term bc RestClient handles this internally.
     response = get("/accounts/#{DefaultAccountID}/users", {
       'search_term': search_term,
@@ -254,6 +230,17 @@ class CanvasAPI
     users = JSON.parse(response.body)
     # Only return an object if one and only one user matches the query.
     users.length == 1 ? users[0] : nil
+  end
+
+  # Wrapper for #show_user_details() that returns a struct
+  def get_user(canvas_user_id)
+    user = show_user_details(canvas_user_id)
+    # Note that login_id is the email they use to login which may be different from the
+    # email they use for notifications. We care about their login email since that is
+    # what matches Salesforce and Platform email fields.
+    LMSUser.new(user['id'], user['login_id'])
+  rescue RestClient::NotFound => e
+    raise UserNotOnCanvas, "canvas_user_id: #{canvas_user_id}"
   end
 
   # https://canvas.instructure.com/doc/api/users.html#method.users.api_show

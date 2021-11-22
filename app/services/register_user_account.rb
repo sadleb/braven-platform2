@@ -1,4 +1,7 @@
 # frozen_string_literal: true
+require 'canvas_api'
+require 'salesforce_api'
+require 'attendance_grade_calculator'
 
 # Fully registers and creates a new User account in all of our systems
 # (aka Platform, Canvas and Salesforce) so that it's ready for use.
@@ -106,6 +109,11 @@ class RegisterUserAccount
 
       # Send confirmation email.
       @user.send_confirmation_instructions
+
+      # Attendance can be taken before they create a Canvas account. We kick off a job
+      # to add their attendance grades to Canvas if they have any. This comes last b/c
+      # it doesn't need to be done before they get Canvas access.
+      GradeAttendanceForUserJob.perform_later(@user, @salesforce_program.fellow_course_id)
     end
 
     # Note: we actually don't want to roll anything back if there are failures. We wouldn't
@@ -126,12 +134,7 @@ private
 
   def sync_canvas_enrollment!
     # TODO: rename Portal to Canvas everywhere.
-    SyncPortalEnrollmentForAccount
-      .new(user: @user,
-           portal_user: CanvasAPI::LMSUser.new(@user.canvas_user_id, @user.email),
-           salesforce_participant: @salesforce_participant,
-           salesforce_program: @salesforce_program)
-      .run
+    SyncPortalEnrollmentForAccount.new(@salesforce_participant, @salesforce_program, false).run
   end
 
   def create_canvas_user!

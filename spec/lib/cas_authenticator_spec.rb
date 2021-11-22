@@ -56,7 +56,7 @@ RSpec.describe BravenCAS::CustomAuthenticator do
         let(:username) { unconfirmed_email }
 
         before(:each) do
-          user.update!(email: unconfirmed_email)
+          user.update!(unconfirmed_email: unconfirmed_email)
         end
 
         it '#validate returns false' do

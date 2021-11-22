@@ -175,7 +175,7 @@ RSpec.describe SalesforceController, type: :controller do
     let!(:access_token) { create :access_token }
     let(:token_owner_user) { access_token.user }
     let(:token_owner_user_role) { nil }
-    let(:sync_contact_service) { double(SyncFromSalesforceContact, :run! => nil) }
+    let(:sync_contact_service) { double(SyncFromSalesforceContact, :run => nil) }
     let(:canvas_client) { double(CanvasAPI, :change_user_login_email => nil, :create_user_email_channel => nil, :delete_user_email_channel => nil) }
     let(:delivery) { double('DummyDeliverer', deliver_now: nil) }
     let(:mailer) { double(SyncSalesforceContactToCanvasMailer, :failure_email => delivery ) }
@@ -211,10 +211,10 @@ RSpec.describe SalesforceController, type: :controller do
         it 'runs SyncFromSalesforceContact service' do
           post_update
           expect(SyncFromSalesforceContact).to have_received(:new).with(
-            fellow_user,
-            SalesforceAPI::SFContact.new(fellow_user.salesforce_id, new_email, fellow_user.first_name, fellow_user.last_name)
+            SalesforceAPI::SFContact.new(fellow_user.salesforce_id, new_email, fellow_user.first_name, fellow_user.last_name),
+            false
           ).once
-          expect(sync_contact_service).to have_received(:run!).once
+          expect(sync_contact_service).to have_received(:run).once
         end
 
         context 'when SyncFromSalesforceContact service fails' do
@@ -223,7 +223,7 @@ RSpec.describe SalesforceController, type: :controller do
           # logs without enabling trace logging and spending forever digging. The behavior is to email
           # the staff member and log stuff to Sentry/Honeycomb/the logs
           it 'emails the failure' do
-            allow(sync_contact_service).to receive(:run!).and_raise(RestClient::Exception)
+            allow(sync_contact_service).to receive(:run).and_raise(RestClient::Exception)
             expect{ post_update }.not_to raise_error(RestClient::Exception)
             expect(delivery).to have_received(:deliver_now).once
             expect(response).to be_successful

@@ -17,7 +17,6 @@ class SyncZoomLinksForParticipant
   def run
     Honeycomb.start_span(name: 'sync_zoom_links_for_participant.run') do
       @salesforce_participant.add_to_honeycomb_span()
-      set_zoom_link_infos()
 
       assign_zoom_links if @salesforce_participant.status == SalesforceAPI::ENROLLED
       unassign_zoom_links unless @salesforce_participant.status == SalesforceAPI::ENROLLED
@@ -28,6 +27,8 @@ private
 
   def assign_zoom_links
     Rails.logger.debug("Assigning Zoom links if necessary for: #{@salesforce_participant.email}")
+
+    set_zoom_link_infos()
 
     existing_join_link1 = @salesforce_participant.zoom_meeting_link_1
     existing_join_link2 = @salesforce_participant.zoom_meeting_link_2

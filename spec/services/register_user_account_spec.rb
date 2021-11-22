@@ -77,6 +77,10 @@ RSpec.describe RegisterUserAccount do
       expect(user.confirmation_sent_at).not_to be(nil)
     end
 
+    # TODO: write specs for it queuing up the attendance job. Make sure if grabs the last
+    # answer per assignment if there are multiple and that it only gets answers for the current course:
+    # https://app.asana.com/0/1201131148207877/1201399664994348
+
     context 'with valid signup token' do
       let(:sign_up_params) { {} }
       let(:user) { create(:unregistered_user) }

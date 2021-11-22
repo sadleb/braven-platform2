@@ -34,8 +34,6 @@ RSpec.describe User, type: :model do
     let(:canvas_user) { build(:canvas_user) }
     let(:sf_api_client) { instance_double(SalesforceAPI) }
     let!(:sf_api) { class_double(SalesforceAPI, :client => sf_api_client).as_stubbed_const(:transfer_nested_constants => true) }
-    let(:canvas_api_client) { instance_double(CanvasAPI, :find_user_in_canvas => nil, :get_user_enrollments => nil, :get_sections => []) }
-    let!(:canvas_api) { class_double(CanvasAPI, :client => canvas_api_client).as_stubbed_const(:transfer_nested_constants => true) }
 
     it 'sets uuid' do
       user = build(:user, uuid: nil)

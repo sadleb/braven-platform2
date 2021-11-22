@@ -115,7 +115,7 @@ RSpec.describe CanvasAPI do
     end
   end
 
-  describe '#find_user_in_canvas' do
+  describe '#search_for_user_in_canvas' do
     let(:email) { 'test+email@bebraven.org' }
     let(:course_id) { 71 }
     let(:user_id) { 100 }
@@ -128,7 +128,7 @@ RSpec.describe CanvasAPI do
       response_json = "[#{response_user}]"
       stub_request(:get, request_url).to_return( body: response_json )
 
-      response = canvas.find_user_in_canvas(email)
+      response = canvas.search_for_user_in_canvas(email)
 
       expect(WebMock).to have_requested(:get, request_url)
         .with(headers: {'Authorization'=>'Bearer test-token'}).once
@@ -139,7 +139,7 @@ RSpec.describe CanvasAPI do
       request_url = "#{CANVAS_API_URL}/accounts/1/users?include[]=email&search_term=test%2Bterm"
       stub_request(:get, request_url).to_return( body: "[]" )
 
-      response = canvas.find_user_in_canvas('test+term')
+      response = canvas.search_for_user_in_canvas('test+term')
 
       expect(WebMock).to have_requested(:get, request_url)
         .with(headers: {'Authorization'=>'Bearer test-token'}).once

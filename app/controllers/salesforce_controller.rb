@@ -65,7 +65,6 @@ class SalesforceController < ApplicationController
       Honeycomb.add_field_to_trace('canvas.user.id', @canvas_user_id.to_s)
 
       @new_email = contact[:Email]
-      # Note: we don't send these to Canvas. Rely on users do update their own names.
       @first_name = contact[:FirstName]
       @last_name = contact[:LastName]
       @salesforce_contact_id = contact[:ContactId]
@@ -75,17 +74,19 @@ class SalesforceController < ApplicationController
       @user = User.find_by!(salesforce_id: @salesforce_contact_id)
 
       # Overwrite the trace's user information with user we're syncing, not the running user.
-      @user&.add_to_honeycomb_trace()
+      @user.add_to_honeycomb_trace()
 
       # Error out before making any changes if things are missing
+      raise ArgumentError.new("Missing CanvasUserId for: #{contact}") unless @canvas_user_id
+      raise ArgumentError.new("Missing ContactId for: #{contact}") unless @salesforce_contact_id
       raise ArgumentError.new("Missing Email for: #{contact}") unless @new_email
       raise ArgumentError.new("Missing FirstName for: #{contact}") unless @first_name
       raise ArgumentError.new("Missing LastName for: #{contact}") unless @last_name
 
       SyncFromSalesforceContact.new(
-        @user,
-        SalesforceAPI::SFContact.new(@salesforce_contact_id, @new_email, @first_name, @last_name)
-      ).run!
+        SalesforceAPI::SFContact.new(@salesforce_contact_id, @new_email, @first_name, @last_name),
+        false
+      ).run
 
     rescue => e2
       Sentry.capture_exception(e2)

@@ -17,6 +17,11 @@ class SalesforceAPI
 
   DATA_SERVICE_PATH = '/services/data/v49.0'
 
+  # TODO: change first_name to use Preferred_First_Name__c instead. Need to do this
+  # for both the SFContact and the SFParticipant (i think) in order to get that to
+  # be the thing used everywhere, which is what we want.
+  # https://app.asana.com/0/1201131148207877/1201399664994349
+
   SFContact = Struct.new(:id, :email, :first_name, :last_name)
 
   SFParticipant = Struct.new(:first_name, :last_name, :email, :role,
@@ -458,6 +463,15 @@ class SalesforceAPI
                       participant['ZoomMeetingLink1'], participant['ZoomMeetingLink2'],
                       participant['TeachingAssistantSections'],
                      )
+  end
+
+  def self.participant_struct_to_contact_struct(participant)
+    SalesforceAPI::SFContact.new(
+      participant.contact_id,
+      participant.email,
+      participant.first_name,
+      participant.last_name,
+    )
   end
 
   def set_canvas_user_id(contact_id, canvas_user_id)

@@ -47,10 +47,6 @@ class UsersRolesController < ApplicationController
   def create
     authorize :users_role
 
-    # Mock the info that would be sent by Salesforce and run the normal Sync To LMS
-    # and Account Creation logic with it.
-    portal_user = Mocks::CanvasUser.new(@user.canvas_user_id, @user.email)
-
     sf_participant = Mocks::SalesforceParticipant.new(
       @user.email,
       params[:role_name].to_sym,
@@ -61,6 +57,8 @@ class UsersRolesController < ApplicationController
       @user.last_name,
       @user.salesforce_id,
       [],
+      nil, # ignore their zoom links
+      nil, # ignore their zoom links
     )
 
     sf_program = nil
@@ -74,12 +72,7 @@ class UsersRolesController < ApplicationController
       )
     end
 
-    SyncPortalEnrollmentForAccount
-      .new(user: @user,
-           portal_user: portal_user,
-           salesforce_participant: sf_participant,
-           salesforce_program: sf_program)
-      .run
+    SyncPortalEnrollmentForAccount.new(sf_participant, sf_program, false).run
 
     redirect_to edit_user_path(@user), notice: "Enrollment was successfully created."
   end
@@ -92,7 +85,6 @@ class UsersRolesController < ApplicationController
     @role = Role.find(params[:id])
     authorize @role, policy_class: UsersRolePolicy
 
-    portal_user = Mocks::CanvasUser.new(@user.canvas_user_id, @user.email)
     sf_participant = Mocks::SalesforceParticipant.new(
       @user.email,
       @role.name.to_sym,
@@ -103,6 +95,8 @@ class UsersRolesController < ApplicationController
       @user.last_name,
       @user.salesforce_id,
       [],
+      nil, # ignore their zoom links
+      nil, # ignore their zoom links
     )
 
     # Hacky. If this is a TaEnrollment, the real code assumes it's a Leadership Coach and
@@ -113,12 +107,7 @@ class UsersRolesController < ApplicationController
     canvas_course_id = @role.resource.course.canvas_course_id
     sf_program = Mocks::SalesforceProgram.new(canvas_course_id, canvas_course_id)
 
-    SyncPortalEnrollmentForAccount
-      .new(user: @user,
-           portal_user: portal_user,
-           salesforce_participant: sf_participant,
-           salesforce_program: sf_program)
-      .run
+    SyncPortalEnrollmentForAccount.new(sf_participant, sf_program, false).run
 
     redirect_to edit_user_path(@user), notice: "Enrollment was successfully delete."
   end
@@ -131,8 +120,6 @@ private
   # though it came from Salesforce/Canvas.
   class Mocks
 
-    CanvasUser = Struct.new(:id, :email)
-
     SalesforceParticipant = Struct.new(
       :email,
       :platform_role,
@@ -143,6 +130,8 @@ private
       :last_name,
       :contact_id,
       :teaching_assistant_sections,
+      :zoom_meeting_link_1,
+      :zoom_meeting_link_2,
     ) do
       def role
         case platform_role
