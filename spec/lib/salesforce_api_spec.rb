@@ -61,12 +61,13 @@ RSpec.describe SalesforceAPI do
   end
 
   describe '#get_current_and_future_accelerator_programs' do
+    let(:expected_ended_less_than_condition) { nil }
     let(:request_url) {
       SALESFORCE_DATA_SERVICE_QUERY_URL +
         "?q=SELECT+Id,+Name,+Canvas_Cloud_Accelerator_Course_ID__c,+Canvas_Cloud_LC_Playbook_Course_ID__c,+Discord_Server_ID__c+FROM+Program__c+" \
-        "WHERE+RecordType.Name+=+'Course'+" \
-          "AND+Canvas_Cloud_Accelerator_Course_ID__c+<>+NULL+" \
-          "AND+Status__c+IN+('Current',+'Future')"
+        "WHERE+(RecordType.Name+=+'Course'+" \
+          "AND+Canvas_Cloud_Accelerator_Course_ID__c+<>+NULL)+" \
+          "AND+(Status__c+IN+('Current',+'Future')#{expected_ended_less_than_condition})"
     }
     let(:accelerator_course_ids) { [1,2] }
     # must match hardcoded offset in salesforce_current_and_future_programs factory
@@ -81,6 +82,20 @@ RSpec.describe SalesforceAPI do
       response = SalesforceAPI.client.get_current_and_future_accelerator_programs()
       expect(WebMock).to have_requested(:get, request_url).once
       expect(response).to eq(JSON.parse(programs_json)['records'])
+    end
+
+    context 'with ended_less_than parameter' do
+      # 45.days.ago gets translated to something like "OR Program_End_Date__c >= 2021-03-04"
+      # in the query which says "also give me programs that ended after 45 days ago", in other words
+      # within the past 45 days.
+      let(:ended_less_than) { 45.days.ago }
+      let(:expected_ended_less_than_condition) { " OR Program_End_Date__c >= #{ended_less_than.strftime("%F")}" }
+
+      it 'calls the correct endpoint' do
+        response = SalesforceAPI.client.get_current_and_future_accelerator_programs(ended_less_than: ended_less_than)
+        expect(WebMock).to have_requested(:get, request_url).once
+        expect(response).to eq(JSON.parse(programs_json)['records'])
+      end
     end
 
     describe '#get_current_and_future_canvas_course_ids' do

@@ -48,9 +48,21 @@ RSpec.describe GradeRise360Modules do
             .and_return(accelerator_course_ids)
           allow(SalesforceAPI).to receive(:client).and_return(sf_client)
 
+          # Need to freeze now so that it matches
+          allow(Time).to receive(:now).and_return(Time.now)
+
           # Create some non-matching interactions.
           create(:progressed_module_interaction, canvas_course_id: course.canvas_course_id + 1)
           create(:progressed_module_interaction, canvas_course_id: course.canvas_course_id + 1)
+        end
+
+        # https://app.asana.com/0/1201131148207877/1200788567441198
+        it 'also gets programs that ended in the past 45 days' do
+          expect(sf_client)
+            .to receive(:get_current_and_future_accelerator_canvas_course_ids)
+            .with(45.days.ago)
+            .and_return(accelerator_course_ids)
+          subject
         end
 
         it "exits early" do

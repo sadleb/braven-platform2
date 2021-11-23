@@ -17,9 +17,15 @@ class GradeRise360Modules
 
   def run
     Honeycomb.start_span(name: 'grade_rise360_modules.run') do
-      # From the list of "running" "programs" in Salesforce, fetch a list of "accelerator"
-      # (non-LC) courses.
-      canvas_course_ids = SalesforceAPI.client.get_current_and_future_accelerator_canvas_course_ids
+      # From the list of "running" "programs" in Salesforce and those that have recently ended,
+      # fetch a list of "accelerator" (non-LC) courses.
+      #
+      # We also get recently ended programs b/c we want to keep grading until we're sure that
+      # the final grades have been sent to the university.
+      # https://app.asana.com/0/1201131148207877/1200788567441198
+      canvas_course_ids = SalesforceAPI.client
+        .get_current_and_future_accelerator_canvas_course_ids(45.days.ago)
+
       Honeycomb.add_field('grade_rise360_modules.canvas_course_ids', canvas_course_ids)
       if canvas_course_ids.empty?
         Rails.logger.info("Exit early: no current/future accelerator programs with a Canvas course ID set.")

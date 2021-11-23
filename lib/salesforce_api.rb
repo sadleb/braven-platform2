@@ -137,10 +137,24 @@ class SalesforceAPI
 
   # Gets a list of all Programs that have been launched with the Accelerator Course (and
   # most likely also a LC Playbook course) and are either currently running or will be in the future.
-  def get_current_and_future_accelerator_programs()
+  #
+  # @param [ActiveSupport::TimeWithZone] ended_less_than if you want to also get programs that
+  #   ended recently, pass this parameter. E.g. the following would get all current and
+  #   future programs as well as those that have ended within the past 45 days:
+  #   SalesforceAPI.client.get_current_and_future_accelerator_programs(ended_less_than: 45.days.ago)
+  def get_current_and_future_accelerator_programs(ended_less_than: nil)
+
+    unless ended_less_than.nil?
+      # Add a condition to the query to also get programs that ended after the Time offset
+      # Note that the date is formatted as YYYY-MM-DD as specified here:
+      # https://developer.salesforce.com/docs/atlas.en-us.234.0.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_select_dateformats.htm
+      ended_less_than_condition = " OR Program_End_Date__c >= #{ended_less_than.strftime("%F")}"
+    end
+
     soql_query =
       "SELECT Id, Name, Canvas_Cloud_Accelerator_Course_ID__c, Canvas_Cloud_LC_Playbook_Course_ID__c, Discord_Server_ID__c FROM Program__c " \
-      "WHERE RecordType.Name = 'Course' AND Canvas_Cloud_Accelerator_Course_ID__c <> NULL AND Status__c IN ('Current', 'Future')"
+      "WHERE (RecordType.Name = 'Course' AND Canvas_Cloud_Accelerator_Course_ID__c <> NULL) " \
+        "AND (Status__c IN ('Current', 'Future')#{ended_less_than_condition})"
 
     response = get("#{DATA_SERVICE_PATH}/query?q=#{CGI.escape(soql_query)}")
     response_json = JSON.parse(response.body)
@@ -150,8 +164,9 @@ class SalesforceAPI
 
   # Gets a list of all Canvas Course IDs (both Accelerator and LC Playbook) that
   # are for Programs that are either currently running or will be in the future.
-  def get_current_and_future_canvas_course_ids()
-    current_and_future_accelerator_programs = get_current_and_future_accelerator_programs()
+  # See get_current_and_future_accelerator_programs() for info on ended_less_than
+  def get_current_and_future_canvas_course_ids(ended_less_than: nil)
+    current_and_future_accelerator_programs = get_current_and_future_accelerator_programs(ended_less_than: ended_less_than)
     canvas_course_ids = []
     unless current_and_future_accelerator_programs.empty?
       current_and_future_accelerator_programs.each { |p|
@@ -164,8 +179,9 @@ class SalesforceAPI
 
   # Gets a list of all Accelerator Canvas Course IDs (not the LC Playbook courses) that
   # are either currently running or will be in the future.
-  def get_current_and_future_accelerator_canvas_course_ids()
-    current_and_future_accelerator_programs = get_current_and_future_accelerator_programs()
+  # See get_current_and_future_accelerator_programs() for info on ended_less_than
+  def get_current_and_future_accelerator_canvas_course_ids(ended_less_than: nil)
+    current_and_future_accelerator_programs = get_current_and_future_accelerator_programs(ended_less_than: ended_less_than)
     canvas_course_ids = []
     unless current_and_future_accelerator_programs.empty?
       canvas_course_ids = current_and_future_accelerator_programs.map { |p|
