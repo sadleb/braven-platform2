@@ -2,16 +2,16 @@
 require 'salesforce_api'
 require 'canvas_api'
 
-# Syncs all folks from the specific Salesforce Program to Canvas.
-# TODO: rename to SyncWithSalesforceProgram or SyncSalesforceProgram (since it now syncs
-# more stuff than just enrollments and it's not just "from" Salesforce anymore,
-# it syncs stuff back to the Program / Participants like Zoom links and signup_tokens)
-class SyncPortalEnrollmentsForProgram
+# Syncs all Participants from the specified Salesforce Program across
+# all applications like Platform and Canvas and Zoom.
+#
+# Note: Discord is separate b/c it's a bot.
+class SyncSalesforceProgram
   include Rails.application.routes.url_helpers
 
   attr_reader :sf_program_id, :failed_participants, :count
 
-  class SyncPortalEnrollmentsForProgramError < StandardError; end
+  class SyncSalesforceProgramError < StandardError; end
   class CanvasUserIdMismatchError < StandardError; end
 
   FailedParticipantInfo = Struct.new(:salesforce_id, :email, :first_name, :last_name, :error_detail, keyword_init: true)
@@ -26,22 +26,22 @@ class SyncPortalEnrollmentsForProgram
 
   def run
     Honeycomb.add_field_to_trace('salesforce.program.id', @sf_program_id)
-    Honeycomb.add_field('sync_portal_enrollments_for_program.send_signup_emails', @send_signup_emails)
-    Honeycomb.add_field('sync_portal_enrollments_for_program.force_zoom_update', @force_zoom_update)
+    Honeycomb.add_field('sync_salesforce_program.send_signup_emails', @send_signup_emails)
+    Honeycomb.add_field('sync_salesforce_program.force_zoom_update', @force_zoom_update)
 
     # If you try running a sync in an environment that doesn't have the corresponding local course(s),
     # this is a NOOP. This is mostly in place to prevent developers from accidentally sync'ing another
     # dev's test program which would invalidate the signup tokens and other stuff.
     if courses_for_program.blank?
-      Honeycomb.add_field('alert.sync_portal_enrollments_for_program.missing_courses', sf_program.inspect)
-      raise SyncPortalEnrollmentsForProgramError, "Missing Course models for Salesforce Program: #{sf_program.inspect}"
+      Honeycomb.add_field('alert.sync_salesforce_program.missing_courses', sf_program.inspect)
+      raise SyncSalesforceProgramError, "Missing Course models for Salesforce Program: #{sf_program.inspect}"
     end
 
     sync_program_id()
 
     program_participants.each do |participant|
       begin
-        SyncPortalEnrollmentForAccount.new(participant, sf_program, @force_zoom_update).run
+        SyncSalesforceParticipant.new(participant, sf_program, @force_zoom_update).run
       rescue => e
         Sentry.capture_exception(e)
         error_detail = translate_error_to_user_message(e, participant)
@@ -59,7 +59,7 @@ class SyncPortalEnrollmentsForProgram
 
     unless failed_participants.empty?
       Rails.logger.error(failed_participants.inspect)
-      raise SyncPortalEnrollmentsForProgramError, "Some participants failed to sync => #{@failed_participants.inspect}"
+      raise SyncSalesforceProgramError, "Some participants failed to sync => #{@failed_participants.inspect}"
     end
 
     self

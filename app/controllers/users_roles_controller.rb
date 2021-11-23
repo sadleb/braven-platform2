@@ -72,7 +72,7 @@ class UsersRolesController < ApplicationController
       )
     end
 
-    SyncPortalEnrollmentForAccount.new(sf_participant, sf_program, false).run
+    SyncSalesforceParticipant.new(sf_participant, sf_program, false).run
 
     redirect_to edit_user_path(@user), notice: "Enrollment was successfully created."
   end
@@ -107,14 +107,14 @@ class UsersRolesController < ApplicationController
     canvas_course_id = @role.resource.course.canvas_course_id
     sf_program = Mocks::SalesforceProgram.new(canvas_course_id, canvas_course_id)
 
-    SyncPortalEnrollmentForAccount.new(sf_participant, sf_program, false).run
+    SyncSalesforceParticipant.new(sf_participant, sf_program, false).run
 
     redirect_to edit_user_path(@user), notice: "Enrollment was successfully delete."
   end
 
 private
 
-  # The SyncPortalEnrollmentForAccount service uses a subset of fields from the
+  # The SyncSalesforceParticipant service uses a subset of fields from the
   # Salesforce and Canvas API objects. It's a little hacky, but we're going to mimic
   # a Sync To LMS by just directly calling the service with mock's for the data as
   # though it came from Salesforce/Canvas.

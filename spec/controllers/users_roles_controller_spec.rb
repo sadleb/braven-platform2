@@ -13,10 +13,10 @@ RSpec.describe UsersRolesController, type: :controller do
     let(:course) { create :course_unlaunched}
     let(:canvas_user_id) { 92837 }
     let!(:test_user) { create :registered_user, canvas_user_id: canvas_user_id }
-    let(:sync_account_service) { double(SyncPortalEnrollmentForAccount, run: nil) }
+    let(:sync_account_service) { double(SyncSalesforceParticipant, run: nil) }
 
     before(:each) do
-      allow(SyncPortalEnrollmentForAccount).to receive(:new).and_return(sync_account_service)
+      allow(SyncSalesforceParticipant).to receive(:new).and_return(sync_account_service)
       sign_in admin_user
     end
 

@@ -35,7 +35,7 @@
         <p>Go ahead and click the button below to start the sync process for all Participants.</p>
       <% end %>
 
-      <%= form_with(url: salesforce_sync_from_salesforce_program_path, method: "post", local: true) do |f| %>
+      <%= form_with(url: salesforce_sync_salesforce_program_path, method: "post", local: true) do |f| %>
         <%= f.hidden_field :send_signup_emails, value: true %>
         <%= f.hidden_field :force_zoom_update, value: params[:force_zoom_update]%>
         <%= f.hidden_field :program_id, value: params[:program_id]%>

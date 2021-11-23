@@ -16,9 +16,9 @@ namespace :salesforce do
 
       program_ids.each do |program_id|
 
-        Honeycomb.start_span(name: 'salesforce.rake.sync_portal_enrollments_for_program') do
+        Honeycomb.start_span(name: 'salesforce.rake.sync_salesforce_program') do
           puts("### Running Sync From Salesforce Program: #{program_id} - #{Time.now.strftime("%Y-%m-%d %H:%M:%S %Z")}")
-          SyncPortalEnrollmentsForProgram.new(salesforce_program_id: program_id).run
+          SyncSalesforceProgram.new(salesforce_program_id: program_id).run
           puts("    Done running Sync From Salesforce Program: #{program_id} - #{Time.now.strftime("%Y-%m-%d %H:%M:%S %Z")}")
         end
 

@@ -11,7 +11,7 @@ class SalesforceController < ApplicationController
 
   skip_before_action :verify_authenticity_token, only: [:update_contacts]
 
-  def init_sync_from_salesforce_program
+  def init_sync_salesforce_program
     authorize :SalesforceAuthorization
   end
 
@@ -23,7 +23,7 @@ class SalesforceController < ApplicationController
     @new_participants = get_participants_never_synced_before()
   end
 
-  def sync_from_salesforce_program
+  def sync_salesforce_program
     authorize :SalesforceAuthorization
 
     should_send_signup_emails = ActiveModel::Type::Boolean.new.cast(params[:send_signup_emails])
@@ -37,8 +37,8 @@ class SalesforceController < ApplicationController
       ) and return
     end
 
-    SyncFromSalesforceProgramJob.perform_later(params[:program_id].strip, params[:email].strip, should_send_signup_emails, should_force_zoom_update)
-    redirect_to salesforce_sync_from_salesforce_program_path, notice: 'The sync process was started. Watch out for an email'
+    SyncSalesforceProgramJob.perform_later(params[:program_id].strip, params[:email].strip, should_send_signup_emails, should_force_zoom_update)
+    redirect_to salesforce_sync_salesforce_program_path, notice: 'The sync process was started. Watch out for an email'
   end
 
   # Sync's Contact information from Salesforce to both Platform and Canvas.
@@ -83,7 +83,7 @@ class SalesforceController < ApplicationController
       raise ArgumentError.new("Missing FirstName for: #{contact}") unless @first_name
       raise ArgumentError.new("Missing LastName for: #{contact}") unless @last_name
 
-      SyncFromSalesforceContact.new(
+      SyncSalesforceContact.new(
         SalesforceAPI::SFContact.new(@salesforce_contact_id, @new_email, @first_name, @last_name),
         false
       ).run

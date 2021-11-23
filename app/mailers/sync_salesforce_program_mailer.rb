@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class SyncFromSalesforceProgramMailer < ApplicationMailer
+class SyncSalesforceProgramMailer < ApplicationMailer
   def success_email
     mail(to: recipient, subject: 'Sync Successful')
   end

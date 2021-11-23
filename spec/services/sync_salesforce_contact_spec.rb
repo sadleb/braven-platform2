@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe SyncFromSalesforceContact do
+RSpec.describe SyncSalesforceContact do
 # TODO: reimplement specs after this refactoring: https://github.com/bebraven/platform/pull/922
 # https://app.asana.com/0/1201131148207877/1201399664994348
 
@@ -20,7 +20,7 @@ RSpec.describe SyncFromSalesforceContact do
 #        salesforce_contact['FirstName'],
 #        salesforce_contact['LastName']
 #      )
-#      SyncFromSalesforceContact.new(user, sf_contact).run!
+#      SyncSalesforceContact.new(user, sf_contact).run!
 #    end
 #
 #    shared_examples 'run sync' do

@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe SyncPortalEnrollmentForAccount do
+RSpec.describe SyncSalesforceParticipant do
 # TODO: reimplement specs after this refactoring: https://github.com/bebraven/platform/pull/922
 # https://app.asana.com/0/1201131148207877/1201399664994348
 
@@ -47,7 +47,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 #    get_assignment_overrides_for_course: fellow_lms_course_overrides,
 #    create_assignment_overrides: nil,
 #  ) }
-#  let(:sync_from_salesforce_service) { double(SyncFromSalesforceContact) }
+#  let(:sync_from_salesforce_service) { double(SyncSalesforceContact) }
 #  let(:sync_ta_caseload_for_participant_service) { double(SyncTaCaseloadForParticipant) }
 #  # Create local models, with the assumption that a user that exists on Canvas must already exist locally too.
 #  # This all falls apart if that assumption is untrue (the tests will pass, but the code won't work), so be careful
@@ -61,13 +61,13 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 #  let!(:lc_course) { create(:course, canvas_course_id: lc_playbook_canvas_course_id) }
 #
 #  before(:each) do
-#    allow(SyncFromSalesforceContact).to receive(:new).and_return(sync_from_salesforce_service)
+#    allow(SyncSalesforceContact).to receive(:new).and_return(sync_from_salesforce_service)
 #    allow(SyncTaCaseloadForParticipant).to receive(:new).and_return(sync_ta_caseload_for_participant_service)
 #    allow(CanvasAPI).to receive(:client).and_return(lms_client)
 #  end
 #
 #  subject(:run_sync) do
-#    SyncPortalEnrollmentForAccount
+#    SyncSalesforceParticipant
 #      .new(user: user,
 #           portal_user: portal_user,
 #           salesforce_participant: sf_participant,
@@ -254,7 +254,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 #      let(:sf_email) { 'salesforce.email.no.match@example.com' }
 #      let(:platform_email) { 'platform.email.no.match@example.com' }
 #
-#      it 'calls SyncFromSalesforceContact service' do
+#      it 'calls SyncSalesforceContact service' do
 #        expect(sync_from_salesforce_service).to receive(:run!).once
 #        run_sync
 #      end
@@ -264,7 +264,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 #      let(:sf_email) { 'exact_match@example.com' }
 #      let(:platform_email) { 'exact_match@example.com' }
 #
-#      it 'doesnt call SyncFromSalesforceContact service' do
+#      it 'doesnt call SyncSalesforceContact service' do
 #        expect(sync_from_salesforce_service).not_to receive(:run!)
 #        run_sync
 #      end
@@ -274,7 +274,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 #      let(:sf_email) { 'caseInsensitiveMatch@example.com' }
 #      let(:platform_email) { 'caseinsensitivematch@example.com' }
 #
-#      it 'doesnt call SyncFromSalesforceContact service' do
+#      it 'doesnt call SyncSalesforceContact service' do
 #        expect(sync_from_salesforce_service).not_to receive(:run!)
 #        run_sync
 #      end
@@ -284,7 +284,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 #      let(:sf_email) { 'salesforce.email.no.match@example.com' }
 #      let(:canvas_email) { 'canvas.email.no.match@example.com' }
 #
-#      it 'calls SyncFromSalesforceContact service' do
+#      it 'calls SyncSalesforceContact service' do
 #        expect(sync_from_salesforce_service).to receive(:run!).once
 #        run_sync
 #      end
@@ -294,7 +294,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 #      let(:sf_email) { 'exact_match@example.com' }
 #      let(:canvas_email) { 'exact_match@example.com' }
 #
-#      it 'doesnt call SyncFromSalesforceContact service' do
+#      it 'doesnt call SyncSalesforceContact service' do
 #        expect(sync_from_salesforce_service).not_to receive(:run!)
 #        run_sync
 #      end
@@ -304,7 +304,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 #      let(:sf_email) { 'caseInsensitiveMatch@example.com' }
 #      let(:canvas_email) { 'caseinsensitivematch@example.com' }
 #
-#      it 'doesnt call SyncFromSalesforceContact service' do
+#      it 'doesnt call SyncSalesforceContact service' do
 #        expect(sync_from_salesforce_service).not_to receive(:run!)
 #        run_sync
 #      end
@@ -314,7 +314,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 #      let(:platform_email) { 'platform.email.no.match@example.com' }
 #      let(:canvas_email) { 'canvas.email.no.match@example.com' }
 #
-#      it 'calls SyncFromSalesforceContact service' do
+#      it 'calls SyncSalesforceContact service' do
 #        expect(sync_from_salesforce_service).to receive(:run!).once
 #        run_sync
 #      end
@@ -324,7 +324,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 #      let(:platform_email) { sf_email }
 #      let(:canvas_email) { sf_email }
 #
-#      it 'doesnt call SyncFromSalesforceContact service' do
+#      it 'doesnt call SyncSalesforceContact service' do
 #        expect(sync_from_salesforce_service).not_to receive(:run!)
 #        run_sync
 #      end
@@ -335,7 +335,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 #      let(:platform_email) { sf_email }
 #      let(:canvas_email) { 'sfemail@example.com' }
 #
-#      it 'doesnt call SyncFromSalesforceContact service' do
+#      it 'doesnt call SyncSalesforceContact service' do
 #        expect(sync_from_salesforce_service).not_to receive(:run!)
 #        run_sync
 #      end
@@ -345,7 +345,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 #  describe "#find_or_create_section" do
 #    context "when canvas section already exists" do
 #      it "does not create a Canvas section" do
-#        SyncPortalEnrollmentForAccount
+#        SyncSalesforceParticipant
 #          .new(user: user,
 #               portal_user: portal_user,
 #               salesforce_participant: sf_participant,
@@ -356,7 +356,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 #      end
 #
 #      it "returns a local section" do
-#        local_section = SyncPortalEnrollmentForAccount
+#        local_section = SyncSalesforceParticipant
 #          .new(user: user,
 #               portal_user: portal_user,
 #               salesforce_participant: sf_participant,
@@ -376,7 +376,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 #        end
 #
 #        it "creates the Canvas section" do
-#          SyncPortalEnrollmentForAccount
+#          SyncSalesforceParticipant
 #            .new(user: user,
 #                 portal_user: portal_user,
 #                salesforce_participant: sf_participant,
@@ -387,7 +387,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 #        end
 #
 #        it "does not do anything with overrides" do
-#          SyncPortalEnrollmentForAccount
+#          SyncSalesforceParticipant
 #            .new(user: user,
 #                 portal_user: portal_user,
 #                salesforce_participant: sf_participant,
@@ -400,7 +400,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 #        end
 #
 #        it "returns a local section" do
-#          local_section = SyncPortalEnrollmentForAccount
+#          local_section = SyncSalesforceParticipant
 #            .new(user: user,
 #                portal_user: portal_user,
 #                salesforce_participant: sf_participant,
@@ -426,7 +426,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 #        end
 #
 #        it "creates the Canvas section" do
-#          SyncPortalEnrollmentForAccount
+#          SyncSalesforceParticipant
 #            .new(user: user,
 #                 portal_user: portal_user,
 #                salesforce_participant: sf_participant,
@@ -437,7 +437,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 #        end
 #
 #        it "copies assignment overrides" do
-#          SyncPortalEnrollmentForAccount
+#          SyncSalesforceParticipant
 #            .new(user: user,
 #                portal_user: portal_user,
 #                salesforce_participant: sf_participant,
@@ -450,7 +450,7 @@ RSpec.describe SyncPortalEnrollmentForAccount do
 #        end
 #
 #        it "returns a local section" do
-#          local_section = SyncPortalEnrollmentForAccount
+#          local_section = SyncSalesforceParticipant
 #            .new(user: user,
 #                portal_user: portal_user,
 #                salesforce_participant: sf_participant,

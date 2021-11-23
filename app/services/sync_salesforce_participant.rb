@@ -3,9 +3,11 @@ require 'salesforce_api'
 require 'canvas_api'
 require 'zoom_api'
 
-# Sync's a Salesforce Participant to Platform and Canvas.
-# TODO: rename to SyncParticipant or SyncSalesforceParticipant
-class SyncPortalEnrollmentForAccount
+# Sync's a Salesforce Participant across all applications like
+# Platform, Canvas, and Zoom.
+#
+# Note: Discord is separate since it's a bot.
+class SyncSalesforceParticipant
 
   def initialize(salesforce_participant, salesforce_program, force_zoom_update)
     @sf_participant = salesforce_participant
@@ -26,13 +28,13 @@ class SyncPortalEnrollmentForAccount
   def run
     # Note that putting the span inside the begin/rescue and letting exceptions bubble through
     # the block causes Honeycomb to automatically set the 'error' and 'error_detail' fields.
-    Honeycomb.start_span(name: 'sync_portal_enrollment_for_account.run') do
+    Honeycomb.start_span(name: 'sync_salesforce_participant.run') do
       sf_participant.add_to_honeycomb_span()
-      Honeycomb.add_field('sync_portal_enrollment_for_account.complete?', false)
+      Honeycomb.add_field('sync_salesforce_participant.complete?', false)
 
       # Find or create local users and make sure they are in sync with Salesforce (and Canvas)
       create_new_user = (sf_participant.status == SalesforceAPI::ENROLLED)
-      sync_contact_service = SyncFromSalesforceContact.new(@sf_contact, create_new_user)
+      sync_contact_service = SyncSalesforceContact.new(@sf_contact, create_new_user)
       @user = sync_contact_service.run
 
       # Note that we run this before the enrollment stuff b/c we want to have the Zoom
@@ -52,7 +54,7 @@ class SyncPortalEnrollmentForAccount
       else
         logger.warn("Doing nothing! Got #{sf_participant.status} from SF")
       end
-      Honeycomb.add_field('sync_portal_enrollment_for_account.complete?', true)
+      Honeycomb.add_field('sync_salesforce_participant.complete?', true)
     end
   end
 
@@ -102,7 +104,7 @@ class SyncPortalEnrollmentForAccount
 
   def drop_enrollment!
     if @user.blank?
-      Honeycomb.add_field('sync_portal_enrollment_for_account.skip_reason', 'Dropped Participant never synced before')
+      Honeycomb.add_field('sync_salesforce_participant.skip_reason', 'Dropped Participant never synced before')
       return
     end
 
@@ -148,7 +150,7 @@ class SyncPortalEnrollmentForAccount
   # The primary enrollment controls the due dates and corresponds to either their
   # Cohort or Cohort Schedule in Salesforce (or some default section if neither applies).
   def sync_primary_enrollment(canvas_course_id, role, section_name, limit_privileges_to_course_section=true)
-    Honeycomb.start_span(name: 'sync_portal_enrollment_for_account.sync_primary_enrollment') do
+    Honeycomb.start_span(name: 'sync_salesforce_participant.sync_primary_enrollment') do
       Honeycomb.add_field('canvas.course.id', canvas_course_id.to_s)
       Honeycomb.add_field('canvas.section.role', role)
 
@@ -183,7 +185,7 @@ class SyncPortalEnrollmentForAccount
         user.remove_section_roles(course)
         user.add_role role, new_section
 
-        Honeycomb.add_field('sync_portal_enrollment_for_account.skip_reason', 'No Canvas account yet')
+        Honeycomb.add_field('sync_salesforce_participant.skip_reason', 'No Canvas account yet')
         logger.info("Skipping sync primary enrollment for #{user.email}. No Canvas account.")
         return
       end
@@ -198,7 +200,7 @@ class SyncPortalEnrollmentForAccount
 
       if existing_section.nil? || enrollment.nil?
         # Brand new first time enrollment
-        Honeycomb.add_field('sync_portal_enrollment_for_account.new_enrollment', true)
+        Honeycomb.add_field('sync_salesforce_participant.new_enrollment', true)
         enroll_user(canvas_course_id, role, new_section, limit_privileges_to_course_section)
 
       elsif !existing_section.canvas_section_id.eql?(new_section.canvas_section_id) || !existing_role_name&.eql?(role)
@@ -209,7 +211,7 @@ class SyncPortalEnrollmentForAccount
         )
 
         # Remove the old enrollment and add the new one.
-        Honeycomb.add_field('sync_portal_enrollment_for_account.new_enrollment', false)
+        Honeycomb.add_field('sync_salesforce_participant.new_enrollment', false)
         drop_course_enrollments(canvas_course_id)
         enroll_user(canvas_course_id, role, new_section, limit_privileges_to_course_section)
 
@@ -222,13 +224,13 @@ class SyncPortalEnrollmentForAccount
           end
         end
 
-        Honeycomb.add_field('sync_portal_enrollment_for_account.new_overrides.count', new_overrides.count)
+        Honeycomb.add_field('sync_salesforce_participant.new_overrides.count', new_overrides.count)
         if new_overrides.count > 0
           logger.info("Copying assignment overrides: #{new_overrides}")
           canvas_client.create_assignment_overrides(canvas_course_id, new_overrides)
         end
       else
-        Honeycomb.add_field('sync_portal_enrollment_for_account.skip_reason', 'No enrollment changes')
+        Honeycomb.add_field('sync_salesforce_participant.skip_reason', 'No enrollment changes')
         logger.info("Skipping sync enrollment for #{@user.email}. No enrollment changes.")
       end
     end
@@ -251,7 +253,7 @@ class SyncPortalEnrollmentForAccount
     end
   rescue RestClient::NotFound
     # This gets thrown if the account role was manually deleted or never assigned. Fine to skip.
-    Honeycomb.add_field('sync_portal_enrollment_for_account.staff_account_role.not_found', true)
+    Honeycomb.add_field('sync_salesforce_participant.staff_account_role.not_found', true)
   end
 
   # Pass in a local db section.

@@ -133,8 +133,7 @@ private
   end
 
   def sync_canvas_enrollment!
-    # TODO: rename Portal to Canvas everywhere.
-    SyncPortalEnrollmentForAccount.new(@salesforce_participant, @salesforce_program, false).run
+    SyncSalesforceParticipant.new(@salesforce_participant, @salesforce_program, false).run
   end
 
   def create_canvas_user!

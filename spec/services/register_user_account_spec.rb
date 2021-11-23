@@ -22,12 +22,12 @@ RSpec.describe RegisterUserAccount do
       update_contact: nil,
     ) }
     let(:canvas_client) { instance_double(CanvasAPI, create_user: canvas_user, disable_user_grading_emails: nil) }
-    let(:enrollment_process) { instance_double(SyncPortalEnrollmentForAccount, run: nil) }
+    let(:enrollment_process) { instance_double(SyncSalesforceParticipant, run: nil) }
 
     before do
       allow(SalesforceAPI).to receive(:client).and_return(sf_client)
       allow(CanvasAPI).to receive(:client).and_return(canvas_client)
-      allow(SyncPortalEnrollmentForAccount).to receive(:new).and_return(enrollment_process)
+      allow(SyncSalesforceParticipant).to receive(:new).and_return(enrollment_process)
     end
 
     it 'creates a canvas user if enrolled status' do
@@ -89,7 +89,7 @@ RSpec.describe RegisterUserAccount do
         sign_up_params[:signup_token] = user.set_signup_token!
         allow(SalesforceAPI).to receive(:client).and_return(sf_client)
         allow(CanvasAPI).to receive(:client).and_return(canvas_client)
-        allow(SyncPortalEnrollmentForAccount).to receive(:new).and_return(enrollment_process)
+        allow(SyncSalesforceParticipant).to receive(:new).and_return(enrollment_process)
       end
 
       it 'clears all signup/reset tokens' do
@@ -113,7 +113,7 @@ RSpec.describe RegisterUserAccount do
         sign_up_params[:reset_password_token] = user.send(:set_reset_password_token)
         allow(SalesforceAPI).to receive(:client).and_return(sf_client)
         allow(CanvasAPI).to receive(:client).and_return(canvas_client)
-        allow(SyncPortalEnrollmentForAccount).to receive(:new).and_return(enrollment_process)
+        allow(SyncSalesforceParticipant).to receive(:new).and_return(enrollment_process)
       end
 
       it 'clears all signup/reset tokens' do
@@ -138,7 +138,7 @@ RSpec.describe RegisterUserAccount do
         user.update!(signup_token_sent_at: 5.weeks.ago)
         allow(SalesforceAPI).to receive(:client).and_return(sf_client)
         allow(CanvasAPI).to receive(:client).and_return(canvas_client)
-        allow(SyncPortalEnrollmentForAccount).to receive(:new).and_return(enrollment_process)
+        allow(SyncSalesforceParticipant).to receive(:new).and_return(enrollment_process)
       end
 
       it 'yields error and returns' do
@@ -164,7 +164,7 @@ RSpec.describe RegisterUserAccount do
         user.update!(reset_password_sent_at: 5.days.ago)
         allow(SalesforceAPI).to receive(:client).and_return(sf_client)
         allow(CanvasAPI).to receive(:client).and_return(canvas_client)
-        allow(SyncPortalEnrollmentForAccount).to receive(:new).and_return(enrollment_process)
+        allow(SyncSalesforceParticipant).to receive(:new).and_return(enrollment_process)
       end
 
       it 'yields error and returns' do

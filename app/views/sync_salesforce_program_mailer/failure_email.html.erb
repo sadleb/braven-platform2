@@ -1,4 +1,4 @@
-<% if @exception.is_a?(SyncPortalEnrollmentsForProgram::SyncPortalEnrollmentsForProgramError) && @failed_participants.present? %>
+<% if @exception.is_a?(SyncSalesforceProgram::SyncSalesforceProgramError) && @failed_participants.present? %>
 
   <% content_for :email_css do %>
     tr {

@@ -2,7 +2,7 @@
 require 'salesforce_api'
 
 # Sync's information unique to a Salesforce Contact record to Platform and Canvas.
-class SyncFromSalesforceContact
+class SyncSalesforceContact
 
   # @param [SalesforceAPI::SFContact] salesforce_contact
   # @param [Boolean] create_new_user_if_missing
@@ -33,7 +33,7 @@ class SyncFromSalesforceContact
     # Be careful to only add this to the span b/c when this is run as part of program sync
     # there is not a single "user" associated with this trace. We're instrumenting information
     # about multiple users in that case.
-    @user.add_to_honeycomb_span('sync_from_salesforce_contact')
+    @user.add_to_honeycomb_span('sync_salesforce_contact')
 
     @user.email = get_synced_email()
 
@@ -97,7 +97,7 @@ private
 
     if @send_signup_emails
       new_user.send_signup_email!(raw_signup_token)
-      Honeycomb.add_field('sync_from_salesforce_contact.signup_email_sent', true)
+      Honeycomb.add_field('sync_salesforce_contact.signup_email_sent', true)
     end
 
     @user = new_user
@@ -114,22 +114,22 @@ private
     salesforce_email = @salesforce_contact.email.downcase
 
     if @user.unconfirmed_email&.downcase == salesforce_email
-      Honeycomb.add_field('sync_from_salesforce_contact.email_changed', false)
-      Honeycomb.add_field('sync_from_salesforce_contact.email_changed_details',
+      Honeycomb.add_field('sync_salesforce_contact.email_changed', false)
+      Honeycomb.add_field('sync_salesforce_contact.email_changed_details',
         'Email change was already requested and reconfirmation email sent. Skipping.')
 
     elsif @user.email.downcase == salesforce_email
-      Honeycomb.add_field('sync_from_salesforce_contact.email_changed', false)
-      Honeycomb.add_field('sync_from_salesforce_contact.email_changed_details', 'Salesforce email matches Platform email')
+      Honeycomb.add_field('sync_salesforce_contact.email_changed', false)
+      Honeycomb.add_field('sync_salesforce_contact.email_changed_details', 'Salesforce email matches Platform email')
       # Ensure that even if Salesforce and Platform are in sync, the Canvas login email
       # is as well. NOOP if they are.
       SyncUserEmailToCanvas.new(@user).run! if @user.has_canvas_account?
 
     else
-      Honeycomb.add_field('sync_from_salesforce_contact.email_changed', true)
+      Honeycomb.add_field('sync_salesforce_contact.email_changed', true)
       change_message = "Email changed in Salesforce to #{@salesforce_contact.email}. Updating user from old email #{@user.email}."
       change_message += " Sending reconfirmation link to the new one." if @user.registered?
-      Honeycomb.add_field('sync_from_salesforce_contact.email_changed_details', change_message)
+      Honeycomb.add_field('sync_salesforce_contact.email_changed_details', change_message)
       Rails.logger.info(change_message)
 
       # Change their email.

@@ -6,7 +6,7 @@
 
   <div class="row">
     <div class="col-md-4">
-      <%= form_with(url: salesforce_sync_from_salesforce_program_path, method: "post", local: true) do |f| %>
+      <%= form_with(url: salesforce_sync_salesforce_program_path, method: "post", local: true) do |f| %>
         <div class="form-group">
           <%= f.label :program_id, "Program ID:" %>
           <%= f.text_field :program_id, value: params[:program_id], autofocus: true, class: "form-control", required: true, placeholder: "a34scx992...", autocomplete: "salesforce-program-id" %>

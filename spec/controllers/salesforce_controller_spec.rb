@@ -15,16 +15,16 @@ RSpec.describe SalesforceController, type: :controller do
       allow(SalesforceAPI).to receive(:client).and_return(sf_client)
     end
 
-    describe 'GET #init_sync_from_salesforce_program' do
+    describe 'GET #init_sync_salesforce_program' do
       subject(:show_init_sync) do
-        get :init_sync_from_salesforce_program
+        get :init_sync_salesforce_program
       end
 
       it 'has a hidden param indicating that the user has not confirmed an "are you sure" message' do
         show_init_sync
         expect(response.body).to match(/<form.*<input value="true" type="hidden" name="not_confirmed" id="not_confirmed".*<\/form>/m)
       end
-    end # POST #sync_from_salesforce_program
+    end # POST #sync_salesforce_program
 
     describe 'GET #confirm_send_signup_emails' do
       let(:base_params) { { program_id: sf_program.id } }
@@ -105,7 +105,7 @@ RSpec.describe SalesforceController, type: :controller do
 
     end # POST #confirm_send_signup_emails
 
-    describe 'POST #sync_from_salesforce_program' do
+    describe 'POST #sync_salesforce_program' do
       let(:send_signup_emails) { false }
       let(:force_zoom_update) { false }
       let(:staff_email) { 'user.running.sync@bebraven.org' }
@@ -113,21 +113,21 @@ RSpec.describe SalesforceController, type: :controller do
       let(:params) { base_params }
 
       subject(:run_sync_from_salesforce) do
-        post :sync_from_salesforce_program, params: params
+        post :sync_salesforce_program, params: params
       end
 
       shared_examples 'runs the sync' do
         it 'starts the sync in "send signup emails" mode for the proper program' do
-          expect(SyncFromSalesforceProgramJob).to receive(:perform_later).with(sf_program.id, staff_email, send_signup_emails, force_zoom_update).once
+          expect(SyncSalesforceProgramJob).to receive(:perform_later).with(sf_program.id, staff_email, send_signup_emails, force_zoom_update).once
           run_sync_from_salesforce
         end
 
         # This matters b/c we want to be able to give regional staff members the Role to be able to run
         # this but not give them full admin access.
         it 'redirects back to initial "Sync From Salesforce" page' do
-          allow(SyncFromSalesforceProgramJob).to receive(:perform_later)
+          allow(SyncSalesforceProgramJob).to receive(:perform_later)
           run_sync_from_salesforce
-          expect(response).to redirect_to(salesforce_sync_from_salesforce_program_path)
+          expect(response).to redirect_to(salesforce_sync_salesforce_program_path)
         end
       end
 
@@ -167,7 +167,7 @@ RSpec.describe SalesforceController, type: :controller do
         let(:force_zoom_update) { false }
         it_behaves_like 'runs the sync'
       end
-    end # POST #sync_from_salesforce_program
+    end # POST #sync_salesforce_program
 
   end # 'for signed in user'
 
@@ -175,7 +175,7 @@ RSpec.describe SalesforceController, type: :controller do
     let!(:access_token) { create :access_token }
     let(:token_owner_user) { access_token.user }
     let(:token_owner_user_role) { nil }
-    let(:sync_contact_service) { double(SyncFromSalesforceContact, :run => nil) }
+    let(:sync_contact_service) { double(SyncSalesforceContact, :run => nil) }
     let(:canvas_client) { double(CanvasAPI, :change_user_login_email => nil, :create_user_email_channel => nil, :delete_user_email_channel => nil) }
     let(:delivery) { double('DummyDeliverer', deliver_now: nil) }
     let(:mailer) { double(SyncSalesforceContactToCanvasMailer, :failure_email => delivery ) }
@@ -185,7 +185,7 @@ RSpec.describe SalesforceController, type: :controller do
 
     before(:each) do
       allow(CanvasAPI).to receive(:client).and_return(canvas_client)
-      allow(SyncFromSalesforceContact).to receive(:new).and_return(sync_contact_service)
+      allow(SyncSalesforceContact).to receive(:new).and_return(sync_contact_service)
       allow(SyncSalesforceContactToCanvasMailer).to receive(:with).and_return(mailer)
     end
 
@@ -208,16 +208,16 @@ RSpec.describe SalesforceController, type: :controller do
           expect(response).to be_successful
         end
 
-        it 'runs SyncFromSalesforceContact service' do
+        it 'runs SyncSalesforceContact service' do
           post_update
-          expect(SyncFromSalesforceContact).to have_received(:new).with(
+          expect(SyncSalesforceContact).to have_received(:new).with(
             SalesforceAPI::SFContact.new(fellow_user.salesforce_id, new_email, fellow_user.first_name, fellow_user.last_name),
             false
           ).once
           expect(sync_contact_service).to have_received(:run).once
         end
 
-        context 'when SyncFromSalesforceContact service fails' do
+        context 'when SyncSalesforceContact service fails' do
           # The endpoint is called from a Salesforce APEX class that is triggered using Proces Builder.
           # Returning a failure response to that side of the house isn't useful b/c you can't access those
           # logs without enabling trace logging and spending forever digging. The behavior is to email

@@ -31,11 +31,11 @@ RSpec.describe SalesforceAuthorizationPolicy, type: :policy do
     end
   end
 
-  permissions :init_sync_from_salesforce_program? do
+  permissions :init_sync_salesforce_program? do
     it_behaves_like 'admin or CanSyncFromSalesforce policy'
   end
 
-  permissions :sync_from_salesforce_program? do
+  permissions :sync_salesforce_program? do
     it_behaves_like 'admin or CanSyncFromSalesforce policy'
   end
 
