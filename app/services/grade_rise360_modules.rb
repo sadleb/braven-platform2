@@ -8,6 +8,8 @@
 # for usage.
 
 require 'time'
+require 'salesforce_api'
+require 'canvas_api'
 
 class GradeRise360Modules
   def initialize
