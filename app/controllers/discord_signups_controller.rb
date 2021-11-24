@@ -27,6 +27,8 @@ class DiscordSignupsController < ApplicationController
   DISCORD_ASSIGNMENT_NAME = 'TODO: Complete Discord Signup'
   DISCORD_POINTS_POSSIBLE = 10.0
 
+  DISCORD_API_TOKEN_URL = 'https://discord.com/api/v8/oauth2/token'
+
   def launch
     # Pass the current course into authorize so we can check enrollment.
     course = Course.find_by_canvas_course_id!(@lti_launch.course_id)
@@ -86,7 +88,7 @@ class DiscordSignupsController < ApplicationController
           )
           Honeycomb.add_field('discord_web_hook.add_member', response)
 
-          client = Discordrb::Webhooks::Client.new(id: discord_server.webhook_id , token: discord_server.webhook_token)
+          client = Discordrb::Webhooks::Client.new(id: discord_server.webhook_id, token: discord_server.webhook_token)
 
           client.execute do |builder|
             builder.content = "!configure_member #{@discord_user['id']} #{participant.contact_id}"
@@ -120,7 +122,7 @@ class DiscordSignupsController < ApplicationController
         :oauth2_token,
         nil,
         :post,
-        'https://discord.com/api/v8/oauth2/token',
+        DISCORD_API_TOKEN_URL,
         {
           client_id: Rails.application.secrets.discord_client_id,
           client_secret: Rails.application.secrets.discord_client_secret,

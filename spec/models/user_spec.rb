@@ -99,6 +99,31 @@ RSpec.describe User, type: :model do
     end
   end
 
+  describe '#is_enrolled_as_student?' do
+    let(:course) { create :course }
+    let(:section) { create :section, course: course }
+
+    subject { user.is_enrolled_as_student?(course) }
+
+    context 'user is a student in the course' do
+      let(:user) { create :fellow_user, section: section }
+
+      it { should eq(true) }
+    end
+
+    context 'user is a non-student in the course' do
+      let(:user) { create :ta_user, section: section }
+
+      it { should eq(false) }
+    end
+
+    context 'user is a student not in the course' do
+      let(:user) { create :fellow_user }
+
+      it { should eq(false) }
+    end
+  end
+
   describe '#ta_for?' do
     let(:course) { create :course }
     let(:section) { create :section, course: course }
