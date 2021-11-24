@@ -60,7 +60,7 @@ RSpec.describe GradeRise360Modules do
         it 'also gets programs that ended in the past 45 days' do
           expect(sf_client)
             .to receive(:get_current_and_future_accelerator_canvas_course_ids)
-            .with(45.days.ago)
+            .with(ended_less_than: 45.days.ago)
             .and_return(accelerator_course_ids)
           subject
         end

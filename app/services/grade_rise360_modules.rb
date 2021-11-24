@@ -24,7 +24,7 @@ class GradeRise360Modules
       # the final grades have been sent to the university.
       # https://app.asana.com/0/1201131148207877/1200788567441198
       canvas_course_ids = SalesforceAPI.client
-        .get_current_and_future_accelerator_canvas_course_ids(45.days.ago)
+        .get_current_and_future_accelerator_canvas_course_ids(ended_less_than: 45.days.ago)
 
       Honeycomb.add_field('grade_rise360_modules.canvas_course_ids', canvas_course_ids)
       if canvas_course_ids.empty?
