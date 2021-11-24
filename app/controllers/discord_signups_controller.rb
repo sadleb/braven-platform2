@@ -199,6 +199,6 @@ private
   # deleted, or if there is no discord state at all.
   def needs_new_discord_state?
     return true if current_user.discord_state.blank?
-    LtiLaunch.from_id(current_user, current_user.discord_state&.split(',')&.last).nil?
+    LtiLaunch.from_id(current_user, current_user.discord_state&.split(',')&.last&.to_i).nil?
   end
 end

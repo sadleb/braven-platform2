@@ -40,6 +40,7 @@ FactoryBot.define do
     sequence(:ZoomMeetingId2) { |i| "%010d" % (i + 10000)}
     sequence(:ZoomMeetingLink2) { zoom_meeting_link2 }
     sequence(:TeachingAssistantSections) { teaching_assistant_sections }
+    sequence(:DiscordServerId) { |i| "#{i}" }
 
     factory :salesforce_participant_fellow do
       sequence(:Role) { :Fellow }
@@ -63,6 +64,16 @@ FactoryBot.define do
       sequence(:Role) { :'Mock Interviewer' }
     end
 
+    factory :salesforce_participant_real_ta do
+      sequence(:Role) { :'Teaching Assistant' }
+      sequence(:VolunteerRole) { 'Teaching Assistant' }
+    end
+
+    factory :salesforce_participant_fake_ta do
+      sequence(:Role) { :'Teaching Assistant' }
+      sequence(:VolunteerRole) { 'Coach Partner' }
+    end
+    
     initialize_with { attributes.stringify_keys }
   end
 
