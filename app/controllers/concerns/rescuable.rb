@@ -11,8 +11,7 @@ module Rescuable
       # In order from least to most specific.
       rescue_from StandardError, :with => :handle_error_generic
       rescue_from Pundit::NotAuthorizedError, :with => :handle_error_forbidden
-      rescue_from ActionController::InvalidAuthenticityToken, with: :handle_expired_page
-      rescue_from SecurityError, :with => :handle_expired_page
+      rescue_from ActionController::InvalidAuthenticityToken, with: :handle_invalid_authenticity_token
     end
   end
 
@@ -32,13 +31,13 @@ private
     render 'errors/internal_server_error', layout: 'lti_canvas', status: 500
   end
 
-  def handle_expired_page(exception)
+  def handle_invalid_authenticity_token(exception)
     capture_error(exception)
 
     # Get only the path portion of the referrer, so this page doesn't introduce
     # an open redirect vulnerability.
     @referrer_path = Addressable::URI.parse(request.referrer)&.request_uri
-    render 'errors/expired_page', layout: 'lti_canvas', status: 500
+    render 'errors/invalid_authenticity_token', layout: 'lti_canvas', status: 500
   end
 
   def capture_error(exception)
