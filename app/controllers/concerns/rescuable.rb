@@ -12,6 +12,7 @@ module Rescuable
       rescue_from StandardError, :with => :handle_error_generic
       rescue_from Pundit::NotAuthorizedError, :with => :handle_error_forbidden
       rescue_from ActionController::InvalidAuthenticityToken, with: :handle_invalid_authenticity_token
+      rescue_from SecurityError, :with => :handle_security_error
     end
   end
 
@@ -38,6 +39,13 @@ private
     # an open redirect vulnerability.
     @referrer_path = Addressable::URI.parse(request.referrer)&.request_uri
     render 'errors/invalid_authenticity_token', layout: 'lti_canvas', status: 500
+  end
+
+  def handle_security_error(exception)
+    capture_error(exception)
+
+    @request = request
+    render 'errors/security_error', layout: 'lti_canvas', status: 500
   end
 
   def capture_error(exception)

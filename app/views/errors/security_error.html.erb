@@ -1,0 +1,6 @@
+<h1>Security Error</h1>
+<p>Sorry, something's gone wrong. Try returning to your Canvas dashboard and relaunching the page from there.</p>
+<p>If you still need help, please <%= link_to 'contact Braven Support', Rails.application.secrets.support_ticket_url %>,
+and include the following error details:</p>
+<pre>Path: <%= @request.path %>
+Request ID: <%= @request.request_id %></pre>
