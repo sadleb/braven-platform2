@@ -22,7 +22,7 @@ class GradeAttendanceForUserJob < ApplicationJob
     # multiple answers for the same event (aka assignment) and the most recent should win.
     # This matches what we show in our data dashboards.
     assignment_grades = {}
-    AttendanceEventSubmissionAnswer.where(for_user: @user).order(:created_at).each { |answer|
+    AttendanceEventSubmissionAnswer.where(for_user: user).order(:created_at).each do |answer|
 
       # Someone could be enrolled in multiple courses, so just skip answers for other ones.
       course_attendance_event = answer.submission.course_attendance_event
@@ -30,17 +30,17 @@ class GradeAttendanceForUserJob < ApplicationJob
 
       assignment_grades[course_attendance_event.canvas_assignment_id] =
         AttendanceGradeCalculator.compute_grade(answer)
-    }
+    end
     Honeycomb.add_field('grade_attendance_for_user.assignment_grades', assignment_grades)
 
-    assignment_grades.each { |canvas_assignment_id, grade|
+    assignment_grades.each do |canvas_assignment_id, grade|
       CanvasAPI.client.update_grade(
-        @salesforce_program.fellow_course_id,
+        canvas_course_id,
         canvas_assignment_id,
-        @user.canvas_user_id,
+        user.canvas_user_id,
         grade
       )
-    }
+    end
   end
 
 private
