@@ -34,11 +34,14 @@ class GradeAttendanceForUserJob < ApplicationJob
     Honeycomb.add_field('grade_attendance_for_user.assignment_grades', assignment_grades)
 
     assignment_grades.each do |canvas_assignment_id, grade|
-      CanvasAPI.client.update_grade(
+      # Note: we're using the async update_grades() method instead of the synchronous
+      # one b/c this happens as we're creating their Canvas account and enrollng them.
+      # Canvas would sometimes return a generic "An error occurred." response. Just
+      # trying to make that less likely.
+      CanvasAPI.client.update_grades(
         canvas_course_id,
         canvas_assignment_id,
-        user.canvas_user_id,
-        grade
+        { user.canvas_user_id => grade }
       )
     end
   end

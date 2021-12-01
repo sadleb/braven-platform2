@@ -113,7 +113,10 @@ class RegisterUserAccount
       # Attendance can be taken before they create a Canvas account. We kick off a job
       # to add their attendance grades to Canvas if they have any. This comes last b/c
       # it doesn't need to be done before they get Canvas access.
-      GradeAttendanceForUserJob.perform_later(@user, @salesforce_program.fellow_course_id)
+      # Note: the 60 second wait is b/c I was getting a generic "internal_server_error" response
+      # from Canvas sometimes and my assumption is that there was still backend stuff about the
+      # enrollment they were processing.
+      GradeAttendanceForUserJob.set(wait: 60.seconds).perform_later(@user, @salesforce_program.fellow_course_id)
     end
 
     # Note: we actually don't want to roll anything back if there are failures. We wouldn't
