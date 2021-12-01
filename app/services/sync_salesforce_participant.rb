@@ -191,16 +191,19 @@ class SyncSalesforceParticipant
       end
 
       # Check to see if we need to adjust their enrollment in Canvas. Note that we have to actually
-      # call into Canvas to check the enrollment b/c the local sections may be setup properly before
-      # they create their Canvas account.
-      enrollment = canvas_client.find_enrollment(
+      # call into Canvas to check the enrollment b/c the existing_section should be there after the first sync
+      existing_enrollment = canvas_client.find_enrollment(
         canvas_user_id: user.canvas_user_id,
-        canvas_section_id: new_section.canvas_section_id
-      )
+        canvas_section_id: existing_section.canvas_section_id
+      ) if existing_section.present?
 
-      if existing_section.nil? || enrollment.nil?
+      if existing_section.nil? || existing_enrollment.nil?
         # Brand new first time enrollment
         Honeycomb.add_field('sync_salesforce_participant.new_enrollment', true)
+        # Even if this is the first time they're being enrolled, their local Section roles
+        # may need to be adjusted if it's changed since the last sync.
+        user.remove_section_roles(course)
+
         enroll_user(canvas_course_id, role, new_section, limit_privileges_to_course_section)
 
       elsif !existing_section.canvas_section_id.eql?(new_section.canvas_section_id) || !existing_role_name&.eql?(role)
