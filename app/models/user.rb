@@ -76,7 +76,7 @@ class User < ApplicationRecord
       sections.each do |section|
         remove_role role, section
         # Delete empty sections, both locally and on Canvas.
-        if section && section.users.empty?
+        if section.users.empty?
           section.destroy
         end
       end
