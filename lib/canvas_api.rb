@@ -466,6 +466,11 @@ class CanvasAPI
     JSON.parse(response.body)
   end
 
+  def delete_section(section_id)
+    response = delete("/sections/#{section_id}")
+    JSON.parse(response.body)
+  end
+
   def get_assignment(course_id, assignment_id)
     response = get("/courses/#{course_id}/assignments/#{assignment_id}")
     JSON.parse(response.body)

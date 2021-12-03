@@ -1,9 +1,12 @@
+require 'canvas_api'
+
 class Section < ApplicationRecord
   resourcify
 
   belongs_to :course
 
   before_validation { name.try(:strip!) }
+  before_destroy :delete_canvas_section
 
   # All users, with any role, in this section.
   # This is a function just because I don't know how to write it as an association.
@@ -22,6 +25,13 @@ class Section < ApplicationRecord
 
   def students
     users_with_role(RoleConstants::STUDENT_ENROLLMENT)
+  end
+
+private
+
+  # Raises RestClient::BadRequest if the Canvas section has enrollments.
+  def delete_canvas_section
+    CanvasAPI.client.delete_section(canvas_section_id) unless canvas_section_id.nil?
   end
 
 end

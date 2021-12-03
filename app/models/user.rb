@@ -72,8 +72,14 @@ class User < ApplicationRecord
   # Removes the roles for all Sections in the specified course
   def remove_section_roles(course)
     RoleConstants::SECTION_ROLES.each { |role|
-      section = sections_with_role(role).find_by(course: course)
-      remove_role role, section if section
+      sections = sections_with_role(role).where(course: course)
+      sections.each do |section|
+        remove_role role, section
+        # Delete empty sections, both locally and on Canvas.
+        if section && section.users.empty?
+          section.destroy
+        end
+      end
     }
   end
 

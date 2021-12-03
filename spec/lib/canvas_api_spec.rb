@@ -485,6 +485,19 @@ RSpec.describe CanvasAPI do
     end
   end
 
+  describe '#delete_section' do
+    let(:section_id) { 123456 }
+
+    it 'hits the Canvas API correctly' do
+      request_url = "#{CANVAS_API_URL}/sections/#{section_id}"
+      stub_request(:delete, request_url).to_return( body: {}.to_json )
+
+      section = canvas.delete_section(section_id)
+
+      expect(WebMock).to have_requested(:delete, request_url).once
+    end
+  end
+
   describe '#get_assignments' do
     let(:course_id) { 123456 }
     let(:assignment1) { FactoryBot.json(:canvas_assignment, course_id: course_id) }

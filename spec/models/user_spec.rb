@@ -99,6 +99,31 @@ RSpec.describe User, type: :model do
     end
   end
 
+  describe '#remove_section_roles' do
+    subject { user.remove_section_roles(course) }
+
+    let(:course) { create :course }
+    let(:section_with_user) { create :section, course: course }
+    let(:section_with_many) { create :section, course: course }
+    let!(:user) { create :fellow_user, section: section_with_many }
+    let!(:other_user) { create :fellow_user, section: section_with_many }
+
+    before :each do
+      user.add_role RoleConstants::STUDENT_ENROLLMENT, section_with_user
+    end
+
+    it 'deletes section roles' do
+      expect(user.sections.count).to eq(2)
+      subject
+      expect(user.sections.count).to eq(0)
+    end
+
+    it 'deletes empty sections after removing roles' do
+      expect { subject }.to change(Section, :count).by(-1)
+      expect { section_with_user.reload }.to raise_error(ActiveRecord::RecordNotFound)
+    end
+  end
+
   describe '#is_enrolled_as_student?' do
     let(:course) { create :course }
     let(:section) { create :section, course: course }
