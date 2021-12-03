@@ -677,9 +677,10 @@ RSpec.describe DiscordBot do
     let(:message) { instance_double(Discordrb::Message, content: message_content, author: member, edit: nil) }
     let(:event) { instance_double(Discordrb::Events::MessageEvent, server: server, author: member, message: message) }
     let(:message_content) { "#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:sync_salesforce]} #{args}".strip }
-    let(:programs) { create(:salesforce_current_and_future_programs, canvas_course_ids: [1, 2]) }
+    let(:programs) { create(:salesforce_current_and_future_programs, canvas_course_ids: [1, 2, 3]) }
     let(:program1_with_discord) { create(:salesforce_program_record, program_id: programs['records'][0]['Id'], discord_server_id: server_id) }
     let(:program2_without_discord) { create(:salesforce_program_record, program_id: programs['records'][1]['Id'], discord_server_id: nil) }
+    let(:program3_with_discord) { create(:salesforce_program_record, program_id: programs['records'][2]['Id'], discord_server_id: server_id) }
     let(:sf_client) { instance_double(SalesforceAPI,
       get_current_and_future_accelerator_programs: programs['records'],
       update_program: nil,
@@ -697,6 +698,19 @@ RSpec.describe DiscordBot do
       allow(SalesforceAPI).to receive(:client).and_return(sf_client)
       allow(message).to receive(:respond).and_return(message)
       allow(bot).to receive(:sync_salesforce_program)
+    end
+
+    context 'with more than one program linked to the Discord server' do
+      before :each do
+        allow(sf_client).to receive(:get_current_and_future_accelerator_programs)
+          .and_return([program1_with_discord, program3_with_discord])
+      end
+
+      it 'sends a message telling there is more than one program linked to the server and doesn\'t run rest of function' do
+        expect(message).to receive(:respond)
+        expect(sf_client).not_to receive(:update_program)
+        subject
+      end
     end
 
     context 'with no arguments' do
@@ -759,20 +773,36 @@ RSpec.describe DiscordBot do
       let(:program_id) { program2_without_discord['Id'] }
       let(:args) { "#{program_id}" }
 
-      it 'responds' do
-        expect(message).to receive(:respond)
-        subject
+      context 'with no other programs linked to the same Discord server' do
+        it 'responds' do
+          expect(message).to receive(:respond)
+          subject
+        end
+
+        it 'updates program' do
+          expect(sf_client).to receive(:update_program)
+            .with(program_id, {'Discord_Server_ID__c': server_id})
+          subject
+        end
+
+        it 'syncs program' do
+          expect(bot).to receive(:sync_salesforce_program).with(program_id)
+          subject
+        end
       end
 
-      it 'updates program' do
-        expect(sf_client).to receive(:update_program)
-          .with(program_id, {'Discord_Server_ID__c': server_id})
-        subject
-      end
+      context 'with a different program already linked to the same Discord server' do
+        before :each do
+          allow(sf_client).to receive(:get_current_and_future_accelerator_programs)
+          .and_return([program2_without_discord, program3_with_discord])
+        end
 
-      it 'syncs program' do
-        expect(bot).to receive(:sync_salesforce_program).with(program_id)
-        subject
+        it 'sends a message telling there is already a program linked to the server' do
+          expect(message).to receive(:respond)
+          expect(sf_client).not_to receive(:update_program)
+          expect(bot).not_to receive(:sync_salesforce_program)
+          subject
+        end
       end
     end
 

@@ -491,6 +491,26 @@ class DiscordBot
     Honeycomb.add_field('sync_salesforce_command.args.count', args.count)
     Honeycomb.add_field('sync_salesforce_command.args', args)
 
+    # Look for a current/future Program with this Discord Server ID.
+    # We only need get current and future programs because the sync doesn't run
+    # on ended programs
+    programs = SalesforceAPI.client.get_current_and_future_accelerator_programs
+    relevant_programs = programs.select { |program| program['Discord_Server_ID__c'].to_i == server.id.to_i }
+
+    if relevant_programs.length > 1
+      message_content = "\n❌ This server has more than one program linked to it."
+      message_content << "\nMake sure only one program is linked to the server "
+      message_content << "before running the sync_program command."
+      message_content << "\nIDs of Programs linked to this server:"
+      relevant_programs.each do |program|
+        message_content << "\n* #{program['Id']}"
+      end
+      event.message.respond message_content
+      return
+    end
+
+    program = relevant_programs.first
+
     if args.count > 1
       # Wrong arguments.
       event.message.respond "Too many arguments, not sure what to do." \
@@ -499,6 +519,19 @@ class DiscordBot
     elsif args.count == 1
       # Sync with the given Program.
       program_id = args.first
+
+      # We want to prevent a program from being synced to the Discord server
+      # if there is already a different program linked to the server
+      if !program.nil? && program_id != program['Id']
+        message_content = "\n❌ A program is already linked to this server."
+        message_content << "\nTwo programs cannot be running in a single server
+         at the same time."
+        message_content << "\nYou *must* end the previous program (#{program['Id']}) before beginning a new one."
+        message_content << "\nEnding a program is destructive and cannot be undone."
+        event.message.respond message_content
+        return
+      end
+
       message_content = "Starting sync with Program #{program_id}..."
       message = event.message.respond message_content
 
@@ -546,10 +579,6 @@ class DiscordBot
       # Sync with the saved Program for this Server.
       message_content = "Starting sync with pre-configured Program..."
       message = event.message.respond message_content
-
-      # Look for a current/future Program with this Discord Server ID.
-      programs = SalesforceAPI.client.get_current_and_future_accelerator_programs
-      program = programs.find { |program| program['Discord_Server_ID__c'].to_i == server.id.to_i }
 
       if program.nil?
         message_content << "\n❌ No Program found for this Discord server."
