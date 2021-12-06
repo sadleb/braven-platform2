@@ -5,7 +5,7 @@
     <h1>Confirmation failed</h1>
     <p>Your confirmation link has already been used, has expired, or was invalid.</p>
 
-    <p>If you have <strong>already confirmed your account</strong>, try <%= link_to 'logging in', cas_login_path(service: CanvasConstants::CANVAS_URL) %> instead.</p>
+    <p>If you have <strong>already confirmed your account</strong>, try <%= link_to 'logging in', Rails.application.secrets.canvas_url %> instead.</p>
   </div>
 </div>
 

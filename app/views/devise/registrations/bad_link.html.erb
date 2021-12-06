@@ -2,7 +2,7 @@
   <div class="col-md-10">
     <h1>Uh oh. Something went wrong!</h1>
     <p>Try logging in instead if you have already signed up.</p>
-    <p> <a class="btn btn-primary" href="<%= cas_login_path(service: CanvasConstants::CANVAS_URL ) %>">Log in</a></p>
+    <p> <a class="btn btn-primary" href="<%= Rails.application.secrets.canvas_url %>">Log in</a></p>
     <p>If you have not already signed up, you should have a received an email with a signup link from Braven welcoming you to the program.</p>
     <p>If you did not receive an email with a link, please <a href="mailto:support@bebraven.org">contact us here</a>.</p>
   </div>

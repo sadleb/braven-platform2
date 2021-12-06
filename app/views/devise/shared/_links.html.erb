@@ -1,5 +1,5 @@
 <%- if controller_name != 'sessions' && controller_name != 'cas' %>
-  <%= link_to "Log in", cas_login_url %><br />
+  <%= link_to "Log in", Rails.application.secrets.canvas_url %><br />
 <% end %>
 
 <%- if devise_mapping.recoverable? && controller_name != 'passwords' && controller_name != 'registrations' %>
