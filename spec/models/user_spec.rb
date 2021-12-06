@@ -118,9 +118,24 @@ RSpec.describe User, type: :model do
       expect(user.sections.count).to eq(0)
     end
 
-    it 'deletes empty sections after removing roles' do
-      expect { subject }.to change(Section, :count).by(-1)
-      expect { section_with_user.reload }.to raise_error(ActiveRecord::RecordNotFound)
+    context 'with Cohort Sections' do
+      # Horrible hack we should implement properly, but it uses a regex match for the Cohort naming
+      # scheme to tell: https://app.asana.com/0/1201131148207877/1201474235336690
+      let(:section_with_user) { create :section, course: course, name: 'C1 Wed (LC Name) - BAY: San Jose Fall 2021' }
+      it 'deletes empty sections after removing roles' do
+        expect { subject }.to change(Section, :count).by(-1)
+        expect { section_with_user.reload }.to raise_error(ActiveRecord::RecordNotFound)
+      end
+    end
+
+    context 'with Cohort Schedule Sections' do
+      # Horrible hack we should implement properly, but it uses a regex match for the Cohort naming
+      # scheme to tell: https://app.asana.com/0/1201131148207877/1201474235336690
+      let(:section_with_user) { create :section, course: course, name: 'Wednesday, 6pm-7:50pm Pacific' }
+      it 'does not delete empty sections after removing roles' do
+        expect { subject }.not_to change(Section, :count)
+        expect { section_with_user.reload }.not_to raise_error(ActiveRecord::RecordNotFound)
+      end
     end
   end
 

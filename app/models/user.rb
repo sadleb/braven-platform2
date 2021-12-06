@@ -76,7 +76,7 @@ class User < ApplicationRecord
       sections.each do |section|
         remove_role role, section
         # Delete empty sections, both locally and on Canvas.
-        if section.users.empty?
+        if section.users.empty? && cohort_section_name_regex.match(section.name)
           section.destroy
         end
       end
@@ -302,6 +302,15 @@ protected
   # See: vendor/bundle/ruby/3.0.0/gems/devise-4.8.0/lib/devise/models/authenticatable.rb
   def serializable_hash(options = nil)
     super({:except => UNSAFE_ATTRIBUTES_FOR_SERIALIZATION})
+  end
+
+
+  # Complete hack so we only delete Section's if they are for a Cohort,
+  # excluding other types like Cohort Schedule, Teaching Assistants, Default Section, etc
+  # We should fix this properly, either by adding a new "type" column or some other more robust way.
+  # https://app.asana.com/0/1201131148207877/1201474235336690
+  def cohort_section_name_regex
+    /C\d* .* \(.*\)/
   end
 
 private
