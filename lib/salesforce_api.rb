@@ -33,7 +33,7 @@ class SalesforceAPI
   # Task: https://app.asana.com/0/1201131148207877/1201453841518462
 
   SFParticipant = Struct.new(:first_name, :last_name, :email, :role,
-                             :program_id, :contact_id, :status, :student_id,
+                             :program_id, :contact_id, :status,
                              :cohort, :cohort_schedule, :cohort_id,
                              :id, :discord_invite_code, :discord_user_id, :discord_server_id,
                              :volunteer_role, :zoom_prefix,
@@ -481,7 +481,7 @@ class SalesforceAPI
     SFParticipant.new(participant['FirstName'], participant['LastName'],
                       participant['Email'], participant['Role']&.to_sym,
                       participant['ProgramId'], participant['ContactId'],
-                      participant['ParticipantStatus'], participant['StudentId'],
+                      participant['ParticipantStatus'],
                       participant['CohortName'], participant['CohortScheduleDayTime'],
                       participant['CohortId'], participant['Id'],
                       participant['DiscordInviteCode'], participant['DiscordUserId'], participant['DiscordServerId'],

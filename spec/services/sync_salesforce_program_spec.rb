@@ -200,9 +200,9 @@ RSpec.describe SyncSalesforceProgram do
 #
 #      context 'for general failure' do
 #        before(:each) do
-#          expect(lms_client).to receive(:find_user_by).with(email: sf_participant_fail.email, salesforce_contact_id: anything, student_id: anything)
+#          expect(lms_client).to receive(:find_user_by).with(email: sf_participant_fail.email, salesforce_contact_id: anything, platform_user_id: anything)
 #            .and_raise("Fake Exception")
-#          expect(lms_client).to receive(:find_user_by).with(email: sf_participant_success.email, salesforce_contact_id: anything, student_id: anything)
+#          expect(lms_client).to receive(:find_user_by).with(email: sf_participant_success.email, salesforce_contact_id: anything, platform_user_id: anything)
 #            .and_return(portal_user_success)
 #          expect{ sync_program_service.run }.to raise_error(SyncSalesforceProgram::SyncSalesforceProgramError)
 #        end
@@ -223,9 +223,9 @@ RSpec.describe SyncSalesforceProgram do
 #
 #      context 'for specific failures' do
 #        before(:each) do
-#          allow(lms_client).to receive(:find_user_by).with(email: sf_participant_fail.email, salesforce_contact_id: anything, student_id: anything)
+#          allow(lms_client).to receive(:find_user_by).with(email: sf_participant_fail.email, salesforce_contact_id: anything, platform_user_id: anything)
 #            .and_return(portal_user_fail)
-#          allow(lms_client).to receive(:find_user_by).with(email: sf_participant_success.email, salesforce_contact_id: anything, student_id: anything)
+#          allow(lms_client).to receive(:find_user_by).with(email: sf_participant_success.email, salesforce_contact_id: anything, platform_user_id: anything)
 #            .and_return(portal_user_success)
 #        end
 #

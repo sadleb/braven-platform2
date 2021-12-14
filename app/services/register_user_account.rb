@@ -146,7 +146,7 @@ private
       @salesforce_participant.email,  # username
       @salesforce_participant.email,
       @salesforce_participant.contact_id,
-      @salesforce_participant.student_id,
+      @user.id,
       @salesforce_program.timezone
     )
     @user.update!(canvas_user_id: canvas_user['id'])

@@ -90,7 +90,6 @@ class HerokuConnect::Participant < HerokuConnect::HerokuConnectRecord
   def to_struct
     SalesforceAPI::SFParticipant.new(contact.firstname, contact.lastname, contact.email,
       role, program__c, contact__c, status__c,
-      'TODO_remove_student_id_from_struct_and_canvas_api',
       cohort.name, cohort_schedule.canvas_section_name,
       cohort__c, sfid, discord_invite_code, contact.discord_user_id__c, program.discord_server_id__c,
       candidate.candidate_role.to_s, cohort.zoom_prefix,

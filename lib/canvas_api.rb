@@ -199,7 +199,7 @@ class CanvasAPI
     JSON.parse(response.body)
   end
 
-  def create_user(first_name, last_name, username, email, salesforce_id, student_id, timezone)
+  def create_user(first_name, last_name, username, email, salesforce_id, platform_user_id, timezone)
     body = {
         'user[name]' => "#{first_name} #{last_name}",
         'user[short_name]' => first_name,
@@ -212,9 +212,7 @@ class CanvasAPI
         'communication_channel[address]' => email,
         'communication_channel[skip_confirmation]' => true,
         'communication_channel[confirmation_url]' => true,
-         # Note: the old code used the Join user.id and not the SF id. But now the user account may not
-         # be created yet when we're running Sync To LMS.
-        'pseudonym[sis_user_id]' => format_to_sis_id(salesforce_id, student_id),
+        'pseudonym[sis_user_id]' => format_to_sis_id(salesforce_id, platform_user_id),
         'enable_sis_reactivation' => true
     }
     response = post("/accounts/#{DefaultAccountID}/users", body)
@@ -733,7 +731,7 @@ class CanvasAPI
 
   private
 
-  def format_to_sis_id(salesforce_contact_id, student_id)
-    "BVSFID#{salesforce_contact_id}-SISID#{student_id}"
+  def format_to_sis_id(salesforce_contact_id, platform_user_id)
+    "BVSFID#{salesforce_contact_id}-SISID#{platform_user_id}"
   end
 end

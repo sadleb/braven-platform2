@@ -31,7 +31,6 @@ FactoryBot.define do
     sequence(:LastName) { |i| "TestLastName#{i}" }
     sequence(:LastModifiedDate) { "2020-04-10T13:27:2{i}.000Z" }
     sequence(:ParticipantStatus) { 'Enrolled' }
-    sequence(:StudentId) { |i| "TestSisId#{i}" }
     sequence(:DiscordInviteCode) { discord_invite_code }
     sequence(:DiscordUserId) { discord_user_id }
     sequence(:ZoomPrefix) { |i| "ZoomPrefix#{1}" }
@@ -73,7 +72,7 @@ FactoryBot.define do
       sequence(:Role) { :'Teaching Assistant' }
       sequence(:VolunteerRole) { 'Coach Partner' }
     end
-    
+
     initialize_with { attributes.stringify_keys }
   end
 
