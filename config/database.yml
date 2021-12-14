@@ -1,26 +1,67 @@
+# Common settings that all database connections should use
 default: &default
   adapter: postgresql
   encoding: unicode
-  host: <%= ENV['DATABASE_HOST'] %>
-  username: <%= ENV['DATABASE_USERNAME'] %>
-  password: <%= ENV['DATABASE_PASSWORD'] %>
 
   # Note: we need at least one DB connection per puma thread or we'll run into the following:
   # ActiveRecord::ConnectionTimeoutError (could not obtain a connection from the pool within 5.000 seconds...)
   pool: <%= Integer(ENV['DB_POOL'] || Platform::Application::PUMA_MAX_THREADS || 5) %>
 
 
+# Connection settings for models that we want to read the Heroku Connect
+# provided tables with Salesforce data in them. See HerokuConnect::HerokuConnectRecord
+# for more info.
+heroku_connect_default: &heroku_connect_default
+
+  # Create read-only postgres credentials and set the HEROKU_CONNECT_DATABASE_URL to that connection URL.
+  url: <%= Rails.application.secrets.heroku_connect_database_url %>
+
+  # We configured Heroku Connect to put all mapped Salesforce objects into
+  # corresponding tables in the "salesforce" schema instead of public.
+  schema_search_path: 'salesforce'
+
+  # Causes the DB adapter to throw ActiveRecord::ReadOnlyError for any attempted writes as a failase
+  # in case we accidentally use a DB user that has write access.
+  replica: true
+
+
+# Note: in dev, set the HEROKU_CONNECT_DATABASE_URL to be the read-only postgres
+# user for the Heroku Connect add-in in staging that points to the Sandbox Salesforce
+# env.
 development:
-  <<: *default
-  database: platform_development
+  primary:
+    <<: *default
+    database: platform_development
+    host: <%= ENV['DATABASE_HOST'] %>
+    username: <%= ENV['DATABASE_USERNAME'] %>
+    password: <%= ENV['DATABASE_PASSWORD'] %>
+  heroku_connect:
+    <<: *default
+    <<: *heroku_connect_default
+    database: platform_development
 
 test:
-  <<: *default
-  database: platform_test
+  primary:
+    <<: *default
+    database: platform_test
+    host: <%= ENV['DATABASE_HOST'] %>
+    username: <%= ENV['DATABASE_USERNAME'] %>
+    password: <%= ENV['DATABASE_PASSWORD'] %>
+  heroku_connect:
+    <<: *default
+    <<: *heroku_connect_default
+    database: platform_test
 
-# Heroku takes care of the production database config, but if you want
-# to add more options other than DATABASE_URL you can do so here.
+# Heroku takes care of the production database config without us needing this "production" section,
+# for the main database. We define this here so that we can mimic what Heroku does by using the
+# DATABASE_URL and building locally in dev with some value and so that we can customize the production
+# config, adding in a separate connection for Heroku Connect.
 production:
-  <<: *default
-  database: platform_production
-  url: <%= ENV['DATABASE_URL'] %> # This is just so we can build in production mode on local dev. It's what Heroku does.
+  primary:
+    <<: *default
+    database: platform_production
+    url: <%= ENV['DATABASE_URL'] %>
+  heroku_connect:
+    <<: *default
+    <<: *heroku_connect_default
+    database: platform_production

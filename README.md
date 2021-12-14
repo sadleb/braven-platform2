@@ -4,7 +4,7 @@
 [![Codacy Coverage Badge](https://api.codacy.com/project/badge/Coverage/f800f0c485164dacb4b493d8acfb19e6)](https://www.codacy.com/manual/bebraven/platform)
 
 This is the Braven Platform!
-  
+
 Add to this README please. It's easy to edit and see your changes locally using [grip](https://github.com/joeyespo/grip).
 
 ## Initial setup
@@ -49,6 +49,7 @@ container](https://github.com/beyond-z/nginx-dev) that will allow you to access 
 
 ### Salesforce
 
+#### API
 If you need to work on anything that hits the Salesforce API, you'll need to setup the following
 environment variables in your `~/.bash_profile`.
 [Here is an article](https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/quickstart_oauth.htm) to help you through the below steps.
@@ -73,6 +74,18 @@ first ask someone to create a Salesforce account for you (or get the admin accou
 
 **Important Note**: whenever you change the password for the account that created the connected app, a new security token
 will be emailed to that user in an email titled "Your new Salesforce security token".
+
+#### Heroku Connect
+We expose read-only access to Salesforce using [Heroku Connect](https://github.com/bebraven/platform/wiki/Salesforce#heroku-connect).
+To set this up for dev:
+1. Go to the [staging app in Heroku](https://dashboard.heroku.com/apps/braven-platform-staging)
+2. Click on the Postgres add-on.
+3. Select the "Credentials" tab.
+4. Choose the read-only user and hit the "Copy" button.
+5. Set the `HEROKU_CONNECT_DATABASE_URL` ENV variable to this value in your `.env`.
+6. Make sure and restart your container.
+
+To see if it's working, open the rails console and make sure `HerokuConnect::Contact.first` returns something.
 
 ### Canvas
 

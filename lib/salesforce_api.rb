@@ -24,6 +24,14 @@ class SalesforceAPI
 
   SFContact = Struct.new(:id, :email, :first_name, :last_name)
 
+  # TODO: get rid of student_id. We used to use it as a fallback way to lookup
+  # a user when we couldn't find them by email. Now we store both the Contact.ID
+  # and User.canvas_user_id which are unique identifiers for a "person" and no
+  # longer need to rely on student id. It adds a lot of complexity to try and get
+  # that in the new Heroku Connect stuff (plus it may not exist or may be wrong)
+  # See app/models/heroku_connect/participant.rb#to_struct for another spot to change
+  # Task: https://app.asana.com/0/1201131148207877/1201453841518462
+
   SFParticipant = Struct.new(:first_name, :last_name, :email, :role,
                              :program_id, :contact_id, :status, :student_id,
                              :cohort, :cohort_schedule, :cohort_id,
@@ -467,6 +475,9 @@ class SalesforceAPI
 
   # Turns a Participant hash as returned by Salesforce into an SFParticipant struct
   def self.participant_to_struct(participant)
+
+    # IMPORTANT: if you change the attributes here, make sure and update
+    # HerokuConnect::Participant.to_struct() as well.
     SFParticipant.new(participant['FirstName'], participant['LastName'],
                       participant['Email'], participant['Role']&.to_sym,
                       participant['ProgramId'], participant['ContactId'],
