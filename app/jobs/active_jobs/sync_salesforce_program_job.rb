@@ -1,5 +1,11 @@
 # frozen_string_literal: true
 
+# TODO: delete me and replace with SyncSalesforceChangesJob.
+# In the future we could have a single scheduled job that kicks off
+# a bunch of individual SyncSalesforceProgramJob's that run in parallel,
+# but we need to handle changes to a Contact that is in multiple Programs
+# and make sure that parallel jobs play nice.
+# https://app.asana.com/0/1201131148207877/1201515686512764
 class SyncSalesforceProgramJob < ApplicationJob
   queue_as :default
 

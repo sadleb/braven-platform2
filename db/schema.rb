@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_11_12_180023) do
+ActiveRecord::Schema.define(version: 2021_12_10_161915) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
@@ -374,6 +374,36 @@ ActiveRecord::Schema.define(version: 2021_11_12_180023) do
     t.datetime "updated_at", precision: 6, null: false
     t.boolean "sessionless", default: false
     t.index ["state"], name: "index_lti_launches_on_state", unique: true
+  end
+
+  create_table "participant_sync_infos", force: :cascade do |t|
+    t.string "sfid", limit: 18, null: false
+    t.string "first_name", null: false
+    t.string "last_name", null: false
+    t.string "email", null: false
+    t.string "contact_id", limit: 18, null: false
+    t.string "status", null: false
+    t.string "role", null: false
+    t.string "candidate_role_select"
+    t.string "canvas_accelerator_course_id", null: false
+    t.string "canvas_lc_playbook_course_id", null: false
+    t.string "cohort_schedule_weekday", null: false
+    t.string "cohort_schedule_time"
+    t.string "cohort_section_name"
+    t.string "zoom_meeting_id_1"
+    t.string "zoom_meeting_id_2"
+    t.string "lc1_first_name"
+    t.string "lc1_last_name"
+    t.string "lc2_first_name"
+    t.string "lc2_last_name"
+    t.string "lc_count"
+    t.string "ta_names", array: true
+    t.string "ta_caseload_name"
+    t.datetime "created_at", precision: 6, default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.datetime "updated_at", precision: 6, default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.index ["sfid"], name: "index_participant_sync_infos_on_sfid", unique: true
+    t.check_constraint "char_length((contact_id)::text) = 18", name: "chk_participant_sync_infos_contact_id_length"
+    t.check_constraint "char_length((sfid)::text) = 18", name: "chk_participant_sync_infos_sfid_length"
   end
 
   create_table "project_submission_answers", force: :cascade do |t|

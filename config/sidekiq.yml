@@ -1,5 +1,19 @@
-:dynamic: true
 :max_retries: 0
 :queues:
   - default
   - low_priority
+
+# sidekiq-scheduler options
+# See here for more info: https://github.com/moove-it/sidekiq-scheduler#schedule-types
+:dynamic: true
+:enabled: <%= ENV.fetch('SIDEKIQ_SCHEDULER_ENABLED') { true } %>
+:schedule:
+  sync_salesforce_changes:
+    class: SyncSalesforceChangesJob
+    description: "Syncs changes in Salesforce to Platform, Canvas, Zoom, etc. Note: Discord is handled separately."
+
+    # Run every 10 minutes by default
+    #
+    # Note: technically, this value can take human readable formats, but we're using seconds
+    # to be consistent with SALESFORCE_SYNC_MAX_DURATION.
+    every: [<%= ENV.fetch('SALESFORCE_SYNC_EVERY') { '600' } %>]

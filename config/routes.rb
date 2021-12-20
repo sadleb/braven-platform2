@@ -1,5 +1,6 @@
 require 'sidekiq/web'
 require 'sidekiq-scheduler/web'
+require 'sidekiq_unique_jobs/web'
 
 # Needed to use the url_helpers outside of views and controller
 Rails.application.routes.default_url_options[:host] = Rails.application.secrets.application_host

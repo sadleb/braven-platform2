@@ -39,5 +39,13 @@ module Platform
 
     config.active_job.queue_adapter = :sidekiq
 
+    # For sub-directories that we use to organize the code, but we don't want to put in
+    # their own namespaces, add them here to treat them the same as though they were in
+    # the parent directory, which the parent directory's namespace.
+    # See: https://github.com/fxn/zeitwerk#collapsing-directories
+    autoloader = Rails.autoloaders.main
+    autoloader.collapse('app/jobs/sidekiq_jobs')
+    autoloader.collapse('app/jobs/active_jobs')
   end
 end
+

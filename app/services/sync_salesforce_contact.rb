@@ -121,6 +121,11 @@ private
     elsif @user.email.downcase == salesforce_email
       Honeycomb.add_field('sync_salesforce_contact.email_changed', false)
       Honeycomb.add_field('sync_salesforce_contact.email_changed_details', 'Salesforce email matches Platform email')
+      # TODO: if we accelerate how often the sync runs, we don't want to do
+      # this everytime. Maybe only do this if there are changes to the last synced value?
+      # e.g. changing their name or email causes us to make sure Canvas is good too,
+      # but we don't blindly do this everytime? https://app.asana.com/0/1201131148207877/1201515686512766
+      #
       # Ensure that even if Salesforce and Platform are in sync, the Canvas login email
       # is as well. NOOP if they are.
       SyncUserEmailToCanvas.new(@user).run! if @user.has_canvas_account?

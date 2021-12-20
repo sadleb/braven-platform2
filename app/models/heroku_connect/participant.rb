@@ -2,6 +2,8 @@
 require 'salesforce_api'
 
 class HerokuConnect::Participant < HerokuConnect::HerokuConnectRecord
+  include ParticipantSyncInfo::SyncScope
+
   self.table_name = 'participant__c'
 
   # type cast these from strings to symbols to make the code cleaner
@@ -65,46 +67,29 @@ class HerokuConnect::Participant < HerokuConnect::HerokuConnectRecord
     contact.name
   end
 
-  # Returns a list of Contact full names for each TA Caseload(full_name) section they should
-  # be addded to in Canvas. Reimplements the logic for the :teaching_assistant_sections
-  # field returned from the SalesforceAPI#get_participants() APEX endpoint.
-  def teaching_assistant_sections
+  # TODO: remove the following three methods from SalesforceAPI and cutover all usage to these ones.
+  # https://app.asana.com/0/1201131148207877/1201515686512765
 
-    # This Participant is a TA with a caseload. Just return their name in the array since
-    # that's the only TA Caseload(name) Canvas section they need to go in
-    return [full_name] if ta_caseloads.exists?
-
-    if ta_assignments.exists?
-      return ta_assignments.each.map { |tassign| "#{tassign.ta_participant.full_name}" }
-    end
-
-    return []
+  # Note: at the time of writing, staff members are also setup with a TA
+  # role. In the future, we may want to distinguish staff from actual TAs.
+  def is_teaching_assistant?
+    role == Role::TEACHING_ASSISTANT
   end
 
-  # TODO: cutover the app/services/sync_xxx classes to use these Salesforce models
-  # directly instead of the SalesforceAPI::SFParticipant (and other) structs.
-  # Task: https://app.asana.com/0/1201131148207877/1201453841518463
-  #
-  # Queries the necessary tables to build a SalesforceAPI::SFParticipant struct
-  # @return [SalesforceAPI::SFParticipant]
-  def to_struct
-    SalesforceAPI::SFParticipant.new(contact.firstname, contact.lastname, contact.email,
-      role, program__c, contact__c, status__c,
-      cohort.name, cohort_schedule.canvas_section_name,
-      cohort__c, sfid, discord_invite_code, contact.discord_user_id__c, program.discord_server_id__c,
-      candidate.candidate_role.to_s, cohort.zoom_prefix,
-      cohort_schedule.webinar_registration_1__c, cohort_schedule.webinar_registration_2__c,
-      webinar_access_1__c, webinar_access_2__c, teaching_assistant_sections
+  # Note: Coach Partner's are a Leadership Coach record type in Salesforce
+  # Their Candidate Role is used to distinguish them from actual LCs.
+  def is_coach_partner?
+    candidate_role == HerokuConnect::Candidate::Role::COACH_PARTNER
+  end
+
+  # Note: candidate_roles, like Coach Partner, use a Leadership Coach record type
+  # in Salesforce so we need to check that as well.
+  def is_lc?
+    role == Role::LEADERSHIP_COACH &&
+    (
+      candidate_role == HerokuConnect::Candidate::Role::LEADERSHIP_COACH ||
+      candidate_role == HerokuConnect::Candidate::Role::LC_SUBSTITUTE
     )
   end
 
-private
-
-  # Note: the discord_invite_code is/was used in the discordbot which uses the SalesforceAPI
-  # It's a secret and we should be limiting where it's stored / available (b/c it allows access
-  # to our Discord servers). We're deprecating it and should remove from the struct once we
-  # rip out/cutover the discord invite code stuff.
-  def discord_invite_code
-    :deprecated_discord_invite_code
-  end
 end

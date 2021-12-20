@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-require 'salesforce_api'
 
 class HerokuConnect::Candidate < HerokuConnect::HerokuConnectRecord
   self.table_name = 'candidate__c'
@@ -52,11 +51,16 @@ class HerokuConnect::Candidate < HerokuConnect::HerokuConnectRecord
     PANELIST = :Panelist
   end
 
+  # If there is a "Candidate Role Select" set, use that. Otherwise, use the `RecordType.name`
+  # of the Candidate (aka Teaching Assistant, Fellow, etc)
+  # Note: for legacy reasons the "Candidate Role Select" is stored in the coach_partner_role__c field
+  def candidate_role
+    HerokuConnect::Candidate.calculate_candidate_role(coach_partner_role__c, record_type.name)
+  end
+
   # Heroku Connect can't sync formula fields so we're reimplementing the logic of
   # "Volunteer_Role__c" here (which is now called Candidate Role in the UI).
-  # If there is a "Candidate Role" set, use that. Otherwise, use the `RecordType.name`
-  # of the Candidate (aka Teaching Assistant, Fellow, etc)
-  def candidate_role
-    coach_partner_role__c || record_type.name
+  def self.calculate_candidate_role(candidate_role_select, record_type_name)
+    candidate_role_select || record_type_name
   end
 end

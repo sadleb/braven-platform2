@@ -101,8 +101,9 @@ gem 'devise_cas_authenticatable'
 
 gem 'react-rails'
 
-gem "sentry-ruby"
-gem "sentry-rails"
+gem 'sentry-ruby'
+gem 'sentry-rails'
+gem 'sentry-sidekiq'
 
 # Using a branch for a time being to remove R18n until we decide what we want to do
 gem 'rubycas-server-activerecord'
@@ -144,3 +145,4 @@ gem 'rails_autoscale_agent'  # NOTE: don't use require false. It doesn't work to
 
 gem 'sidekiq', require: false
 gem 'sidekiq-scheduler', require: false
+gem 'sidekiq-unique-jobs', require: false

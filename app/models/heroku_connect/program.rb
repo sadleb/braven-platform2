@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-require 'salesforce_api'
 
 class HerokuConnect::Program < HerokuConnect::HerokuConnectRecord
   self.table_name = 'program__c'
@@ -40,4 +39,9 @@ class HerokuConnect::Program < HerokuConnect::HerokuConnectRecord
     FORMER = :Former
   end
 
+  scope :current_and_future_program_ids, -> {
+     joins(:record_type)
+    .where(status__c: [Status::CURRENT, Status::FUTURE], record_type: {name: 'Course'})
+    .pluck(:sfid)
+  }
 end
