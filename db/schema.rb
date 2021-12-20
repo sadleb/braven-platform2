@@ -308,6 +308,29 @@ ActiveRecord::Schema.define(version: 2021_12_10_161915) do
     t.string "type"
   end
 
+  create_table "discord_server_channels", force: :cascade do |t|
+    t.bigint "discord_server_id", null: false
+    t.string "discord_channel_id", null: false
+    t.string "name", null: false
+    t.integer "position", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["discord_channel_id"], name: "index_discord_server_channels_on_discord_channel_id", unique: true
+    t.index ["discord_server_id", "name"], name: "index_discord_server_channels_on_discord_server_id_and_name", unique: true
+    t.index ["discord_server_id"], name: "index_discord_server_channels_on_discord_server_id"
+  end
+
+  create_table "discord_server_roles", force: :cascade do |t|
+    t.bigint "discord_server_id", null: false
+    t.string "discord_role_id", null: false
+    t.string "name", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["discord_role_id"], name: "index_discord_server_roles_on_discord_role_id", unique: true
+    t.index ["discord_server_id", "name"], name: "index_discord_server_roles_on_discord_server_id_and_name", unique: true
+    t.index ["discord_server_id"], name: "index_discord_server_roles_on_discord_server_id"
+  end
+
   create_table "discord_servers", force: :cascade do |t|
     t.string "discord_server_id", null: false
     t.string "name", null: false
@@ -726,6 +749,8 @@ ActiveRecord::Schema.define(version: 2021_12_10_161915) do
   add_foreign_key "courses", "course_resources"
   add_foreign_key "custom_content_versions", "custom_contents"
   add_foreign_key "custom_content_versions", "users"
+  add_foreign_key "discord_server_channels", "discord_servers"
+  add_foreign_key "discord_server_roles", "discord_servers"
   add_foreign_key "fellow_evaluation_submission_answers", "fellow_evaluation_submissions"
   add_foreign_key "fellow_evaluation_submission_answers", "users", column: "for_user_id"
   add_foreign_key "fellow_evaluation_submissions", "courses"
