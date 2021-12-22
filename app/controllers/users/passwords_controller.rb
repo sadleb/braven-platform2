@@ -9,9 +9,18 @@ class Users::PasswordsController < Devise::PasswordsController
   # end
 
   # POST /resource/password
-  # def create
-  #   super
-  # end
+  def create
+    Honeycomb.add_field('passwords_controller.reset.email', params[:user][:email])
+    super do |user|
+      if user.errors.empty?
+        add_honeycomb_context(user)
+      else
+        # use same field that success uses above when there are no errors
+        # e.g: user.errors=[#<ActiveModel::Error attribute=email, type=not_found, options={}>]>
+        Honeycomb.add_field('user.present?', false)
+      end
+    end
+  end
 
   # GET /resource/password/edit?reset_password_token=abcdef
   def edit
