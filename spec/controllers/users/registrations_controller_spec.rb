@@ -152,6 +152,7 @@ RSpec.describe Users::RegistrationsController, type: :controller do
   end
 
   describe '#create' do
+    let(:password_value) { 'Val!dPassw0rd' }
     subject { post :create, params: params }
 
     let(:sf_client) { double(SalesforceAPI,
@@ -162,8 +163,8 @@ RSpec.describe Users::RegistrationsController, type: :controller do
 
     context 'with no tokens' do
       let(:params) { {
-        'user[password]': 'password',
-        'user[password_confirmation]': 'password',
+        'user[password]': password_value,
+        'user[password_confirmation]': password_value,
       } }
 
       it 'renders bad_link' do
@@ -174,8 +175,8 @@ RSpec.describe Users::RegistrationsController, type: :controller do
 
     context 'with empty signup_token' do
       let(:params) { {
-        'user[password]': 'password',
-        'user[password_confirmation]': 'password',
+        'user[password]': password_value,
+        'user[password_confirmation]': password_value,
         'user[signup_token]': '',
       } }
 
@@ -187,8 +188,8 @@ RSpec.describe Users::RegistrationsController, type: :controller do
 
     context 'with empty reset_password_token' do
       let(:params) { {
-        'user[password]': 'password',
-        'user[password_confirmation]': 'password',
+        'user[password]': password_value,
+        'user[password_confirmation]': password_value,
         'user[reset_password_token]': '',
       } }
 
@@ -200,8 +201,8 @@ RSpec.describe Users::RegistrationsController, type: :controller do
 
     context 'with invalid signup_token' do
       let(:params) { {
-        'user[password]': 'password',
-        'user[password_confirmation]': 'password',
+        'user[password]': password_value,
+        'user[password_confirmation]': password_value,
         'user[signup_token]': 'invalid token',
       } }
 
@@ -213,8 +214,8 @@ RSpec.describe Users::RegistrationsController, type: :controller do
 
     context 'with invalid reset_password_token' do
       let(:params) { {
-        'user[password]': 'password',
-        'user[password_confirmation]': 'password',
+        'user[password]': password_value,
+        'user[password_confirmation]': password_value,
         'user[reset_password_token]': 'invalid token',
       } }
 
@@ -227,8 +228,8 @@ RSpec.describe Users::RegistrationsController, type: :controller do
     context 'with expired signup_token' do
       let(:user) { create(:unregistered_user) }
       let(:params) { {
-        'user[password]': 'password',
-        'user[password_confirmation]': 'password',
+        'user[password]': password_value,
+        'user[password_confirmation]': password_value,
       } }
 
       before :each do
@@ -247,8 +248,8 @@ RSpec.describe Users::RegistrationsController, type: :controller do
     context 'with expired reset_password_token' do
       let(:user) { create(:unregistered_user) }
       let(:params) { {
-        'user[password]': 'password',
-        'user[password_confirmation]': 'password',
+        'user[password]': password_value,
+        'user[password_confirmation]': password_value,
       } }
 
       before :each do
@@ -267,8 +268,8 @@ RSpec.describe Users::RegistrationsController, type: :controller do
     context 'with valid signup_token, registered user' do
       let(:user) { create(:registered_user) }
       let(:params) { {
-        'user[password]': 'password',
-        'user[password_confirmation]': 'password',
+        'user[password]': password_value,
+        'user[password_confirmation]': password_value,
       } }
 
       before :each do
@@ -287,8 +288,8 @@ RSpec.describe Users::RegistrationsController, type: :controller do
     context 'with valid reset_password_token, registered user' do
       let(:user) { create(:registered_user) }
       let(:params) { {
-        'user[password]': 'password',
-        'user[password_confirmation]': 'password',
+        'user[password]': password_value,
+        'user[password_confirmation]': password_value,
       } }
 
       before :each do
@@ -305,8 +306,8 @@ RSpec.describe Users::RegistrationsController, type: :controller do
     context 'with valid signup_token, unregistered user, register works' do
       let(:user) { create(:unregistered_user) }
       let(:params) { {
-        'user[password]': 'password',
-        'user[password_confirmation]': 'password',
+        'user[password]': password_value,
+        'user[password_confirmation]': password_value,
       } }
 
       before :each do
@@ -327,15 +328,17 @@ RSpec.describe Users::RegistrationsController, type: :controller do
 
     context 'with valid signup_token, unregistered user, user validation fails' do
       let(:user) { create(:unregistered_user) }
+      let(:updated_user) { create(:unregistered_user) }
       let(:params) { {
-        'user[password]': 'password',
-        'user[password_confirmation]': 'password',
+        'user[password]': password_value,
+        'user[password_confirmation]': password_value,
       } }
 
       before :each do
-        u = create(:unregistered_user)
-        u.errors.add(:email, :empty)
-        allow(service).to receive(:run).and_yield(u)
+        # Since the service is stubbed, user.update! is never called. We just manually
+        # create one with errors.
+        updated_user.errors.add(:email, :empty)
+        allow(service).to receive(:run).and_yield(updated_user)
         allow(RegisterUserAccount).to receive(:new).and_return(service)
         params['user[signup_token]'] = user.set_signup_token!
       end
@@ -352,13 +355,23 @@ RSpec.describe Users::RegistrationsController, type: :controller do
         expect(response.body).to include("Please try again")
         expect(response.body).to include("<div id=\"error_explanation\">")
       end
+
+      context 'with weak password' do
+        let(:password_value) { 'password' }
+        it 'shows that error message' do
+          updated_user.errors.delete(:email)
+          updated_user.errors.add(:password, :not_complex)
+          subject
+          expect(response.body).to include("Password requires")
+        end
+      end
     end
 
     context 'with valid reset_password_token, unregistered user, register works' do
       let(:user) { create(:unregistered_user) }
       let(:params) { {
-        'user[password]': 'password',
-        'user[password_confirmation]': 'password',
+        'user[password]': password_value,
+        'user[password_confirmation]': password_value,
       } }
 
       before :each do

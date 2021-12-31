@@ -29,7 +29,7 @@ FactoryBot.define do
     end
 
     factory :registered_user do
-      sequence(:password) { |i| "password#{i}" }
+      sequence(:password) { |i| "Val!dPassword#{i}" }
       sequence(:salesforce_id) { |i| "003y%011dAAZ" % i }
       confirmed_at { DateTime.now }
       registered_at { DateTime.now }

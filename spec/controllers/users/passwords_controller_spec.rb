@@ -46,10 +46,11 @@ RSpec.describe Users::PasswordsController, type: :controller do
   end
 
   describe '#update' do
+    let(:password_value) { 'Val!dPassw0rd' }
     subject { post :update, params: {
       'user[reset_password_token]': @reset_password_token,
-      'user[password]': 'password',
-      'user[password_confirmation]': 'password',
+      'user[password]': password_value,
+      'user[password_confirmation]': password_value,
     } }
 
     context 'with valid token' do
@@ -80,6 +81,15 @@ RSpec.describe Users::PasswordsController, type: :controller do
       it 'does not log you in' do
         subject
         expect(controller.current_user).to eq(nil)
+      end
+
+      context 'with weak password' do
+        let(:password_value) { 'password' }
+        it 'shows that error message' do
+          subject
+          expect(response.body).to include("<div id=\"error_explanation\">")
+          expect(response.body).to include("Password requires")
+        end
       end
     end
   end

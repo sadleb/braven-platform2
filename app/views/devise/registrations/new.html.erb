@@ -2,9 +2,13 @@
   <h1>Create Account</h1>
   <p>Enter the password you'll use to login to Braven.</p>
 </div>
+<% if resource.errors.any? %>
+  <div class="col-md-5 offset-md-4 py-0">
+    <%= render "devise/shared/error_messages", resource: resource %>
+  </div>
+<% end %>
 <div class="col-md-4 offset-md-4 no-pad">
   <%= form_with(model: User, url: user_registration_path) do |f| %>
-    <%= render "devise/shared/error_messages", resource: resource %>
 
     <div class="field">
       <%= f.label :password do %>
@@ -15,7 +19,7 @@
       <% end %>
       <%= f.password_field :password, class: 'form-control', required: true, autocomplete: "new-password", autofocus: true %>
     </div>
-  
+
     <div class="field">
       <%= f.label :password_confirmation %>
       <%= f.password_field :password_confirmation, class: 'form-control', required: true, autocomplete: "new-password" %>

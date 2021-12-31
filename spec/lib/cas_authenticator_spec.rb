@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe BravenCAS::CustomAuthenticator do
 
-  let(:user_password) { 'valid_password' }
+  let(:user_password) { 'Val!dPassw0rd' }
   let(:username) { nil }
   let(:login_password) { nil }
   let(:credentials) {

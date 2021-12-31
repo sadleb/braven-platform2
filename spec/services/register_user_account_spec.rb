@@ -15,7 +15,7 @@ RSpec.describe RegisterUserAccount do
     # Don't set the canvas ID initially, since this service takes care of that.
     let!(:user) { create(:unregistered_user, salesforce_id: salesforce_contact['Id'], canvas_user_id: nil) }
     let(:raw_signup_token) { user.set_signup_token! }
-    let(:sign_up_params) { {password: 'some_password', password_confirmation: 'some_password', signup_token: raw_signup_token} }
+    let(:sign_up_params) { {password: 'Val!dPassw0rd', password_confirmation: 'Val!dPassw0rd', signup_token: raw_signup_token} }
     let(:sf_client) { instance_double(SalesforceAPI,
       find_participants_by_contact_id: [salesforce_participant],
       find_program: SalesforceAPI::SFProgram.new,

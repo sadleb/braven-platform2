@@ -42,6 +42,7 @@ en:
               blank: "Please enter a password"
               confirmation: "Passwords don't match"
               too_short: "Password is too short"
+              not_complex: "Password requires 1 uppercase, 1 lowercase, 1 digit and 1 special character"
             password_confirmation:
               blank: "Please enter a password confirmation"
               confirmation: "Passwords don't match"

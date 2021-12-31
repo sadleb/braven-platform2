@@ -2,9 +2,13 @@
   <h1>Change your password</h1>
   <p>Enter the password you'll use to login to Braven.</p>
 </div>
+<% if resource.errors.any? %>
+  <div class="col-md-5 offset-md-4 py-0">
+    <%= render "devise/shared/error_messages", resource: resource %>
+  </div>
+<% end %>
 <div class="col-md-4 offset-md-4 no-pad">
 <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :put }) do |f| %>
-  <%= render "devise/shared/error_messages", resource: resource %>
   <%= f.hidden_field :reset_password_token %>
 
   <div class="field">
@@ -16,7 +20,7 @@
   </div>
 
   <div class="field">
-    <%= f.label :password_confirmation, "Confirm new password" %><br />
+    <%= f.label :password_confirmation, "Confirm new password" %>
     <%= f.password_field :password_confirmation, class: 'form-control', required: true, autocomplete: "new-password" %>
   </div>
 
