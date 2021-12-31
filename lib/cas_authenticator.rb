@@ -24,8 +24,9 @@ module BravenCAS
     # Used to check if the username/password would be valid if the unconfirmed they are
     # trying to log in with were confirmed.
     def valid_password_for_unconfirmed_email?(credentials)
-      @user = User.find_by_unconfirmed_email(credentials[:username])
-      return false unless @user.present?
+      unconfirmed_user = User.find_by_unconfirmed_email(credentials[:username])
+      return false unless unconfirmed_user.present?
+      @user = unconfirmed_user
       valid_password?(credentials)
     end
   end
