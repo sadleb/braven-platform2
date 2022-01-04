@@ -25,32 +25,22 @@ RSpec.describe User, type: :model do
 
   it { should validate_length_of(:salesforce_id).is_equal_to(18) }
 
-  # Just try some basic, weak passwords and make sure it fails
-  # along with a couple that meet the complexity requirement.
-  # Also, check that the regex works for all special characters.
+  # Just try a couple passwords from the list of common ones to make sure it
+  # fails along with a couple not on the list to make sure it passes.
+  # Also make sure a 7 char password fails. 8 minimum
   describe 'validating password strength' do
     subject { build :registered_user }
 
-    it { should_not allow_value('T0$hort').for(:password) }
+    it { should_not allow_value('').for(:password) }
+    it { should_not allow_value('toshort').for(:password) }
+
     it { should_not allow_value('password').for(:password) }
+    it { should_not allow_value('Password').for(:password) }
     it { should_not allow_value('12345678').for(:password) }
-    it { should_not allow_value('football').for(:password) }
-    it { should_not allow_value('superman').for(:password) }
-    it { should_not allow_value('sunshine').for(:password) }
-    it { should_not allow_value('aaaaaaaa').for(:password) }
-    it { should_not allow_value('lovelove').for(:password) }
-    # A hyphen doesn't count as a special character. It's special in a regex character class/set
-    # and not worth figuring out how to allow.
-    it { should_not allow_value('BadPass-W0rd').for(:password) }
 
     it { should allow_value('H3yYou1234!').for(:password) }
     it { should allow_value('Muahah1HA)').for(:password) }
-    it { should allow_value('o1ai.Shgoashd').for(:password) }
 
-    special_chars = ['#','?','!','@','$','%','^','&','*','~','`','(',')','_','+','=','<','>','|','{','}',':',';','"','\'',',','.','[',']','\\','/']
-    special_chars.each do |c|
-      it { should allow_value("ThisWorks1#{c}").for(:password) }
-    end
   end
 
   ###########

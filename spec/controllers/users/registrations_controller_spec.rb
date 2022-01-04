@@ -362,7 +362,7 @@ RSpec.describe Users::RegistrationsController, type: :controller do
           updated_user.errors.delete(:email)
           updated_user.errors.add(:password, :not_complex)
           subject
-          expect(response.body).to include("Password requires")
+          expect(response.body).to include("Password is too weak")
         end
       end
     end

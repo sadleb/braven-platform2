@@ -280,23 +280,11 @@ protected
     super
   end
 
-  # Require at least 1 uppercase, 1 lowercase, 1 number, and 1 symbol. The minimum length
-  # is 8 characters and that is enforced using Devise's config.password_length.
-  # This regex and approach is taken from:
-  # https://github.com/heartcombo/devise/wiki/How-To:-Set-up-simple-password-complexity-requirements
-  # and enhanced to allow more special characters
-  #
-  # Note that I started trying to use the strong_password gem for this, but the algorithm
-  # heavily discounts repeated characters and doesn't give credit for mixed case when
-  # calculating strength so a lot of my 8 char passwords would fail. We're just trying to
-  # prevent folks from using a password like "password" but we don't want to make it hard
-  # to pick a password that works. We have an alert for brute force attempts so any password
-  # that would require a brute force approach (as opposed to just trying a handful of really
-  # common passwords) should be fine to allow.
-  PASSWORD_COMPLEXITY_REGEX=/(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*~`()_+=<>|{}:;"',.#{Regexp.escape('\/[]')}])/
+  # Only checks basic password complexity, not minimum length. Devise's
+  # config.password_length handles that.
   def password_complexity
     return unless password_required?
-    return if password.blank? || password =~ PASSWORD_COMPLEXITY_REGEX
+    return if CheckPasswordComplexity.new(password).run
 
     errors.add :password, :not_complex
   end

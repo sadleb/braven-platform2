@@ -88,7 +88,7 @@ RSpec.describe Users::PasswordsController, type: :controller do
         it 'shows that error message' do
           subject
           expect(response.body).to include("<div id=\"error_explanation\">")
-          expect(response.body).to include("Password requires")
+          expect(response.body).to include("Password is too weak")
         end
       end
     end
