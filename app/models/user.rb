@@ -284,8 +284,10 @@ protected
   # config.password_length handles that.
   def password_complexity
     return unless password_required?
+    return if password.blank? # Let other validators handle this.
     return if CheckPasswordComplexity.new(password).run
 
+    Honeycomb.add_field('user.password_complexity.not_complex?', true)
     errors.add :password, :not_complex
   end
 

@@ -15,7 +15,7 @@ RSpec.describe User, type: :model do
   it { should validate_presence_of :last_name }
 
   describe 'validating uniqueness' do
-    before { create :registered_user }
+    subject { build :registered_user }
 
     it { should validate_uniqueness_of(:email).case_insensitive }
     it { should validate_uniqueness_of(:salesforce_id) }
