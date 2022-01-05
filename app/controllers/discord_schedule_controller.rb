@@ -1,11 +1,15 @@
 # frozen_string_literal: true
 
+require 'discord_bot'
+
 # Schedule Discord messages to send later.
 class DiscordScheduleController < ApplicationController
   layout 'admin'
 
   # Disable putting everything inside a "discord_schedule" param. This controller doesn't represent a model.
   wrap_parameters false
+
+  before_action :set_all_cohort_key
 
   def index
     authorize :discord_schedule
@@ -36,18 +40,16 @@ class DiscordScheduleController < ApplicationController
   def create
     authorize :discord_schedule
 
-    params.require([:server_id, :channel, :message, :datetime, :timezone])
+    params.require([:server_id, :channel_id, :message, :datetime, :timezone])
 
-    run_at = Time.use_zone(params[:timezone]) { Time.zone.parse(params[:datetime]) }
-    server_id = params[:server_id].to_i
-    # Strip '#'s out of the channel name, bc they're invalid.
-    # (Most likely scenario is someone entered the leading # before the channel
-    # name, which they're not supposed to do.)
-    channel_name = params[:channel]&.delete('#')
-    message_content = params[:message]
-
-    # Schedule the job.
-    SendDiscordMessageJob.set(wait_until: run_at).perform_later(server_id, channel_name, message_content)
+    service = ScheduleDiscordMessage.new(
+      params[:server_id],
+      params[:channel_id],
+      params[:message],
+      params[:datetime],
+      params[:timezone]
+    )
+    service.run
 
     redirect_to discord_schedule_index_path
   end
@@ -64,5 +66,13 @@ class DiscordScheduleController < ApplicationController
     Sidekiq::ScheduledSet.new.find_job(params[:id]).delete
 
     redirect_to discord_schedule_index_path
+  end
+
+private
+
+  # Set an instance variable so we can access this from the views.
+  # Treat this variable as if it were a constant.
+  def set_all_cohort_key
+    @all_cohort_key = COHORT_CHANNEL_PREFIX
   end
 end

@@ -101,7 +101,7 @@ module DryCrud
       # associated controller's index, show, edit, etc methods.
       included do
         delegate :parent_resource_classes, to: 'self.class'
-        before_action :set_parent
+        prepend_before_action :set_parent
       end
 
 

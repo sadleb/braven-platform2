@@ -1,3 +1,7 @@
+<% content_for :head do %>
+  <%= javascript_pack_tag 'discord_schedule', 'data-turbolinks-track': 'reload' %>
+<% end %>
+
 <div class="col-lg-8">
   <%= form_with(url: discord_schedule_index_path, method: "post", local: true) do |f| %>
     <div class="row">
@@ -5,21 +9,16 @@
         <div class="form-group">
           <%= f.label('server_id', 'Discord server') %>
           <%= f.select('server_id',
-            # Update the Discord Server Constants if/when we add more.
-            DiscordServer.all.map { |s| [s.name, s.discord_server_id] }.sort,
+            DiscordServer.all.map { |s| [s.name, s.id] }.sort,
           {}, required: true, class: 'form-control') %>
         </div>
       </div>
 
       <div class="col-md-6">
         <div class="form-group">
-          <%= f.label('channel', 'Channel') %>
-          <div class="input-group">
-            <div class="input-group-prepend">
-              <span class="input-group-text" id="channelPrepend">#</span>
-            </div>
-            <%= f.text_field('channel', required: true, class: 'form-control', placeholder: 'general') %>
-          </div>
+          <%= f.label('channel_id', 'Channel') %>
+          <%# The channels dropdown is controlled by JavaScript in the discord_schedule pack. %>
+          <%= f.select('channel_id', ['Choose a server first'], {}, disabled: true, class: 'form-control') %>
         </div>
       </div>
     </div>
@@ -52,12 +51,6 @@
           <%= f.text_area('message', required: true, class: 'form-control', placeholder: 'Hi @everyone... ✨') %>
           <small id="messageTip" class="form-text text-muted">Tip: Press ⌃-⌘-SPACE to use emoji. Use asterisks for <em>*italic*</em> or <strong>**bold**</strong>.</small>
         </div>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col">
-        <p>Be sure to double-check the channel name! Scheduled messages with misspelled channel names will not be sent.</p>
       </div>
     </div>
 

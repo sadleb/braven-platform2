@@ -6,6 +6,7 @@ RSpec.describe DiscordScheduleController, type: :controller do
   context "with normal signin" do
     let(:user) { create :admin_user }
     let(:discord_server) { create :discord_server }
+    let(:discord_server_channel) { create(:discord_server_channel, discord_server: discord_server) }
     let(:scheduled_set) { instance_double(Sidekiq::ScheduledSet,
       map: job_maps,
       find_job: job,
@@ -61,8 +62,8 @@ RSpec.describe DiscordScheduleController, type: :controller do
 
       context "with valid params" do
         let(:create_job) { post :create, params: {
-          server_id: 1,
-          channel: 'test-channel',
+          server_id: discord_server.id,
+          channel_id: discord_server_channel.id,
           message: 'test-msg',
           datetime: '2991-09-23T22:45',
           timezone: 'America/Los_Angeles',
