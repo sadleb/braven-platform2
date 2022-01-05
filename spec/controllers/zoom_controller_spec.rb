@@ -1,4 +1,5 @@
 require 'rails_helper'
+require 'csv'
 
 RSpec.describe ZoomController, type: :controller do
   render_views
@@ -32,60 +33,33 @@ RSpec.describe ZoomController, type: :controller do
     end # GET #init_generate_zoom_links
 
     describe 'POST #generate_zoom_links' do
+      let(:csv_path) { fixture_file_upload(Rails.root.join('spec/fixtures/zoom_link_csvs/utf8_comma_delimited_macOS.csv'), 'application/csv') }
+      let(:generate_service) { instance_double(GenerateZoomLinks) }
       let(:meeting_id) { '1234567890' }
       let(:staff_email) { 'staff.to.send.generated.links.to@bebraven.org' }
-      let(:csv_path) { nil }
-      let(:base_params) { { meeting_id: meeting_id, email: staff_email, participants: csv_path } }
-      let(:params) { base_params }
-
-      before(:each) do
-        allow(GenerateZoomLinksJob).to receive(:perform_later)
-      end
+      let(:base_params) { { meeting_id: meeting_id, participants: csv_path, email: staff_email } }
+      let(:service_params) { { meeting_id: meeting_id, participants_file_path: anything, email: staff_email } }
 
       subject(:run_generate_links) do
-        post :generate_zoom_links, params: params
+        post :generate_zoom_links, params: base_params
       end
 
-      context 'with MacOS Excel - CSV UTF-8 (Comma Delimited).csv format' do
-        let(:csv_path) { fixture_file_upload(Rails.root.join('spec/fixtures/zoom_link_csvs/', 'utf8_comma_delimited_macOS.csv'), 'application/csv') }
-
-        it 'parses the participant registration info' do
-          expect(GenerateZoomLinksJob).to receive(:perform_later)
-            .with(meeting_id, staff_email, [{'email' =>'test@example.com', 'first_name' => 'Brian', 'last_name' => 'xTest'}]).once
-          run_generate_links
-        end
+      before(:each) do
+        allow(GenerateZoomLinks).to receive(:new).with(service_params).and_return(generate_service)
       end
 
-      context 'with MacOS Excel - Comma Separated Values.csv format' do
-        let(:csv_path) { fixture_file_upload(Rails.root.join('spec/fixtures/zoom_link_csvs/', 'comma_separated_values_macOS.csv'), 'application/csv') }
-
-        it 'parses the participant registration info' do
-          expect(GenerateZoomLinksJob).to receive(:perform_later)
-            .with(meeting_id, staff_email, [{'email' =>'test@example.com', 'first_name' => 'Brian', 'last_name' => 'xTest'}]).once
-          run_generate_links
-        end
+      it 'calls validate_and_run on the GenerateZoomLinks service ' do
+        expect(generate_service).to receive(:validate_and_run).once
+        run_generate_links
       end
 
-      context 'with Google Sheets downloaded as .csv format' do
-        let(:csv_path) { fixture_file_upload(Rails.root.join('spec/fixtures/zoom_link_csvs/', 'google_sheets.csv'), 'application/csv') }
-
-        it 'parses the participant registration info' do
-          expect(GenerateZoomLinksJob).to receive(:perform_later)
-            .with(meeting_id, staff_email, [{'email' =>'test@example.com', 'first_name' => 'Brian', 'last_name' => 'xTest'}]).once
-          run_generate_links
-        end
-
-        context 'for emails with leading and trailing whitespace' do
-          let(:csv_path) { fixture_file_upload(Rails.root.join('spec/fixtures/zoom_link_csvs/', 'google_sheets_with_whitespace_in_email.csv'), 'application/csv') }
-
-          it 'strips the whitespace' do
-            expect(GenerateZoomLinksJob).to receive(:perform_later)
-              .with(meeting_id, staff_email, [{'email' =>'test@example.whitespace.com', 'first_name' => 'Brian', 'last_name' => 'xTestZoomWithWhitespace1'}]).once
-            run_generate_links
-          end
-        end
+      before(:each) do
+        allow(generate_service).to receive(:validate_and_run).and_return(GenerateZoomLinksJob)
       end
 
-    end # END POST #generate_zoom_links
+      it 'redirects to the the /generate_zoom_links path (same page)' do
+        expect(run_generate_links).to redirect_to(generate_zoom_links_path)
+      end
+    end
   end
 end

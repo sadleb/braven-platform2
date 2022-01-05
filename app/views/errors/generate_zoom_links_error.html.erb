@@ -1,0 +1,8 @@
+<h1>Generate Zoom Links Error</h1>
+
+<% if @exception.message %>
+  <p><%= @exception.message %></p>
+<% end %>
+
+<p>To return to the previous page and try again, <%= link_to 'click here', generate_zoom_links_path %>.</p>
+

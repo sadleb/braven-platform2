@@ -3,12 +3,17 @@
 class GenerateZoomLinksJob < ApplicationJob
   queue_as :default
 
-  def perform(meeting_id, email, participants)
+  def perform(meeting_id, participants_file_path, email, participants)
     Honeycomb.add_field(ApplicationJob::HONEYCOMB_RUNNING_USER_EMAIL_FIELD, email)
     Honeycomb.add_field('generate_zoom_links.meeting_id', meeting_id)
     Honeycomb.add_field('generate_zoom_links.participants', participants)
     Honeycomb.add_field('generate_zoom_links.participants.count', participants.count)
-    generate_service = GenerateZoomLinks.new(meeting_id: meeting_id, participants: participants)
+    generate_service = GenerateZoomLinks.new(
+      meeting_id: meeting_id,
+      participants_file_path: participants_file_path,
+      email: email,
+      participants: participants
+    )
     begin
       csv = generate_service.run()
       GenerateZoomLinksMailer.with(email: email, csv: csv).success_email.deliver_now

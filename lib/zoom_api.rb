@@ -39,6 +39,27 @@ class ZoomAPI
 
   def get_meeting_info(meeting_id)
     get("/meetings/#{meeting_id}")
+  rescue RestClient::BadRequest,
+    RestClient::TooManyRequests,
+    RestClient::NotFound => e
+
+    response = JSON.parse(e.http_body)
+
+    case response['code']
+    when 3001
+      raise ZoomMeetingDoesNotExistError,
+        "The Zoom meeting with an ID of #{meeting_id} was not found or has ended. Make sure you have the correct meeting ID for a meeting in the future."
+    when 3038
+      raise ZoomMeetingEndedError,
+        "The Zoom meeting with an ID of #{meeting_id} was not found or has ended. Make sure you have the correct meeting ID for a meeting in the future. " +
+        "If running a sync, the Meeting ID is set on the Cohort Schedule in Salesforce for this Participant."
+    else
+      raise
+    end
+  end
+
+  def get_zoom_user(user_id)
+    get("/users/#{user_id}")
   end
 
   def add_registrant(meeting_id, email, first_name, last_name)
@@ -97,7 +118,7 @@ class ZoomAPI
     when 3001
       raise ZoomMeetingDoesNotExistError,
         "We cannot create a Zoom link for email: '#{email}'. " +
-        "Zoom Meeting ID = #{meeting_id} doesn't exist. Maybe it was deleted or the ID is wrong?"
+        "The Zoom meeting with an ID of #{meeting_id} was not found or has ended. Make sure you have the correct meeting ID for a meeting in the future."
 
     # {
     #   "code":3027,
@@ -114,8 +135,9 @@ class ZoomAPI
     # }
     when 3038
       raise ZoomMeetingEndedError,
-        "We cannot create a Zoom link for email: '#{email}'. The Zoom Meeting ID = #{meeting_id} has ended. " +
-        "Please use a meeting in the future. If running a sync, the Meeting ID is set on the Cohort Schedule in Salesforce for this Participant."
+        "We cannot create a Zoom link for email: '#{email}'. " +
+        "The Zoom meeting with an ID of #{meeting_id} was not found or has ended. Make sure you have the correct meeting ID for a meeting in the future. " +
+        "If running a sync, the Meeting ID is set on the Cohort Schedule in Salesforce for this Participant."
 
     else
       raise

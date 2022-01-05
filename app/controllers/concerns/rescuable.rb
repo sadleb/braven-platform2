@@ -10,6 +10,7 @@ module Rescuable
     unless Rails.application.config.consider_all_requests_local
       # In order from least to most specific.
       rescue_from StandardError, :with => :handle_error_generic
+      rescue_from GenerateZoomLinks::GenerateZoomLinksError, :with => :handle_generate_zoom_links_error
       rescue_from Pundit::NotAuthorizedError, :with => :handle_error_forbidden
       rescue_from ActionController::InvalidAuthenticityToken, with: :handle_invalid_authenticity_token
       rescue_from SecurityError, :with => :handle_security_error
@@ -46,6 +47,13 @@ private
 
     @request = request
     render 'errors/security_error', layout: 'lti_canvas', status: 500
+  end
+
+  def handle_generate_zoom_links_error(exception)
+    capture_error(exception)
+
+    @exception = exception
+    render 'errors/generate_zoom_links_error', layout: 'lti_canvas', status: 500
   end
 
   def capture_error(exception)
