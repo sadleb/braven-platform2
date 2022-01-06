@@ -12,6 +12,7 @@ RSpec.describe CanvasAPI do
 
   describe '#get' do
     let(:request_url_regex) { /#{CANVAS_API_URL}.*/ }
+    let(:response) { instance_double(RestClient::Response, headers: nil, body: nil, code: nil) }
 
     it 'correctly sets authorization header' do
       stub_request(:any, request_url_regex)
@@ -24,7 +25,9 @@ RSpec.describe CanvasAPI do
 
     context 'on ReadTimeout' do
       it 'retries the request once and raises user friendly error message' do
-        stub_request(:any, request_url_regex).to_raise(RestClient::Exceptions::ReadTimeout)
+        exception = RestClient::Exceptions::ReadTimeout.new
+        exception.instance_variable_set(:@response, response)
+        stub_request(:any, request_url_regex).to_raise(exception)
         expect(canvas).to receive(:sleep).and_return(0.5).once
 
         expect{canvas.get('/test2')}.to raise_error(CanvasAPI::TimeoutError, /try again/)
@@ -38,7 +41,9 @@ RSpec.describe CanvasAPI do
 
     context 'on OpenTimeout' do
       it 'retries the request once and raises user friendly error message' do
-        stub_request(:any, request_url_regex).to_raise(RestClient::Exceptions::OpenTimeout)
+        exception = RestClient::Exceptions::ReadTimeout.new
+        exception.instance_variable_set(:@response, response)
+        stub_request(:any, request_url_regex).to_raise(exception)
         expect(canvas).to receive(:sleep).and_return(0.5).once
 
         expect{canvas.get('/test2')}.to raise_error(CanvasAPI::TimeoutError, /try again/)

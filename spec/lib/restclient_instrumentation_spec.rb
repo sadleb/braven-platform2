@@ -19,7 +19,7 @@ RestClient::Request.prepend(RestClientInstrumentation)
     expect(span).to receive(:add_field).with('restclient.timestamp', anything).once
     expect(span).to receive(:add_field).with('restclient.request.header', hash_including(expected_headers)).once
     expect(span).to receive(:add_field).with('restclient.response.status_code', status).once
-    stub_request(method.to_sym, target_url).to_return(body: fake_body, status: status) 
+    stub_request(method.to_sym, target_url).to_return(body: fake_body, status: status)
   end
 
   context 'successful GET request' do
@@ -32,7 +32,7 @@ RestClient::Request.prepend(RestClientInstrumentation)
         expect(response).to eq(fake_body)
       end
     end
-  
+
     context 'with :authorization header => "Basic sometoken"' do
       let(:expected_headers) { {'Authorization' => 'Basic fakeauthtoken' } }
       it 'redacts the header value' do
@@ -59,6 +59,7 @@ RestClient::Request.prepend(RestClientInstrumentation)
 
     it 'adds error details to Honeycomb' do
       expect(span).to receive(:add_field).with('restclient.response.body', fake_body)
+      expect(span).to receive(:add_field).with('restclient.response.headers', {})
       expect { RestClient.get(target_url) }.to raise_error(RestClient::Exception)
     end
   end
