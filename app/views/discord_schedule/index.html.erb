@@ -36,7 +36,7 @@
 
           <div class="row">
             <div class="col ml-4">
-              <blockquote><p class="preserve-whitespace"><%= job[:message] %></p></blockquote>
+              <blockquote><p class="preserve-whitespace"><%= render_discord_message(job[:message]) %></p></blockquote>
             </div>
           </div>
         <% end %>

@@ -7,13 +7,14 @@ RSpec.describe DiscordScheduleController, type: :controller do
     let(:user) { create :admin_user }
     let(:discord_server) { create :discord_server }
     let(:discord_server_channel) { create(:discord_server_channel, discord_server: discord_server) }
+    let(:message) { 'test-msg' }
     let(:scheduled_set) { instance_double(Sidekiq::ScheduledSet,
       map: job_maps,
       find_job: job,
     ) }
     let(:job_maps) { [
       { at: 3.days.from_now, info: {
-        'arguments' => [discord_server.discord_server_id, 'test-channel', 'test-msg'],
+        'arguments' => [discord_server.discord_server_id, 'test-channel', message],
         'job_class' => 'SendDiscordMessageJob',
       }, id: 'fake' }
     ] }
@@ -36,6 +37,16 @@ RSpec.describe DiscordScheduleController, type: :controller do
         expect(response.body).to match /<h2.*>Server: #{discord_server.name}/
         expect(response.body).to match /#test-channel/
         expect(response.body).to match /test-msg/
+      end
+
+      context 'with role @mention in message' do
+        let(:role) { create(:discord_server_role, discord_server: discord_server) }
+        let(:message) { "test <@&#{role.discord_role_id}> test" }
+
+        it 'converts role mentions into human-readable' do
+          get :index
+          expect(response.body).to match /test @#{role.name} test/
+        end
       end
     end
 
