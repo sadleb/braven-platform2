@@ -45,18 +45,28 @@ RSpec.describe UsersController, type: :controller do
       end
 
       context 'for unregistered, unconfirmed user' do
-        let(:user) { create :unregistered_user }
+        let(:user) { create :unregistered_user_with_valid_signup_token }
 
         it_behaves_like 'success'
-
-        it 'shows the "Send New Sign-Up Email" button' do
-          run_show
-          expect(response.body).to match(/<a.*href="\/users\/#{user.id.to_s}\/send_new_signup_email">Send New Sign-up Email\<\/a\>/)
-        end
 
         it 'doesnt show the "Send Confirmation Email" button' do
           run_show
           expect(response.body).not_to match(/send_confirm_email/)
+        end
+
+        context 'with a valid signup token' do
+          it 'shows the "Send New Sign-Up Email" button' do
+            run_show
+            expect(response.body).to match(/<a.*href="\/users\/#{user.id.to_s}\/send_new_signup_email">Send New Sign-up Email\<\/a\>/)
+          end
+        end
+
+        context 'with an invalid signup token' do
+          let(:user) { create :unregistered_user_with_invalid_signup_token }
+          it 'shows the "Generate Valid Sign-up Link And Send New Sign-Up Email" button' do
+            run_show
+            expect(response.body).to match(/<a.*href="\/users\/#{user.id.to_s}\/send_new_signup_email">Generate Valid Sign-up Link And Send New Sign-up Email\<\/a\>/)
+          end
         end
       end
 
@@ -227,7 +237,7 @@ RSpec.describe UsersController, type: :controller do
       end
 
       context 'for unregistered user' do
-        let(:user) { create :unregistered_user }
+        let(:user) { create :unregistered_user_with_valid_signup_token }
         let(:token) { 'some_token' }
         let(:dummy_mailer) { double(User).as_null_object }
         let(:sf_client) { double(SalesforceAPI) }
@@ -237,20 +247,53 @@ RSpec.describe UsersController, type: :controller do
           allow(SalesforceAPI).to receive(:client).and_return(sf_client)
         end
 
-        it 'sends the email' do
-          expect(SendSignupEmailMailer).to receive(:with)
+        context 'with a valid signup token' do
+          it 'sends the email' do
+            expect(SendSignupEmailMailer).to receive(:with)
+              .with(email: user.email,
+                    first_name: user.first_name,
+                    sign_up_url: new_user_registration_url(signup_token: token, protocol: 'https')
+              ).once.and_return(dummy_mailer)
+            expect(dummy_mailer).to receive(:deliver_now).once
+            run_send_signup_email
+          end
+
+          it 'redirects back to show_send_signup_email with success message' do
+            allow(SendSignupEmailMailer).to receive(:with).and_return(dummy_mailer)
+            run_send_signup_email
+            expect(response).to redirect_to(send_new_signup_email_user_path(user))
+          end
+        end
+
+        context 'with an invalid signup token' do
+          let(:user) { create :unregistered_user_with_invalid_signup_token }
+
+          before(:each) do
+            allow(sf_client).to receive(:update_contact)
+          end
+
+          it 'generates a new, valid signup token and sends an email' do
+            invalid_token = user.signup_token
+            run_send_signup_email
+            expect(sf_client).to have_received(:update_contact)
+            expect(user.reload.signup_token).not_to eq(invalid_token)
+          end
+
+          it 'sends the email' do
+            expect(SendSignupEmailMailer).to receive(:with)
             .with(email: user.email,
                   first_name: user.first_name,
                   sign_up_url: new_user_registration_url(signup_token: token, protocol: 'https')
             ).once.and_return(dummy_mailer)
-          expect(dummy_mailer).to receive(:deliver_now).once
-          run_send_signup_email
-        end
+            expect(dummy_mailer).to receive(:deliver_now).once
+            run_send_signup_email
+          end
 
-        it 'redirects back to show_send_signup_email with success message' do
-          allow(SendSignupEmailMailer).to receive(:with).and_return(dummy_mailer)
-          run_send_signup_email
-          expect(response).to redirect_to(send_new_signup_email_user_path(user))
+          it 'redirects back to show_send_signup_email with success message' do
+            allow(SendSignupEmailMailer).to receive(:with).and_return(dummy_mailer)
+            run_send_signup_email
+            expect(response).to redirect_to(send_new_signup_email_user_path(user))
+          end
         end
       end
     end

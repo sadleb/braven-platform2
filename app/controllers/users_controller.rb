@@ -1,4 +1,6 @@
 # frozen_string_literal: true
+require 'salesforce_api'
+
 class UsersController < ApplicationController
   layout 'admin'
 
@@ -80,10 +82,6 @@ class UsersController < ApplicationController
     redirect_to user_path(@user), notice: 'New confirmation email sent! When they click "Confirm Email" they will have finished their account setup.'
   end
 
-  # TODO: enhance this so that if the token has expired or is somehow otherwise invalid, it
-  # prevents you from sending the email and instead gives you the option to generate a new valid
-  # sign-up token and store it in Salesforce too.
-  # https://app.asana.com/0/1174274412967132/1201142798375307
   def show_send_signup_email
     authorize @user
     raise UserAdminError.new('Cannot send sign-up email to already registered user') if @user.registered?
@@ -92,6 +90,15 @@ class UsersController < ApplicationController
   def send_signup_email
     authorize @user
     raise UserAdminError.new('Cannot send sign-up email to already registered user') if @user.registered?
+
+    if !@user.signup_period_valid?
+      raw_signup_token = @user.set_signup_token!
+
+       # Set new User signup token on the Salesforce Contact record
+       # Note: call it with the raw token, *not* the encoded one from the database b/c that's
+       # what is needed in the Account Create Link.
+      SalesforceAPI.client.update_contact(@user.salesforce_id, {'Signup_Token__c': raw_signup_token })
+    end
 
     @user.send_signup_email!
     redirect_to send_new_signup_email_user_path(@user), notice: 'Email sent!'

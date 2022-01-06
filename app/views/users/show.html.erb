@@ -29,7 +29,11 @@
     <div class="card-body">
       <%= link_to "Edit", edit_user_path(@user), class: "card-link btn btn-warning" %>
       <%= link_to "Send Confirmation Email", send_confirm_email_user_path(@user), class: "card-link btn btn-success", method: :post if @user.registered? && !@user.confirmed? %>
-      <%= link_to "Send New Sign-up Email", send_new_signup_email_user_path(@user), class: "card-link btn btn-success" unless @user.registered? %>
+      <% if !@user.signup_period_valid? %>
+        <%= link_to "Generate Valid Sign-up Link And Send New Sign-up Email", send_new_signup_email_user_path(@user), class: "card-link btn btn-success" unless @user.registered? %>
+      <% else %>
+        <%= link_to "Send New Sign-up Email", send_new_signup_email_user_path(@user), class: "card-link btn btn-success" unless @user.registered? %>
+      <% end %>
       <%= link_to user_path(@user), method: :delete, data: { confirm: "Are you sure you want to delete this user" }, class: "card-link btn btn-danger" do %>
         Delete <%= @user.first_name %>'s account
       <% end %>

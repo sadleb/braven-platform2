@@ -26,6 +26,16 @@ FactoryBot.define do
 
     factory :unregistered_user do
       sequence(:salesforce_id) { |i| "003x%011dAAQ" % i }
+
+      factory :unregistered_user_with_invalid_signup_token do
+        sequence(:signup_token) { "starter token" }
+        sequence(:signup_token_sent_at) { 1.year.ago }
+      end
+
+      factory :unregistered_user_with_valid_signup_token do
+        sequence(:signup_token) { "starter token" }
+        sequence(:signup_token_sent_at) { DateTime.now }
+      end
     end
 
     factory :registered_user do
