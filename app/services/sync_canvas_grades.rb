@@ -22,34 +22,37 @@ class SyncCanvasGrades
         Honeycomb.add_field('sync_canvas_grades.submissions.count', submissions.count)
         Rails.logger.info("Found #{submissions.count} submissions")
         submissions.each do |submission|
-          Rails.logger.debug("Syncing canvas_submission_id=#{submission['id']}")
-          data = CanvasSubmission.parse_attributes(submission, canvas_course_id)
-          CanvasSubmission.upsert(data, unique_by: [:canvas_submission_id])
+          Honeycomb.start_span(name: 'sync_submission') do
+            Honeycomb.add_field('canvas_submission.id', submission['id'])
+            Rails.logger.debug("Syncing canvas_submission_id=#{submission['id']}")
+            data = CanvasSubmission.parse_attributes(submission, canvas_course_id)
+            CanvasSubmission.upsert(data, unique_by: [:canvas_submission_id])
 
-          if submission['rubric_assessment']
-            Honeycomb.add_field('sync_canvas_grades.rubric_assessments.count', submission['rubric_assessment'].length)
-            Rails.logger.info("Found #{submission['rubric_assessment'].length} rubric_assessments")
-            submission['rubric_assessment'].each do |canvas_criterion_id, assessment_value|
-              Rails.logger.debug("Syncing rating for canvas_submission_id=#{data[:canvas_submission_id]}, canvas_rating_id=#{assessment_value['rating_id']}")
+            if submission['rubric_assessment']
+              Honeycomb.add_field('sync_canvas_grades.rubric_assessments.count', submission['rubric_assessment'].length)
+              Rails.logger.info("Found #{submission['rubric_assessment'].length} rubric_assessments")
+              submission['rubric_assessment'].each do |canvas_criterion_id, assessment_value|
+                Rails.logger.debug("Syncing rating for canvas_submission_id=#{data[:canvas_submission_id]}, canvas_rating_id=#{assessment_value['rating_id']}")
 
-              # Sometimes the rating id is nil. Only seen this on one test user,
-              # so maybe an isolated case? Send some stats to Honeycomb just in case.
-              unless assessment_value['rating_id']
-                Honeycomb.add_field('sync_canvas_grades.no_rating_id', true)
-                Honeycomb.add_field('sync_canvas_grades.assessment_value', assessment_value)
-                next
+                # Sometimes the rating id is nil. Only seen this on one test user,
+                # so maybe an isolated case? Send some stats to Honeycomb just in case.
+                unless assessment_value['rating_id']
+                  Honeycomb.add_field('sync_canvas_grades.no_rating_id', true)
+                  Honeycomb.add_field('sync_canvas_grades.assessment_value', assessment_value)
+                  next
+                end
+
+                rating_data = {
+                  canvas_submission_id: data[:canvas_submission_id],
+                  canvas_criterion_id: canvas_criterion_id,
+                  canvas_rating_id: assessment_value['rating_id'],
+                  comments: assessment_value['comments'],
+                  points: assessment_value['points'],
+                }
+                CanvasSubmissionRating.upsert(rating_data, unique_by: [
+                  :canvas_submission_id, :canvas_rating_id, :canvas_criterion_id
+                ])
               end
-
-              rating_data = {
-                canvas_submission_id: data[:canvas_submission_id],
-                canvas_criterion_id: canvas_criterion_id,
-                canvas_rating_id: assessment_value['rating_id'],
-                comments: assessment_value['comments'],
-                points: assessment_value['points'],
-              }
-              CanvasSubmissionRating.upsert(rating_data, unique_by: [
-                :canvas_submission_id, :canvas_rating_id, :canvas_criterion_id
-              ])
             end
           end
         end

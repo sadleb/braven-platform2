@@ -359,7 +359,7 @@ RSpec.describe CanvasAPI do
     let(:course_id) { 100 }
 
     it 'hits the Canvas API correctly' do
-      request_url = "#{CANVAS_API_URL}/courses/#{course_id}/students/submissions?include[]=rubric_assessment&student_ids[]=all"
+      request_url = "#{CANVAS_API_URL}/courses/#{course_id}/students/submissions?include[]=rubric_assessment&per_page=100&student_ids[]=all"
 
       stub_request(:get, request_url).to_return( body: "[]" )
 

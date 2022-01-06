@@ -164,6 +164,7 @@ class CanvasAPI
   # https://canvas.instructure.com/doc/api/submissions.html#method.submissions_api.for_students
   def get_submission_data(course_id)
     response = get("/courses/#{course_id}/students/submissions", {
+      'per_page': 100,
       'include[]': 'rubric_assessment',
       'student_ids[]': 'all'
     })
