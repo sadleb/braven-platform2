@@ -15,29 +15,12 @@ class SalesforceController < ApplicationController
     authorize :SalesforceAuthorization
   end
 
-  # Shows a list of participants that will get email notifications with instructions
-  # for how to sign-up and create their Canvas account. Allows the staff member to
-  # confirm the list before kicking off the actual sync
-  def confirm_send_signup_emails
-    authorize :SalesforceAuthorization
-    @new_participants = get_participants_never_synced_before()
-  end
-
   def sync_salesforce_program
     authorize :SalesforceAuthorization
 
-    should_send_signup_emails = ActiveModel::Type::Boolean.new.cast(params[:send_signup_emails])
     should_force_zoom_update = ActiveModel::Type::Boolean.new.cast(params[:force_zoom_update])
 
-    if should_send_signup_emails && params[:not_confirmed].present?
-      redirect_to salesforce_confirm_send_signup_emails_path(
-        program_id: params[:program_id].strip,
-        email: params[:email].strip,
-        force_zoom_update: should_force_zoom_update,
-      ) and return
-    end
-
-    SyncSalesforceProgramJob.perform_later(params[:program_id].strip, params[:email].strip, should_send_signup_emails, should_force_zoom_update)
+    SyncSalesforceProgramJob.perform_later(params[:program_id].strip, params[:email].strip, should_force_zoom_update)
     redirect_to salesforce_sync_salesforce_program_path, notice: 'The sync process was started. Watch out for an email'
   end
 
@@ -113,13 +96,6 @@ class SalesforceController < ApplicationController
     respond_to do |format|
       format.json { head :no_content }
     end
-  end
-
-private
-
-  def get_participants_never_synced_before
-    participants = SalesforceAPI.client.find_participants_by(program_id: params[:program_id])
-    participants.select { |p| p.status == 'Enrolled' && User.find_by(salesforce_id: p.contact_id).nil? }.compact
   end
 
 end

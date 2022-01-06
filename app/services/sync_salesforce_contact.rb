@@ -95,11 +95,6 @@ private
     }
     SalesforceAPI.client.update_contact(new_user.salesforce_id, salesforce_contact_fields_to_set)
 
-    if @send_signup_emails
-      new_user.send_signup_email!(raw_signup_token)
-      Honeycomb.add_field('sync_salesforce_contact.signup_email_sent', true)
-    end
-
     @user = new_user
   end
 

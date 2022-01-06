@@ -101,7 +101,7 @@ class UsersController < ApplicationController
     end
 
     @user.send_signup_email!
-    redirect_to send_new_signup_email_user_path(@user), notice: 'Email sent!'
+    redirect_to user_path(@user), notice: 'Email sent!'
   end
 
   def destroy

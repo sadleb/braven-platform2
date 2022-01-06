@@ -261,7 +261,7 @@ RSpec.describe UsersController, type: :controller do
           it 'redirects back to show_send_signup_email with success message' do
             allow(SendSignupEmailMailer).to receive(:with).and_return(dummy_mailer)
             run_send_signup_email
-            expect(response).to redirect_to(send_new_signup_email_user_path(user))
+            expect(response).to redirect_to(user_path(user))
           end
         end
 
@@ -289,10 +289,10 @@ RSpec.describe UsersController, type: :controller do
             run_send_signup_email
           end
 
-          it 'redirects back to show_send_signup_email with success message' do
+          it 'redirects back to user_path with success message' do
             allow(SendSignupEmailMailer).to receive(:with).and_return(dummy_mailer)
             run_send_signup_email
-            expect(response).to redirect_to(send_new_signup_email_user_path(user))
+            expect(response).to redirect_to(user_path(user))
           end
         end
       end

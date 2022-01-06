@@ -16,17 +16,15 @@ class SyncSalesforceProgram
 
   FailedParticipantInfo = Struct.new(:salesforce_id, :email, :first_name, :last_name, :error_detail, keyword_init: true)
 
-  def initialize(salesforce_program_id:, send_signup_emails: false, force_zoom_update: false)
+  def initialize(salesforce_program_id:, force_zoom_update: false)
     @sf_program_id = salesforce_program_id
     @sf_program = nil
-    @send_signup_emails = send_signup_emails
     @force_zoom_update = force_zoom_update
     @failed_participants = []
   end
 
   def run
     Honeycomb.add_field_to_trace('salesforce.program.id', @sf_program_id)
-    Honeycomb.add_field('sync_salesforce_program.send_signup_emails', @send_signup_emails)
     Honeycomb.add_field('sync_salesforce_program.force_zoom_update', @force_zoom_update)
 
     # If you try running a sync in an environment that doesn't have the corresponding local course(s),

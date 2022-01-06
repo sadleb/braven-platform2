@@ -19,97 +19,12 @@ RSpec.describe SalesforceController, type: :controller do
       subject(:show_init_sync) do
         get :init_sync_salesforce_program
       end
-
-      it 'has a hidden param indicating that the user has not confirmed an "are you sure" message' do
-        show_init_sync
-        expect(response.body).to match(/<form.*<input value="true" type="hidden" name="not_confirmed" id="not_confirmed".*<\/form>/m)
-      end
     end # POST #sync_salesforce_program
 
-    describe 'GET #confirm_send_signup_emails' do
-      let(:base_params) { { program_id: sf_program.id } }
-      let(:other_params) { {} }
-
-      subject(:show_confirm_emails) do
-        get :confirm_send_signup_emails, params: base_params.merge(other_params)
-      end
-
-      shared_examples 'confirm recipients before running sync' do
-        it 'has a button to start the sync' do
-          show_confirm_emails
-          expect(response.body).to match(/#{Regexp.escape('<input type="submit" name="commit" value="Start Sync From Salesforce Process"')}/)
-        end
-
-        it 'starts the sync in "send signup emails" mode' do
-          show_confirm_emails
-          expect(response.body).to match(/#{Regexp.escape('<input value="true" type="hidden" name="send_signup_emails" id="send_signup_emails"')}/)
-        end
-
-        it 'starts the sync for the proper program' do
-          show_confirm_emails
-          expect(response.body).to match(/#{Regexp.escape("<input value=\"#{sf_program.id}\" type=\"hidden\" name=\"program_id\" id=\"program_id\"")}/)
-        end
-
-        context 'with force_zoom_update' do
-          let(:other_params) { {force_zoom_update: true} }
-          it 'sets hidden param to true' do
-            show_confirm_emails
-            expect(response.body).to match(/#{Regexp.escape('<input value="true" type="hidden" name="force_zoom_update" id="force_zoom_update"')}/)
-          end
-        end
-
-        context 'without force_zoom_update' do
-          let(:other_params) { {force_zoom_update: false} }
-          it 'sets hidden param to false' do
-            show_confirm_emails
-            expect(response.body).to match(/#{Regexp.escape('<input value="false" type="hidden" name="force_zoom_update" id="force_zoom_update"')}/)
-          end
-        end
-
-        # This isn't really a great test b/c the param is just missing, aka false. Putting it here just to signal the intention
-        # that "send_signup_emails" needs a confirmation before it should run in that mode
-        it 'starts the sync with confirmation that it should run' do
-          show_confirm_emails
-          expect(response.body).not_to match(/#{Regexp.escape('<input value="true" type="hidden" name="not_confirmed"')}/)
-        end
-      end
-
-      context 'when Sync From Salesforce has run at a later point in time since the last new Participant was added' do
-        let!(:fellow_user) { create :fellow_user }
-        let(:already_synced_sf_participant) { create :salesforce_participant_fellow, :Email => fellow_user.email, :ContactId => fellow_user.salesforce_id }
-        let(:already_synced_sf_participant_struct) { SalesforceAPI.participant_to_struct(already_synced_sf_participant) }
-        let(:sf_participants) { [already_synced_sf_participant_struct] }
-
-        it 'shows a message about no one receiving sign-up emails' do
-          show_confirm_emails
-          expect(response.body).to match(/No users will receive sign-up emails/)
-        end
-
-        it_behaves_like 'confirm recipients before running sync'
-      end
-
-      context 'when new Participants have been added after Sync From Salesforce has run' do
-        let(:new_sf_participant) { create :salesforce_participant_fellow }
-        let(:new_sf_participant_struct) { SalesforceAPI.participant_to_struct(new_sf_participant) }
-        let(:sf_participants) { [new_sf_participant_struct] }
-
-        it 'shows the new Participant in the list of folks who will get a sign-up email' do
-          show_confirm_emails
-          expect(response.body).to match(/These users will receive emails/)
-          expect(response.body).to match(/th.*#{new_sf_participant_struct.first_name} #{new_sf_participant_struct.last_name}/)
-          expect(response.body).to match(/<td>#{new_sf_participant_struct.email}<\/td>/)
-        end
-
-        it_behaves_like 'confirm recipients before running sync'
-      end
-
-    end # POST #confirm_send_signup_emails
-
     describe 'POST #sync_salesforce_program' do
-      let(:send_signup_emails) { false }
       let(:force_zoom_update) { false }
       let(:staff_email) { 'user.running.sync@bebraven.org' }
-      let(:base_params) { { program_id: sf_program.id, email: staff_email, send_signup_emails: send_signup_emails, force_zoom_update: force_zoom_update } }
+      let(:base_params) { { program_id: sf_program.id, email: staff_email, force_zoom_update: force_zoom_update } }
       let(:params) { base_params }
 
       subject(:run_sync_from_salesforce) do
@@ -118,7 +33,7 @@ RSpec.describe SalesforceController, type: :controller do
 
       shared_examples 'runs the sync' do
         it 'starts the sync in "send signup emails" mode for the proper program' do
-          expect(SyncSalesforceProgramJob).to receive(:perform_later).with(sf_program.id, staff_email, send_signup_emails, force_zoom_update).once
+          expect(SyncSalesforceProgramJob).to receive(:perform_later).with(sf_program.id, staff_email, force_zoom_update).once
           run_sync_from_salesforce
         end
 
@@ -129,33 +44,6 @@ RSpec.describe SalesforceController, type: :controller do
           run_sync_from_salesforce
           expect(response).to redirect_to(salesforce_sync_salesforce_program_path)
         end
-      end
-
-      context 'when sending signup emails' do
-        let(:send_signup_emails) { true }
-
-        context 'from the init sync page instead of the confirmation page' do
-          let(:params) { base_params.merge({not_confirmed: true}) }
-          it 'requires confirmation' do
-            run_sync_from_salesforce
-            expect(response).to redirect_to(
-              salesforce_confirm_send_signup_emails_path(program_id: sf_program.id, email: staff_email, force_zoom_update: force_zoom_update)
-            )
-          end
-        end
-
-        # Note: the confirm_send_signup_emails page doesn't pass a not_confirmed param which is what this mimics
-        context 'from the confirmation page' do
-          it_behaves_like 'runs the sync'
-        end
-      end
-
-      context 'when not sending signup emails' do
-        let(:send_signup_emails) { false }
-        let(:params) { base_params.merge({not_confirmed: true}) }
-
-        # No confirmation page needed, it just runs it.
-        it_behaves_like 'runs the sync'
       end
 
       context 'when forcing Zoom update' do

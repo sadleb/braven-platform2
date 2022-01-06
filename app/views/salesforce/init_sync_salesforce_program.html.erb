@@ -17,17 +17,10 @@
           <%= f.email_field :email, value: params[:email], class: "form-control", required: true, placeholder: "you@example.com", autocomplete: "email" %>
         </div>
 
-        <div class="form-check">
-          <%= f.check_box :send_signup_emails, { class: "form-check-input" }, "true", "false" %>
-          <%= f.label :send_signup_emails, "Send email invitations to newly added Participants to sign up and create an account?", class: "form-check-label" %>
-        </div>
-
         <div class="form-check mt-2">
           <%= f.check_box :force_zoom_update, { class: "form-check-input" }, "true", "false" %>
           <%= f.label :force_zoom_update, "Force Zoom links to be updated?", class: "form-check-label" %>
         </div>
-
-        <%= f.hidden_field :not_confirmed, value: true %>
 
         <br>
 
@@ -41,12 +34,10 @@
   <p><small><em>Notes:</em>
     <ul>
       <li><p>The "Force Zoom links ..." option should rarely need to be used. It's for when the meeting password or something else core to the meeting causes the links to become invalid even if nothing about the Participants have changed. Note that if their name or Zoom prefix changes that will update in Zoom but the link will still be the same.</p></li>
-      <li><p>If you check off "Send email invitations..." you will see a list of folks who would receive emails on the next page before starting the sync process. This feature is ONLY for Participants who have never been synced before. It's meant to be used if you're scrambling to get a last minute Participant access without waiting for the normal nightly sync and Campaign Monitor "welcome email" process. E.g. imagine you're in-person at the first learning lab with a Fellow not already setup and you're trying to get them access.</p></li>
+      <li><p>If you're scrambling to get a last minute Participant access without waiting for the normal nightly sync and Campaign Monitor "welcome email" process, you can send them a sign-up email from their User page. E.g. imagine you're in-person at the first learning lab with a Fellow not already setup and you're trying to get them access.</p></li>
     </ul>
   </small></p>
 
   <hr>
-
-  <%= render partial: 'sample_email' %>
 
 </div>

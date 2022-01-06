@@ -145,32 +145,6 @@ RSpec.describe SyncSalesforceProgram do
 #        expect(sync_zoom_service).to receive(:run).once
 #        run_sync
 #      end
-#
-#      # These emails are supposed to come in a welcome email blast a couple weeks before launch.
-#      # The signup_emails sent from Platform are meant to help staff support issues with getting
-#      # account access through the normal flow. These are essentially "backup" signup emails that
-#      # we send in one-off cases.
-#      it 'defaults to not sending sign-up emails' do
-#        expect(new_user).not_to receive(:send_signup_email!)
-#        run_sync
-#      end
-#
-#      # The "send_signup_emails" mode is intended to be used by support staff scrambling
-#      # to get last minute folks access to Canvas. For example, at the first Learning Lab
-#      # a couple friends show up wanting to do Braven b/c they just heard about it.
-#      # The staff member would use Salesforce to fully confirm them and create an Enrolled
-#      # Participant. Then they would run "Sync From Salesforce" with the checkbox to send
-#      # sign-up emails. That is how they would get the sign-up link to these folks right
-#      # then and there allowing them to create an account and log in to Canvas.
-#      context 'when sending sign-up emails is turned on' do
-#        it 'sends the sign-up email' do
-#          fake_token = 'fake_token'
-#          allow(new_user).to receive(:signup_token).and_return(nil)
-#          allow(new_user).to receive(:set_signup_token!).and_return(fake_token)
-#          expect(new_user).to receive(:send_signup_email!).with(fake_token).once
-#          SyncSalesforceProgram.new(salesforce_program_id: sf_program_struct.id, send_signup_emails: true).run
-#        end
-#      end
 #    end
 #
 #    context 'with failed participants' do

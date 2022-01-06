@@ -207,7 +207,6 @@ Rails.application.routes.draw do
 
   # Sync from Salesforce to Canvas
   post '/salesforce/sync_salesforce_program', to: 'salesforce#sync_salesforce_program'
-  get '/salesforce/confirm_send_signup_emails', to: 'salesforce#confirm_send_signup_emails'
   get '/salesforce/sync_salesforce_program', to: 'salesforce#init_sync_salesforce_program'
   post '/salesforce/update_contacts', to: 'salesforce#update_contacts'
 

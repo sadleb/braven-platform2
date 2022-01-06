@@ -16,43 +16,25 @@ RSpec.describe SyncSalesforceProgramJob, type: :job do
     end
 
     shared_examples 'starts the sync process' do
-      it 'passes salesforce_program_id, send_signup_emails, and force_zoom_update to the sync service' do
+      it 'passes salesforce_program_id and force_zoom_update to the sync service' do
         program_id = 'some_fake_id'
         email = 'example@example.com'
-        SyncSalesforceProgramJob.perform_now(program_id, email, send_signup_emails, force_zoom_update)
+        SyncSalesforceProgramJob.perform_now(program_id, email, force_zoom_update)
 
         expect(SyncSalesforceProgram).to have_received(:new)
-          .with(salesforce_program_id: program_id, send_signup_emails: send_signup_emails, force_zoom_update: force_zoom_update)
+          .with(salesforce_program_id: program_id, force_zoom_update: force_zoom_update)
         expect(program_portal_enrollments).to have_received(:run)
       end
     end
 
-    context 'when send_signup_emails is off' do
-      let(:send_signup_emails) { false }
-
-      context 'and force_zoom_update is off' do
-        let(:force_zoom_update) { false }
-        it_behaves_like 'starts the sync process'
-      end
-
-      context 'and force_zoom_update is on' do
-        let(:force_zoom_update) { true }
-        it_behaves_like 'starts the sync process'
-      end
+    context 'when force_zoom_update is off' do
+      let(:force_zoom_update) { false }
+      it_behaves_like 'starts the sync process'
     end
 
-    context 'when send_signup_emails is on' do
-      let(:send_signup_emails) { true }
-
-      context 'and force_zoom_update is off' do
-        let(:force_zoom_update) { false }
-        it_behaves_like 'starts the sync process'
-      end
-
-      context 'and force_zoom_update is on' do
-        let(:force_zoom_update) { true }
-        it_behaves_like 'starts the sync process'
-      end
+    context 'when force_zoom_update is on' do
+      let(:force_zoom_update) { true }
+      it_behaves_like 'starts the sync process'
     end
 
     it 'sends success mail if successful' do

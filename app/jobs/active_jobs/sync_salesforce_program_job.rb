@@ -9,11 +9,10 @@
 class SyncSalesforceProgramJob < ApplicationJob
   queue_as :default
 
-  def perform(program_id, email, send_signup_emails = false, force_zoom_update = false)
+  def perform(program_id, email, force_zoom_update = false)
     Honeycomb.add_field(ApplicationJob::HONEYCOMB_RUNNING_USER_EMAIL_FIELD, email)
     sync_service = SyncSalesforceProgram.new(
       salesforce_program_id: program_id,
-      send_signup_emails: send_signup_emails,
       force_zoom_update: force_zoom_update
     )
     begin
