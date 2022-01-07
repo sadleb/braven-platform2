@@ -33,8 +33,8 @@ private
     existing_join_link1 = @salesforce_participant.zoom_meeting_link_1
     existing_join_link2 = @salesforce_participant.zoom_meeting_link_2
 
-    registrant1 = register_participant(@new_zoom_link_info_1) if generate_zoom_meeting_1_link?
-    registrant2 = register_participant(@new_zoom_link_info_2) if generate_zoom_meeting_2_link?
+    registrant1 = register_participant(@new_zoom_link_info_1) if generate_zoom_meeting_1_link?(existing_join_link1)
+    registrant2 = register_participant(@new_zoom_link_info_2) if generate_zoom_meeting_2_link?(existing_join_link2)
     generated_link1 = registrant1['join_url'] if registrant1
     generated_link2 = registrant2['join_url'] if registrant2
 
@@ -150,9 +150,10 @@ private
 
   # Note that a force_update doesn't actually update the link unless other info has changed,
   # like the password for the meeting for example.
-  def generate_zoom_meeting_1_link?
+  def generate_zoom_meeting_1_link?(existing_link)
     return false unless zoom_meeting_1_configured?
     return true if @force_update
+    return false if existing_link == ZOOM_HOST_LINK_MESSAGE
     return true if @existing_zoom_link_info_1.blank?
     if @existing_zoom_link_info_1.registrant_details_match?(@new_zoom_link_info_1)
       return false
@@ -161,9 +162,10 @@ private
     end
   end
 
-  def generate_zoom_meeting_2_link?
+  def generate_zoom_meeting_2_link?(existing_link)
     return false unless zoom_meeting_2_configured?
     return true if @force_update
+    return false if existing_link == ZOOM_HOST_LINK_MESSAGE
     return true if @existing_zoom_link_info_2.blank?
     if @existing_zoom_link_info_2.registrant_details_match?(@new_zoom_link_info_2)
       return false

@@ -196,7 +196,7 @@ RSpec.describe SyncZoomLinksForParticipant do
         # Make sure that this particular error is not treated as a sync failure. Staff members that are hosts
         # of the Zoom meeting can be sync'd to the Course as a Teaching Assistant (or some other staff role).
         # Instead of a real link, just return a message about why the Zoom link wasn't created so people know what's up.
-        context 'when syncing Host of Zoom meeting' do
+        context 'when syncing Host of Zoom meeting the first time' do
           let(:meeting_link_1) { nil }
           let(:meeting_link_2) { nil }
           let(:error_message) { 'We cannot create a pre-registered Zoom link for a host.' }
@@ -227,6 +227,39 @@ RSpec.describe SyncZoomLinksForParticipant do
             if generated_link_1 != salesforce_participant_struct.zoom_meeting_link_1 ||
                generated_link_2 != salesforce_participant_struct.zoom_meeting_link_2
               expect(sf_client).to receive(:update_zoom_links).with(salesforce_participant_struct.id, generated_link_1, generated_link_2).once
+            end
+
+            expect(ZoomLinkInfo).not_to receive(:upsert_all)
+
+            run_sync
+          end
+        end
+
+        context 'when syncing Host of Zoom meeting subsequent times' do
+          let(:meeting_link_1) { SyncZoomLinksForParticipant::ZOOM_HOST_LINK_MESSAGE }
+          let(:meeting_link_2) { SyncZoomLinksForParticipant::ZOOM_HOST_LINK_MESSAGE }
+
+          it 'skips the sync' do
+            generated_link_1 = nil
+            generated_link_2 = nil
+
+            if meeting_id_1.present?
+              generated_link_1 = SyncZoomLinksForParticipant::ZOOM_HOST_LINK_MESSAGE
+              expect(zoom_client).not_to receive(:add_registrant).with(
+                meeting_id_1, anything, anything, anything
+              )
+            end
+
+            if meeting_id_2.present?
+              generated_link_2 = SyncZoomLinksForParticipant::ZOOM_HOST_LINK_MESSAGE
+              expect(zoom_client).not_to receive(:add_registrant).with(
+                meeting_id_2, anything, anything, anything
+              )
+            end
+
+            if generated_link_1 == salesforce_participant_struct.zoom_meeting_link_1 &&
+               generated_link_2 == salesforce_participant_struct.zoom_meeting_link_2
+              expect(sf_client).not_to receive(:update_zoom_links)
             end
 
             expect(ZoomLinkInfo).not_to receive(:upsert_all)
