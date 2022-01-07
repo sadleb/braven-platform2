@@ -177,10 +177,6 @@ class ParticipantSyncInfo < ApplicationRecord
           # TODO: kick off the sync with the final participants_to_sync list,
           # This just pretends the sync workd for this POC and saves the new values as "last synced"
 
-          # TODO: if the cohort schedule isn't set, the followign error is thrown. Handle that more gracefully
-          # and only fail for that participant.
-          # PG::NotNullViolation: ERROR:  null value in column "cohort_schedule_weekday" violates not-null constraint (ActiveRecord::NotNullViolation)
-          #
           # TODO: do we want to wait and save them all at the end? If not, it would be better for each sync
           # service to update the stuff they sync so that future failures won't re-sync the failed parts.
           # e.g. Contact sync would update the firstname/lastname/email in the sync info as soon as it does it's thing.

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_12_10_161915) do
+ActiveRecord::Schema.define(version: 2022_01_06_224200) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
@@ -410,7 +410,7 @@ ActiveRecord::Schema.define(version: 2021_12_10_161915) do
     t.string "candidate_role_select"
     t.string "canvas_accelerator_course_id", null: false
     t.string "canvas_lc_playbook_course_id", null: false
-    t.string "cohort_schedule_weekday", null: false
+    t.string "cohort_schedule_weekday"
     t.string "cohort_schedule_time"
     t.string "cohort_section_name"
     t.string "zoom_meeting_id_1"
