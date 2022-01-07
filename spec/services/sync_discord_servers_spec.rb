@@ -97,6 +97,30 @@ RSpec.describe SyncDiscordServers do
         expect(DiscordServerChannel.find_by(name: text_channel[:name])).not_to eq(nil)
       end
     end
+
+    context 'with deleted channel' do
+      let(:deleted_channel_name) { 'test-deleted' }
+      let!(:existing_channel) {
+        create(:discord_server_channel,
+               discord_server_id: server.id,
+               discord_channel_id: text_channel[:id],
+               name: text_channel[:name],
+               position: text_channel[:position])
+      }
+      let!(:deleted_channel) {
+        create(:discord_server_channel,
+               discord_server_id: server.id,
+               discord_channel_id: channels.map { |c| c[:id] }.max + 1,
+               name: deleted_channel_name)
+      }
+
+      it 'deletes channel' do
+        expect {
+          subject
+        }.to change(DiscordServerChannel, :count).by(-1)
+        expect(DiscordServerChannel.find_by(name: deleted_channel_name)).to eq(nil)
+      end
+    end
   end
 
   describe '.sync_server_roles' do
@@ -148,6 +172,29 @@ RSpec.describe SyncDiscordServers do
           subject
         }.to change(DiscordServerRole, :count).by(1)
         expect(DiscordServerRole.find_by(name: generic_role[:name])).not_to eq(nil)
+      end
+    end
+
+    context 'with deleted role' do
+      let(:deleted_role_name) { 'test deleted' }
+      let!(:existing_role) {
+        create(:discord_server_role,
+               discord_server_id: server.id,
+               discord_role_id: generic_role[:id],
+               name: generic_role[:name])
+      }
+      let!(:deleted_role) {
+        create(:discord_server_role,
+               discord_server_id: server.id,
+               discord_role_id: roles.map { |c| c[:id] }.max + 1,
+               name: deleted_role_name)
+      }
+
+      it 'deletes role' do
+        expect {
+          subject
+        }.to change(DiscordServerRole, :count).by(-1)
+        expect(DiscordServerRole.find_by(name: deleted_role_name)).to eq(nil)
       end
     end
   end
