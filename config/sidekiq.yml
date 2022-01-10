@@ -12,8 +12,8 @@
     class: SyncSalesforceChangesJob
     description: "Syncs changes in Salesforce to Platform, Canvas, Zoom, etc. Note: Discord is handled separately."
 
-    # Run every 10 minutes by default
+    # Run every minute by default
     #
     # Note: technically, this value can take human readable formats, but we're using seconds
     # to be consistent with SALESFORCE_SYNC_MAX_DURATION.
-    every: [<%= ENV.fetch('SALESFORCE_SYNC_EVERY') { '600' } %>]
+    every: [<%= ENV.fetch('SALESFORCE_SYNC_EVERY') { '60' } %>]

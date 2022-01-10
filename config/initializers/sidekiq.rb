@@ -36,4 +36,6 @@ SidekiqUniqueJobs.configure do |config|
   # The info should be added in the sidekiq UI in the "Locks" tab
   #config.lock_info = true
   #config.debug_lua = true
+
+  config.add_strategy :log_honeycomb, SidekiqUniqueJobs::OnConflict::LogHoneycomb
 end

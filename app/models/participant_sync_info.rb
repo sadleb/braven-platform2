@@ -103,7 +103,9 @@ class ParticipantSyncInfo < ApplicationRecord
   # The sync will now pass a ParticipantSyncInfoDiff object through the layers of the various
   # sync services after determining that something changed that impacts the sync.
   # https://app.asana.com/0/1201131148207877/1201453841518463
-  def self.run_sync_poc
+  def self.run_sync_poc(max_run_time_seconds)
+    start_time = Time.now.utc
+
     Honeycomb.start_span(name: 'run_sync_poc.all_programs') do
       HerokuConnect::Program.current_and_future_program_ids.each do |program_id|
 
@@ -177,26 +179,28 @@ class ParticipantSyncInfo < ApplicationRecord
           # TODO: kick off the sync with the final participants_to_sync list,
           # This just pretends the sync workd for this POC and saves the new values as "last synced"
 
-          # TODO: do we want to wait and save them all at the end? If not, it would be better for each sync
-          # service to update the stuff they sync so that future failures won't re-sync the failed parts.
-          # e.g. Contact sync would update the firstname/lastname/email in the sync info as soon as it does it's thing.
-          upsert_data = []
           participants_to_sync.each { |p|
             Honeycomb.start_span(name: 'run_sync_poc.sync_participant') do
+              elapsed_seconds = Time.now.utc - start_time
+              if elapsed_seconds > max_run_time_seconds
+                puts "### RUN_POC: exiting early b/c sync has been running for #{elapsed_seconds} and the max run_time is #{max_run_time_seconds}"
+                Honeycomb.add_field('run_sync_poc.exited_early?', true)
+                # The time format used is the same in libhoney:
+                # https://github.com/honeycombio/libhoney-rb/blob/3607446da676a59aad47ff72c3e8d749f885f0e9/lib/libhoney/transmission.rb#L187
+                Honeycomb.add_field('run_sync_poc.exit_time', Time.now.utc.iso8601(3))
+                return
+              end
+
               # TODO: mimic an actual sync taking time to process everyone. We're going to run this
               # in prod for a bit before actually hooking it up and I want to be able to setup some Honeycomb
               # queiries to see how long things take when real changes happen, assuming a sync for each of those
               # can take a bit.
-              puts "  #### sleeping 2 seconds, pretending to sync. Let's query this span and aggregate the time spent which is dependant on the # changes"
-              sleep 2
-              p.new_sync_info.updated_at = Time.now
-              upsert_data << p.attributes.except('id', 'created_at')
+              puts "  #### RUN_POC: sleeping 4 seconds, pretending to sync. Let's query this span and aggregate the time spent which is dependant on the # changes"
+              sleep 4
+              p.new_sync_info.updated_at = Time.now.utc
+              ParticipantSyncInfo.upsert(p.attributes.except('id', 'created_at'), unique_by: :sfid)
             end
           }
-
-          if upsert_data.present?
-            ParticipantSyncInfo.upsert_all(upsert_data, unique_by: :sfid)
-          end
 
         end
       end # for each program

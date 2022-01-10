@@ -69,5 +69,24 @@ module Sidekiq
       end
     end
 
+  end # HoneycombMiddleware
+end
+
+module SidekiqUniqueJobs
+  module OnConflict
+
+    # Strategy to send information about conflict to Honeycomb.
+    # Extends this built-in strategy:
+    # https://github.com/mhenrixon/sidekiq-unique-jobs/blob/f09d41b818286ed5549ac90ccc2ea386be9b5ca4/lib/sidekiq_unique_jobs/on_conflict/log.rb
+    class LogHoneycomb < Log
+      def call
+        super
+        Honeycomb.add_field('sidekiq.unique_jobs.conflict?', true)
+        Honeycomb.add_field('sidekiq.unique_jobs.conflict.skip_reason',
+          "Skipping job with `sidekiq.jid=#{item[JID]}` because lock_digest: (#{item[LOCK_DIGEST]}) already exists"
+        )
+      end
+    end
+
   end
 end
