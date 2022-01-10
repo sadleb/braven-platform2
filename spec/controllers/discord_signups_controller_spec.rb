@@ -152,6 +152,30 @@ RSpec.describe DiscordSignupsController, type: :controller do
       it_behaves_like 'renders initial steps'
     end
 
+    context 'with a discord_token that is raising Discordrb::Errors::UnknownError / Unauthorized' do
+      let(:participant) { SalesforceAPI.participant_to_struct(create(:salesforce_participant_fellow)) }
+
+      before(:each) do
+        user.add_role RoleConstants::STUDENT_ENROLLMENT, section
+        user.update!(discord_token: 'faketoken')
+        stub_request(:get, "#{Discordrb::API.api_base}/users/@me").to_raise(Discordrb::Errors::UnknownError)
+      end
+
+      it 'resets the user\'s Discord token to nil' do
+        subject
+        expect(user.reload.discord_token).to eq(nil)
+      end
+
+      it 'redirects to discord signups launch page' do
+        expect(subject).to redirect_to(launch_discord_signups_path(lti_launch_id: lti_launch.id))
+      end
+
+      it 'shows alert that something went wrong' do
+        subject
+        expect(flash[:alert]).to match /Something went wrong, please try again./
+      end
+    end
+
     context 'with a valid discord_token' do
       let(:participant) { SalesforceAPI.participant_to_struct(create(:salesforce_participant_fellow)) }
 
