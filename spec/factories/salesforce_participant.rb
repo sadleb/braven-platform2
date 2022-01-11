@@ -7,7 +7,6 @@ FactoryBot.define do
 
     transient do
       sequence(:program_id) { |i| "a2Y1%011dAUX" % i }
-      sequence(:discord_invite_code) { |i| "code#{i}" }
       sequence(:discord_user_id) { |i| "#{i}" }
       zoom_meeting_link1 { nil }
       zoom_meeting_link2 { nil }
@@ -31,7 +30,6 @@ FactoryBot.define do
     sequence(:LastName) { |i| "TestLastName#{i}" }
     sequence(:LastModifiedDate) { "2020-04-10T13:27:2{i}.000Z" }
     sequence(:ParticipantStatus) { 'Enrolled' }
-    sequence(:DiscordInviteCode) { discord_invite_code }
     sequence(:DiscordUserId) { discord_user_id }
     sequence(:ZoomPrefix) { |i| "ZoomPrefix#{1}" }
     sequence(:ZoomMeetingId1) { |i| "%010d" % i}

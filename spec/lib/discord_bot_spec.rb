@@ -19,7 +19,6 @@ RSpec.describe DiscordBot do
       allow(discordrb_bot).to receive(:ready)
       allow(discordrb_bot).to receive(:server_create)
       allow(discordrb_bot).to receive(:message)
-      allow(discordrb_bot).to receive(:member_join)
       allow(discordrb_bot).to receive(:run)
 
       subject
@@ -40,11 +39,6 @@ RSpec.describe DiscordBot do
     end
 
     context 'with sync_and_exit=false' do
-      it 'inits invite cache' do
-        expect(bot).to receive(:init_invite_uses_cache)
-        subject
-      end
-
       it 'alerts on unconfigured members' do
         expect(bot).to receive(:alert_on_unconfigured_members)
         subject
@@ -60,8 +54,8 @@ RSpec.describe DiscordBot do
 
       # Note: we test the 'exit' behavior in the same specs because running `exit`
       # outside of the `expect to raise_error` block makes rspec break.
-      it 'does not init invite cache; exits' do
-        expect(bot).not_to receive(:init_invite_uses_cache)
+      it 'does not hit code after sync; exits' do
+        expect(bot).not_to receive(:alert_on_unconfigured_members)
         expect {
           subject
         }.to raise_error(SystemExit)
@@ -85,7 +79,6 @@ RSpec.describe DiscordBot do
     before :each do
       allow(discordrb_bot).to receive(:servers).and_return({server.id => server})
       allow(bot).to receive(:send_to_general)
-      allow(bot).to receive(:init_invite_uses_cache)
     end
 
     it 'updates local servers cache' do
@@ -94,48 +87,9 @@ RSpec.describe DiscordBot do
       expect(bot.instance_variable_get(:@servers)).to eq({server.id => server})
     end
 
-    it 'updates local invites cache' do
-      expect(bot).to receive(:init_invite_uses_cache)
-      subject
-    end
-
     it 'messages the general channel' do
       expect(bot).to receive(:send_to_general).with(server.id, anything)
       subject
-    end
-  end
-
-  describe '.on_member_join' do
-    subject { bot.on_member_join(event) }
-
-    let(:server) { instance_double(Discordrb::Server, id: 'fake-server-id') }
-    let(:user) { instance_double(Discordrb::User, id: 'fake-user-id', username: 'fake-username', discriminator: 1234) }
-    let(:member) { instance_double(Discordrb::Member, id: 'fake-member-id') }
-    let(:event) { instance_double(Discordrb::Events::ServerMemberAddEvent, server: server, member: member) }
-    let(:invite) { instance_double(Discordrb::Invite, code: 'fake-invite-code') }
-
-    before :each do
-      member.instance_variable_set(:@user, user)
-      allow(bot).to receive(:find_used_invite).and_return(invite)
-      allow(DiscordBot).to receive(:configure_member)
-    end
-
-    it 'tries to find the used invite' do
-      expect(bot).to receive(:find_used_invite).with(server)
-      subject
-    end
-
-    it 'configures the new member' do
-      expect(DiscordBot).to receive(:configure_member).with(member, invite)
-      subject
-    end
-
-    context 'with no invite found' do
-      it 'exits before configuring member' do
-        allow(bot).to receive(:find_used_invite).and_return(nil)
-        expect(DiscordBot).not_to receive(:configure_member)
-        subject
-      end
     end
   end
 
@@ -206,101 +160,17 @@ RSpec.describe DiscordBot do
     end
   end
 
-  # Invites
-  describe '.init_invite_uses_cache' do
-    subject { bot.init_invite_uses_cache }
-
-    let(:server1) { instance_double(Discordrb::Server, id: 'fake-server-id1', invites: [invite1]) }
-    let(:server2) { instance_double(Discordrb::Server, id: 'fake-server-id2', invites: [invite2, invite3]) }
-    let(:invite1) { instance_double(Discordrb::Invite, code: 'fake-invite-code1', uses: 0) }
-    let(:invite2) { instance_double(Discordrb::Invite, code: 'fake-invite-code2', uses: 1) }
-    let(:invite3) { instance_double(Discordrb::Invite, code: 'fake-invite-code3', uses: 0) }
-
-    before :each do
-      bot.instance_variable_set(:@servers, {
-        server1.id => server1,
-        server2.id => server2,
-      })
-    end
-
-    it 'fills the invites cache' do
-      expect(bot.instance_variable_get(:@invites)).to eq({})
-      subject
-      expect(bot.instance_variable_get(:@invites)).to eq({
-        server1.id => {
-          invite1.code => invite1.uses,
-        },
-        server2.id => {
-          invite2.code => invite2.uses,
-          invite3.code => invite3.uses,
-        },
-      })
-    end
-  end
-
-  describe '.find_used_invite' do
-    subject { bot.find_used_invite(server1) }
-
-    let(:server1) { instance_double(Discordrb::Server, id: 'fake-server-id1', invites: [invite1, invite2]) }
-    let(:server2) { instance_double(Discordrb::Server, id: 'fake-server-id2', invites: [invite3]) }
-    let(:invite1) { instance_double(Discordrb::Invite, code: 'fake-invite-code1', uses: 0) }
-    let(:invite2) { instance_double(Discordrb::Invite, code: 'fake-invite-code2', uses: 0) }
-    let(:invite3) { instance_double(Discordrb::Invite, code: 'fake-invite-code3', uses: 0) }
-
-    before :each do
-      bot.init_invite_uses_cache
-    end
-
-    context 'with no used invite' do
-      it 'returns nil' do
-        expect(subject).to eq(nil)
-      end
-    end
-
-    context 'with 1 used invite' do
-      before :each do
-        allow(invite2).to receive(:uses).and_return(1)
-      end
-
-      it 'returns the used invite' do
-        expect(subject).to eq(invite2)
-      end
-    end
-
-    context 'with multiple used invites' do
-      before :each do
-        allow(invite1).to receive(:uses).and_return(1)
-        allow(invite2).to receive(:uses).and_return(1)
-      end
-
-      it 'returns nil' do
-        expect(subject).to eq(nil)
-      end
-
-      it 'sends an alert' do
-        expect(Honeycomb).to receive(:add_field).with('alert.multiple_invites_used', anything)
-        subject
-      end
-
-      it 'updates the cache' do
-        expect(bot).to receive(:init_invite_uses_cache)
-        subject
-      end
-    end
-  end
-
   # Salesforce
   describe '.sync_salesforce' do
     subject { bot.sync_salesforce }
 
     let(:member) { instance_double(Discordrb::Member, id: 'fake-member-id') }
-    let(:invite) { instance_double(Discordrb::Invite, code: participant1_with_discord.discord_invite_code, delete: nil) }
-    let(:server) { instance_double(Discordrb::Server, id: program1_with_discord['Discord_Server_ID__c'].to_i, invites: [invite]) }
+    let(:server) { instance_double(Discordrb::Server, id: program1_with_discord['Discord_Server_ID__c'].to_i) }
     let(:programs) { create(:salesforce_current_and_future_programs, canvas_course_ids: [1, 2]) }
     let(:program1_with_discord) { create(:salesforce_program_record, program_id: programs['records'][0]['Id']) }
     let(:program2_without_discord) { create(:salesforce_program_record, program_id: programs['records'][1]['Id'], discord_server_id: nil) }
     let(:participant1_with_discord) { SalesforceAPI.participant_to_struct(create(:salesforce_participant, program_id: program1_with_discord['Id'])) }
-    let(:participant2_without_discord) { SalesforceAPI.participant_to_struct(create(:salesforce_participant, program_id: program1_with_discord['Id'], discord_invite_code: nil)) }
+    let(:participant2_without_discord) { SalesforceAPI.participant_to_struct(create(:salesforce_participant, program_id: program1_with_discord['Id'], discord_user_id: nil)) }
     let(:participant3_with_discord) { SalesforceAPI.participant_to_struct(create(:salesforce_participant, program_id: program2_without_discord['Id'])) }
     let(:participant3_id_with_discord) { "a2Y17000003WLxqXYZ" }
     let(:contact1_with_discord) { create(:salesforce_contact) }
@@ -317,7 +187,6 @@ RSpec.describe DiscordBot do
       update_participant: nil,
       get_contact_info: nil,
     ) }
-    let(:invite_code) { 'test-code' }
 
     before :each do
       allow(sf_client).to receive(:get_program_info)
@@ -349,35 +218,9 @@ RSpec.describe DiscordBot do
         .and_return(contact2_without_discord)
       allow(SalesforceAPI).to receive(:client).and_return(sf_client)
 
-      allow(bot).to receive(:create_invite).and_return(invite_code)
       allow(bot).to receive(:get_member)
       bot.instance_variable_set(:@servers, {server.id => server})
       allow(DiscordBot).to receive(:configure_member_from_records)
-    end
-
-    it 'creates invites for participants with no invite' do
-      expect(bot).to receive(:create_invite)
-        .once
-      subject
-    end
-
-    it 'uses the server id for the participant\'s program to create invites' do
-      expect(bot).to receive(:create_invite)
-        .with(program1_with_discord['Discord_Server_ID__c'].to_i)
-      subject
-    end
-
-    it 'updates participant after creating invite' do
-      expect(sf_client).to receive(:update_participant)
-        .with(participant2_without_discord.id, {'Discord_Invite_Code__c': invite_code})
-        .once
-      subject
-    end
-
-    it 'does not create invites for participants that have one' do
-      expect(sf_client).not_to receive(:update_participant)
-        .with(participant1_with_discord.id, anything)
-      subject
     end
 
     it 'skips programs with no discord server id' do
@@ -395,18 +238,6 @@ RSpec.describe DiscordBot do
       subject
     end
 
-    it 'does not delete invite after configuring member' do
-      # just because someone has a member in the server, doesn't mean
-      # they can actually access that account. don't needlessly expire
-      # invites during sync; they may be new ones created by staff to allow
-      # the person to sign up again.
-      allow(participant1_with_discord).to receive(:contact_id).and_return(contact1_with_discord['Id'])
-      allow(bot).to receive(:get_member).and_return(member)
-      expect(DiscordBot).to receive(:configure_member_from_records).once
-      expect(invite).not_to receive(:delete)
-      subject
-    end
-
     it 'does not configure member for contacts with no discord user id' do
       allow(sf_client).to receive(:find_participants_by).and_return([participant2_without_discord])
       expect(bot).not_to receive(:get_member)
@@ -420,11 +251,6 @@ RSpec.describe DiscordBot do
         participant1_with_discord.status = SalesforceAPI::DROPPED
       end
 
-      it 'deletes invite code if applicable' do
-        expect(invite).to receive(:delete).once
-        subject
-      end
-
       it 'kicks member if applicable' do
         allow(bot).to receive(:get_member).and_return(member)
         expect(member).to receive(:kick).once
@@ -434,13 +260,6 @@ RSpec.describe DiscordBot do
       it 'does not kick member if no member found' do
         allow(bot).to receive(:get_member).and_return(nil)
         expect(member).not_to receive(:kick)
-        subject
-      end
-
-      it 'updates participant record' do
-        expect(sf_client).to receive(:update_participant)
-          .with(participant1_with_discord.id, {'Discord_Invite_Code__c': nil})
-          .once
         subject
       end
     end
@@ -485,15 +304,6 @@ RSpec.describe DiscordBot do
 
       it 'calls the appropriate command function' do
         expect(bot).to receive(:list_misconfigured_command).with(event).once
-        subject
-      end
-    end
-
-    context 'with create_invite command' do
-      let(:message_content) { "#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:create_invite]}" }
-
-      it 'calls the appropriate command function' do
-        expect(bot).to receive(:create_invite_command).with(event).once
         subject
       end
     end
@@ -553,113 +363,6 @@ RSpec.describe DiscordBot do
     context 'with no unconfigured members' do
       it 'does not send an alert' do
         expect(Honeycomb).not_to receive(:add_field).with('alert.unconfigured_members', true)
-        subject
-      end
-    end
-  end
-
-  # Configure member
-  describe 'self.configure_member' do
-    subject { DiscordBot.configure_member(member, invite) }
-
-    let(:server) { instance_double(Discordrb::Server, id: 'fake-server-id', name: 'fake-server-name') }
-    let(:user) { instance_double(Discordrb::User, username: 'fake-username', discriminator: 1234) }
-    let(:member) { instance_double(Discordrb::Member, id: 'fake-member-id', server: server, set_nick: nil, set_roles: nil, kick: nil, nick: nil, roles: []) }
-    let(:invite) { instance_double(Discordrb::Invite, code: 'fake-invite-code', delete: nil) }
-    let(:nickname) { 'test-nick' }
-    let(:participant_role_name) { 'test-role1' }
-    let(:cohort_schedule_role_name) { 'test-role2' }
-    let(:cohort_role_name) { 'test-role3' }
-    let(:participant_role) { instance_double(Discordrb::Role, name: participant_role_name) }
-    let(:cohort_schedule_role) { instance_double(Discordrb::Role, name: cohort_schedule_role_name) }
-    let(:cohort_role) { instance_double(Discordrb::Role, name: cohort_role_name) }
-    let(:roles) { [participant_role, cohort_schedule_role, cohort_role] }
-    let(:participant) { SalesforceAPI.participant_to_struct(create(:salesforce_participant)) }
-    let(:contact) { create(:salesforce_contact) }
-    let(:sf_client) { instance_double(SalesforceAPI,
-      get_participant_info_by: participant,
-      get_contact_info: contact,
-      update_contact: nil,
-    ) }
-
-    before :each do
-      member.instance_variable_set(:@user, user)
-      allow(SalesforceAPI).to receive(:client).and_return(sf_client)
-      allow(DiscordBot).to receive(:compute_nickname).and_return(nickname)
-      allow(DiscordBot).to receive(:compute_participant_role).and_return(participant_role_name)
-      allow(DiscordBot).to receive(:compute_cohort_schedule_role).and_return(cohort_schedule_role_name)
-      allow(DiscordBot).to receive(:compute_cohort_role).and_return(cohort_role_name)
-      allow(DiscordBot).to receive(:get_role).with(server, participant_role_name).and_return(participant_role)
-      allow(DiscordBot).to receive(:get_role).with(server, cohort_schedule_role_name).and_return(cohort_schedule_role)
-      allow(DiscordBot).to receive(:get_or_create_cohort_role).and_return(cohort_role)
-      allow(DiscordBot).to receive(:configure_cohort_channel)
-    end
-
-    context 'with participant that matches invite' do
-      it 'updates contact with discord user id' do
-        expect(sf_client).to receive(:update_contact)
-          .with(participant.contact_id, {'Discord_User_ID__c': member.id})
-          .once
-        subject
-      end
-
-      it 'computes nickname' do
-        expect(DiscordBot).to receive(:compute_nickname).once
-        subject
-      end
-
-      it 'computes roles' do
-        expect(DiscordBot).to receive(:compute_participant_role).once
-        expect(DiscordBot).to receive(:compute_cohort_schedule_role).once
-        expect(DiscordBot).to receive(:compute_cohort_role).once
-        subject
-      end
-
-      it 'sets member nickname' do
-        expect(member).to receive(:set_nick).with(nickname)
-        subject
-      end
-
-      it 'sets member roles' do
-        expect(member).to receive(:set_roles).with(roles)
-        subject
-      end
-
-      it 'tries to delete invite' do
-        expect(invite).to receive(:delete)
-        subject
-      end
-
-      context 'with member nickname already set' do
-        before :each do
-          allow(member).to receive(:nick).and_return('test name')
-        end
-
-        it 'does not set nick again' do
-          expect(member).not_to receive(:set_nick)
-          subject
-        end
-      end
-
-      context 'with no cohort role name' do
-        let(:cohort_role_name) { nil }
-
-        it 'does not create cohort role' do
-          expect(DiscordBot).not_to receive(:get_or_create_cohort_role)
-          subject
-        end
-      end
-    end
-
-    context 'with no participant that matches invite' do
-      before :each do
-        allow(sf_client).to receive(:get_participant_info_by).and_return(nil)
-      end
-
-      it 'exits early' do
-        expect(sf_client).not_to receive(:get_contact_info)
-        expect(sf_client).not_to receive(:update_contact)
-        expect(DiscordBot).not_to receive(:compute_nickname)
         subject
       end
     end
@@ -855,7 +558,7 @@ RSpec.describe DiscordBot do
 
     let(:server_id) { 123 }
     let(:roles) { [ instance_double(Discordrb::Role, name: ADMIN_ROLES.first) ] }
-    let(:server) { instance_double(Discordrb::Server, id: server_id, members: [member], invites: invites) }
+    let(:server) { instance_double(Discordrb::Server, id: server_id, members: [member]) }
     let(:user) { instance_double(Discordrb::User, id: 'fake-user-id', username: 'fake-username', discriminator: 1234) }
     let(:member) { instance_double(Discordrb::Member, id: 'fake-member-id', roles: roles) }
     let(:message) { instance_double(Discordrb::Message, content: message_content, author: member, edit: nil, mentions: mentions) }
@@ -871,7 +574,6 @@ RSpec.describe DiscordBot do
       get_contact_info: nil,
       update_contact: nil,
     ) }
-    let(:invites) { [] }
     let(:mentions) { [] }
     let(:args) { "" }
 
@@ -1030,7 +732,7 @@ RSpec.describe DiscordBot do
     let(:args) { "" }
     # doesn't matter which program
     let(:server_id) { programs['records'].first['Discord_Server_ID__c'] }
-    let(:server) { instance_double(Discordrb::Server, id: server_id, members: [member], invites: []) }
+    let(:server) { instance_double(Discordrb::Server, id: server_id, members: [member]) }
     let(:event) { instance_double(Discordrb::Events::MessageEvent, server: server, author: member, message: message) }
 
     before :each do
@@ -1048,95 +750,6 @@ RSpec.describe DiscordBot do
 
   end
 
-  describe '.create_invite_command' do
-    subject { bot.create_invite_command(event) }
-
-    let(:server_id) { 123 }
-    let(:roles) { [ instance_double(Discordrb::Role, name: ADMIN_ROLES.first) ] }
-    let(:server) { instance_double(Discordrb::Server, id: server_id, invites: invites) }
-    let(:message) { instance_double(Discordrb::Message, content: message_content, edit: nil) }
-    let(:event) { instance_double(Discordrb::Events::MessageEvent, server: server, message: message) }
-    let(:invite) { instance_double(Discordrb::Invite, code: participant.discord_invite_code, delete: nil) }
-    let(:message_content) { "#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:create_invite]} #{args}".strip }
-    let(:programs) { create(:salesforce_current_and_future_programs, canvas_course_ids: [1, 2]) }
-    let(:participant) { SalesforceAPI.participant_to_struct(create(:salesforce_participant_fellow)) }
-    let(:sf_client) { instance_double(SalesforceAPI,
-      get_current_and_future_accelerator_programs: programs['records'],
-      find_participant: nil,
-      update_participant: nil,
-    ) }
-    let(:invites) { [invite] }
-    let(:args) { "" }
-
-    before :each do
-      allow(SalesforceAPI).to receive(:client).and_return(sf_client)
-      allow(message).to receive(:respond).and_return(message)
-      bot.instance_variable_set(:@servers, {server.id => server})
-      allow(bot).to receive(:create_invite).and_return('fake code')
-    end
-
-    context 'with no arguments' do
-      it 'responds' do
-        expect(message).to receive(:respond)
-        subject
-      end
-
-      it 'does not try to get programs' do
-        expect(sf_client).not_to receive(:get_current_and_future_accelerator_programs)
-        subject
-      end
-    end
-
-    context 'with valid contact id argument' do
-      let(:args) { "#{participant.contact_id}" }
-
-      context 'with already linked program' do
-        # doesn't matter which program
-        let(:server_id) { programs['records'].first['Discord_Server_ID__c'].to_i }
-
-        before :each do
-          # doen't matter which program
-          allow(sf_client).to receive(:find_participant)
-            .with(contact_id: participant.contact_id, program_id: programs['records'].first['Id'])
-            .and_return(participant)
-        end
-
-        it 'tries to get participant' do
-          expect(sf_client).to receive(:find_participant)
-          subject
-        end
-
-        it 'tries to delete existing invite' do
-          expect(invite).to receive(:delete)
-          subject
-        end
-
-        it 'creates a new invite' do
-          expect(bot).to receive(:create_invite)
-          subject
-        end
-
-        it 'updates participant record' do
-          expect(sf_client).to receive(:update_participant)
-          subject
-        end
-      end
-
-      context 'with no linked program' do
-        it 'responds' do
-          expect(message).to receive(:respond)
-          expect(message).to receive(:edit)
-          subject
-        end
-
-        it 'does not try to get participant' do
-          expect(sf_client).not_to receive(:find_participant)
-          subject
-        end
-      end
-    end
-  end
-
   describe '.end_program_command' do
     subject { bot.end_program_command(event) }
 
@@ -1145,10 +758,9 @@ RSpec.describe DiscordBot do
     let(:programs) { create(:salesforce_current_and_future_programs, canvas_course_ids: [1, 2]) }
     let(:program) { programs['records'].first }
     let(:server_id) { program['Discord_Server_ID__c'] }
-    let(:server) { instance_double(Discordrb::Server, id: server_id, invites: invites, roles: roles, channels: channels, members: members) }
+    let(:server) { instance_double(Discordrb::Server, id: server_id, roles: roles, channels: channels, members: members) }
     let(:message) { instance_double(Discordrb::Message, content: message_content, edit: nil) }
     let(:event) { instance_double(Discordrb::Events::MessageEvent, server: server, message: message) }
-    let(:invite) { instance_double(Discordrb::Invite, code: participant.discord_invite_code, delete: nil) }
     let(:message_content) { "#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:end_program]}" }
     let(:participant) { SalesforceAPI.participant_to_struct(create(:salesforce_participant_fellow)) }
     let(:sf_client) { instance_double(SalesforceAPI,
@@ -1159,12 +771,11 @@ RSpec.describe DiscordBot do
     let(:retained_member) { instance_double(Discordrb::Member, roles: retained_roles, kick: nil) }
     let(:non_retained_member) { instance_double(Discordrb::Member, roles: non_retained_roles, kick: nil) }
     let(:members) { [retained_member, non_retained_member] }
-    let(:invites) { [invite] }
     # channels
     let(:cohort_channel) { instance_double(Discordrb::Channel, name: 'cohort-test', delete: nil, type: TEXT_CHANNEL) }
     let(:cohort_template_channel) { instance_double(Discordrb::Channel, name: COHORT_TEMPLATE_CHANNEL, delete: nil, type: TEXT_CHANNEL) }
     let(:not_cohort_channel) { instance_double(Discordrb::Channel, name: 'test', delete: nil, type: TEXT_CHANNEL) }
-    let(:general_channel) { instance_double(Discordrb::Channel, name: 'general', delete: nil, invites: invites, type: TEXT_CHANNEL) }
+    let(:general_channel) { instance_double(Discordrb::Channel, name: 'general', delete: nil, type: TEXT_CHANNEL) }
     let(:channels) { [cohort_channel, cohort_template_channel, not_cohort_channel] }
     # roles
     let(:cohort_role) { instance_double(Discordrb::Role, name: 'Cohort: Test', delete: nil) }
@@ -1179,7 +790,6 @@ RSpec.describe DiscordBot do
       allow(message).to receive(:respond).and_return(message)
       bot.instance_variable_set(:@end_program_flag, {server.id => nil})
       bot.instance_variable_set(:@servers, {server.id => server})
-      allow(bot).to receive(:create_invite).and_return('fake code')
       allow(bot).to receive(:sleep)
       allow(bot).to receive(:find_general_channel).and_return(general_channel)
       allow(DiscordBot).to receive(:cycle_channels)
@@ -1247,11 +857,6 @@ RSpec.describe DiscordBot do
           expect(retained_member).not_to have_received(:kick)
         end
 
-        it 'revokes all participant invites' do
-          subject
-          expect(invite).to have_received(:delete).once
-        end
-
         it 'deletes cohort channels' do
           subject
           expect(cohort_channel).to have_received(:delete)
@@ -1297,29 +902,6 @@ RSpec.describe DiscordBot do
     end
   end
 
-
-  # Create invite
-  describe '.create_invite' do
-    subject { bot.create_invite(server_id) }
-
-    let(:server_id) { '11111' }  # arbitrary id
-    let(:invite) { instance_double(Discordrb::Invite, code: 'test-code', uses: 0) }
-    let(:channel) { instance_double(Discordrb::Channel, name: 'general', make_invite: invite) }
-
-    it 'creates invite on #general channel' do
-      expect(bot).to receive(:find_general_channel).and_return(channel)
-      expect(channel).to receive(:make_invite).and_return(invite)
-      subject
-    end
-
-    it 'updates @invites cache' do
-      allow(bot).to receive(:find_general_channel).and_return(channel)
-      allow(channel).to receive(:make_invite).and_return(invite)
-      expect(bot.instance_variable_get(:@invites)).to eq({})
-      subject
-      expect(bot.instance_variable_get(:@invites)).to eq({server_id => {invite.code => invite.uses}})
-    end
-  end
 
   describe '.get_member' do
     subject { bot.get_member(server_id, user_id) }
@@ -1731,48 +1313,6 @@ RSpec.describe DiscordBot do
 
       it 'returns an empty list' do
         expect(subject).to eq([])
-      end
-    end
-  end
-
-  describe 'self.delete_invite' do
-    subject { DiscordBot.delete_invite(invite, reason) }
-
-    let(:reason) { 'test reason' }
-    let(:invite) { instance_double(Discordrb::Invite, delete: nil) }
-
-    context 'with invite' do
-
-      before :each do
-        allow(invite).to receive(:delete).and_return(nil)
-      end
-
-      it 'deletes invite' do
-        subject
-        expect(invite).to have_received(:delete)
-          .with(reason)
-          .once
-      end
-
-      it 'returns true' do
-        expect(subject).to eq(true)
-      end
-    end
-
-    context 'with already deleted invite' do
-
-      before :each do
-        allow(invite).to receive(:delete).with(reason).and_raise(Discordrb::Errors::UnknownInvite)
-      end
-
-      it 'handles exception' do
-        expect {
-          subject
-        }.not_to raise_error(Discordrb::Errors::UnknownInvite)
-      end
-
-      xit 'returns false' do
-        expect(subject).to eq(false)
       end
     end
   end

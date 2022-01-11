@@ -262,24 +262,6 @@ class SalesforceAPI
     participant_record ? participant_record['Id'] : nil
   end
 
-  # Special convenience method for Discord Bot.
-  def get_participant_info_by(discord_invite_code:)
-    # Clean the invite code first, since there's no parameterization here :(
-    discord_invite_code = discord_invite_code.gsub(/[^a-zA-Z0-9]/, '')
-    soql_query = "SELECT Id, Contact__c, Program__c FROM Participant__c " \
-                 "WHERE Discord_Invite_Code__c = '#{discord_invite_code}'"
-    response = get("#{DATA_SERVICE_PATH}/query?q=#{CGI.escape(soql_query)}")
-    participant_record = JSON.parse(response.body)['records'][0]
-    if participant_record
-      info = get_participants(participant_record['Program__c'], participant_record['Contact__c'])
-      if info
-        participant = SalesforceAPI.participant_to_struct(info[0])
-        participant.id = participant_record['Id']
-        participant
-      end
-    end
-  end
-
   def update_participant(id, fields_to_set)
      patch("#{DATA_SERVICE_PATH}/sobjects/Participant__c/#{id}", fields_to_set.to_json, JSON_HEADERS)
   end
@@ -476,7 +458,7 @@ class SalesforceAPI
                       participant['ParticipantStatus'],
                       participant['CohortName'], participant['CohortScheduleDayTime'],
                       participant['CohortId'], participant['Id'],
-                      participant['DiscordInviteCode'], participant['DiscordUserId'], participant['DiscordServerId'],
+                      nil, participant['DiscordUserId'], participant['DiscordServerId'],
                       participant['VolunteerRole'], participant['ZoomPrefix'],
                       participant['ZoomMeetingId1'], participant['ZoomMeetingId2'],
                       participant['ZoomMeetingLink1'], participant['ZoomMeetingLink2'],

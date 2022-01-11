@@ -9,19 +9,6 @@ require 'honeycomb_sentry_integration'
 require_relative '../config/initializers/restclient_instrumentation'
 require_relative '../config/initializers/honeycomb_sentry_integration'
 
-# Development only - will be removed later.
-SERVER_ID = ENV['BOT_SERVER_ID'].to_i
-
-# Expiration (in seconds) for new invite codes.
-# Max is 7 days, or 0 for infinity.
-INVITE_MAX_AGE = 0
-
-# Number of times an invite can be used (0 = infinite).
-# Note: We delete invites once they are used successfully, and
-# the Discord API counts invites as "used" even when someone starts
-# to sign up but encounters an error, so it's safer to set this to 0.
-INVITE_MAX_USES = 0
-
 # Character(s) prepended to a message that make the bot treat it as a
 # command.
 # TODO: Refactor all the bot command stuff to use "slash commands" once
@@ -32,7 +19,6 @@ ADMIN_COMMANDS = {
   sync_salesforce: 'sync_salesforce',
   configure_member: 'configure_member',
   list_misconfigured: 'list_misconfigured',
-  create_invite: 'create_invite',
   end_program: 'end_program',
   stop: 'stop',
 }
@@ -113,9 +99,6 @@ class DiscordBot
     # { server_id => Server }
     @servers = {}
 
-    # { server_id => { invite_code => invite_uses } }
-    @invites = {}
-
     # { server_id => Channel }
     @general_channels = {}
 
@@ -152,11 +135,6 @@ class DiscordBot
       # Event handler: A message was received on any channel in any server.
       @bot.message do |event|
         on_message(event)
-      end
-
-      # Event handler: A new member was added to the server.
-      @bot.member_join do |event|
-        on_member_join(event)
       end
     end
 
@@ -208,7 +186,6 @@ class DiscordBot
         exit
       end
 
-      init_invite_uses_cache
       alert_on_unconfigured_members
     end
   rescue StandardError => e
@@ -223,43 +200,12 @@ class DiscordBot
 
       # Update local caches for the new server.
       @servers = @bot.servers || {}
-      init_invite_uses_cache
 
       # Send a message to the #general channel asking for Admin permissions.
       send_to_general(
         event.server.id,
         "Please reorganize the bot role (as described in the Discord Guide setup instructions) to enable bot functionality."
       )
-    end
-  rescue StandardError => e
-    record_error(e)
-  end
-
-  # A User is a unique Discord account. A Member is the unique join
-  # of a specific User on a specific Server. In other words, we can have
-  # two different Members on two different Servers, such that both Members
-  # are tied to the same User. This also implies that a Member always
-  # has a Server reference and a User reference.
-  def on_member_join(event)
-    Honeycomb.start_span(name: 'bot.member_join') do |span|
-      server = event.server
-      user = event.member.instance_variable_get(:@user)
-
-      Honeycomb.add_field('user.username', user.username)
-      Honeycomb.add_field('user.discriminator', user.discriminator)
-      Honeycomb.add_field('member.id', event.member.id.to_s)
-      Honeycomb.add_field('server.id', server.id.to_s)
-      LOGGER.debug "Member join: '#{user.username}##{user.discriminator}' (#{event.member.id})"
-
-      invite = find_used_invite(server)
-      # If we couldn't figure out which invite they used, exit early.
-      return unless invite
-
-      # If we only found one used invite, we know it's correct, so configure the member.
-      Honeycomb.add_field('invite.code', invite.code)
-      # Note: This function may return on errors, so if you add more code after this call,
-      # don't just assume it worked.
-      DiscordBot.configure_member(event.member, invite)
     end
   rescue StandardError => e
     record_error(e)
@@ -295,53 +241,7 @@ class DiscordBot
   # Functions called directly by one or more event handler.
   #
 
-  # Initialize/update @invite cache for all servers.
-  # See comments on find_used_invite for more info.
-  def init_invite_uses_cache
-    @servers.each do |server_id, server|
-      @invites[server_id] ||= {}
-      server.invites.each do |invite|
-        @invites[server_id][invite.code] = invite.uses
-      end
-    end
-  end
-
-  # Finding which invite someone used is a little complicated, because the
-  # Discord API doesn't give us this information directly. We have to look at
-  # all invites in the server, and see which one(s) "uses" count have increased.
-  # More info: https://anidiots.guide/coding-guides/tracking-used-invites.
-  def find_used_invite(server)
-    found_invite = nil
-    server.invites.each do |invite|
-      @invites[server.id] ||= {}
-      @invites[server.id][invite.code] ||= 0
-      if invite.uses > @invites[server.id][invite.code]
-        # This invite has been used since the last time we checked.
-        LOGGER.debug "Found used invite #{invite.code}"
-        # Update the cache.
-        @invites[server.id][invite.code] = invite.uses
-
-        # If we found more than one used invite, alert and exit without configuring member.
-        # See the linked article above for why we do this; in short, we can't tell what
-        # Participant is linked to this Member if multiple Invites were used at the
-        # same time.
-        if found_invite
-          LOGGER.warn "Multiple invites used, not sure who's who! Please fix members manually."
-          Honeycomb.add_field('alert.multiple_invites_used', [found_invite.code, invite.code])
-          # Force-refresh the cache, to make sure we're back up to speed with
-          # current invite uses.
-          init_invite_uses_cache
-          return
-        end
-
-        found_invite = invite
-      end
-    end
-    found_invite
-  end
-
-  # Fetch Programs/Participants/etc from Salesforce, and generate new
-  # invite codes for Enrolled Participants who don't have one already.
+  # Fetch Programs/Participants/etc from Salesforce, and configure members.
   def sync_salesforce
     Honeycomb.start_span(name: 'bot.sync_salesforce') do |span|
       programs = SalesforceAPI.client.get_current_and_future_accelerator_programs
@@ -373,10 +273,6 @@ class DiscordBot
       LOGGER.debug "list_misconfigured command"
       Honeycomb.add_field('command', 'list_misconfigured')
       list_misconfigured_command(event)
-    when /^#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:create_invite]}/
-      LOGGER.debug "create_invite command"
-      Honeycomb.add_field('command', 'create_invite')
-      create_invite_command(event)
     when /^#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:end_program]}/
       LOGGER.debug "end_program command"
       Honeycomb.add_field('command', 'end_program')
@@ -412,58 +308,6 @@ class DiscordBot
       Honeycomb.add_field('alert.unconfigured_members', true)
       Honeycomb.add_field('alert.unconfigured_members.ids', members.map { |m| m.id.to_s })
       Honeycomb.add_field('alert.unconfigured_members.display_names', members.map { |m| m.display_name })
-    end
-  end
-
-  # Given a Discord Member and an Invite, assign appropriate
-  # Discord roles and an initial nickname for the Member on its server.
-  # Note: May return on errors, so don't assume any call to this function was successful.
-  def self.configure_member(member, invite)
-    Honeycomb.start_span(name: 'bot.configure_member') do |span|
-      server_id = member.server.id
-      user = member.instance_variable_get(:@user)
-      Honeycomb.add_field('server.id', server_id.to_s)
-      Honeycomb.add_field('server.name', member.server&.name)
-      Honeycomb.add_field('member.id', member.id.to_s)
-      Honeycomb.add_field('invite.code', invite.code)
-      Honeycomb.add_field('user.username', user&.username)
-      Honeycomb.add_field('user.discriminator', user&.discriminator)
-
-      # Try to map this invite to a Participant.
-      # Always fetch latest info from SF, don't rely on a cache, so we're guaranteed to
-      # have the latest name/role info at the time this runs.
-      participant = SalesforceAPI.client.get_participant_info_by(discord_invite_code: invite.code)
-      Honeycomb.add_field('participant.id', participant&.id)
-      Honeycomb.add_field('contact.id', participant&.contact_id)
-      # If no Participant was found, warn and exit without configuring member.
-      if participant.nil?
-        LOGGER.warn "Invite not assigned to any known Participant!"
-        Honeycomb.add_field('alert.unknown_invite', invite.code)
-        return
-      end
-      contact = SalesforceAPI.client.get_contact_info(participant.contact_id)
-
-      # Save the Discord User ID to the SF Contact.
-      # Note this overwrites the ID if there already was one in the Contact record.
-      # This means e.g. if someone signs up for a second Program with a different Discord
-      # account, we'll only keep the latest Discord User ID.
-      begin
-        LOGGER.debug "Found Participant, updating Contact record"
-        SalesforceAPI.client.update_contact(participant.contact_id, {'Discord_User_ID__c': member.id})
-      rescue RestClient::BadRequest => e
-        LOGGER.warn "Attempted to reference same Discord user from multiple Contacts. Kicking the new user."
-        record_error(e)
-        LOGGER.warn "Probably a result of duplicate contacts, please fix the contacts."
-        DiscordBot.kick_member(member, "Duplicate Contacts. Contact Support if you think this was a mistake.")
-        return
-      end
-
-      # Configure nick and roles.
-      DiscordBot.configure_member_from_records(member, participant, contact)
-
-      # Once everything else is done, delete the invite, so it can't be used again.
-      LOGGER.debug "Deleting invite"
-      DiscordBot.delete_invite(invite, "Invite was used")
     end
   end
 
@@ -675,17 +519,6 @@ class DiscordBot
     message_content << "\n✅ Configured nickname/roles in Discord..."
     message.edit(message_content)
 
-    # Then delete their invite link, so no one else can use it.
-    Honeycomb.add_field('invite.code', participant.discord_invite_code)
-    if participant.discord_invite_code
-      invite = server.invites.find { |i| i.code == participant.discord_invite_code }
-      if invite
-        DiscordBot.delete_invite(invite, "configure_member command called manually")
-        message_content << "\n✅ Deleted Discord Invite Code for Participant #{participant.id}..."
-        message.edit(message_content)
-      end
-    end
-
     message_content << "\nAll done!"
     message.edit(message_content)
   end
@@ -694,12 +527,10 @@ class DiscordBot
   #
   # List members that may be un- or misconfigured, based on
   #
-  # 1. Participants with an invite code that has >0 uses or has been deleted,
-  # and no Contact.Discord_User_ID__c;
-  # 2. Members with a Fellow or LC role that don't have a total of 3 roles
+  # 1. Members with a Fellow or LC role that don't have a total of 3 roles
   # (Participant role, Cohort role, Cohort schedule role);
-  # 3. Members with a CP or TA role that don't have a total of 1 role;
-  # 4. Members with no roles.
+  # 2. Members with a CP or TA role that don't have a total of 1 role;
+  # 3. Members with no roles.
   #
   #   list_misconfigured
   def list_misconfigured_command(event)
@@ -708,64 +539,6 @@ class DiscordBot
     message_content = "Starting check for misconfigured members..."
     message = event.message.respond(message_content)
 
-    # Figure out which program to use.
-    programs = SalesforceAPI.client.get_current_and_future_accelerator_programs
-    program = programs.find { |program| program['Discord_Server_ID__c'].to_i == server.id.to_i }
-
-    if program.nil?
-      message_content << "\n❌ No Program found for this Discord server."
-      message_content << "\nFirst, sync this server with a Salesforce Program ID, like:"
-      message_content << "\n`#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:sync_salesforce]} a2Y11000002HY5mEAX`"
-      message.edit(message_content)
-      return
-    end
-    Honeycomb.add_field('program.id', program['Id'])
-
-    message_content << "\n✅ Found Program #{program['Id']}..."
-    message.edit(message_content)
-
-    # First, check Participants.
-    participants = SalesforceAPI.client.find_participants_by(program_id: program['Id'])
-    Honeycomb.add_field('participants.count', participants&.count)
-    message_content << "\nℹ️ Checking #{participants.count} program participants..."
-    message.edit(message_content)
-    unmatched_participants = []
-    uninvited_participants = 0
-    participants.each do |participant|
-      # 1. Participants with an invite code that has >0 uses or has been deleted,
-      # and no Contact.Discord_User_ID__c;
-      if participant.discord_invite_code && participant.discord_user_id.nil?
-        invite = server.invites.find { |i| i.code == participant.discord_invite_code }
-        if invite && invite.uses > 0
-          unmatched_participants << participant
-        elsif invite.nil?
-          unmatched_participants << participant
-        end
-      elsif participant.discord_invite_code.nil?
-        uninvited_participants += 1
-      end
-    end
-
-    message_content << "\nℹ️ Found #{uninvited_participants} participants without an invite."
-    message.edit(message_content)
-
-    if unmatched_participants.any?
-      message_content << "\n⚠️ Found #{unmatched_participants.count} participants with used"
-      message_content << " or deleted invites but no Discord User ID in their contact record:"
-      unmatched_participants.each do |participant|
-        message_content << "\n  **Participant**: `#{participant.id}`"
-        message_content << "\n  **Contact**: `#{participant.contact_id}`"
-        message_content << "\n  **Name**: #{participant.first_name} #{participant.last_name}"
-        message_content << "\n  **Discord invite code**: ||#{participant.discord_invite_code}||"
-        message_content << "\n"
-      end
-      message.edit(message_content)
-    else
-      message_content << "\n✅ Didn't find any issues with participants."
-      message.edit(message_content)
-    end
-
-    # Then, check Members.
     members = server.members
     message_content << "\nℹ️ Checking #{members.count} server members..."
     message.edit(message_content)
@@ -819,89 +592,6 @@ class DiscordBot
       message.edit(message_content)
     end
 
-    message_content << "\nAll done!"
-    message.edit(message_content)
-  end
-
-  # Usage:
-  #
-  # Create an invite for a Contact's Participant in this server's
-  # Program. If the Participant already had an invite, makes sure
-  # that invite is deleted from this server first.
-  #
-  #   create_invite SF_CONTACT_ID
-  def create_invite_command(event)
-    server = event.server
-    command = event.message.content.split
-    args = command.drop(1)
-    contact_id = args.first
-
-    if args.count != 1
-      # Wrong arguments.
-      event.message.respond "Wrong arguments, not sure what to do." \
-        "\nTry `#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:create_invite]} SALESFORCE_CONTACT_ID`"
-      return
-    end
-
-    message_content = "Creating a new invite..."
-    message = event.message.respond(message_content)
-    Honeycomb.add_field('contact.id', contact_id)
-
-    # Figure out which program to use.
-    programs = SalesforceAPI.client.get_current_and_future_accelerator_programs
-    program = programs.find { |program| program['Discord_Server_ID__c'].to_i == server.id.to_i }
-
-    if program.nil?
-      message_content << "\n❌ No Program found for this Discord server."
-      message_content << "\nFirst, sync this server with a Salesforce Program ID, like:"
-      message_content << "\n`#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:sync_salesforce]} a2Y11000002HY5mEAX`"
-      message.edit(message_content)
-      return
-    end
-    Honeycomb.add_field('program.id', program['Id'])
-
-    message_content << "\n✅ Found Program #{program['Id']}..."
-    message.edit(message_content)
-
-    # If we found a Program tied to this server, use that ID to fetch the Participant.
-    participant = SalesforceAPI.client.find_participant(contact_id: contact_id, program_id: program['Id'])
-    Honeycomb.add_field('participant.id', participant&.id)
-    if participant.nil?
-      message_content << "\n❌ No Participant found for Contact #{contact_id}, Program #{program['Id']}."
-      message.edit(message_content)
-      return
-    end
-
-    message_content << "\n✅ Found Participant #{participant.id} in Salesforce..."
-    message.edit(message_content)
-
-    # If we found a Participant, check its existing invite, and delete if needed.
-    if participant.discord_invite_code
-      invite = server.invites.find { |i| i.code == participant.discord_invite_code }
-      if invite
-        if DiscordBot.delete_invite(invite, "Replaced by create_invite command")
-          message_content << "\nℹ️ Deleted existing invite ||#{invite.code}||."
-          message.edit(message_content)
-        else
-          message_content << "\nℹ️ Old invite ||#{invite.code}|| not found on this server."
-          message.edit(message_content)
-        end
-      else
-        Honeycomb.add_field('create_invite.invite_deleted', false)
-        message_content << "\nℹ️ Old invite ||#{participant.discord_invite_code}|| not found on this server."
-        message.edit(message_content)
-      end
-    end
-
-    # Create a new invite, and update the Participant record.
-    LOGGER.debug "Creating new invite for participant #{participant.id}"
-    invite_code = create_invite(server.id)
-    Honeycomb.add_field('invite.code', invite_code)
-    message_content << "\n✅ Created new invite ||#{invite_code}|| (||<https://discord.com/invite/#{invite_code}>||)..."
-    message.edit(message_content)
-
-    SalesforceAPI.client.update_participant(participant.id, {'Discord_Invite_Code__c': invite_code})
-    message_content << "\n✅ Updated Participant #{participant.id} in Salesforce..."
     message_content << "\nAll done!"
     message.edit(message_content)
   end
@@ -994,26 +684,6 @@ class DiscordBot
     message_content << "\n✅ Kicked #{kicked_count} non-staff members..."
     message.edit(message_content)
 
-    # Revoke all invites tied to Salesforce Participants in this Program.
-    participants = SalesforceAPI.client.find_participants_by(program_id: program['Id'])
-    Honeycomb.add_field('participants.count', participants&.count)
-    message_content << "\nℹ️ Checking #{participants&.count} program participants..."
-    message.edit(message_content)
-
-    revoked_count = 0
-    participants.each do |participant|
-      if participant.discord_invite_code
-        invite = server.invites.find { |i| i.code == participant.discord_invite_code }
-        if invite
-          revoked_count += 1
-          DiscordBot.delete_invite(invite, 'Program end')
-        end
-      end
-    end
-    Honeycomb.add_field('end_program.revoked_invites.count', kicked_count)
-    message_content << "\n✅ Revoked #{revoked_count} invites..."
-    message.edit(message_content)
-
     # Delete all cohort channels (but not the cohort-template channel!)
     channel_count = 0
     # Use .dup so we're not modifying the channels list in-place as we loop over it.
@@ -1103,71 +773,41 @@ class DiscordBot
   def sync_salesforce_participant(server_id, participant)
     Honeycomb.start_span(name: 'bot.sync_salesforce_participant') do |span|
       Honeycomb.add_field('contact.id', participant.contact_id)
-      Honeycomb.add_field('participant.discord_invite_code', participant.discord_invite_code)
       Honeycomb.add_field('participant.id', participant.id)
       Honeycomb.add_field('participant.status', participant.status)
-      LOGGER.debug "Processing participant"
+      LOGGER.debug "Processing participant #{participant.id}"
 
-      if participant.discord_invite_code
-        # Fetch the existing code if there is one.
-        LOGGER.debug "Found existing invite for participant #{participant.id}"
-        invite_code = participant.discord_invite_code
+      # We only care about Participants who are already in the Discord server.
+      if participant.discord_user_id
+        user_id = participant.discord_user_id
+        # They have already signed up; reassign roles, in case cohort mapping
+        # happened after they signed up and they don't have cohort roles yet.
+        # This also runs if people change cohorts, and will update their roles
+        # appropriately.
+        LOGGER.debug "Found Discord User ID, re-configuring in case roles changed"
+        Honeycomb.add_field('member.id', user_id.to_s)
 
-        if participant.status == SalesforceAPI::DROPPED
-          # Revoke their invite.
-          LOGGER.debug "Revoking dropped participant's invite"
+        member = get_member(server_id, user_id)
+        if member
+          if participant.status == SalesforceAPI::DROPPED
+            # Kick them out.
+            LOGGER.debug "Kicking dropped participant"
 
-          invite = @servers[server_id]&.invites&.find { |i| i.code == participant.discord_invite_code }
-          if invite
-            DiscordBot.delete_invite(invite, "Participant record was marked as Dropped.")
+            DiscordBot.kick_member(member, "Participant record was marked as Dropped.")
+
+            Honeycomb.add_field('sync_salesforce_participant.kicked_user', true)
+
+            # Exit early.
+            return
           end
 
-          # Remove the discord code from their Participant record too, so if
-          # they're re-enrolled later, the sync will make them a new invite.
-          LOGGER.debug "Removing invite code from participant in Salesforce"
-          SalesforceAPI.client.update_participant(participant.id, {'Discord_Invite_Code__c': nil})
+          contact = SalesforceAPI.client.get_contact_info(participant.contact_id)
+          DiscordBot.configure_member_from_records(member, participant, contact)
         end
-
-        # If they already had a code, they may have already signed up too;
-        # check their contact record for a Discord User ID.
-        if participant.discord_user_id
-          user_id = participant.discord_user_id
-          # They have already signed up; reassign roles, in case cohort mapping
-          # happened after they signed up and they don't have cohort roles yet.
-          # This also runs if people change cohorts, and will update their roles
-          # appropriately.
-          LOGGER.debug "Found Discord User ID, re-configuring in case roles changed"
-          Honeycomb.add_field('member.id', user_id.to_s)
-
-          member = get_member(server_id, user_id)
-          if member
-            if participant.status == SalesforceAPI::DROPPED
-              # Kick them out.
-              LOGGER.debug "Kicking dropped participant"
-
-              DiscordBot.kick_member(member, "Participant record was marked as Dropped.")
-
-              Honeycomb.add_field('sync_salesforce_participant.kicked_user', true)
-
-              # Exit early.
-              return
-            end
-
-            contact = SalesforceAPI.client.get_contact_info(participant.contact_id)
-            DiscordBot.configure_member_from_records(member, participant, contact)
-          end
-        end
-      elsif participant.status != SalesforceAPI::DROPPED
-        # If there's no invite, and the Participant isn't dropped, create a new
-        # invite and save it to the Participant record.
-        LOGGER.debug "Creating new invite for participant #{participant.id}"
-        invite_code = create_invite(server_id)
-        SalesforceAPI.client.update_participant(participant.id, {'Discord_Invite_Code__c': invite_code})
       else
-        LOGGER.debug "Not creating invite for Dropped participant #{participant.id}"
+        LOGGER.debug "Skipping because participant has no Discord User ID"
       end
 
-      Honeycomb.add_field('invite.code', invite_code)
     end
   end
 
@@ -1231,21 +871,6 @@ class DiscordBot
     if member.nick.nil?
       member.set_nick(nick)
     end
-  end
-
-  # Generate a new invite for a given server, and update @invites.
-  def create_invite(server_id)
-    # Discord invites are attached to channels for some weird, probably legacy reason.
-    # Always generate invites for the #general channel.
-    general_channel = find_general_channel(server_id)
-    Honeycomb.add_field('alert.nil_general_channel', true) if general_channel.nil?
-
-    # Last parameters are: temporary=false, unique=true.
-    invite = general_channel.make_invite(INVITE_MAX_AGE, INVITE_MAX_USES, false, true)
-    @invites[server_id] ||= {}
-    @invites[server_id][invite.code] = invite.uses
-
-    invite.code
   end
 
   # Get Member object from a Server ID and User ID.
@@ -1553,19 +1178,6 @@ class DiscordBot
 
   # Safe-delete methods that handle race conditions when multiple instances of
   # the bot are running at once.
-
-  # Returns true if deleted, false otherwise.
-  def self.delete_invite(invite, reason=nil)
-    invite.delete(reason)
-    Honeycomb.add_field('invite_deleted', true)
-    return true
-  rescue Discordrb::Errors::UnknownInvite
-    # Probably another instance of the bot got to it first.
-    LOGGER.debug "Invite already deleted"
-    Honeycomb.add_field('invite_deleted', false)
-    Honeycomb.add_field('invite_delete_failed', true)
-    return false
-  end
 
   # Returns true if deleted, false otherwise.
   def self.kick_member(member, reason=nil)
