@@ -86,6 +86,21 @@ RSpec.describe LtiLaunchController, type: :controller do
         }.to raise_error(Pundit::NotAuthorizedError)
       end
     end
+
+    context 'with error' do
+      let(:lti_launch_params) { { error: "login_required", error_description: "Must have an active user session", :state => state } }
+
+      before(:each) do
+        public_jwks = { keys: [ Keypair.current.public_jwk_export ] }.to_json
+        stub_request(:get, LtiIdToken::PUBLIC_JWKS_URL).to_return(body: public_jwks)
+      end
+
+      it 'raises lti error' do
+        expect {
+          post :launch, params: lti_launch_params
+        }.to raise_error(LtiConstants::LtiAuthenticationError)
+      end
+    end
   end
 
   describe 'POST #redirector' do

@@ -39,6 +39,9 @@ end
 class LtiConstants
   # Note: if you change this, keep it in sync with: app/javascript/packs/project_answers.js
   AUTH_HEADER_PREFIX = 'LtiState'
+
+  # Custom exception used by Rescuable and LtiLaunchController.
+  class LtiAuthenticationError < StandardError; end
 end
 
 # Canvas

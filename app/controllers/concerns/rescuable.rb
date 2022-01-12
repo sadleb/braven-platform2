@@ -14,6 +14,7 @@ module Rescuable
       rescue_from Pundit::NotAuthorizedError, :with => :handle_error_forbidden
       rescue_from ActionController::InvalidAuthenticityToken, with: :handle_invalid_authenticity_token
       rescue_from SecurityError, :with => :handle_security_error
+      rescue_from LtiConstants::LtiAuthenticationError, :with => :handle_lti_auth_error
     end
   end
 
@@ -54,6 +55,14 @@ private
 
     @exception = exception
     render 'errors/generate_zoom_links_error', layout: 'lti_canvas', status: 500
+  end
+
+  def handle_lti_auth_error(exception)
+    capture_error(exception)
+
+    @request = request
+    @exception = exception
+    render 'errors/lti_auth_error', layout: 'lti_canvas', status: 500
   end
 
   def capture_error(exception)

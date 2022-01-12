@@ -1,0 +1,9 @@
+<h1>Oops!</h1>
+<p>Sorry, something's gone wrong.</p>
+<p>This may be a temporary error. Try closing this page, and re-opening it from Canvas.</p>
+<p>If you continue to see this error after trying a couple times, please
+<%= link_to 'contact Braven Support', Rails.application.secrets.support_ticket_url %>,
+and include the following error details:</p>
+<pre>Path: <%= @request.path %>
+Request ID: <%= @request.request_id %>
+Canvas Error: <%= @exception.message %></pre>

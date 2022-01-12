@@ -32,6 +32,8 @@ class LtiLaunchController < ApplicationController
   #
   # This is the endpoint configured as the Redirect URI in the Canvas Developer Key. It's Step 3 in the launch flow.
   def launch
+    raise LtiConstants::LtiAuthenticationError.new(params[:error_description]) if params[:error]
+
     params.require([:id_token, :state])
 
     # This also verifies the request is coming from Canvas using the public JWK
