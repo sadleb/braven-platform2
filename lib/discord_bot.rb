@@ -5,6 +5,7 @@ require 'sentry-ruby'
 require 'salesforce_api'
 require 'filter_logging'
 require 'honeycomb_sentry_integration'
+require 'discordrb_proxy'
 
 require_relative '../config/initializers/restclient_instrumentation'
 require_relative '../config/initializers/honeycomb_sentry_integration'

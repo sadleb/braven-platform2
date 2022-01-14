@@ -6,6 +6,7 @@ require 'salesforce_api'
 require 'lti_advantage_api'
 require 'lti_score'
 require 'discord_bot'
+require 'discordrb_proxy'
 
 #TODO:implement everything --> this is demo
 class DiscordSignupsController < ApplicationController
