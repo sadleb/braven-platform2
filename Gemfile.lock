@@ -8,7 +8,7 @@ GIT
 
 GIT
   remote: https://github.com/shardlab/discordrb
-  revision: f9a94c96a82f00cc21a82151d08b6c2278f6f159
+  revision: 3c73c337b496a56f57299e8b2363216099536d97
   branch: main
   specs:
     discordrb (3.4.2)
@@ -191,7 +191,7 @@ GEM
     faraday-net_http (1.0.1)
     faraday-net_http_persistent (1.2.0)
     faraday-patron (1.0.0)
-    ffi (1.15.4)
+    ffi (1.15.5)
     ffi-compiler (1.0.1)
       ffi (>= 1.0.0)
       rake
