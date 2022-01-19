@@ -373,6 +373,7 @@ RSpec.describe DiscordBot do
     subject { bot.sync_salesforce_command(event) }
 
     let(:server_id) { '123' }
+    let(:program_id) { nil }
     let(:roles) { [ instance_double(Discordrb::Role, name: ADMIN_ROLES.first) ] }
     let(:server) { instance_double(Discordrb::Server, id: server_id) }
     let(:user) { instance_double(Discordrb::User, id: 'fake-user-id', username: 'fake-username', discriminator: 1234) }
@@ -385,7 +386,6 @@ RSpec.describe DiscordBot do
     let(:program2_without_discord) { create(:salesforce_program_record, program_id: programs['records'][1]['Id'], discord_server_id: nil) }
     let(:program3_with_discord) { create(:salesforce_program_record, program_id: programs['records'][2]['Id'], discord_server_id: server_id) }
     let(:sf_client) { instance_double(SalesforceAPI,
-      get_current_and_future_accelerator_programs: programs['records'],
       update_program: nil,
       get_program_info: nil,
     ) }
@@ -398,6 +398,9 @@ RSpec.describe DiscordBot do
       allow(sf_client).to receive(:get_program_info)
         .with(program2_without_discord['Id'])
         .and_return(program2_without_discord)
+      allow(sf_client).to receive(:get_program_id_by)
+        .with(discord_server_id: server_id)
+        .and_return(program_id)
       allow(SalesforceAPI).to receive(:client).and_return(sf_client)
       allow(message).to receive(:respond).and_return(message)
       allow(bot).to receive(:sync_salesforce_program)
@@ -495,12 +498,14 @@ RSpec.describe DiscordBot do
       end
 
       context 'with a different program already linked to the same Discord server' do
+        let(:program_id) { program1_with_discord['Id'] }
+
         before :each do
-          allow(sf_client).to receive(:get_current_and_future_accelerator_programs)
-          .and_return([program2_without_discord, program3_with_discord])
+          allow(sf_client).to receive(:get_program_id_by)
+            .and_return(program3_with_discord['Id'])
         end
 
-        it 'sends a message telling there is already a program linked to the server' do
+        it 'sends a message and exits' do
           expect(message).to receive(:respond)
           expect(sf_client).not_to receive(:update_program)
           expect(bot).not_to receive(:sync_salesforce_program)
@@ -557,6 +562,7 @@ RSpec.describe DiscordBot do
     subject { bot.configure_member_command(event) }
 
     let(:server_id) { 123 }
+    let(:program_id) { programs['records'].first['Id'] }
     let(:roles) { [ instance_double(Discordrb::Role, name: ADMIN_ROLES.first) ] }
     let(:server) { instance_double(Discordrb::Server, id: server_id, members: [member]) }
     let(:user) { instance_double(Discordrb::User, id: 'fake-user-id', username: 'fake-username', discriminator: 1234) }
@@ -567,7 +573,7 @@ RSpec.describe DiscordBot do
     let(:programs) { create(:salesforce_current_and_future_programs, canvas_course_ids: [1, 2]) }
     let(:participant) { SalesforceAPI.participant_to_struct(create(:salesforce_participant_fellow)) }
     let(:sf_client) { instance_double(SalesforceAPI,
-      get_current_and_future_accelerator_programs: programs['records'],
+      get_program_id_by: program_id,
       update_program: nil,
       get_program_info: nil,
       find_participant: nil,
@@ -657,6 +663,7 @@ RSpec.describe DiscordBot do
 
       context 'with no already linked program' do
         let(:args) { "@mention #{participant.contact_id}" }
+        let(:program_id) { nil }
 
         it 'responds' do
           expect(message).to receive(:respond)
@@ -764,7 +771,7 @@ RSpec.describe DiscordBot do
     let(:message_content) { "#{BOT_COMMAND_KEY}#{ADMIN_COMMANDS[:end_program]}" }
     let(:participant) { SalesforceAPI.participant_to_struct(create(:salesforce_participant_fellow)) }
     let(:sf_client) { instance_double(SalesforceAPI,
-      get_current_and_future_accelerator_programs: programs['records'],
+      get_program_id_by: program['Id'],
       find_participant: nil,
       update_participant: nil,
     ) }

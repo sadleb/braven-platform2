@@ -208,6 +208,17 @@ class SalesforceAPI
     JSON.parse(response.body)['records'][0]
   end
 
+  # Special convenience method for Discord.
+  def get_program_id_by(discord_server_id:)
+    # Clean the server ID first, since there's no parameterization here :(
+    discord_server_id = discord_server_id.to_i
+    soql_query = "SELECT Id FROM Program__c " \
+                 "WHERE Discord_Server_Id__c = '#{discord_server_id}'"
+    response = get("#{DATA_SERVICE_PATH}/query?q=#{CGI.escape(soql_query)}")
+    program_record = JSON.parse(response.body)['records'][0]
+    program_record ? program_record['Id'] : nil
+  end
+
   def update_program(id, fields_to_set)
      patch("#{DATA_SERVICE_PATH}/sobjects/Program__c/#{id}", fields_to_set.to_json, JSON_HEADERS)
   end
