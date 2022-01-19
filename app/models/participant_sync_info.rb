@@ -152,7 +152,7 @@ class ParticipantSyncInfo < ApplicationRecord
               new_sync_info = ParticipantSyncInfo.new(participant.attributes)
               pdiff = Diff.new(last_sync_info, new_sync_info)
               has_changed = pdiff.changed?
-              puts "### RUN_POC: sfid: #{participant.sfid}- pdiff.changed? = #{has_changed}"
+              #puts "### RUN_POC: sfid: #{participant.sfid}- pdiff.changed? = #{has_changed}"
               if has_changed
                 Honeycomb.start_span(name: 'run_sync_poc.changed_participant') do
                   pdiff.add_to_honeycomb_span()
