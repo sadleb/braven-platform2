@@ -54,6 +54,12 @@ RETAINED_CHANNELS = [
   'bot-commands',
 ]
 
+# Discord limits.
+# There's a limit of 50 channels per category, but there also appears to be a
+# bug where adding permission overwrites to the 50th channel causes an error
+# response saying there's too many channels... so we just stop at 49.
+MAX_CATEGORY_CHANNELS = 50 - 1
+
 # Stuff for dynamic cohort channels/roles.
 COHORT_CHANNEL_CATEGORY = 'Cohorts'
 COHORT_CHANNEL_DESCRIPTION = 'This channel is a space for communication and collaboration with your Accelerator Cohort.'
@@ -1012,8 +1018,8 @@ class DiscordBot
       # If the channel didn't exist, create it.
       unless channel
         LOGGER.debug "No existing Cohort channel found; creating one"
-        # Cohort channels go in the 'Cohorts' channel category on the server.
-        category = server.channels.find { |c| c.type == CHANNEL_CATEGORY && c.name == COHORT_CHANNEL_CATEGORY }
+        # Cohort channels go in one of the 'Cohorts' channel categories on the server.
+        category = get_cohort_category(server)
         channel = server.create_channel(
           channel_name,
           TEXT_CHANNEL,  # channel type
@@ -1074,6 +1080,39 @@ class DiscordBot
       Honeycomb.add_field('permission_overwrites', permission_overwrites.map { |k, v| v.to_hash })
       Honeycomb.add_field('channel.name', channel.name)
       LOGGER.debug "Permissions assigned"
+    end
+  end
+
+  # Return the 'Cohorts' channel category, unless it's full, in which case
+  # find/create/return a new 'Cohorts N' category that can fit additional
+  # channels.
+  def self.get_cohort_category(server)
+    Honeycomb.start_span(name: 'bot.get_cohort_category') do
+      category = server.channels.find { |c| c.type == CHANNEL_CATEGORY && c.name == COHORT_CHANNEL_CATEGORY }
+      Honeycomb.add_field('get_cohort_category.channels.count', category.channels.count)
+
+      overflow_number = 1
+      while category.channels.count >= MAX_CATEGORY_CHANNELS
+        overflow_number += 1
+        new_category_name = "#{COHORT_CHANNEL_CATEGORY} #{overflow_number}"
+        new_category = server.channels.find { |c| c.type == CHANNEL_CATEGORY && c.name == new_category_name }
+
+        unless new_category
+          new_category = server.create_channel(
+            new_category_name,
+            CHANNEL_CATEGORY,
+            permission_overwrites: category.permission_overwrites&.map { |k, v| Discordrb::Overwrite.from_other(v) },
+            # Put this category after the previous one, so it doesn't end up at the bottom.
+            position: category.position,
+          )
+        end
+
+        category = new_category
+      end
+
+      Honeycomb.add_field('get_cohort_category.overflow_number', overflow_number)
+
+      category
     end
   end
 
@@ -1146,7 +1185,7 @@ class DiscordBot
       member.server.channels.each do |channel|
         channels << channel if channel.permission_overwrites.any? {
           |k, v| v.type == :member && v.id == member.id
-        } && channel.parent&.name == COHORT_CHANNEL_CATEGORY
+        } && channel.parent&.name&.start_with?(COHORT_CHANNEL_CATEGORY)
       end
 
       Honeycomb.add_field('permission_overwrite_channels.channel_names', channels.map { |c| c.name })

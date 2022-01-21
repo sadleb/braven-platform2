@@ -1117,8 +1117,8 @@ RSpec.describe DiscordBot do
     let(:overwrite) { instance_double(Discordrb::Overwrite, id: template_role.id, :type= => nil, :id= => nil, type: nil, to_hash: {}) }
     let(:lc_overwrite) { instance_double(Discordrb::Overwrite, id: lc_template_role.id, :type= => nil, :id= => nil, type: nil) }
     let(:template_channel) { instance_double(Discordrb::Channel, id: 1, name: 'cohort-template', type: 0, overwrites: {overwrite.id => overwrite, lc_overwrite.id => lc_overwrite}) }
-    let(:category) { instance_double(Discordrb::Channel, name: 'Cohorts', type: 4) }
-    let(:channels) { [template_channel] }
+    let(:category) { instance_double(Discordrb::Channel, name: 'Cohorts', type: 4, channels: []) }
+    let(:channels) { [category, template_channel] }
     let(:user) { instance_double(Discordrb::User, id: 'fake-user-id', username: 'fake-username', discriminator: 1234) }
     let(:member) { instance_double(Discordrb::Member, id: 'fake-member-id', server: server) }
     let(:role) { instance_double(Discordrb::Role, name: role_name, id: 'test-id-1') }
@@ -1159,6 +1159,29 @@ RSpec.describe DiscordBot do
         it 'updates permission overwrites' do
           expect(channel).to receive(:permission_overwrites=)
           subject
+        end
+
+        context 'with full category' do
+          let(:category) { instance_double(Discordrb::Channel, name: 'Cohorts', type: 4, channels: [nil]*MAX_CATEGORY_CHANNELS, permission_overwrites: nil, position: 1) }
+          let(:category2) { instance_double(Discordrb::Channel, name: 'Cohorts', type: 4, channels: []) }
+
+          before :each do
+            allow(server).to receive(:create_channel)
+              .with('Cohorts 2', CHANNEL_CATEGORY, anything)
+              .and_return(category2)
+          end
+
+          it 'creates new category' do
+            expect(server).to receive(:create_channel)
+              .with('Cohorts 2', CHANNEL_CATEGORY, anything)
+            subject
+          end
+
+          it 'still creates cohort channel' do
+            expect(server).to receive(:create_channel)
+              .with(channel_name, TEXT_CHANNEL, anything)
+            subject
+          end
         end
       end
     end
