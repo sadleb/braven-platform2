@@ -49,8 +49,15 @@ class CanvasSubmission < ApplicationRecord
   end
 
   # True if a due_date is set and it's in the past, else false.
+  # Allowing for 10 minute buffer past assignment cached_due_date to account for clock skew
   def due_in_past?
-    !due_at.nil? && due_at <= Time.now.utc
+    !due_at.nil? && due_at <= Time.now.utc - 10.minutes
+  end
+
+  # True it's never been graded and the due date passes
+  def needs_zero_grade?
+    needs_zero_grade = (!self.is_graded? && self.due_in_past?)
+    needs_zero_grade
   end
 
 end

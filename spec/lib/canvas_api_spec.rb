@@ -375,6 +375,22 @@ RSpec.describe CanvasAPI do
     end
   end
 
+  describe '#get_unsubmitted_assignment_data' do
+    let(:course_id) { 101 }
+    let(:assignment_ids) {[1, 2, 3]}
+
+    it 'hits the Canvas API correctly' do
+      request_url = "#{CANVAS_API_URL}/courses/#{course_id}/students/submissions?per_page=100&assignment_ids[]=#{assignment_ids.join("&assignment_ids[]=")}&student_ids[]=all&workflow_state=unsubmitted"
+
+      stub_request(:get, request_url).to_return( body: "{}" )
+
+      response = canvas.get_unsubmitted_assignment_data(course_id, assignment_ids)
+
+      expect(WebMock).to have_requested(:get, request_url).once
+      expect(response).to eq({})
+    end
+  end
+
   describe "#update_grades" do
     let(:course_id) { 111 }
     let(:assignment_id) { 222 }

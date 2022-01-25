@@ -171,6 +171,25 @@ class CanvasAPI
     get_all_from_pagination(response)
   end
 
+  def get_unsubmitted_assignment_data(course_id, assignment_ids)
+    query_params = "per_page=100&assignment_ids[]=#{assignment_ids.join("&assignment_ids[]=")}&student_ids[]=all&workflow_state=unsubmitted"
+    response = get("/courses/#{course_id}/students/submissions?#{query_params}")
+
+    all_submissions = get_all_from_pagination(response)
+    submissions_by_assignment = {}
+    all_submissions.map { |s|
+      # If there isn't already a submission for an assignment id,
+      # add a key value pair with the {assignment id: [submissions]}
+      # If there are already submissions for an assignment id, add that submission to the list
+      if submissions_by_assignment[s['assignment_id']].nil?
+        submissions_by_assignment[s['assignment_id']] = [s]
+      else
+        submissions_by_assignment[s['assignment_id']] << s
+      end
+    }
+    submissions_by_assignment
+  end
+
   # Batch updates grades for multiple users and one assignment using the Canvas Submissions API:
   # https://canvas.instructure.com/doc/api/submissions.html#method.submissions_api.update
   # grades_by_user_id: hash containing canvas_user_id => grade

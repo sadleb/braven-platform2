@@ -145,7 +145,11 @@ class GradeRise360ModuleForUser
       Honeycomb.add_field('alert.grade_rise360_module_for_user.missing_canvas_user_id', true)
 
     # If they haven't opened the Module and the due date passes, we need to send a 0 to Canvas.
-    elsif needs_zero_grade?
+    #
+    # Note: there is still the edge case where after they get a 0, if they open it will go
+    # back to being ungraded in Canvas until the nightly grading task runs or it's computed
+    # on the fly when they view the submission.
+    elsif canvas_submission.needs_zero_grade?
       @needs_grading = true
       needs_grading_reason = 'Needs zero grade. They haven\'t opened the Module and the due date has passed.'
 
@@ -287,16 +291,6 @@ private
       )
     end
     received_extension
-  end
-
-  # If it's never been graded and the due date passes, we need to send up a 0 to Canvas.
-  #
-  # Note: there is still the edge case where after they get a 0, if they open it will go
-  # back to being ungraded in Canvas until the nightly grading task runs or it's computed
-  # on the fly when they view the submission.
-  def needs_zero_grade?
-    needs_zero_grade = (!canvas_submission.is_graded? && canvas_submission.due_in_past?)
-    needs_zero_grade
   end
 
   # Return true if any new Rise360ModuleInteractions have been received since the last time
