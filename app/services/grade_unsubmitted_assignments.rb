@@ -71,9 +71,20 @@ class GradeUnsubmittedAssignments
     end
   end
 
+  # This filters out assignments that we don't want to automatically grade.
+  # We only want to grade unsubmitted assignments (filters for unsubmitted
+  # in the Canvas API call) that have an external_tool submission type and
+  # are published. We also don't want to grade unsubmitted attendance events,
+  # LCs should submit attendance. We don't want to grade assignments
+  # where the grade posting policy is set to grade manually because LCs/TAs
+  # could still be working on grading, so when they are finished grading they
+  # need to update the grade posting policy to "manually" in order for
+  # assignments to pass the filter and submit zeros for missing assignments.
   def assignment_filter(assignment)
     return false unless assignment['submission_types'].include?('external_tool')
-    return false unless assignment['published'] == true
+    return false unless assignment['published']
+    return false if CourseAttendanceEvent.where(canvas_assignment_id: assignment['id']).exists?
+    return false if assignment['post_manually']
     assignment['id']
   end
 end

@@ -38,15 +38,15 @@ RSpec.describe GradeUnsubmittedAssignments do
       subject
     end
 
-    context "with no running programs" do
-      it "exits early" do
+    context 'with no running programs' do
+      it 'exits early' do
         subject
         # We should exit before Course.where gets called.
         expect(Course).not_to have_received(:where)
       end
     end
 
-    context "with some running programs" do
+    context 'with some running programs' do
       let(:accelerator_course_ids) { [course1.canvas_course_id, course2.canvas_course_id] }
 
       it 'should not exit early' do
@@ -67,37 +67,43 @@ RSpec.describe GradeUnsubmittedAssignments do
   end # end describe run
 
   let(:course) { create(:course) }
-  let(:published_external_assignment) { create(:canvas_assignment,
-    course_id: course.canvas_course_id,
-    submission_types: ["external_tool"],
-    published: true
-  ) }
-  let(:unpublished_external_assignment) { create(:canvas_assignment,
-    course_id: course.canvas_course_id,
-    submission_types: ["external_tool"],
-    published: false
-  ) }
-  let(:published_online_entry_assignment) { create(:canvas_assignment,
-    course_id: course.canvas_course_id,
-    submission_types: ["online_text_entry"],
-    published: true
+  let(:valid_assignment) { create(:canvas_assignment,
+    submission_types: ['external_tool'],
+    published: true,
+    post_manually: false
+    ) }
+  let(:unpublished_assignment) { create(:canvas_assignment,
+    submission_types: ['external_tool'],
+    published: false,
+    post_manually: false
+    ) }
+  let(:online_entry_assignment) { create(:canvas_assignment,
+    submission_types: ['online_text_entry'],
+    published: true,
+    post_manually: false
+    ) }
+  let(:post_manually_assignment) { create(:canvas_assignment,
+    submission_types: ['external_tool'],
+    published: true,
+    post_manually: true
   ) }
   let(:assignments) { [
-    published_external_assignment,
-    unpublished_external_assignment,
-    published_online_entry_assignment
+    valid_assignment,
+    unpublished_assignment,
+    online_entry_assignment,
+    post_manually_assignment
   ] }
   let(:submissions_obj) { {} }
   let(:submission_due_tomorrow) { create :canvas_submission,
     cached_due_date: (Time.now + 1.day).utc.iso8601,
-    assignment_id: published_external_assignment['id']
+    assignment_id: valid_assignment['id']
   }
   let(:submission_due_yesterday) { create :canvas_submission,
     cached_due_date: (Time.now - 1.day).utc.iso8601,
-    assignment_id: published_external_assignment['id']
+    assignment_id: valid_assignment['id']
   }
 
-  describe "#grade_unsubmitted_assignments" do
+  describe '#grade_unsubmitted_assignments' do
     subject {
       grade_unsubmitted_assignments.grade_unsubmitted_assignments(course)
     }
@@ -120,16 +126,16 @@ RSpec.describe GradeUnsubmittedAssignments do
     end
 
     context 'with no assignments that pass the assignment filter' do
-      let(:assignments) { [unpublished_external_assignment, published_online_entry_assignment] }
+      let(:assignments) { [unpublished_assignment, online_entry_assignment] }
 
       it 'filters out all assignments and exits early' do
-        subject
         expect(canvas_client).not_to receive(:get_unsubmitted_assignment_data)
+        subject
       end
     end
 
     context 'with assignments that pass the assignment filter' do
-      let(:submissions_obj) { {published_external_assignment['id'] => [submission_due_yesterday]} }
+      let(:submissions_obj) { {valid_assignment['id'] => [submission_due_yesterday]} }
 
       it 'calls get_unsubmitted_assignment_data' do
         expect(canvas_client).to receive(:get_unsubmitted_assignment_data)
@@ -154,12 +160,12 @@ RSpec.describe GradeUnsubmittedAssignments do
     end
   end # end describe grade_unsubmitted_assignments
 
-  describe "#zero_out_grades" do
+  describe '#zero_out_grades' do
     let(:submissions) { [] }
 
     subject { grade_unsubmitted_assignments.zero_out_grades(
       course.canvas_course_id,
-      published_external_assignment['id'],
+      valid_assignment['id'],
       submissions
     )}
 
@@ -186,37 +192,44 @@ RSpec.describe GradeUnsubmittedAssignments do
     end
   end # end describe zero_out_grades
 
-  describe "#assignment_filter" do
-    subject { grade_unsubmitted_assignments.assignment_filter(assignment)}
+  describe '#assignment_filter' do
+    subject { grade_unsubmitted_assignments.assignment_filter(assignment) }
 
-    context 'with a published assignment that has an external_tool submission type' do
-      let(:assignment) { published_external_assignment }
+    context 'with a published assignment that has an external_tool submission type, is not an attendance event and is not set to post manually' do
+      let(:assignment) { valid_assignment }
 
-      it 'passes the assignment filter and returns true' do
-        expect(grade_unsubmitted_assignments)
-          .to receive(:assignment_filter)
-          .and_return(true)
-        subject
+      it 'passes the assignment filter and returns the assignment id' do
+        expect(subject).to eq(valid_assignment['id'])
       end
     end
 
-    context 'with an unpublished assignment that has an external_tool submission type' do
-      let(:assignment) { unpublished_external_assignment }
+    context 'with an unpublished assignment' do
+      let(:assignment) { unpublished_assignment }
       it 'does not pass the assignment filter and returns false' do
-        expect(grade_unsubmitted_assignments)
-          .to receive(:assignment_filter)
-          .and_return(false)
-        subject
+        expect(subject).to eq(false)
       end
     end
 
-    context 'with a published assignment that has an online_text_entry submission type' do
-      let(:assignment) { published_online_entry_assignment }
+    context 'with an assignment that has online_text_entry submission type' do
+      let(:assignment) { online_entry_assignment }
       it 'does not pass the assignment filter and returns false' do
-        expect(grade_unsubmitted_assignments)
-          .to receive(:assignment_filter)
-          .and_return(false)
-        subject
+        expect(subject).to eq(false)
+      end
+    end
+
+    context 'with an assignment that is an attendance event' do
+      let(:assignment) { create(:canvas_assignment) }
+      let!(:attendance_event) { create(:course_attendance_event, canvas_assignment_id: assignment['id']) }
+
+      it 'does not pass the assignment filter and returns false' do
+        expect(subject).to eq(false)
+      end
+    end
+
+    context 'with an assignment that is set to post manually' do
+      let(:assignment) { post_manually_assignment }
+      it 'does not pass the assignment filter and returns false' do
+        expect(subject).to eq(false)
       end
     end
   end # end describe assignment_filter
