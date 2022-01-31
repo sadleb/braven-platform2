@@ -34,7 +34,7 @@ module Platform
     # Allow `bundle exec rake assets:precompile` without loading the whole rails app.
     # E.g. if we want to run in production mode locally.
     #config.assets.initialize_on_precompile=false
-
+    # If you change the number set here make sure to also change the ':concurrency' number in sidekiq.yml to match
     PUMA_MAX_THREADS = Integer(ENV.fetch("PUMA_MAX_THREADS") { 5 })
 
     config.active_job.queue_adapter = :sidekiq

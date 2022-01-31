@@ -3,6 +3,10 @@
   - default
   - low_priority
 
+# If you change the number of threads here make sure to also change the PUMA_MAX_THREADS
+# number to match it in ENV and application.rb
+:concurrency: <%= Integer(ENV['DB_POOL'] || ENV['SIDEKIQ_MAX_THREADS'] || 5) %>
+
 # sidekiq-scheduler options
 # See here for more info: https://github.com/moove-it/sidekiq-scheduler#schedule-types
 :dynamic: true
