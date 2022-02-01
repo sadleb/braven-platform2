@@ -77,7 +77,7 @@ class DiscordSignupsController < ApplicationController
         current_user.update!(discord_token: nil)
         Honeycomb.add_field('alert.discord_token.reset', true)
 
-        redirect_to launch_discord_signups_url(lti_launch_id: @lti_launch.id), alert: 'Something went wrong, please try again.' and return
+        redirect_to launch_discord_signups_url(lti_launch_id: @lti_launch.id), alert: 'Something went wrong, please try authorizing again.' and return
       end
 
       if @discord_user['email'] && @discord_user['verified']

@@ -172,7 +172,7 @@ RSpec.describe DiscordSignupsController, type: :controller do
 
       it 'shows alert that something went wrong' do
         subject
-        expect(flash[:alert]).to match /Something went wrong, please try again./
+        expect(flash[:alert]).to match /Something went wrong, please try authorizing again./
       end
     end
 
