@@ -91,11 +91,9 @@ class SyncSalesforceProgram
       if ar_error.attribute == :email && ar_error.type == :taken
         existing_user = User.find_by_email(participant.email)
         error_detail = <<-EOF
-Hmmm, there is already a Platform user with email: #{participant.email}.
-We can't create a second user with that email. Are there duplicate Contacts in Salesforce?
-Make sure this one is the only one: #{user_url(existing_user)}. Their Contact ID is: #{existing_user.salesforce_id}.
-If that is not the issue, make sure the Platform user has the correct Salesforce Contact ID
-that we're trying to sync which is: #{participant.contact_id}.
+It looks like there are duplicate Contacts in Salesforce with the email: #{participant.email}. Open the Contact with ID: #{existing_user.salesforce_id} and use the "Duplicate Check -> Merge" tool to get rid of the duplicate. Make sure and choose #{existing_user.salesforce_id} as the Master record!
+
+For reference, the existing Platform user is: #{user_url(existing_user)} and the duplicate Contact ID is: #{participant.contact_id}.
 EOF
       end
     # These are rescued at a lower level and translated to a user friendly message. Just show that.
