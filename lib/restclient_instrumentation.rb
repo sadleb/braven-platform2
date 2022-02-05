@@ -39,7 +39,7 @@ module RestClientInstrumentation
         logger.error(error_response)
         span.add_field('restclient.response.status_code', e.http_code)
         span.add_field('restclient.response.body', error_response)
-        span.add_field('restclient.response.headers', e.response.headers)
+        span.add_field('restclient.response.headers', e.response&.headers)
 
         if e.is_a?(RestClient::BadRequest) and error_response =~ /JWS signature invalid/
           logger.error('TROUBLESHOOTING HINT: Copy/pasta the "Public JWK URL" from the Developer Key ' \
