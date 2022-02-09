@@ -6,16 +6,11 @@ class CustomContent < ApplicationRecord
   has_many :custom_content_versions
   alias_attribute :versions, :custom_content_versions
 
+  has_many :course_custom_content_versions, through: :custom_content_versions
+  has_many :courses, -> { distinct }, through: :course_custom_content_versions
+
   scope :projects, -> { where type: 'Project' }
   scope :surveys, -> { where type: 'Survey' }
-
-  def courses
-    custom_content_versions.map { |v| v.courses or [] }.reduce(:+) or []
-  end
-
-  def courses
-    custom_content_versions.map { |v| v.courses }.reduce(:+) or []
-  end
 
   # For Versionable
   def new_version(user)

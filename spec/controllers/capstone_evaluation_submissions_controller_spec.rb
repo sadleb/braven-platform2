@@ -158,8 +158,8 @@ RSpec.describe CapstoneEvaluationSubmissionsController, type: :controller do
   end
 
   describe 'POST #create' do
-    let(:user) { create :fellow_user }
     let(:lti_advantage_api) { double(LtiAdvantageAPI) }
+    let(:user) { create(:fellow_user, section: section) }
     let(:peer_user) { create(:peer_user, section: section) }
     let(:question) { create(:capstone_evaluation_question) }
 

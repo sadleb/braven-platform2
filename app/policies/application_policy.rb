@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # Since Platform is mostly admin-only, we set the default policy to disallow all but
 # admin users to view each of the standard actions. Note that this policy does not
 # automatically apply; policies must be explicitly added to each action in each
@@ -6,6 +7,10 @@
 
 class ApplicationPolicy
   attr_reader :user, :record
+
+  # Pundit exception messages that are reused between multiple policies.
+  ERROR_ENROLLMENT_GENERIC = 'You are not enrolled in this course.'
+  ERROR_ENROLLMENT_SUBMISSION = 'You are not enrolled in this course or do not have permission to access the submission.'
 
   def initialize(user, record)
     @user = user

@@ -37,7 +37,9 @@ RSpec.describe CapstoneEvaluationSubmissionPolicy, type: :policy do
     end
 
     it "disallows users from viewing other peoples submissions" do
-      expect(subject).not_to permit(user, capstone_evaluation_submission)
+      expect {
+        expect(subject).not_to permit(user, capstone_evaluation_submission)
+      }.to raise_error(Pundit::NotAuthorizedError)
     end
 
     it "allows TAs to view fellow's submission" do
@@ -53,14 +55,18 @@ RSpec.describe CapstoneEvaluationSubmissionPolicy, type: :policy do
     it "disallows LCs from other sections" do
       another_section = create(:section, course: capstone_evaluation_submission.course)
       user.add_role RoleConstants::TA_ENROLLMENT, another_section
-      expect(subject).not_to permit(user, capstone_evaluation_submission)
+      expect {
+        expect(subject).not_to permit(user, capstone_evaluation_submission)
+      }.to raise_error(Pundit::NotAuthorizedError)
     end
 
     it "disallows TAs from other courses" do
       another_course = create(:course)
       ta_section = create(:ta_section, course: another_course)
       user.add_role RoleConstants::TA_ENROLLMENT, ta_section
-      expect(subject).not_to permit(user, capstone_evaluation_submission)
+      expect {
+        expect(subject).not_to permit(user, capstone_evaluation_submission)
+      }.to raise_error(Pundit::NotAuthorizedError)
     end
   end
 
@@ -98,21 +104,26 @@ RSpec.describe CapstoneEvaluationSubmissionPolicy, type: :policy do
 
     it "allows TAs" do
       user.add_role RoleConstants::TA_ENROLLMENT, ta_section
+      capstone_evaluation_submission.user.add_role RoleConstants::STUDENT_ENROLLMENT, section
       expect(subject).to permit(user, capstone_evaluation_submission)
     end
 
     it "allows LCs" do
       user.add_role RoleConstants::TA_ENROLLMENT, section
+      capstone_evaluation_submission.user.add_role RoleConstants::STUDENT_ENROLLMENT, section
       expect(subject).to permit(user, capstone_evaluation_submission)
     end
 
     it "allows students who are enrolled in the course" do
+      capstone_evaluation_submission.update!(user: user)
       user.add_role RoleConstants::STUDENT_ENROLLMENT, section
       expect(subject).to permit(user, capstone_evaluation_submission)
     end
 
     it "disallows users who aren't in the course" do
-      expect(subject).not_to permit(user, capstone_evaluation_submission)
+      expect {
+        expect(subject).not_to permit(user, capstone_evaluation_submission)
+      }.to raise_error(Pundit::NotAuthorizedError)
     end
   end
 end

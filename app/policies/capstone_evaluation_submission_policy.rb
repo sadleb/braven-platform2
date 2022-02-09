@@ -1,6 +1,4 @@
 class CapstoneEvaluationSubmissionPolicy < ApplicationPolicy
-  attr_reader :user, :record
-
   def initialize(user, record)
     raise Pundit::NotAuthorizedError, "must be logged in" unless user
     raise Pundit::NotAuthorizedError, "no submission specified" unless record
@@ -8,49 +6,24 @@ class CapstoneEvaluationSubmissionPolicy < ApplicationPolicy
     @record = record
   end
 
+  # Admins can always see the "thank you for submitting" #show page.
+  # This might be weird, so revisit if we decide we don't want this.
   def show?
-    # Admins can always see the "thank you for submitting" #show page.
-    # This might be weird, so revisit if we decide we don't want this.
-    return true if user.admin?
+    # Delegate to logic in the user model.
+    return true if user.can_access?(record)
 
-    # You are a TA for the user who submitted
-    return true if user.can_view_submission_from?(record.user, record.course)
-
-    # This is your submission
-    user == record.user
+    raise Pundit::NotAuthorizedError, message: ERROR_ENROLLMENT_SUBMISSION
   end
 
+  # Admins can always submit capstone evaluations.
+  # This might be weird, so revisit if we decide we don't want this.
   def new?
-    # Admins can always submit capstone evaluations.
-    # This might be weird, so revisit if we decide we don't want this.
-    return true if user.admin?
-
-    # Anyone enrolled can see the capstone evaluation form
-    return true if is_enrolled?
-
-    false
+    show?
   end
 
   def create?
     # Only users enrolled as students can submit the form.
     # The LTIAdvantageAPI call to Canvas fails for all other enrollments.
-    record.course.sections.each do |section|
-      return true if user.has_role? RoleConstants::STUDENT_ENROLLMENT, section
-    end
-
-    false
-  end
-
-private
-  # TODO: refactor and use EnrolledPolicy here
-  # https://app.asana.com/0/1174274412967132/1199344732354185
-  # Returns true iff user has any type of enrollment in any section of course
-  def is_enrolled?
-    record.course.sections.each do |section|
-        RoleConstants::SECTION_ROLES.each do |role|
-          return true if user.has_role? role, section
-        end
-    end
-    false
+    user.is_enrolled_as_student?(record.course)
   end
 end

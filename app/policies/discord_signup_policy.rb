@@ -4,7 +4,8 @@ class DiscordSignupPolicy < ApplicationPolicy
 
   def launch?
     # Requires logged-in user enrolled in the current course.
-    !!user && is_enrolled?
+    # `record` is a Course.
+    !!user && user.is_enrolled?(record)
   end
 
   def oauth?
@@ -26,16 +27,4 @@ class DiscordSignupPolicy < ApplicationPolicy
     edit?
   end
 
-private
-  # TODO: refactor and use EnrolledPolicy here
-  # https://app.asana.com/0/1174274412967132/1199344732354185
-  # Returns true iff user has any type of enrollment in any section of course
-  def is_enrolled?
-    record.sections.each do |section|
-      RoleConstants::SECTION_ROLES.each do |role|
-        return true if user.has_role? role, section
-      end
-    end
-    false
-  end
 end

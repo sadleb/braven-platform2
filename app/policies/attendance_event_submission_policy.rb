@@ -15,9 +15,8 @@ class AttendanceEventSubmissionPolicy < ApplicationPolicy
 
     # Is the user a TA in any section in the course?
     course = record.instance_of?(Course) ? record : record.course
-    course.sections.each do |section|
-      return true if user.has_role? RoleConstants::TA_ENROLLMENT, section
-    end
+    return false if course.nil?
+    return true if user.ta_courses.include?(course)
 
     # This message will show up in the errors#not_authorized view.
     raise Pundit::NotAuthorizedError, message: 'You do not have permission to take attendance for this course.'

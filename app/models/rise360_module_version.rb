@@ -9,6 +9,9 @@ class Rise360ModuleVersion < ApplicationRecord
 
   has_one_attached :rise360_zipfile
 
+  has_many :course_rise360_module_versions
+  has_many :courses, -> { distinct }, through: :course_rise360_module_versions
+
   validates :name, presence: true
   validates :quiz_questions, presence: true
   validates :activity_id, presence: true

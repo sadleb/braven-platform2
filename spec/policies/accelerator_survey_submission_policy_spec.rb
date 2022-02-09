@@ -42,7 +42,9 @@ RSpec.describe AcceleratorSurveySubmissionPolicy, type: :policy do
       user.add_role RoleConstants::STUDENT_ENROLLMENT, section
       peer_user = create(:registered_user)
       peer_user.add_role RoleConstants::STUDENT_ENROLLMENT, section
-      expect(subject).not_to permit peer_user, accelerator_survey_submission
+      expect {
+        expect(subject).not_to permit peer_user, accelerator_survey_submission
+      }.to raise_error(Pundit::NotAuthorizedError)
     end
 
     it "disallows a ta from another course" do
@@ -51,7 +53,9 @@ RSpec.describe AcceleratorSurveySubmissionPolicy, type: :policy do
       ta_section = create(:ta_section, course: another_course)
       ta_user = create(:registered_user)
       ta_user.add_role RoleConstants::TA_ENROLLMENT, ta_section
-      expect(subject).not_to permit ta_user, accelerator_survey_submission
+      expect {
+        expect(subject).not_to permit ta_user, accelerator_survey_submission
+      }.to raise_error(Pundit::NotAuthorizedError)
     end
 
     it "disallows lc for another cohort" do
@@ -59,11 +63,15 @@ RSpec.describe AcceleratorSurveySubmissionPolicy, type: :policy do
       another_section = create(:section, course: course)
       lc_user = create(:registered_user)
       lc_user.add_role RoleConstants::TA_ENROLLMENT, another_section
-      expect(subject).not_to permit lc_user, accelerator_survey_submission
+      expect {
+        expect(subject).not_to permit lc_user, accelerator_survey_submission
+      }.to raise_error(Pundit::NotAuthorizedError)
     end
 
     it "disallows non-admin users not enrolled in a course attached to the project" do
-      expect(subject).not_to permit user, accelerator_survey_submission
+      expect {
+        expect(subject).not_to permit user, accelerator_survey_submission
+      }.to raise_error(Pundit::NotAuthorizedError)
     end
   end
 
@@ -84,7 +92,9 @@ RSpec.describe AcceleratorSurveySubmissionPolicy, type: :policy do
     end
 
     it "disallows non-admin users not enrolled in a course attached to the project" do
-      expect(subject).not_to permit user, accelerator_survey_submission
+      expect {
+        expect(subject).not_to permit user, accelerator_survey_submission
+      }.to raise_error(Pundit::NotAuthorizedError)
     end
   end
 
@@ -105,7 +115,9 @@ RSpec.describe AcceleratorSurveySubmissionPolicy, type: :policy do
     end
 
     it "disallows non-admin users not enrolled in course to see the accelerator survey launch button" do
-      expect(subject).not_to permit user, accelerator_survey_submission
+      expect {
+        expect(subject).not_to permit user, accelerator_survey_submission
+      }.to raise_error(Pundit::NotAuthorizedError)
     end
   end
 

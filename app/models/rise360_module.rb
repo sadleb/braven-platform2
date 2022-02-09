@@ -26,6 +26,9 @@ class Rise360Module < ApplicationRecord
   has_many :rise360_module_versions
   alias_attribute :versions, :rise360_module_versions
 
+  has_many :course_rise360_module_versions, through: :rise360_module_versions
+  has_many :courses, -> { distinct }, through: :course_rise360_module_versions
+
   serialize :quiz_breakdown, Array
 
   # This flag is used to track changes to the rise360_zipfile, so we don't

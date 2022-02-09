@@ -35,6 +35,17 @@ class User < ApplicationRecord
 
   # All sections where this user has any role.
   has_many :sections, -> { distinct }, through: :roles, source: :resource, source_type: 'Section'
+  # All courses from above sections.
+  has_many :courses, -> { distinct }, through: :sections
+
+  # Role-specific associations, for efficiency.
+  has_many :student_sections, -> { where("roles.name = ?", RoleConstants::STUDENT_ENROLLMENT) },
+    through: :roles, source: :resource, source_type: 'Section'
+  has_many :student_courses, -> { distinct }, through: :student_sections, source: :course
+  # Careful with these, TA enrollments may include TAs, LCs, Staff, and guests.
+  has_many :ta_sections, -> { where("roles.name = ?", RoleConstants::TA_ENROLLMENT) },
+    through: :roles, source: :resource, source_type: 'Section'
+  has_many :ta_courses, -> { distinct }, through: :ta_sections, source: :course
 
   def full_name
     [first_name, last_name].join(' ')
@@ -62,7 +73,7 @@ class User < ApplicationRecord
 
   # The section with a student role in a given course.
   def student_section_by_course(course)
-    section_with_role_by_course(RoleConstants::STUDENT_ENROLLMENT, course)
+    student_sections.find_by(course: course)
   end
 
   # The section with the specified role in a given course.
@@ -102,16 +113,24 @@ class User < ApplicationRecord
     has_role? :admin
   end
 
+  # If it's your own submission, or you're a TA/LC for the submission owner in that course.
   def can_view_submission_from?(target_user, course)
-    return ta_for?(target_user, course) || lc_for?(target_user, course)
+    return target_user == self || ta_for?(target_user, course) || lc_for?(target_user, course)
+  end
+
+  def is_enrolled?(course)
+    return false if course.nil?
+    courses.include?(course)
   end
 
   def is_enrolled_as_student?(course)
-    course.sections.each do |section|
-      return true if has_role? RoleConstants::STUDENT_ENROLLMENT, section
-    end
-    false
+    return false if course.nil?
+    student_courses.include?(course)
   end
+
+  # Note: choosing not to include a is_enrolled_as_ta? method, because
+  # TA_ENROLLMENT is used for people who aren't TAs (e.g. LCs), and that gets
+  # confusing fast.
 
   # True iff the user is enrolled in SectionConstants::TA_SECTION for the course
   # and the target_user is a Fellow in the same course
@@ -137,6 +156,63 @@ class User < ApplicationRecord
     )
     student_section = target_user.student_section_by_course(course)
     return lc_section.present? && student_section.present? && lc_section.id == student_section.id
+  end
+
+  # True if the user is enrolled in a course that the supplied `record`
+  # references. E.g.:
+  #
+  #     user.can_access?(rise360_module_version)
+  #     user.can_access?(project_submission)
+  #
+  # `record` can be any model instance that responds to `course` or `courses`,
+  # except a User or a Section, where "can_access" would be meaningless.
+  #
+  # If `record` is a submission (or submission-like object, that has a `.user`
+  # reference), this additionally checks whether the user has permission to
+  # view submissions from `record.user`.
+  #
+  # When writing models that you intend to pass into this method, be sure to
+  # always add a :course or :courses association, as appropriate! We'll raise
+  # an exception if you don't, to help you remember.
+  def can_access?(record)
+    Honeycomb.start_span(name: 'user.can_access?') do
+      Honeycomb.add_field('can_access.record.class', record.class.to_s)
+
+      # Can't show something that doesn't exist.
+      # Also exclude a couple things that don't make sense.
+      return false if record.nil? || record.is_a?(User) || record.is_a?(Section)
+
+      # Admins can always see the record.
+      return true if admin?
+
+      # Check enrollment.
+      if record.respond_to?(:course)
+        Honeycomb.add_field('can_access.record.course.id', record.course.id.to_s)
+
+        # For submissions, we additionally check whether the user can view the submission.
+        if record.respond_to?(:user)
+          Honeycomb.add_field('can_access.record.user.id', record.user.id.to_s)
+
+          return false unless can_view_submission_from?(record.user, record.course)
+        end
+
+        # Note, if by some weird edge case a user is trying to view their own
+        # submission from a course they are no longer enrolled in, this will
+        # return false and they will not be able to access it. This is desired
+        # behavior (and also prevents people from creating a submission in a
+        # course they're not enrolled in).
+        return true if courses.include?(record.course)
+      elsif record.respond_to?(:courses)
+        return true if (courses & record.courses).any?
+      else
+        # Doesn't implement `.course` or `.courses`, so we don't know what to
+        # do. Raise an exception to encourage the developer to add this missing
+        # association.
+        raise NotImplementedError.new "#{record.class} model does not implement course or courses; consider adding the appropriate association?"
+      end
+
+      false
+    end
   end
 
   def can_take_attendance_for_all?

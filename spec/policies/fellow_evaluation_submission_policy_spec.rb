@@ -4,7 +4,7 @@ RSpec.describe FellowEvaluationSubmissionPolicy, type: :policy do
   let(:course) { create :course_launched }
   let(:section) { create :section, course: course }
   let(:user) { create :registered_user }
-  let(:fellow_evaluation_submission) { build(
+  let(:fellow_evaluation_submission) { create(
     :fellow_evaluation_submission,
     course: course,
   ) }
@@ -20,6 +20,11 @@ RSpec.describe FellowEvaluationSubmissionPolicy, type: :policy do
   end
 
   permissions :new? do
+    before(:each) do
+      # Since this is #new, the submission.user will always be the current user.
+      fellow_evaluation_submission.update!(user: user)
+    end
+
     it "allows admins" do
       user.add_role :admin
       expect(subject).to permit(user, fellow_evaluation_submission)
@@ -36,7 +41,9 @@ RSpec.describe FellowEvaluationSubmissionPolicy, type: :policy do
     end
 
     it "disallows users who aren't in the course" do
-      expect(subject).not_to permit(user, fellow_evaluation_submission)
+      expect {
+        expect(subject).not_to permit(user, fellow_evaluation_submission)
+      }.to raise_error(Pundit::NotAuthorizedError)
     end
   end
 
@@ -64,11 +71,13 @@ RSpec.describe FellowEvaluationSubmissionPolicy, type: :policy do
   permissions :show? do
     let(:admin_user) { create :admin_user }
     let(:ta_user) { create :ta_user, section: section }
+
     before(:each) do
       fellow_evaluation_submission.update!(user: user)
     end
 
-    it "allows users to view their own submissions" do
+    it "allows users to view their own submissions in a course they're enrolled in" do
+      user.add_role RoleConstants::STUDENT_ENROLLMENT, section
       expect(subject).to permit(user, fellow_evaluation_submission)
     end
 
@@ -77,7 +86,10 @@ RSpec.describe FellowEvaluationSubmissionPolicy, type: :policy do
     end
 
     it "disallows users from viewing other peoples submissions" do
-      expect(subject).not_to permit(ta_user, fellow_evaluation_submission)
+      expect {
+        # Note: `ta_user` is not a TA *for* `user` here.
+        expect(subject).not_to permit(ta_user, fellow_evaluation_submission)
+      }.to raise_error(Pundit::NotAuthorizedError)
     end
   end
 end
