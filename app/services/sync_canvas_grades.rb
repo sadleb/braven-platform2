@@ -9,7 +9,10 @@ class SyncCanvasGrades
   end
 
   def run
-    canvas_course_ids = SalesforceAPI.client.get_current_and_future_accelerator_canvas_course_ids
+    canvas_course_ids = SalesforceAPI.client.get_current_and_future_accelerator_canvas_course_ids(
+      # Continue syncing after program end date until grades are finalized.
+      ended_less_than: 45.days.ago
+    )
     Honeycomb.add_field('sync_canvas_grades.courses.count', canvas_course_ids.count)
     Rails.logger.info("Found #{canvas_course_ids.count} courses")
 
