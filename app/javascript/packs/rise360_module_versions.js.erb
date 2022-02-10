@@ -123,11 +123,42 @@ export async function main() {
     }
   } // onRise360DOMMutated()
 
+
+  // Show a message about updating your browser if the Rise360 module content is blank.
+  // We don't actually try and detect the browser to determine if it's unsupported b/c
+  // that's too error prone and unmaintainable. However, we've noticed that this happens
+  // on unsupported browsers (notably Safari 13.1) so we wait 10 seconds and show a message
+  // about needing to use the latest version of Chrome or Safari (our only officially supported
+  // browsers) if it's still blank.
+  function handleBlankRise360Content() {
+    setTimeout(function(){
+      const honeySpan = new HoneycombAddToSpan('rise360_module_versions', 'handleBlankRise360Content');
+      try {
+        const appNode = iframeDocument.getElementById('app');
+        if(appNode && !appNode.hasChildNodes()) {
+          honeySpan.addField('blank_content_found', true);
+
+          appNode.innerHTML +=
+            '<div class="bv-browser-warning-outer">' +
+              '<div class="bv-browser-warning-inner">' +
+                'Please try using the latest version of Chrome or Safari to view this.<br><br>' +
+                'It doesn\'t seem to be working in your browser.' +
+              '</div>' +
+            '</div>';
+        }
+      } catch (err) {
+        const errorMsg = 'Failed to run blank Rise360 content logic.';
+        honeySpan.addErrorDetails(errorMsg, err);
+      }
+    }, 10000);
+  }
+
   //////////////////////////////
   // Actually run the functions
   //////////////////////////////
   injectStylesheet();
   onRise360DOMMutated();
+  handleBlankRise360Content();
 
 } // END: main
 

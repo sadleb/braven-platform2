@@ -21,7 +21,39 @@
 
 @import "shared/variables";
 
-// Add custom styles to overwrite the Rise360 ones that we need here.
+/** Styles for injected HTML */
+@keyframes fadeInRight {
+    0% {
+        opacity: 0;
+        transform: translate3d(50px,0,0)
+    }
+
+    to {
+        opacity: 1;
+        transform: translateZ(0)
+    }
+}
+
+div.bv-browser-warning-outer {
+  animation: fadeInRight 1.2s ease-in-out;
+  display: flex;
+  justify-content: center;
+  font-size: 120%;
+  padding: 1.6rem;
+}
+
+div.bv-browser-warning-inner {
+  border: 0.6rem solid $bv-oceanblue-600;
+  border-radius: 0.6rem;
+  margin-top: 6rem;
+  padding: 4rem;
+  width: $container-max-width-md;
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// Add custom styles to overwrite the Rise360 ones that we need below.
+//////////////////////////////////////////////////////////////////////
 
 /** Links */
 .page__content .brand--linkColor a {
