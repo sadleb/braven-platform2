@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_01_06_224200) do
+ActiveRecord::Schema.define(version: 2022_02_10_201857) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
@@ -81,7 +81,7 @@ ActiveRecord::Schema.define(version: 2022_01_06_224200) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.string "event_type", null: false
-    t.check_constraint "(event_type)::text = ANY ((ARRAY['learning_lab'::character varying, 'orientation'::character varying, 'leadership_coach_1_1'::character varying])::text[])", name: "chk_attendance_events_event_type"
+    t.check_constraint "(event_type)::text = ANY ((ARRAY['learning_lab'::character varying, 'orientation'::character varying, 'leadership_coach_1_1'::character varying, 'mock_interviews'::character varying])::text[])", name: "chk_attendance_events_event_type"
   end
 
   create_table "canvas_rubric_criterion", force: :cascade do |t|
@@ -420,8 +420,6 @@ ActiveRecord::Schema.define(version: 2022_01_06_224200) do
     t.string "lc2_first_name"
     t.string "lc2_last_name"
     t.string "lc_count"
-    t.string "ta_names", array: true
-    t.string "ta_caseload_name"
     t.datetime "created_at", precision: 6, default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.datetime "updated_at", precision: 6, default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.index ["sfid"], name: "index_participant_sync_infos_on_sfid", unique: true

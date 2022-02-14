@@ -31,6 +31,7 @@ class SalesforceAPI
                              :volunteer_role, :zoom_prefix,
                              :zoom_meeting_id_1, :zoom_meeting_id_2,
                              :zoom_meeting_link_1, :zoom_meeting_link_2,
+                             :zoom_meeting_link_3,
                              :teaching_assistant_sections
                             ) do
     def add_to_honeycomb_span
@@ -473,6 +474,7 @@ class SalesforceAPI
                       participant['VolunteerRole'], participant['ZoomPrefix'],
                       participant['ZoomMeetingId1'], participant['ZoomMeetingId2'],
                       participant['ZoomMeetingLink1'], participant['ZoomMeetingLink2'],
+                      participant['ZoomMeetingLink3'],
                       participant['TeachingAssistantSections'],
                      )
   end

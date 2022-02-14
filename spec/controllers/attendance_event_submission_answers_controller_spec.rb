@@ -50,7 +50,7 @@ RSpec.describe AttendanceEventSubmissionAnswersController, type: :controller do
     end
 
     shared_examples 'attendance event without Zoom link' do
-      let(:salesforce_participant) { create :salesforce_participant, zoom_meeting_link1: nil, zoom_meeting_link2: nil }
+      let(:salesforce_participant) { create :salesforce_participant, zoom_meeting_link1: nil, zoom_meeting_link2: nil, zoom_meeting_link3: nil }
       let(:user) { create :fellow_user, section: section }
 
       it_behaves_like 'an LTI assignment launch'
@@ -65,6 +65,7 @@ RSpec.describe AttendanceEventSubmissionAnswersController, type: :controller do
       context 'when Participant has link' do
         let(:zoom_meeting_link1) { 'https://meeting_link.example.fake1' }
         let(:zoom_meeting_link2) { 'https://meeting_link.example.fake2' }
+        let(:zoom_meeting_link3) { 'https://meeting_link.example.fake3' }
 
         # You must set an expected_meeting_link variable before calling this.
         shared_examples 'shows the Zoom link' do
@@ -77,14 +78,14 @@ RSpec.describe AttendanceEventSubmissionAnswersController, type: :controller do
         end
 
         context 'Fellow' do
-          let(:salesforce_participant) { create :salesforce_participant_fellow, zoom_meeting_link1: zoom_meeting_link1, zoom_meeting_link2: zoom_meeting_link2 }
+          let(:salesforce_participant) { create :salesforce_participant_fellow, zoom_meeting_link1: zoom_meeting_link1, zoom_meeting_link2: zoom_meeting_link2, zoom_meeting_link3: zoom_meeting_link3 }
           let(:user) { create :fellow_user, section: section }
           it_behaves_like 'an LTI assignment launch'
           it_behaves_like 'shows the Zoom link'
         end
 
         context 'TA' do
-          let(:salesforce_participant) { create :salesforce_participant_ta, zoom_meeting_link1: zoom_meeting_link1, zoom_meeting_link2: zoom_meeting_link2 }
+          let(:salesforce_participant) { create :salesforce_participant_ta, zoom_meeting_link1: zoom_meeting_link1, zoom_meeting_link2: zoom_meeting_link2, zoom_meeting_link3: zoom_meeting_link3 }
           let(:user) { create :ta_user, section: section }
           it_behaves_like 'an LTI assignment launch'
           it_behaves_like 'shows the Zoom link'
@@ -106,6 +107,12 @@ RSpec.describe AttendanceEventSubmissionAnswersController, type: :controller do
     context 'when Orientation event' do
       let(:attendance_event) { create :orientation_attendance_event }
       let(:expected_meeting_link) { zoom_meeting_link2 }
+      it_behaves_like 'attendance event with Zoom link'
+    end
+
+    context 'when Mock Interviews event' do
+      let(:attendance_event) { create :mock_interviews_attendance_event }
+      let(:expected_meeting_link) { zoom_meeting_link3 }
       it_behaves_like 'attendance event with Zoom link'
     end
 

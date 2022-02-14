@@ -4,13 +4,18 @@ FactoryBot.define do
     event_type { AttendanceEvent::LEARNING_LAB} # Default
 
     factory :learning_lab_attendance_event do
-      title { 'CLASS: Learning Lab 2: Lead Authentically' }
+      title { 'ATTEND: Learning Lab 2: Lead Authentically' }
       event_type { AttendanceEvent::LEARNING_LAB}
     end
 
     factory :orientation_attendance_event do
       title { 'Orientation' }
       event_type { AttendanceEvent::ORIENTATION }
+    end
+
+    factory :mock_interviews_attendance_event do
+      title { 'ATTEND: Learning Lab 8: Mock Interview Event' }
+      event_type { AttendanceEvent::MOCK_INTERVIEWS }
     end
 
     factory :one_on_one_attendance_event do

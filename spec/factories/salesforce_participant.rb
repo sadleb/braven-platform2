@@ -10,6 +10,7 @@ FactoryBot.define do
       sequence(:discord_user_id) { |i| "#{i}" }
       zoom_meeting_link1 { nil }
       zoom_meeting_link2 { nil }
+      zoom_meeting_link3 { nil }
       cohort_schedule_day { 'Monday' }
       teaching_assistant_sections { nil }
     end
@@ -36,6 +37,7 @@ FactoryBot.define do
     sequence(:ZoomMeetingLink1) { zoom_meeting_link1 }
     sequence(:ZoomMeetingId2) { |i| "%010d" % (i + 10000)}
     sequence(:ZoomMeetingLink2) { zoom_meeting_link2 }
+    sequence(:ZoomMeetingLink3) { zoom_meeting_link3 }
     sequence(:TeachingAssistantSections) { teaching_assistant_sections }
     sequence(:DiscordServerId) { |i| "#{i}" }
 

@@ -38,6 +38,7 @@ RSpec.describe AttendanceEventsController, type: :controller do
         assert_select 'option[value=learning_lab]', 'Learning Lab'
         assert_select 'option[value=leadership_coach_1_1]', 'Leadership Coach 1-1'
         assert_select 'option[value=orientation]', 'Orientation'
+        assert_select 'option[value=mock_interviews]', 'Mock Interviews'
       end
     end
   end

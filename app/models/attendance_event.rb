@@ -9,22 +9,30 @@ class AttendanceEvent < ApplicationRecord
   LEARNING_LAB = :learning_lab
   LEADERSHIP_COACH_1_1 = :leadership_coach_1_1
   ORIENTATION = :orientation
+  MOCK_INTERVIEWS = :mock_interviews
 
   # Hardcoded mapping of the above event_types to the attribute on SFParticipant
   # to pull the Zoom link from. Missing mappings means don't show a Zoom link.
   ZOOM_MEETING_LINK_ATTRIBUTE_FOR = {
     LEARNING_LAB => :zoom_meeting_link_1,
     ORIENTATION => :zoom_meeting_link_2,
+    MOCK_INTERVIEWS => :zoom_meeting_link_3,
   }
 
   validates :title, :event_type, presence: true
-  validates :event_type, inclusion: { in: [LEARNING_LAB.to_s, LEADERSHIP_COACH_1_1.to_s, ORIENTATION.to_s],
-    message: "%{value} is not a valid event_type" }
+  validates :event_type, inclusion: {
+    in: [
+      LEARNING_LAB.to_s,
+      LEADERSHIP_COACH_1_1.to_s,
+      ORIENTATION.to_s,
+      MOCK_INTERVIEWS.to_s
+    ], message: "%{value} is not a valid event_type"
+  }
 
   has_many :course_attendance_events
 
   # The displayed value of the event_type in human readable format.
-  # E.g. Learning Lab, Orientation, or Leadership Coach 1:1
+  # E.g. Learning Lab, Orientation, Mock Interviews, or Leadership Coach 1:1
   def event_type_display
     return @event_type_display if @event_type_display
     Honeycomb.add_field('attendance_event.event_type', event_type.to_s)

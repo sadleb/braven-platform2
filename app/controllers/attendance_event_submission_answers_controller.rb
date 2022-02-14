@@ -45,13 +45,13 @@ private
       program_id = @course_attendance_event.course.salesforce_program_id
       participant = SalesforceAPI.client.find_participant(contact_id: current_user.salesforce_id, program_id: program_id)
 
-      # Make it easier to debug and be extra defensive if values other than the two attributes
+      # Make it easier to debug and be extra defensive if values other than the three attributes
       # we're allowing to be dynamically sent to the struct in order to get the Zoom links are used.
-      unless [:zoom_meeting_link_1, :zoom_meeting_link_2].include?(zoom_link_to_show)
+      unless [:zoom_meeting_link_1, :zoom_meeting_link_2, :zoom_meeting_link_3].include?(zoom_link_to_show)
         raise ArgumentError.new("zoom_link_to_show=#{zoom_link_to_show} not supported")
       end
 
-      # Note that this particular Participant may not have a Zoom link sync'd for this
+      # Note that this particular Participant may not have a Zoom link sync'd or uploaded for this
       # field which is fine. If it's nil the view just doesn't show a link.
       @zoom_meeting_link =  participant.send(zoom_link_to_show)
       Honeycomb.add_field("salesforce.participant.#{zoom_link_to_show}", @zoom_meeting_link.to_s)
