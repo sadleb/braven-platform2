@@ -104,7 +104,7 @@ export async function main() {
 
     function attachInputListeners() {
         getAllInputs().forEach(input => {
-          input.onblur = sendAnswer;
+          input.onchange = sendAnswer;
         });
     }
 
