@@ -420,6 +420,8 @@ ActiveRecord::Schema.define(version: 2022_02_10_201857) do
     t.string "lc2_first_name"
     t.string "lc2_last_name"
     t.string "lc_count"
+    t.string "ta_names", array: true
+    t.string "ta_caseload_name"
     t.datetime "created_at", precision: 6, default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.datetime "updated_at", precision: 6, default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.index ["sfid"], name: "index_participant_sync_infos_on_sfid", unique: true
