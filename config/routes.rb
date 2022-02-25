@@ -145,6 +145,12 @@ Rails.application.routes.draw do
 
   resources :survey_submissions, only: [:show]
   resources :capstone_evaluation_submissions, only: [:show]
+  resources :capstone_evaluation_results, only: [] do
+    collection do
+      get :launch
+      post :score
+    end
+  end
 
   resources :attendance_event_submissions, only: [:edit, :update] do
     collection do

@@ -13,12 +13,6 @@ RSpec.describe CapstoneEvaluationsController, type: :controller do
   end
 
   shared_examples 'updates Capstone Evaluation assignment for the template' do
-    scenario 'calls the Canvas API' do
-      expect(canvas_client)
-        .to have_received(canvas_api_call)
-        .once
-    end
-
     scenario 'renders a success notification' do
       expect(flash[:notice]).to match /successfully/
     end
@@ -39,6 +33,13 @@ RSpec.describe CapstoneEvaluationsController, type: :controller do
       post :publish, params: { course_id: course.id }
     end
 
+    # Publishing Capstone Evaluation assignment also published the Capstone Evaluation Results assignment
+    it 'creates two new canvas assignments (Capstone Evaluation assignment and Capstone Evaluation Results assignment)' do
+      expect(canvas_client)
+        .to have_received(canvas_api_call)
+        .twice
+    end
+
     it_behaves_like 'updates Capstone Evaluation assignment for the template'
   end
 
@@ -47,6 +48,13 @@ RSpec.describe CapstoneEvaluationsController, type: :controller do
     before(:each) do
       allow(canvas_client).to receive(:delete_assignment)
       delete :unpublish, params: { course_id: course.id, canvas_assignment_id: 123 }
+    end
+
+    # Capstone Evaluation assignment and Capstone Evaluation Results assignment are deleted separately
+    it 'updates Capstone Evaluation assignment or the Capstone Evaluation Results assignment for the template' do
+      expect(canvas_client)
+        .to have_received(canvas_api_call)
+        .once
     end
 
     it_behaves_like 'updates Capstone Evaluation assignment for the template'

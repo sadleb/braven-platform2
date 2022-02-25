@@ -10,4 +10,6 @@ class CapstoneEvaluationSubmissionAnswer < ApplicationRecord
   has_one :user, through: :capstone_evaluation_submission
 
   validates :capstone_evaluation_submission_id, :for_user_id, :capstone_evaluation_question_id, :input_value, presence: true
+
+  scope :graded, -> { joins(:capstone_evaluation_submission).where('capstone_evaluation_submissions.new = ?', false)}
 end

@@ -63,7 +63,19 @@
                                     data: { confirm: 'Are you sure you want to delete the Capstone Evaluations assignment?' } %>
             <% else %>
               <span class="col-md-10"><em>No Capstone Evaluations Assignment</em></span>
+              <% unless has_capstone_evaluation_results_assignment? %>
               <%= link_to 'Add', publish_course_capstone_evaluations_path(@course), method: :post, class: 'btn btn-secondary col-md-2 my-0' %>
+            <% end %>
+          <% end %>
+        </div>
+        <div class="row">
+          <% if has_capstone_evaluation_results_assignment? %>
+            <%= link_to 'View Capstone Evaluation Results', canvas_capstone_evaluation_results_url, class: 'col-md-10' %>
+            <%= link_to 'Delete', unpublish_course_capstone_evaluations_path(@course, canvas_assignment_id: canvas_capstone_evaluation_results_assignment_id),
+                                  method: :delete, class: 'btn btn-secondary col-md-2 my-0',
+                                  data: { confirm: 'Are you sure you want to delete the Capstone Evaluation Results assignment?' } %>
+          <% else %>
+            <span class="col-md-10"><em>No Capstone Evaluation Results Assignment</em></span>
             <% end %>
           </div>
         </div>

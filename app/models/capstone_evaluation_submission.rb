@@ -7,6 +7,9 @@ class CapstoneEvaluationSubmission < ApplicationRecord
 
   validates :user_id, :course_id, presence: true
 
+  scope :graded, -> { where(new: false) }
+  scope :ungraded, -> { where(new: true) }
+
   # Takes a nested hash like:
   #   { for_user_id => { capstone_evaluation_question_id: input_value (string) } }
   # and adds them as CapstoneEvaluationSubmissionAnswers to this submission.

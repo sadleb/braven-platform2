@@ -1,0 +1,7 @@
+<% content_for :title, 'Capstone Challenge: Teamwork' %>
+
+<% if current_user.is_enrolled_as_student?(@course) %>
+  <%= render partial: 'fellow_launch_view' %>
+<% elsif current_user.admin? %>
+  <%= render partial: 'admin_launch_view' %>
+<% end %>

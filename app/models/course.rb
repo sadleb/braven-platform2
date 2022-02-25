@@ -25,6 +25,8 @@ class Course < ApplicationRecord
   has_many :course_attendance_events
   has_many :attendance_events, :through => :course_attendance_events
 
+  has_many :capstone_evaluation_submissions
+
   before_validation do
     name.strip!
   end
@@ -59,6 +61,14 @@ class Course < ApplicationRecord
 
   def surveys
     survey_versions.map { |v| v.survey }
+  end
+
+  # TODO: update to association
+  # EX:
+  # has_many :student_sections, -> { where("roles.name = ?", RoleConstants::STUDENT_ENROLLMENT) },
+  #   through: :roles, source: :resource, source_type: 'Section'
+  def students
+    sections.map { |s| s.students }.flatten.uniq
   end
 
   def canvas_url

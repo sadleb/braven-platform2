@@ -1,0 +1,60 @@
+<div class="row">
+  <div class="col-md-12">
+    <h1>Compute Capstone Evaluation Teamwork Results</h1>
+
+    <p>Submissions currently available: <%= @course.capstone_evaluation_submissions.count %> (out of <%= @course.students.count %> total students).</p>
+
+    <% if @grade_capstone_eval_service.students_with_new_submissions.empty? %>
+      <p>There are no new submissions ready to be published.</p>
+    <% else %>
+      <p>Number of new submissions ready to be published: <%= @grade_capstone_eval_service.students_with_new_submissions.count %></p>
+      <p>To publish grades, click the 'Compute Capstone Evaluation Teamwork Results' button.</p>
+    <% end %>
+
+    <%= form_with(url: score_capstone_evaluation_results_path, method: "post",local: true) do |form| %>
+      <%= form.hidden_field :lti_launch_id, value: @lti_launch.id %>
+      <%= form.submit "Compute Capstone Evaluation Teamwork Results", class: 'btn btn-primary', data: { confirm: 'Are you sure? This will send Capstone Evaluation Teamwork grades to Canvas for all students.' } %>
+    <% end %>
+    <br>
+
+    <% unless @grade_capstone_eval_service.remaining_students.empty? %>
+      <p>Students who have not yet submitted Capstone Evaluations:</p>
+      <ul>
+        <% @grade_capstone_eval_service.remaining_students.each do |student| %>
+          <li><%= student.full_name %></li>
+        <% end %>
+      </ul>
+      <br>
+    <% end%>
+
+    <% unless @grade_capstone_eval_service.submissions_have_been_graded? %>
+      <% unless @course.capstone_evaluation_submissions.empty? %>
+        <p>Students who have submitted Capstone Evaluations:</p>
+        <ul>
+          <% @course.capstone_evaluation_submissions.each do |submission| %>
+            <li><%= submission.user.full_name %></li>
+          <% end %>
+        </ul>
+        <br>
+      <% end%>
+    <% else %>
+    <%# Show after evaluations have been graded at least once  %>
+      <% unless @grade_capstone_eval_service.students_with_new_submissions.empty? %>
+        <p>Students with new Capstone Evaluation submissions that are not published:</p>
+        <ul>
+          <% @grade_capstone_eval_service.students_with_new_submissions.each do |student| %>
+            <li><%= student.full_name %></li>
+          <% end %>
+        </ul>
+        <br>
+      <% end%>
+
+      <p>Students who have submitted Capstone Evaluations that are published:</p>
+      <ul>
+        <% @grade_capstone_eval_service.students_with_published_submissions.each do |student| %>
+          <li><%= student.full_name %></li>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
+</div>

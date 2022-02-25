@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_02_10_201857) do
+ActiveRecord::Schema.define(version: 2022_02_11_222113) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
@@ -170,7 +170,9 @@ ActiveRecord::Schema.define(version: 2022_02_10_201857) do
     t.bigint "course_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.boolean "new", default: true
     t.index ["course_id"], name: "index_capstone_evaluation_submissions_on_course_id"
+    t.index ["new"], name: "index_capstone_evaluation_submissions_on_new"
     t.index ["user_id"], name: "index_capstone_evaluation_submissions_on_user_id"
   end
 

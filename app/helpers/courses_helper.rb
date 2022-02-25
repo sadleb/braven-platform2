@@ -24,6 +24,18 @@ module CoursesHelper
     @canvas_assignment_info.canvas_capstone_evaluations_assignment_id
   end
 
+  def has_capstone_evaluation_results_assignment?
+    !!@canvas_assignment_info.canvas_capstone_evaluation_results_url
+  end
+
+  def canvas_capstone_evaluation_results_url
+    @canvas_assignment_info.canvas_capstone_evaluation_results_url
+  end
+
+  def canvas_capstone_evaluation_results_assignment_id
+    @canvas_assignment_info.canvas_capstone_evaluation_results_assignment_id
+  end
+
   def has_preaccelerator_survey?
     !!canvas_preaccelerator_survey_url
   end

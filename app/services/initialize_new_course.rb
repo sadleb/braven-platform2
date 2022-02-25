@@ -65,7 +65,7 @@ private
       initialize_new_course_attendance_event(canvas_assignment_id, course_attendance_event)
     end
 
-    # Peer review
+    # Capstone Evaluation
     if canvas_assignment_info.canvas_capstone_evaluations_assignment_id
       initialize_new_capstone_evaluation(canvas_assignment_info.canvas_capstone_evaluations_assignment_id)
     end

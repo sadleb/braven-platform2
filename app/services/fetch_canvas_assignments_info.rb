@@ -14,6 +14,7 @@ class FetchCanvasAssignmentsInfo
               :canvas_preaccelerator_survey_url, :canvas_preaccelerator_survey_assignment_id,
               :canvas_postaccelerator_survey_url, :canvas_postaccelerator_survey_assignment_id,
               :canvas_capstone_evaluations_url, :canvas_capstone_evaluations_assignment_id,
+              :canvas_capstone_evaluation_results_url, :canvas_capstone_evaluation_results_assignment_id,
               :canvas_fellow_evaluation_url, :canvas_fellow_evaluation_assignment_id,
               :canvas_discord_signups_url, :canvas_discord_signups_assignment_id,
               :course_project_versions, :course_survey_versions,
@@ -37,6 +38,9 @@ class FetchCanvasAssignmentsInfo
     @canvas_capstone_evaluations_url = nil
     @canvas_capstone_evaluations_assignment_id = nil
 
+    @canvas_capstone_evaluation_results_url = nil
+    @canvas_capstone_evaluation_results_assignment_id = nil
+
     @canvas_fellow_evaluation_url = nil
     @canvas_fellow_evaluation_assignment_id = nil
 
@@ -52,7 +56,7 @@ class FetchCanvasAssignmentsInfo
     @rise360_module_versions_mapping = nil
 
     # Add the rest of the assignment types we implement as well. E.g. pre/post
-    # accelerator surveys, peer evaluations, attendance, etc
+    # accelerator surveys, capstone evaluations, attendance, etc
   end
 
   def run
@@ -108,6 +112,9 @@ private
     # was copied containing the old course ID
     capstone_evaluation_submission_path = 'capstone_evaluation_submissions/new'
     add_capstone_evaluation_info(canvas_assignment) and return if lti_launch_url =~ /#{capstone_evaluation_submission_path}/
+
+    capstone_evaluation_result_path = launch_capstone_evaluation_results_path
+    add_capstone_evaluation_result_info(canvas_assignment) and return if lti_launch_url =~ /#{capstone_evaluation_result_path}/
 
     fellow_evaluation_submission_path = 'fellow_evaluation_submissions/new'
     add_fellow_evaluation_info(canvas_assignment) and return if lti_launch_url =~ /#{fellow_evaluation_submission_path}/
@@ -172,6 +179,16 @@ private
     end
     @canvas_capstone_evaluations_url = canvas_assignment['html_url']
     @canvas_capstone_evaluations_assignment_id = canvas_assignment['id']
+  end
+
+  def add_capstone_evaluation_result_info(canvas_assignment)
+    if @canvas_capstone_evaluation_results_url
+      raise FetchCanvasAssignmentsInfoError, "Duplicate Capstone Evaluation Results assignment found."\
+        "First[#{@canvas_capstone_evaluation_results_url}]. "\
+        "Second[#{canvas_assignment['html_url']}]."
+    end
+    @canvas_capstone_evaluation_results_url = canvas_assignment['html_url']
+    @canvas_capstone_evaluation_results_assignment_id = canvas_assignment['id']
   end
 
   def add_fellow_evaluation_info(canvas_assignment)
