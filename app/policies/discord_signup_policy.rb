@@ -19,6 +19,10 @@ class DiscordSignupPolicy < ApplicationPolicy
     !!user
   end
 
+  def reset_assignment?
+    !!user
+  end
+
   def publish?
     edit?
   end

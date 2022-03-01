@@ -177,6 +177,15 @@ class DiscordSignupsController < ApplicationController
     render layout: 'lti_canvas'
   end
 
+  def reset_assignment
+    authorize :discord_signup
+
+    current_user.update!(discord_token: nil)
+    Honeycomb.add_field('discord_signups.reset_token', true)
+
+    redirect_to launch_discord_signups_url(lti_launch_id: params[:lti_launch_id]), notice: 'Assignment successfully reset, please follow the steps to join the Braven Discord server with a new account.'
+  end
+
 private
   # Used by #publish and #publish_latest to set the Canvas assignment's name
   def assignment_name

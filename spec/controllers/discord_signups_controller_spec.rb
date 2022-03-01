@@ -407,6 +407,26 @@ RSpec.describe DiscordSignupsController, type: :controller do
     end
   end
 
+  describe 'GET #reset_assignment' do
+    subject { get :reset_assignment, params: { lti_launch_id: lti_launch.id } }
+
+    before(:each) do
+      user.discord_token = '123'
+    end
+
+    it 'sets the current user\'s Discord token to nil' do
+      expect(user.discord_token).to eq('123')
+      subject
+      user.reload
+      expect(user.discord_token).to eq(nil)
+    end
+
+    it 'redirects to launch_discord_signups_url' do
+      subject
+      expect(response).to redirect_to(launch_discord_signups_url(lti_launch_id: lti_launch.id))
+    end
+  end
+
   context 'when logged in as admin user' do
     let!(:user) { create :admin_user }
     let(:course) { create :course }

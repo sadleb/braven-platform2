@@ -80,7 +80,13 @@
     <ul>
       <li>Discord Login Email: <strong><%= @discord_user["email"] %></strong></li>
       <li>Discord Username: <strong><%= @discord_user["username"] %>#<%= @discord_user["discriminator"] %></strong></li>
-    </ul>
+    </ul><br>
+
+    <p>To change the Discord account you use for Braven, click the button below. This will reset the assignment and allow you to go through the steps to connect the new Discord account.</p>
+    <div class="d-flex justify-content-center">
+      <%= link_to "Reset Assignment", reset_assignment_discord_signups_path(lti_launch_id: @lti_launch.id), class: "btn btn-lg btn-primary btn-block discord-refresh-btn" %>
+    </div><br>
+
 
     <p>If you need to get back to the Braven Discord server in the future, you can always find it by opening Discord.com or the Discord app, and looking for the Braven icon on the left side of the screen.</p>
     <img src="https://platform-prod-assets.s3.amazonaws.com/Discord+Signup+Images/discord-server-icon.png" alt="Find the Braven server in the Discord servers navigation list" class="discord-signup">

@@ -230,6 +230,7 @@ Rails.application.routes.draw do
       get :launch
       get :oauth
       get :completed
+      get :reset_assignment
     end
   end
 
