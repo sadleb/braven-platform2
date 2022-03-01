@@ -1,8 +1,11 @@
 # frozen_string_literal: true
 require 'salesforce_api'
+require 'canvas_api'
 
 # Responsible for calculating the grades for the Capstone Evaluation Teamwork assignment and sending grades to Canvas
 class GradeCapstoneEvaluations
+  include Rails.application.routes.url_helpers
+
   def initialize(course, lti_launch)
     @course = course
     @lti_launch = lti_launch
@@ -20,6 +23,15 @@ class GradeCapstoneEvaluations
       total_score = question_scores.map { |k, v| v }.sum
 
       grades[user.canvas_user_id] = total_score
+
+      # Create a submission for the Capstone Evaluations Teamwork assignment for the user
+      # we are giving a grade, so they are able to see the grade breakdown from grades
+      CanvasAPI.client.create_lti_submission(
+        @course.canvas_course_id,
+        @lti_launch.assignment_id,
+        user.canvas_user_id,
+        launch_capstone_evaluation_results_url(protocol: 'https')
+      )
     end
 
     CanvasAPI.client.update_grades(@course.canvas_course_id, @lti_launch.assignment_id, grades)

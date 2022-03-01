@@ -119,16 +119,22 @@ class CanvasAPI
 
   # Submits an assignment for a user that when viewed, launches the specified
   # lti_launch_url as the submission to view.
+  #
+  # WARNING: This method should only be used in the event that fellows do not ever need to
+  # create a submission for an assignment. If this method is used, LTI Advantage API cannot
+  # be used to submit the assignment again. Once this method is used to create a submission,
+  # future submissions will only be able to be made using this method again, so fellows will
+  # never be able to create a submission themselves.
+  # Use LtiAdvantage 'to create basic_lti_launch submission types instead'
   def create_lti_submission(canvas_course_id, assignment_id, canvas_user_id, lti_launch_url)
-    raise NotImplementedError, 'This is going to lead to headaches. It''ll sort of work ' \
-      'in certain situations, but fail with permission errors in others. Use LtiAdvantage ' \
-      'to create basic_lti_launch submission types instead'
-    #  body = {
-    #    'submission[submission_type]' => 'basic_lti_launch',
-    #    'submission[user_id]' => canvas_user_id,
-    #    'submission[url]' => lti_launch_url
-    #  }
-    #  post("/courses/#{canvas_course_id}/assignments/#{assignment_id}/submissions", body)
+    body = {
+       'submission[submission_type]' => 'basic_lti_launch',
+       'submission[user_id]' => canvas_user_id,
+       'submission[url]' => lti_launch_url
+     }
+
+     response = post("/courses/#{canvas_course_id}/assignments/#{assignment_id}/submissions", body)
+     JSON.parse(response.body)
   end
 
   # Get the latest submission for a user's assignment.

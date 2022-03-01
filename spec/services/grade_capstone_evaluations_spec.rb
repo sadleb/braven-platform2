@@ -30,14 +30,34 @@ RSpec.describe GradeCapstoneEvaluations do
   }
 
   describe '#run' do
+    # Need to create ungraded submission answers for a user to check if create_lti_submission gets called
+    4.times do |i|
+      # Create the 4 Capstone Evaluation Questions
+      let!(:"cap_eval_quesion-#{i + 1}") { create(:capstone_evaluation_question, id: i + 1)}
+      # Create 4 ungraded Capstone Evaluation Submission Answers for a user
+      let!(:"ungraded_cap_eval_sub_answer-#{i + 1}"){ create(
+        :capstone_evaluation_submission_answer,
+        capstone_evaluation_submission_id: ungraded_capstone_evaluation_submission.id,
+        for_user_id: fellow_with_new_submission.id,
+        capstone_evaluation_question_id: i + 1,
+        input_value: 8
+      ) }
+    end
+
     before(:each) do
       allow(CanvasAPI).to receive(:client).and_return(canvas_client)
       allow(canvas_client)
+        .to receive(:create_lti_submission)
+      allow(canvas_client)
         .to receive(:update_grades)
-        .and_return(nil)
     end
 
     subject(:run_service) { grade_capstone_evaluations_service.run() }
+
+    it 'calls create_lti_submission' do
+      expect(canvas_client).to receive(:create_lti_submission)
+      subject
+    end
 
     it 'calls update_grades' do
       expect(canvas_client).to receive(:update_grades)

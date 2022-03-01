@@ -99,6 +99,7 @@ class LtiLaunchController < ApplicationController
          /#{completed_preaccelerator_survey_submissions_path}/,
          /#{completed_postaccelerator_survey_submissions_path}/,
          /#{capstone_evaluation_submission_path('')}\d+$/,
+         /#{launch_capstone_evaluation_results_path}/,
          /#{fellow_evaluation_submission_path('')}\d+$/
       append_query_param(target_uri, "state=#{params[:state]}")
 
