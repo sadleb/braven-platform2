@@ -97,7 +97,7 @@ gem 'will_paginate'
 gem 'rest-client'
 
 gem 'devise'
-gem 'devise_cas_authenticatable'
+gem 'devise_cas_authenticatable', '~> 1'
 
 gem 'react-rails'
 

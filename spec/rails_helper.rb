@@ -115,7 +115,7 @@ require 'api_helper'
 # Patch HttpStreamingResponse to make rack-proxy compatible with webmocks
 # Note: we "load" here b/c it was already "required" before the Rack stuff loaded
 # so it seemed to be getting clobbered.
-load 'support/http_streaming_response_patch'
+load 'support/http_streaming_response_patch.rb'
 
 # Pundit authorization.
 require "pundit/rspec"
