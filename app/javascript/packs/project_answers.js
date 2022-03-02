@@ -142,14 +142,6 @@ export async function main() {
             input.closest('fieldset') : input;
         const lastSavedValue = input.dataset.lastSavedValue;
 
-        // Exit if the value hasn't changed from the last saved one.
-        if (lastSavedValue && input.value == lastSavedValue) return;
-
-        // Ignore it if they clicked into an empty field and did nothing.
-        // Note that we want them to be able to clear out old values, so if
-        // something was already saved then send the empty value.
-        if (!lastSavedValue && !input.value) return;
-
         const inputName = input.name;
         const inputValue = input.value;
         // Alert div is the next sibling on most inputs, but is placed after
@@ -218,7 +210,7 @@ export async function main() {
             inputAlert.querySelector('a').onclick = () => { 
                 // clicking the Retry on any of the failed answers retries them all
                 getUnsavedInputs().forEach((unsavedInput) => {
-                    unsavedInput.dispatchEvent(new Event('blur'));
+                    unsavedInput.dispatchEvent(new Event('change'));
                 });
             }
             changeAutoSaveStatus("Answers failed to save! Check your internet connection. You will lose your work if you continue.", 'autosave-status-error');
