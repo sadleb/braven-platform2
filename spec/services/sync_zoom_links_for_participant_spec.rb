@@ -419,6 +419,32 @@ RSpec.describe SyncZoomLinksForParticipant do
       it_behaves_like 'zoom sync'
     end
 
+    context 'with duplicate registrant_id for participant that violates the ZoomLinkInfo unique constraint' do
+      let(:salesforce_participant) { create :salesforce_participant_fellow }
+      let(:meeting_id_1) { '1234567890' }
+      let(:meeting_id_2) { nil }
+      let(:zoom_registrant2) { nil }
+      let!(:zoom_link_info1) { create(
+        :zoom_link_info,
+        registrant_id: zoom_registrant1['id']
+      )}
+
+      before(:each) do
+        allow(zoom_client)
+          .to receive(:add_registrant)
+          .and_return(zoom_registrant1)
+        allow(sf_client).to receive(:update_zoom_links)
+        salesforce_participant_struct.zoom_meeting_id_2 = meeting_id_2
+      end
+
+      it 'removes ZoomLinkInfo where registrant_id is a duplicate' do
+        zoom_info_arr = ZoomLinkInfo.where(id: zoom_link_info1.id)
+
+        expect(zoom_info_arr.count).not_to eq(0)
+        subject
+        expect(zoom_info_arr.reload.count).to eq(0)
+      end
+    end
   end # END '#run'
 
 end

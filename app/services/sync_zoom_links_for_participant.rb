@@ -189,9 +189,33 @@ private
     upsert_data = []
     upsert_data << @new_zoom_link_info_1.attributes.except('id', 'created_at', 'updated_at') if registrant1 && registrant1['error'].blank?
     upsert_data << @new_zoom_link_info_2.attributes.except('id', 'created_at', 'updated_at') if registrant2 && registrant2['error'].blank?
+    
     if upsert_data.present?
-      ZoomLinkInfo.upsert_all(upsert_data, unique_by: [:salesforce_participant_id, :salesforce_meeting_id_attribute])
+      begin
+        ZoomLinkInfo.transaction do
+          ZoomLinkInfo.upsert_all(upsert_data, unique_by: [:salesforce_participant_id, :salesforce_meeting_id_attribute])
+        end
+      rescue ActiveRecord::RecordNotUnique => e
+        Sentry.capture_exception(e)
+
+        if e.message.include?('violates unique constraint "index_zoom_link_infos_on_registrant_id"')
+          registrant_ids = upsert_data.map {|r| r['registrant_id']}
+          existing_zoom_link_infos = ZoomLinkInfo.where(registrant_id: registrant_ids)
+          raise unless existing_zoom_link_infos.exists?
+          Honeycomb.add_field(
+            'alert.sync_zoom_links_for_participant.zoom_link_info_duplicate',
+            "Error for salesforce_participant_id: #{@salesforce_participant.id}, email: #{@salesforce_participant.email}, error: #{e.message}. Deleting ZoomLinkInfos with registrant_ids: #{registrant_ids}"
+          )
+          existing_zoom_link_infos.destroy_all
+          # Adds in upsert data for the second participant when there are duplicates because
+          # it deletes ZoomLinkInfo already in the table for the duplicate registrant_id
+          # so that it can add in the data here. Sending the alert above to make it known
+          # there might be a duplicate participant.
+          ZoomLinkInfo.upsert_all(upsert_data, unique_by: [:salesforce_participant_id, :salesforce_meeting_id_attribute])
+        else
+          raise
+        end
+      end
     end
   end
-
 end
