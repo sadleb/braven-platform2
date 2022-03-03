@@ -1,7 +1,7 @@
 // This JS module is used to save ProjectSubmissionAnswers entered by the user
 // For an example, see the view used for project_submissions_controller#edit
 import Rails from '@rails/ujs';
-import { HoneycombXhrSpan } from './honeycomb'
+import { HoneycombXhrSpan, HoneycombAddToSpan } from './honeycomb'
 
 const AUTH_HEADER = 'LtiState '+ document.querySelector('meta[name="state"]').content;
 const HONEYCOMB_CONTROLLER_NAME = 'project_answers';
@@ -103,7 +103,11 @@ export async function main() {
     }
 
     function attachInputListeners() {
-        getAllInputs().forEach(input => {
+        const inputs = getAllInputs();
+        const honeySpan = new HoneycombAddToSpan('project_answers', 'attachInputListeners');
+        honeySpan.addField('inputs.count', inputs.length);
+
+        inputs.forEach(input => {
           input.onchange = sendAnswer;
         });
     }
@@ -111,7 +115,11 @@ export async function main() {
     // Project autosave feedback.
     // Remove this if/when we redo in React.
     function attachInputFeedback() {
-        getAllInputs().forEach(input => {
+        const inputs = getAllInputs();
+        const honeySpan = new HoneycombAddToSpan('project_answers', 'attachInputFeedback');
+        honeySpan.addField('inputs.count', inputs.length);
+
+        inputs.forEach(input => {
             var element;
             if (input.type === "radio") {
                 // For radio buttons, put the alert div after the label.
@@ -239,3 +247,33 @@ export async function main() {
 }
 
 document.addEventListener('DOMContentLoaded', main);
+
+const getOneSupportedElement = () => {
+    // return the first text input.
+    return document.querySelector(SUPPORTED_INPUT_ELEMENTS[1]);
+};
+
+['storage', 'popstate'].forEach(eventName => {
+    window.addEventListener(eventName, (event) => {
+        if(getOneSupportedElement().onchange === null) {
+            const msg = `issue detected; repairing with on${eventName} strategy...`;
+            const honeySpan = new HoneycombAddToSpan('project_answers', 'script');
+            honeySpan.addField('repair_message', msg);
+            console.log(msg);
+            honeySpan.sendNow();
+            main();
+        }
+    });
+});
+[500, 1000, 5000, 10000].forEach(delay => {
+    setTimeout(() => {
+        if(getOneSupportedElement().onchange === null) {
+            const msg = `issue detected; repairing with setTimeout(${delay}) strategy...`;
+            const honeySpan = new HoneycombAddToSpan('project_answers', 'script');
+            honeySpan.addField('repair_message', msg);
+            console.log(msg);
+            honeySpan.sendNow();
+            main();
+        }
+    }, delay);
+});
