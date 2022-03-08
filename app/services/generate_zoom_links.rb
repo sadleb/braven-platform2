@@ -92,11 +92,15 @@ private
       field.strip
     }
 
-    participants = CSV.read(@participants_file_path,
-                        headers: true,
-                        encoding:'bom|utf-8',
-                        converters: validation_converter)
-                  .map(&:to_h)
+    begin
+      participants = CSV.read(@participants_file_path,
+                          headers: true,
+                          encoding:'bom|utf-8',
+                          converters: validation_converter)
+                    .map(&:to_h)
+    rescue CSV::MalformedCSVError
+      raise GenerateZoomLinksError,'Make sure the file you uploaded is saved as a CSV file (.csv).'
+    end
     @participants_to_register = participants
   end
 

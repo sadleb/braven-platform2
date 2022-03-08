@@ -194,6 +194,17 @@ RSpec.describe GenerateZoomLinks do
       end
     end
 
+    context 'with a file upload that is not saved as a CSV file' do
+      let(:file_name) { 'non_csv_file.numbers' }
+
+      it 'raises an error the file uploaded is not a CSV file' do
+        expect { validate_and_run }
+          .to raise_error(GenerateZoomLinks::GenerateZoomLinksError)
+          .with_message(/Make sure the file you uploaded is saved as a CSV file/)
+        expect(GenerateZoomLinksJob).not_to have_received(:perform_later)
+      end
+    end
+
     context 'with too many columns' do
       let(:file_name) { 'too_many_columns.csv' }
 
