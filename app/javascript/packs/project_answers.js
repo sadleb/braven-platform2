@@ -20,6 +20,11 @@ const SUPPORTED_INPUT_ELEMENTS = [
 ];
 
 export async function main() {
+    // Send an event at the top of main so we know main is getting called.
+    const manualHoneySpan = new HoneycombAddToSpan('project_answers', 'main');
+    manualHoneySpan.addField('run', true);
+    manualHoneySpan.sendNow();
+
     const wrapperDiv = document.getElementById(WRAPPER_DIV_ID);
     const isReadOnly = wrapperDiv.attributes[READ_ONLY_ATTR].value;
 
@@ -204,9 +209,11 @@ export async function main() {
             if (getUnsavedInputs().length === 0) {
                 changeAutoSaveStatus('All progress saved.', 'autosave-status-success');
                 projectSubmitButton.toggleEnabled(true);
+                honeySpan.addField('unsaved_inputs', false);
             } else {
                 projectSubmitButton.toggleEnabled(false);
                 changeAutoSaveStatus('Some answers are still unsaved! Look for those that say "Failed to save answer." and click Retry.', 'autosave-status-error');
+                honeySpan.addField('unsaved_inputs', true);
             }
         })
         .catch((error) => {
@@ -217,9 +224,11 @@ export async function main() {
             inputAlert.innerHTML = "Failed to save answer. <a href='#'>Retry?</a>";
             inputAlert.querySelector('a').onclick = () => { 
                 // clicking the Retry on any of the failed answers retries them all
-                getUnsavedInputs().forEach((unsavedInput) => {
+                const inputs = getUnsavedInputs();
+                inputs.forEach((unsavedInput) => {
                     unsavedInput.dispatchEvent(new Event('change'));
                 });
+                honeySpan.addField('unsaved_inputs.count', inputs.length);
             }
             changeAutoSaveStatus("Answers failed to save! Check your internet connection. You will lose your work if you continue.", 'autosave-status-error');
 
@@ -253,6 +262,15 @@ const getOneSupportedElement = () => {
     return document.querySelector(SUPPORTED_INPUT_ELEMENTS[1]);
 };
 
+// Send an event outside of main so we know the JS is running at all.
+const honeySpan = new HoneycombAddToSpan('project_answers', 'script');
+honeySpan.addField('run', true);
+honeySpan.sendNow();
+
+/*
+ * Commenting this out for now so we can collect data more reliably
+ * on who's encountering this.
+
 ['storage', 'popstate'].forEach(eventName => {
     window.addEventListener(eventName, (event) => {
         if(getOneSupportedElement().onchange === null) {
@@ -265,7 +283,8 @@ const getOneSupportedElement = () => {
         }
     });
 });
-[500, 1000, 5000, 10000].forEach(delay => {
+*/
+[2000, 5000, 10000].forEach(delay => {
     setTimeout(() => {
         if(getOneSupportedElement().onchange === null) {
             const msg = `issue detected; repairing with setTimeout(${delay}) strategy...`;
