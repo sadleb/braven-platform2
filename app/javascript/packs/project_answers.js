@@ -115,6 +115,14 @@ export async function main() {
         inputs.forEach(input => {
           input.onchange = sendAnswer;
         });
+
+        // TODO: remove this debug code eventually
+        const input = getOneSupportedElement();
+        if (input !== null) {
+            honeySpan.addField('listeners_set', input.onchange !== null);
+        } else {
+            honeySpan.addField('input_not_found', true);
+        }
     }
 
     // Project autosave feedback.
@@ -265,6 +273,9 @@ const getOneSupportedElement = () => {
 // Send an event outside of main so we know the JS is running at all.
 const honeySpan = new HoneycombAddToSpan('project_answers', 'script');
 honeySpan.addField('run', true);
+// Bump this version number any time you need to see what version of the JS they're using.
+// TODO: come up with a better way to get this globally.
+honeySpan.addField('version', 2);
 honeySpan.sendNow();
 
 /*
@@ -286,10 +297,17 @@ honeySpan.sendNow();
 */
 [2000, 5000, 10000].forEach(delay => {
     setTimeout(() => {
-        if(getOneSupportedElement().onchange === null) {
+        const input = getOneSupportedElement();
+        if(input.onchange === null) {
             const msg = `issue detected; repairing with setTimeout(${delay}) strategy...`;
             const honeySpan = new HoneycombAddToSpan('project_answers', 'script');
             honeySpan.addField('repair_message', msg);
+            try {
+                honeySpan.addField('input_html', input.outerHTML);
+                honeySpan.addField('input_onchange', String(input.onchange));
+            } catch (e) {
+                console.log(e);
+            }
             console.log(msg);
             honeySpan.sendNow();
             main();
