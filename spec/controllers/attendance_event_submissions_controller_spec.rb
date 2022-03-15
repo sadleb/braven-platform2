@@ -48,13 +48,22 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
   describe 'GET #launch' do
     subject { get(:launch, params: { lti_launch_id: @lti_launch.id } ) }
 
-    shared_examples 'valid launch' do
+    shared_examples 'valid launch with no previous attendance submissions for the course attendance event' do
       scenario 'creates a submission' do
         expect { subject }.to change(AttendanceEventSubmission, :count).by(1)
       end
 
-      scenario 'uses the same submission on the second launch request' do
-        subject
+      scenario 'redirects to #edit' do
+        expect(subject).to redirect_to edit_attendance_event_submission_path(
+          AttendanceEventSubmission.last,
+          section_id: launch_section.id,
+          lti_launch_id: @lti_launch.id,
+        )
+      end
+    end
+
+    shared_examples 'valid launch with previous attendance submissions for the course attendance event' do
+      scenario 'uses the same submission on the subsequent launch requests' do
         expect { subject }.not_to change(AttendanceEventSubmissionAnswer, :count)
       end
 
@@ -107,7 +116,18 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
           before(:each) do
             user.add_role RoleConstants::TA_ENROLLMENT, accelerator_section
           end
-          it_behaves_like 'valid launch'
+
+          context 'with no previous attendance submissions for this course attendance event' do
+            it_behaves_like 'valid launch with no previous attendance submissions for the course attendance event'
+          end
+
+          context 'with at least one previous attendance submission for this course attendance event' do
+            let!(:attendance_event_submission) { create(
+              :attendance_event_submission,
+              course_attendance_event: course_attendance_event,
+            ) }
+            it_behaves_like 'valid launch with previous attendance submissions for the course attendance event'
+          end
         end
 
         # Admins will just see the attendance form for the first section they are a TA in.
@@ -117,7 +137,18 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
           before(:each) do
             user.add_role RoleConstants::TA_ENROLLMENT, accelerator_section2
           end
-          it_behaves_like 'valid launch'
+
+          context 'with no previous attendance submissions for this course attendance event' do
+            it_behaves_like 'valid launch with no previous attendance submissions for the course attendance event'
+          end
+
+          context 'with at least one previous attendance submission for this course attendance event' do
+            let!(:attendance_event_submission) { create(
+              :attendance_event_submission,
+              course_attendance_event: course_attendance_event,
+            ) }
+            it_behaves_like 'valid launch with previous attendance submissions for the course attendance event'
+          end
         end
       end
 
@@ -145,12 +176,32 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
         ) }
 
         context 'without fellows' do
-          it_behaves_like 'valid launch'
+          context 'with no previous attendance submissions for this course attendance event' do
+            it_behaves_like 'valid launch with no previous attendance submissions for the course attendance event'
+          end
+
+          context 'with at least one previous attendance submission for this course attendance event' do
+            let!(:attendance_event_submission) { create(
+              :attendance_event_submission,
+              course_attendance_event: course_attendance_event,
+            ) }
+            it_behaves_like 'valid launch with previous attendance submissions for the course attendance event'
+          end
         end
 
         context 'with fellows' do
           let!(:fellow_user) { create :fellow_user, section: accelerator_section }
-          it_behaves_like 'valid launch'
+          context 'with no previous attendance submissions for this course attendance event' do
+            it_behaves_like 'valid launch with no previous attendance submissions for the course attendance event'
+          end
+
+          context 'with at least one previous attendance submission for this course attendance event' do
+            let!(:attendance_event_submission) { create(
+              :attendance_event_submission,
+              course_attendance_event: course_attendance_event,
+            ) }
+            it_behaves_like 'valid launch with previous attendance submissions for the course attendance event'
+          end
 
           context 'when different LCs take attendance for the same event' do
             let!(:other_lc) { create :ta_user, canvas_user_id: 998877, section: accelerator_section2 }
@@ -158,13 +209,7 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
               AttendanceEventSubmission.create(user: other_lc, course_attendance_event: course_attendance_event)
             end
 
-            it_behaves_like 'valid launch'
-
-            it 'creates a separate submission' do
-              expect { subject }.to change(AttendanceEventSubmission, :count).by(1)
-              expect(AttendanceEventSubmission.where(user: other_lc).count).to eq(1)
-              expect(AttendanceEventSubmission.where(user: user).count).to eq(1)
-            end
+            it_behaves_like 'valid launch with previous attendance submissions for the course attendance event'
           end
 
         end
@@ -402,6 +447,8 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
 
     context 'as the LC' do
       let(:user) { create :ta_user, section: accelerator_section }
+      let(:other_user) {create :ta_user, section: accelerator_section}
+
       before(:each) do
         user.add_role RoleConstants::STUDENT_ENROLLMENT, lc_playbook_section
       end
@@ -417,11 +464,35 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
         subject
         expect { subject }.not_to change(AttendanceEventSubmissionAnswer, :count)
       end
+
+      context 'when the current user who created the attendance event submission is different than the current user' do
+        before(:each) do
+          attendance_event_submission.update(user: other_user)
+        end
+
+        it 'creates a submission' do
+          expect { subject }.to change(AttendanceEventSubmission, :count).by(1)
+          expect(AttendanceEventSubmission.all.last.user_id).to eq(user.id)
+        end
+      end
     end
 
     context 'as admin' do
       let(:user) { create :admin_user }
+      let(:other_user) { create :admin_user }
+
       it_behaves_like 'a successful update'
+
+      context 'when the current user who created the attendance event submission is different than the current user' do
+        before(:each) do
+          attendance_event_submission.update(user: other_user)
+        end
+
+        it 'creates a submission' do
+          expect { subject }.to change(AttendanceEventSubmission, :count).by(1)
+          expect(AttendanceEventSubmission.all.last.user_id).to eq(user.id)
+        end
+      end
     end
 
     context 'as Fellow' do
