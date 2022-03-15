@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_02_11_222113) do
+ActiveRecord::Schema.define(version: 2022_03_01_210843) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
@@ -82,6 +82,23 @@ ActiveRecord::Schema.define(version: 2022_02_11_222113) do
     t.datetime "updated_at", precision: 6, null: false
     t.string "event_type", null: false
     t.check_constraint "(event_type)::text = ANY ((ARRAY['learning_lab'::character varying, 'orientation'::character varying, 'leadership_coach_1_1'::character varying, 'mock_interviews'::character varying])::text[])", name: "chk_attendance_events_event_type"
+  end
+
+  create_table "canvas_assignment_overrides", force: :cascade do |t|
+    t.bigint "canvas_assignment_override_id", null: false
+    t.bigint "canvas_course_id", null: false
+    t.bigint "canvas_assignment_id", null: false
+    t.bigint "canvas_section_id"
+    t.bigint "canvas_user_id"
+    t.string "title"
+    t.datetime "due_at"
+    t.datetime "lock_at"
+    t.datetime "unlock_at"
+    t.boolean "all_day"
+    t.date "all_day_date"
+    t.datetime "created_at", precision: 6, default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.datetime "updated_at", precision: 6, default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.index "canvas_assignment_override_id, COALESCE(canvas_section_id, ('-1'::integer)::bigint), COALESCE(canvas_user_id, ('-1'::integer)::bigint)", name: "index_canvas_assignment_overrides_unique_1", unique: true
   end
 
   create_table "canvas_rubric_criterion", force: :cascade do |t|

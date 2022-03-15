@@ -44,4 +44,10 @@ class HerokuConnect::Program < HerokuConnect::HerokuConnectRecord
     .where(status__c: [Status::CURRENT, Status::FUTURE], record_type: {name: 'Course'})
     .pluck(:sfid)
   }
+
+  scope :current_and_future_accelerator_canvas_course_ids, -> {
+     joins(:record_type)
+    .where(status__c: [Status::CURRENT, Status::FUTURE], record_type: {name: 'Course'})
+    .pluck(:canvas_cloud_accelerator_course_id__c)
+  }
 end

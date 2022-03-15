@@ -11,6 +11,8 @@ FactoryBot.define do
     due_at { nil }
     all_day { false }
     all_day_date { nil }
+    lock_at { nil }
+    unlock_at { nil }
 
     factory :canvas_assignment_override_due do
       # Arbitrary non-nil due date.
