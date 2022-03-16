@@ -49,5 +49,6 @@ class HerokuConnect::Program < HerokuConnect::HerokuConnectRecord
      joins(:record_type)
     .where(status__c: [Status::CURRENT, Status::FUTURE], record_type: {name: 'Course'})
     .pluck(:canvas_cloud_accelerator_course_id__c)
+    .compact
   }
 end
