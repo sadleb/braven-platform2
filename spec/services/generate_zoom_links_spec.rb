@@ -69,7 +69,8 @@ RSpec.describe GenerateZoomLinks do
     let(:failed_participants) { [] }
     let(:meeting_settings) { {
       'approval_type'=> 0,
-      'registrants_confirmation_email'=> false
+      'registrants_confirmation_email'=> false,
+      'meeting_authentication'=> false,
     } }
     let(:meeting_info) { {
         'id'=> meeting_id,
@@ -159,7 +160,6 @@ RSpec.describe GenerateZoomLinks do
     context 'with Zoom meeting settings, registration not set to required' do
       let(:meeting_settings) { {
         'approval_type'=> 2,
-        'registrants_confirmation_email'=> false
       } }
 
       it 'raises an error when the registration is not required' do
@@ -172,14 +172,26 @@ RSpec.describe GenerateZoomLinks do
 
     context 'with Zoom meeting settings, email notifications turned on' do
       let(:meeting_settings) { {
-        'approval_type'=> 0,
-        'registrants_confirmation_email'=> true
+        'registrants_confirmation_email'=> true,
       } }
 
       it 'raises an error when the email notifications are turned on' do
         expect { validate_and_run }
           .to raise_error(GenerateZoomLinks::GenerateZoomLinksError)
           .with_message(/Email notifications in the Zoom meeting settings must be turned off/)
+        expect(GenerateZoomLinksJob).not_to have_received(:perform_later)
+      end
+    end
+
+    context 'with Zoom meeting settings, "Require authentication to join" turned on' do
+      let(:meeting_settings) { {
+        'meeting_authentication'=> true,
+      } }
+
+      it 'raises a GenerateZoomLinks error' do
+        expect { validate_and_run }
+          .to raise_error(GenerateZoomLinks::GenerateZoomLinksError)
+          .with_message(/"Require authentication to join" must be turned off/)
         expect(GenerateZoomLinksJob).not_to have_received(:perform_later)
       end
     end

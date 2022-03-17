@@ -170,6 +170,11 @@ private
     if meeting_info['settings']['registrants_confirmation_email'] == true
       raise GenerateZoomLinksError,'Email notifications in the Zoom meeting settings must be turned off. In your meeting settings go to "Email Settings", select edit for "Confirmation Email to Registrants" and uncheck the box that says "Send Confirmation Email to Registrants". Then click save.'
     end
+
+    # Meeting_authentication should be set to false
+    if meeting_info['settings']['meeting_authentication'] == true
+      raise GenerateZoomLinksError, '"Require authentication to join" must be turned off. In your Zoom meeting settings make sure this box is not checked.'
+    end
   end
 
   # Checks the CSV headers for email, first_name, last_name in that order
