@@ -86,7 +86,7 @@ private
       elsif field.strip.downcase == meeting_host_email.strip.downcase
         raise GenerateZoomLinksError, "You are trying to register the host of the meeting, this cannot be done. Please remove the email '#{field}' (in row #{field_info.line}) from your CSV and try again."
       elsif field_info.index == 0 && !Devise.email_regexp.match?(field.strip)
-        raise GenerateZoomLinksError, "The email '#{field}' (in row #{field_info.line}) is an invalid email address."
+        raise GenerateZoomLinksError, "The email '#{field}' (in row #{field_info.line}) is an invalid email address. Check that your .csv file has columns ordered correctly (email, first_name, last_name)."
       end
 
       field.strip
