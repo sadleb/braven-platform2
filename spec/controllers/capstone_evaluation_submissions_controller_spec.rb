@@ -99,6 +99,7 @@ RSpec.describe CapstoneEvaluationSubmissionsController, type: :controller do
     context 'as a Fellow with peers in section' do
       let!(:user) { create :fellow_user, section: section }
       let!(:peer_user) { create :peer_user, section: section }
+      let!(:peer_user_without_canvas_user_id) { create :peer_user, section: section, canvas_user_id: nil}
 
       it_behaves_like 'valid request'
 
@@ -107,6 +108,11 @@ RSpec.describe CapstoneEvaluationSubmissionsController, type: :controller do
         expect(response.body).to include("</form>")
         expect(response.body).to include(peer_user.full_name)
         expect(response.body).not_to include (user.full_name)
+      end
+
+      it 'doesn\'t show peers without a canvas_user_id on form' do
+        subject
+        expect(response.body).not_to include(peer_user_without_canvas_user_id.full_name)
       end
 
       it 'redirects to #show if there is a previous submission' do

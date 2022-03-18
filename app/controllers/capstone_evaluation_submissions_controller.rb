@@ -42,7 +42,7 @@ private
       student_section = current_user.student_section_by_course(@course)
       if student_section&.students&.exists?
         # You're enrolled as a student and there are other students in this course
-        @eval_users = student_section.students.where.not(id: current_user.id)
+        @eval_users = student_section.students.where.not(id: current_user.id).where.not(canvas_user_id: nil)
       end
     end
   end
