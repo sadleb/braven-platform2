@@ -24,7 +24,7 @@ private
     capture_error(exception)
 
     @exception = exception
-    render 'errors/not_authorized', layout: 'lti_canvas', status: 403
+    render 'errors/not_authorized', :formats => [:html], layout: 'lti_canvas', status: 403
   end
 
   def handle_error_generic(exception)
