@@ -45,19 +45,14 @@ class AttendanceEventSubmissionsController < ApplicationController
       render :multiple_sections and return
     end
 
-    # Get the most recently submitted attendance data for the current attendance_event
-    @attendance_event_submission = AttendanceEventSubmission
-      .where(course_attendance_event: @course_attendance_event)
-      .order(:updated_at).last
-
     # This is a find_or_new_by() so we have an object to authorize against
-    if @attendance_event_submission.nil?
-      @attendance_event_submission = AttendanceEventSubmission.new(
-        user: current_user,
-        course_attendance_event: @course_attendance_event,
-      )
-    end
-
+    @attendance_event_submission = AttendanceEventSubmission.find_by(
+      user: current_user,
+      course_attendance_event: @course_attendance_event,
+    ) || AttendanceEventSubmission.new(
+      user: current_user,
+      course_attendance_event: @course_attendance_event,
+    )
     authorize @attendance_event_submission
     @attendance_event_submission.save! # Do this after the authorization so we don't add an unauthorized .new record
     redirect_to edit_attendance_event_submission_path(
@@ -75,15 +70,6 @@ class AttendanceEventSubmissionsController < ApplicationController
 
   def update
     authorize @attendance_event_submission
-
-    # If we are updating attendance and a new user is submitting, we want to create a new AttendanceEventSubmission
-    # If it is the same user who previously submitted we will just update their answers
-    if @attendance_event_submission.user != current_user
-      @attendance_event_submission = AttendanceEventSubmission.create!(
-        user: current_user,
-        course_attendance_event: @attendance_event_submission.course_attendance_event,
-      )
-    end
 
     # Save attendance to our DB
     @attendance_event_submission.save_answers!(
