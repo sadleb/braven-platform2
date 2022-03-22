@@ -46,10 +46,10 @@ class AttendanceEventSubmissionsController < ApplicationController
     end
 
     # This is a find_or_new_by() so we have an object to authorize against
-    @attendance_event_submission = AttendanceEventSubmission.find_by(
+    @attendance_event_submission = AttendanceEventSubmission.where(
       user: current_user,
       course_attendance_event: @course_attendance_event,
-    ) || AttendanceEventSubmission.new(
+    ).order(:updated_at).last || AttendanceEventSubmission.new(
       user: current_user,
       course_attendance_event: @course_attendance_event,
     )
