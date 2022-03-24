@@ -19,7 +19,7 @@ class AttendanceEventSubmissionsController < ApplicationController
 
   before_action :set_lti_launch, only: [:launch, :edit, :update]
   before_action :set_accelerator_course, only: [:launch, :edit, :update]
-  before_action :set_course_attendance_event, only: [:launch]
+  before_action :set_course_attendance_event, only: [:launch, :edit]
   before_action :set_fellow_users, only: [:edit, :update]
   # TODO: evaluate removing this now that we don't use iframes.
   # https://app.asana.com/0/1174274412967132/1200999775167872/f
@@ -57,6 +57,7 @@ class AttendanceEventSubmissionsController < ApplicationController
     @attendance_event_submission.save! # Do this after the authorization so we don't add an unauthorized .new record
     redirect_to edit_attendance_event_submission_path(
       @attendance_event_submission,
+      course_attendance_event_id: @course_attendance_event,
       section_id: section.id,
       lti_launch_id: @lti_launch.id,
     )
@@ -66,6 +67,15 @@ class AttendanceEventSubmissionsController < ApplicationController
     authorize @attendance_event_submission
     @course_attendance_events = @attendance_event_submission.course.course_attendance_events.order_by_title
     @section = section
+
+    answer_ids = @fellow_users.map do |fellow|
+      @course_attendance_event.attendance_event_submission_answers.where(for_user_id: fellow.id)
+        .order(:updated_at)
+        .pluck(:id)
+        .last
+    end
+
+    @answers = AttendanceEventSubmissionAnswer.where(id: answer_ids)
   end
 
   def update

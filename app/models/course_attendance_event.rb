@@ -7,6 +7,9 @@ class CourseAttendanceEvent < ApplicationRecord
   belongs_to :course
   belongs_to :attendance_event
 
+  has_many :attendance_event_submissions
+  has_many :attendance_event_submission_answers, through: :attendance_event_submissions
+
   validates :course, :attendance_event, :canvas_assignment_id, presence: true
 
   attr_accessor :due_at

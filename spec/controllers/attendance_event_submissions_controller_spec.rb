@@ -61,6 +61,7 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
       scenario 'redirects to #edit' do
         expect(subject).to redirect_to edit_attendance_event_submission_path(
           AttendanceEventSubmission.last,
+          course_attendance_event_id: course_attendance_event,
           section_id: launch_section.id,
           lti_launch_id: @lti_launch.id,
         )
@@ -198,6 +199,7 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
     subject { get(:edit, params: {
       id: @attendance_event_submission.id,
       lti_launch_id: @lti_launch.id,
+      course_attendance_event_id: course_attendance_event
     } ) }
 
     shared_examples 'no fellows' do
@@ -283,6 +285,40 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
         it "has a required attribute on the present and absent radio buttons" do
           subject
           expect(response.body).to match(/type="radio"[^>]* required.* type="radio"[^>]* required/m)
+        end
+
+        context 'when a Fellow has previous attendance submissions for this CourseAttendanceEvent' do
+          let!(:attendance_event_submission1) { create(
+            :attendance_event_submission,
+            course_attendance_event: course_attendance_event,
+            user: user,
+          ) }
+          let!(:attendance_submission_event_answer1) { create(
+            :absent_attendance_event_submission_answer,
+            attendance_event_submission: attendance_event_submission1,
+            for_user: fellow_user1,
+          ) }
+          let!(:attendance_event_submission2) { create(
+            :attendance_event_submission,
+            course_attendance_event: course_attendance_event,
+            user: user,
+          ) }
+          let!(:attendance_event_submission_answer2) { create(
+            :present_attendance_event_submission_answer,
+            attendance_event_submission: attendance_event_submission2,
+            for_user: fellow_user1,
+          ) }
+
+          it 'shows the attendance data from the most recent submission for this CourseAttendanceEvent for a Fellow' do
+            subject
+            expect(response.body).to match(/Zebra<\/legend>.*name="attendance_event_submission\[#{fellow_user1.id}\]\[in_attendance\]"\s*value="true"/m)
+          end
+        end
+
+        context 'when a Fellow does not have previous attendance submissions for this CourseAttendanceEvent' do
+          it 'does not show attendance data for the Fellow (neither present nor absent are checked)' do
+            expect(response.body).not_to include('value="true"')
+          end
         end
 
         context 'with learning lab event' do

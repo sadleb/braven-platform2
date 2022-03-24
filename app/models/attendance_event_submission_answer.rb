@@ -2,6 +2,8 @@
 
 class AttendanceEventSubmissionAnswer < ApplicationRecord
   belongs_to :attendance_event_submission
+  has_one :course_attendance_event, through: :attendance_event_submission
+
   alias_attribute :submission, :attendance_event_submission
 
   belongs_to :for_user, class_name: 'User'

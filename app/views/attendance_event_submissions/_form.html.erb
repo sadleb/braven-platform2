@@ -16,7 +16,7 @@
       <select id="input-attend-event" name="course_attendance_event_id" class="form-control">
         <% @course_attendance_events.each do |course_attendance_event| %>
           <option value="<%= course_attendance_event.id %>"
-                  <%= option_selected(course_attendance_event.id == @attendance_event_submission.course_attendance_event.id) %>
+                  <%= option_selected(course_attendance_event.id == @course_attendance_event.id) %>
                   ><%= course_attendance_event.attendance_event.title %></option>
         <% end %>
       </select>
@@ -47,7 +47,7 @@
       </div>
 
       <input type="hidden" name="lti_launch_id" value="<%= @lti_launch.id %>">
-      <input type="hidden" name="course_attendance_event_id" value="<%= @attendance_event_submission.course_attendance_event.id %>">
+      <input type="hidden" name="course_attendance_event_id" value="<%= @course_attendance_event.id %>">
 
       <div class="actions col">
         <button type="submit" class="btn btn-secondary">Select section</button>
@@ -68,7 +68,7 @@
           <% if @attendance_event_submission.simple_form? %>
             <% checkbox_name = "attendance_event_submission[#{fellow.id}][in_attendance]" %>
             <% input_id_prefix = "input-#{fellow.id}" %>
-            <% prefill = @attendance_event_submission.answers.find_by(for_user: fellow) %>
+            <% prefill = @answers.find_by(for_user: fellow) %>
 
             <%# We want to see unchecked checkboxes come through as false, so we use a hidden input. %>
             <%# Since Rails uses the last value, it'll see this one if the checkbox is unchecked, but %>
@@ -90,7 +90,7 @@
               <% select_name = "attendance_event_submission[#{fellow.id}][absence_reason]" %>
               <% checkbox_name = "attendance_event_submission[#{fellow.id}][late]" %>
               <% input_id_prefix = "input-#{fellow.id}" %>
-              <% prefill = @attendance_event_submission.answers.find_by(for_user: fellow) %>
+              <% prefill = @answers.find_by(for_user: fellow) %>
 
               <legend><%= fellow.full_name %></legend>
 
