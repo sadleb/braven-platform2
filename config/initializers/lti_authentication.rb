@@ -69,9 +69,12 @@ private
       if status == :ok
         Rails.logger.debug(message)
         success!(user)
-      else
+      elsif status == :forbidden
         Rails.logger.warn(message)
-        handle_failure(status)
+        custom!([403,{'Content-Type' => 'text/plain'},["403 Forbidden"]])
+      else # this is a code bug if we get here
+        Rails.logger.error(message)
+        fail!('Unknown server error')
       end
     end
 
@@ -96,10 +99,6 @@ private
       Honeycomb.add_field('lti_authentication.fetch_state_from', 'none') unless lti_state
 
       lti_state
-    end
-
-    def handle_failure(response)
-      custom!(response)
     end
 
   end

@@ -45,10 +45,11 @@ RSpec.describe ProjectSubmissionsController, type: :feature do
   after(:each) do
     # Print JS console errors, just in case we need them.
     # From https://stackoverflow.com/a/36774327/12432170.
-    errors = page.driver.browser.manage.logs.get(:browser)
+    errors = page.driver.browser.logs.get(:browser)
     if errors.present?
       message = errors.map(&:message).join("\n")
-      puts message
+      Rails.logger.debug('Browser Console logs:')
+      Rails.logger.debug(message)
     end
   end
 
@@ -67,6 +68,8 @@ RSpec.describe ProjectSubmissionsController, type: :feature do
 
     it "fetches the most recent answers" do
       # Check that data is fetched
+      # Do it in two steps just for better granularity if the first one fails.
+      expect(page).to have_field(project_submission_answers.first.input_name)
       expect(page).to have_field(project_submission_answers.first.input_name,
         with: project_submission_answers.first.input_value, wait: 10)
     end
@@ -74,6 +77,8 @@ RSpec.describe ProjectSubmissionsController, type: :feature do
     it 'saves the input value' do
       # Wait for data to be fetched so it doesn't overwrite
       # the answer we set.
+      # Do it in two steps just for better granularity if the first one fails.
+      expect(page).to have_field(project_submission_answers.first.input_name)
       expect(page).to have_field(project_submission_answers.first.input_name,
         with: project_submission_answers.first.input_value, wait: 10)
 
@@ -136,7 +141,7 @@ RSpec.describe ProjectSubmissionsController, type: :feature do
     end
 
     # Note: these return a 500 error, but we can't check the response code with the Selenium driver
-    # so we rely on the page title instead. 
+    # so we rely on the page title instead.
     context "when LtiLaunch isn't found" do
       let(:url) {
         course_project_version_project_submission_path(

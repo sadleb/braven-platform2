@@ -19,14 +19,14 @@ chrome_host = ENV.fetch('SELENIUM_HOST', nil)
 if chrome_shim
   Selenium::WebDriver::Chrome.path = chrome_shim
 
-  chrome_opts = chrome_shim ? { "goog:chromeOptions" => { "binary" => chrome_shim } } : {}
+  chrome_opts = chrome_shim ? { "goog:chromeOptions" => { "binary" => chrome_shim }, "goog:loggingPrefs" => {browser: 'SEVERE'} } : {}
   puts "### chrome_opts = #{chrome_opts}"
 
   Capybara.register_driver :chrome do |app|
     Capybara::Selenium::Driver.new(
       app,
       browser: :chrome,
-      desired_capabilities: Selenium::WebDriver::Remote::Capabilities.chrome(chrome_opts)
+      capabilities: Selenium::WebDriver::Remote::Capabilities.chrome(chrome_opts)
     )
   end
 
@@ -37,13 +37,13 @@ elsif chrome_host # If you're running it in a docker container and have to conne
 
   # Note: the goog:chromeOptions namespace is in case you switch to connect to a Selenium HUB instead of a standalone.
   # For some reason, things fail against the hub without the "goog" namespace.
-  caps = Selenium::WebDriver::Remote::Capabilities.chrome("goog:chromeOptions" => {"args" => chrome_opts})
+  caps = Selenium::WebDriver::Remote::Capabilities.chrome("goog:chromeOptions" => {"args" => chrome_opts}, "goog:loggingPrefs" => {browser: 'SEVERE'})
   Capybara.register_driver :selenium do |app|
     Capybara::Selenium::Driver.new(
         app,
         browser: :remote,
         url: "http://#{ENV['SELENIUM_HOST']}:#{ENV['SELENIUM_PORT']}/wd/hub",
-        desired_capabilities: caps
+        capabilities: caps
     )
   end
 
