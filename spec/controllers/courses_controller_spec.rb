@@ -146,8 +146,13 @@ RSpec.describe CoursesController, type: :controller do
 
     context "when Course is launched" do
 
-      let(:valid_course_launched_attributes) { attributes_for(:course_launched) }
+      let(:course_launched_program) { build :heroku_connect_program_launched }
+      let(:valid_course_launched_attributes) { attributes_for :course_launched, salesforce_program_id: course_launched_program.sfid }
       let(:course_launched) { create(:course_launched, valid_course_launched_attributes) }
+
+      before(:each) do
+        allow(HerokuConnect::Program).to receive(:find).with(course_launched_program.sfid).and_return(course_launched_program)
+      end
 
       describe "GET #edit" do
         it "returns a success response with a warning message" do
@@ -174,14 +179,46 @@ RSpec.describe CoursesController, type: :controller do
 
     context "when Course is not launched" do
 
-      let(:valid_course_unlaunched_attributes) { attributes_for(:course_unlaunched) }
-      let(:course_unlaunched) { create(:course_unlaunched, valid_course_unlaunched_attributes) }
+      let(:unlaunched_course_program) { build :heroku_connect_program_unlaunched,
+        canvas_cloud_accelerator_course_id__c: 125,
+        canvas_cloud_lc_playbook_course_id__c: 126
+      }
+      let(:valid_course_unlaunched_attributes) { attributes_for :course_unlaunched, salesforce_program_id: unlaunched_course_program.sfid}
+      let(:course_unlaunched) { create(:course_unlaunched, salesforce_program_id: unlaunched_course_program.sfid) }
 
       describe "GET #edit" do
-        it "returns a success response" do
+        before(:each) do
           allow(canvas_client).to receive(:get_assignments).and_return([])
+          allow(HerokuConnect::Program).to receive(:find).with(unlaunched_course_program.sfid).and_return(unlaunched_course_program)
+        end
+
+        it "returns a success response" do
           get :edit, params: {id: course_unlaunched.to_param }, session: valid_session
           expect(response).to be_successful
+        end
+
+        context 'when editing an LC playbook course' do
+          let(:unlaunched_lc_course) { create(:course_unlaunched,
+            salesforce_program_id: unlaunched_course_program.sfid,
+            canvas_course_id: unlaunched_course_program.canvas_cloud_lc_playbook_course_id__c
+          ) }
+
+          it 'does not allow users to publish the Post-Accelerator Survey' do
+            get :edit, params: {id: unlaunched_lc_course.to_param }, session: valid_session
+            expect(response.body).to include("The Post-Accelerator Survey Assignment cannot be published in the LC Playbook")
+          end
+        end
+
+        context 'when editing an accelerator course' do
+          let(:unlaunched_accelerator_course) { create(:course_unlaunched,
+            salesforce_program_id: unlaunched_course_program.sfid,
+            canvas_course_id: unlaunched_course_program.canvas_cloud_accelerator_course_id__c
+          ) }
+
+          it 'allows users to publish the Post-Accelerator Survey' do
+            get :edit, params: {id: unlaunched_accelerator_course.to_param }, session: valid_session
+            expect(response.body).not_to include("The Post-Accelerator Survey Assignment cannot be published in the LC Playbook")
+          end
         end
       end
 

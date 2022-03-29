@@ -47,6 +47,17 @@ class Course < ApplicationRecord
     !is_launched
   end
 
+  def is_lc_playbook_course?
+    id == program.lc_playbook_course&.id
+  end
+
+  # Note that this can't be an association (aka join) b/c in dev the HerokuConnect
+  # and Platform databases aren't the same and you can't join across different databases.
+  def program
+    @program ||= HerokuConnect::Program.find(salesforce_program_id)
+  end
+
+
   def rise360_modules
     rise360_module_versions.map { |m| m.rise360_module }
   end

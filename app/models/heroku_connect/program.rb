@@ -51,4 +51,22 @@ class HerokuConnect::Program < HerokuConnect::HerokuConnectRecord
     .pluck(:canvas_cloud_accelerator_course_id__c)
     .compact
   }
+
+  # The local Platform Course model for the LC Playbook course.
+  #
+  # Note that this can't be an association (aka join) b/c in dev the HerokuConnect
+  # and Platform databases aren't the same and you can't join across different databases.
+  def lc_playbook_course
+    @lc_playbook_course ||= courses.find_by_canvas_course_id(canvas_cloud_lc_playbook_course_id__c)
+  end
+
+  # Both the Accelerator and LC Playbook courses for this Program
+  def courses
+    @courses ||= begin
+      Course.where(canvas_course_id: [
+        canvas_cloud_accelerator_course_id__c,
+        canvas_cloud_lc_playbook_course_id__c
+      ].compact) # compact is so that if one isn't set, we don't end up getting courses with a nil canvas_course_id
+    end
+  end
 end

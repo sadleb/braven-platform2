@@ -5,6 +5,7 @@ class CoursesController < ApplicationController
   CourseAdminError = Class.new(StandardError)
 
   before_action :fetch_canvas_assignment_info, only: [:edit]
+  before_action :set_course_type, only: [:edit]
 
   # GET /courses
   def index
@@ -119,6 +120,11 @@ class CoursesController < ApplicationController
 
   def create_params
     params.require('course').permit(:name)
+  end
+
+  def set_course_type
+    # Returns true if this is the LC Playbook course
+    @lc_mode = @course.is_lc_playbook_course?
   end
 
 end
