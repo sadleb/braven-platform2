@@ -81,7 +81,7 @@ ActiveRecord::Schema.define(version: 2022_03_01_210843) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.string "event_type", null: false
-    t.check_constraint "(event_type)::text = ANY ((ARRAY['learning_lab'::character varying, 'orientation'::character varying, 'leadership_coach_1_1'::character varying, 'mock_interviews'::character varying])::text[])", name: "chk_attendance_events_event_type"
+    t.check_constraint "(event_type)::text = ANY (ARRAY[('learning_lab'::character varying)::text, ('orientation'::character varying)::text, ('leadership_coach_1_1'::character varying)::text, ('mock_interviews'::character varying)::text])", name: "chk_attendance_events_event_type"
   end
 
   create_table "canvas_assignment_overrides", force: :cascade do |t|
@@ -743,7 +743,7 @@ ActiveRecord::Schema.define(version: 2022_03_01_210843) do
     t.datetime "updated_at", precision: 6, default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.index ["registrant_id"], name: "index_zoom_link_infos_on_registrant_id", unique: true
     t.index ["salesforce_participant_id", "salesforce_meeting_id_attribute"], name: "index_zoom_link_infos_uniqueness", unique: true
-    t.check_constraint "(salesforce_meeting_id_attribute)::text = ANY ((ARRAY['zoom_meeting_id_1'::character varying, 'zoom_meeting_id_2'::character varying])::text[])", name: "chk_zoom_link_infos_sf_meeting_id_attribute"
+    t.check_constraint "(salesforce_meeting_id_attribute)::text = ANY (ARRAY[('zoom_meeting_id_1'::character varying)::text, ('zoom_meeting_id_2'::character varying)::text])", name: "chk_zoom_link_infos_sf_meeting_id_attribute"
     t.check_constraint "char_length((salesforce_participant_id)::text) = 18", name: "chk_zoom_link_infos_salesforce_participant_id_length"
   end
 
