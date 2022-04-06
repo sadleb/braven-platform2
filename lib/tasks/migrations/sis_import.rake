@@ -82,17 +82,18 @@ namespace :sis_import do
                   if Section.exists?(course: course, name: section['name'])
                     # Make this re-runnable if we do a db rollback of the new Section columns (e.g. in dev)
                     local_section = Section.find_by!(course: course, name: section['name'])
-                    local_section.update!(salesforce_id: ta_participant.sfid, section_type: Section::Type::TA_CASELOAD)
+                    local_section.update!(salesforce_id: ta_participant.sfid, section_type: Section::Type::TA_CASELOAD, canvas_section_id: section['id'])
                   else
                     puts "    - creating new TA local Caseload Section for '#{section['name']}' (canvas_section_id=#{section['id']}, canvas_course_id=#{course.canvas_course_id})"
                     local_section = Section.create!(
                       name: section['name'],
                       course: course,
+                      canvas_section_id: section['id'],
                       salesforce_id: ta_participant.sfid,
                       section_type: Section::Type::TA_CASELOAD
                     )
                   end
-                  puts "      -> created new local_section (id=#{local_section.id}, salesforce_id=#{local_section.salesforce_id})"
+                  puts "      -> created new local_section (id=#{local_section.id}, canvas_section_id=#{local_section.canvas_section_id}, salesforce_id=#{local_section.salesforce_id})"
                 end
               end
             end
