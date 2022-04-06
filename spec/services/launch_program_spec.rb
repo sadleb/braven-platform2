@@ -56,8 +56,11 @@ RSpec.describe LaunchProgram do
     }
     let(:fellow_clone_course_service) { double(CloneCourse) }
     let(:lc_clone_course_service) { double(CloneCourse) }
+    let(:canvas_client) { instance_double(CanvasAPI) }
 
     before(:each) do
+      allow(CanvasAPI).to receive(:client).and_return(canvas_client)
+      allow(canvas_client).to receive(:create_enrollment_term).and_return({'id' => 1234})
       allow(CloneCourse).to receive(:new)
         .with(fellow_source_course, fellow_course_name, program)
         .and_return(fellow_clone_course_service)
@@ -69,6 +72,11 @@ RSpec.describe LaunchProgram do
       allow(lc_clone_course_service).to receive(:run).and_return(lc_clone_course_service)
       allow(fellow_clone_course_service).to receive(:wait_and_initialize).and_return(new_fellow_course)
       allow(lc_clone_course_service).to receive(:wait_and_initialize).and_return(new_lc_course)
+    end
+
+    it 'creates an enrollment term for the Program' do
+      expect(canvas_client).to receive(:create_enrollment_term).with(program.term_name, program.sis_term_id)
+      launch_program.run
     end
 
     context "with Canvas clone success" do

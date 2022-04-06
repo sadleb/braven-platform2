@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+require 'canvas_api'
 
 class LaunchProgram
   LaunchProgramError = Class.new(StandardError)
@@ -17,6 +18,12 @@ class LaunchProgram
 
   def run
     Honeycomb.start_span(name: 'launch_program.run') do
+
+      term = CanvasAPI.client.create_enrollment_term(@salesforce_program.term_name, @salesforce_program.sis_term_id)
+      Honeycomb.add_field('canvas.term.id', term['id'])
+      Honeycomb.add_field('canvas.term.sis_id', @salesforce_program.sis_term_id)
+      Honeycomb.add_field('canvas.term.name', @salesforce_program.term_name)
+
       # Kick off both canvas clones before we start waiting on them.
       fellow_clone_service = CloneCourse.new(@fellow_source_course, @fellow_course_name, @salesforce_program).run
       lc_clone_service = CloneCourse.new(@lc_source_course, @lc_course_name, @salesforce_program).run
