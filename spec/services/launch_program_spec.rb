@@ -79,6 +79,11 @@ RSpec.describe LaunchProgram do
       launch_program.run
     end
 
+    it 'skips creating an enrollment term for the Program if it already exists' do
+      expect(canvas_client).to receive(:create_enrollment_term).and_raise(RestClient::BadRequest)
+      expect{launch_program.run}.not_to raise_error
+    end
+
     context "with Canvas clone success" do
       it "initilizes the new course" do
         expect(fellow_clone_course_service).to receive(:run).once

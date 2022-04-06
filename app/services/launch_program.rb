@@ -19,10 +19,14 @@ class LaunchProgram
   def run
     Honeycomb.start_span(name: 'launch_program.run') do
 
-      term = CanvasAPI.client.create_enrollment_term(@salesforce_program.term_name, @salesforce_program.sis_term_id)
-      Honeycomb.add_field('canvas.term.id', term['id'])
-      Honeycomb.add_field('canvas.term.sis_id', @salesforce_program.sis_term_id)
-      Honeycomb.add_field('canvas.term.name', @salesforce_program.term_name)
+      begin
+        Honeycomb.add_field('canvas.term.sis_id', @salesforce_program.sis_term_id)
+        Honeycomb.add_field('canvas.term.name', @salesforce_program.term_name)
+        term = CanvasAPI.client.create_enrollment_term(@salesforce_program.term_name, @salesforce_program.sis_term_id)
+        Honeycomb.add_field('canvas.term.id', term['id'])
+      rescue RestClient::BadRequest => e
+        Honeycomb.add_field('launch_program.skip_term_create', "Term: #{@salesforce_program.term_name} already exists.")
+      end
 
       # Kick off both canvas clones before we start waiting on them.
       fellow_clone_service = CloneCourse.new(@fellow_source_course, @fellow_course_name, @salesforce_program).run
