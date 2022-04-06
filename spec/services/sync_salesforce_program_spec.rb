@@ -6,73 +6,143 @@ RSpec.describe SyncSalesforceProgram do
 # TODO: reimplement specs after this refactoring: https://github.com/bebraven/platform/pull/922
 # https://app.asana.com/0/1201131148207877/1201399664994348
 
-#  let!(:fellow_course) { create :course_launched, canvas_course_id: sf_program_struct.fellow_course_id }
-#  let(:fellow_canvas_course_id) { fellow_course.canvas_course_id }
-#  let(:sf_participants) { [] }
-#  let(:sf_program_struct) { SalesforceAPI.program_to_struct(create(:salesforce_program_record)) }
-#  let(:lms_client) { double(CanvasAPI, find_user_by: nil) }
-#  let(:sf_client) { double(SalesforceAPI, update_contact: nil, find_program: sf_program_struct) }
-#  let(:sync_account_service) { double(SyncSalesforceParticipant, run: nil) }
-#  let(:sync_zoom_service) { double(SyncZoomLinksForParticipant, run: nil) }
-#
-#  before(:each) do
-#    allow(SyncSalesforceParticipant).to receive(:new).and_return(sync_account_service)
-#    allow(SyncZoomLinksForParticipant).to receive(:new).and_return(sync_zoom_service)
-#    allow(SalesforceAPI).to receive(:client).and_return(sf_client)
-#    allow(CanvasAPI).to receive(:client).and_return(lms_client)
-#  end
-#
-#  describe '#run' do
-#    before(:each) do
-#      allow(sf_client).to receive(:find_participants_by).with(program_id: sf_program_struct.id).and_return(sf_participants)
-#    end
-#
-#    context 'with missing Course model' do
-#      # make the canvas_course_id not match the program
-#      let!(:fellow_course) { create :course_launched, canvas_course_id: sf_program_struct.fellow_course_id + 1 }
-#
-#      it 'raises an error' do
-#        expect{ SyncSalesforceProgram.new(salesforce_program_id: sf_program_struct.id).run }
-#          .to raise_error(SyncSalesforceProgram::SyncSalesforceProgramError, /Missing Course/)
-#      end
-#    end
-#
-#    describe '#sync_program_id' do
-#      subject(:run_sync) do
-#        SyncSalesforceProgram.new(salesforce_program_id: sf_program_struct.id).run
-#      end
-#
-#      context 'when Program Id out of sync with Course model' do
-#        it 'updates the models' do
-#          mismatched_program_id = sf_program_struct.id.reverse
-#          fellow_course.update!(salesforce_program_id: mismatched_program_id)
-#          expect{ run_sync }.to change{ fellow_course.reload.salesforce_program_id}
-#            .from(mismatched_program_id).to(sf_program_struct.id)
-#        end
-#
-#        it 'clears the mistmatched models' do
-#          mismatched_program_id = sf_program_struct.id.reverse
-#          fellow_course.update!(salesforce_program_id: mismatched_program_id)
-#          old_fellow_course = create(:course_launched,
-#            canvas_course_id: fellow_course.canvas_course_id + 1, salesforce_program_id: sf_program_struct.id
-#          )
-#          expect{ run_sync }.to change{ old_fellow_course.reload.salesforce_program_id}
-#            .from(sf_program_struct.id).to(nil)
-#        end
-#      end
-#
-#      context 'when Program Id matches' do
-#        let!(:fellow_course) { create :course_launched,
-#          canvas_course_id: sf_program_struct.fellow_course_id,
-#          salesforce_program_id: sf_program_struct.id
-#        }
-#
-#        it 'is a NOOP' do
-#          expect(fellow_course.salesforce_program_id).to eq(sf_program_struct.id)
-#          expect{ run_sync }.not_to change{ fellow_course.reload.salesforce_program_id }
-#        end
-#      end
-#    end
+  let(:program) { build :heroku_connect_program_launched}
+  let(:course) { program.accelerator_course }
+  let(:participants) { [] }
+  let(:max_duration) { 1.minute.to_i }
+  let(:force_zoom_update) { false }
+  let(:force_canvas_update) { false }
+  let(:canvas_client) { instance_double(CanvasAPI) }
+  let(:sf_client) { instance_double(SalesforceAPI) }
+  let(:sync_participant_service) { instance_double(SyncSalesforceParticipant, run: nil) }
+  let(:sync_zoom_service) { instance_double(SyncZoomLinksForParticipant, run: nil) }
+
+  before(:each) do
+    allow(SyncSalesforceParticipant).to receive(:new).and_return(sync_participant_service)
+    allow(SyncZoomLinksForParticipant).to receive(:new).and_return(sync_zoom_service)
+    allow(SalesforceAPI).to receive(:client).and_return(sf_client)
+    allow(CanvasAPI).to receive(:client).and_return(canvas_client)
+    allow(ParticipantSyncInfo).to receive(:diffs_for_program).with(program).and_return(participants)
+  end
+
+  describe '#run' do
+
+    subject(:run_sync_program) do
+      SyncSalesforceProgram.new(program, max_duration, force_canvas_update, force_zoom_update).run
+    end
+
+    context 'with missing Course model' do
+      # make the canvas_course_id not match the program
+      before(:each) do
+        course.update!(canvas_course_id: course.canvas_course_id + 100)
+      end
+
+      it 'raises an error' do
+        expect{run_sync_program}.to raise_error(SyncSalesforceProgram::MissingCourseModelsError)
+      end
+    end
+
+    describe '#sync_program_id' do
+      let(:force_zoom_update) { true } # sync only runs if there are changes or a force. make it run.
+      context 'when Program Id out of sync with Course model' do
+        it 'updates the models' do
+          mismatched_program_id = program.sfid.reverse
+          course.update!(salesforce_program_id: mismatched_program_id)
+          expect{run_sync_program}.to change{ course.reload.salesforce_program_id}
+            .from(mismatched_program_id).to(program.sfid)
+        end
+
+        it 'clears the mistmatched models' do
+          mismatched_program_id = program.sfid.reverse
+          course.update!(salesforce_program_id: mismatched_program_id)
+          old_course = create(:course_launched,
+            canvas_course_id: course.canvas_course_id + 100, salesforce_program_id: program.sfid
+          )
+          expect{run_sync_program}.to change{ old_course.reload.salesforce_program_id}
+            .from(program.sfid).to(nil)
+        end
+      end
+
+      context 'when Program Id matches' do
+        it 'is a NOOP' do
+          expect(course.salesforce_program_id).to eq(program.sfid)
+          expect{run_sync_program}.not_to change{ course.reload.salesforce_program_id }
+        end
+      end
+    end
+
+    context 'when Cohort Schedule not assigned yet' do
+
+      shared_examples 'skips the sync' do
+        xit 'does not call Zoom sync' do
+        end
+
+        xit 'does not call Canvas sync' do
+        end
+
+        xit 'does not save the ParticipantSyncInfo for that Participant' do
+        end
+
+        xit 'does save the ParticipantSyncInfos for other Participants' do
+        end
+
+        xit 'skips Canvas SIS Import when no successful synced changes' do
+        end
+      end
+
+      shared_examples 'syncs the Participant' do
+        # TODO:
+        # 1. raises for duplicate Participants.
+        # 2. what else?
+      end
+
+      context 'for Fellows' do
+        context 'before account creation' do
+          it_behaves_like 'skips the sync'
+        end
+
+        context 'after account creation' do
+          # TODO: throws an exception
+        end
+      end
+
+      context 'for LCs' do
+        context 'before account creation' do
+          it_behaves_like 'skips the sync'
+        end
+
+        context 'after account creation' do
+          # TODO: throws an exception
+        end
+      end
+
+      context 'for TAs' do
+        context 'before account creation' do
+          it_behaves_like 'syncs the Participant'
+        end
+
+        context 'after account creation' do
+          it_behaves_like 'syncs the Participant'
+        end
+      end
+
+      context 'for Staff' do
+        context 'before account creation' do
+          it_behaves_like 'syncs the Participant'
+        end
+
+        context 'after account creation' do
+          it_behaves_like 'syncs the Participant'
+        end
+      end
+
+    end # 'when Cohort Schedule not assigned yet'
+
+  end # END '#run'
+
+end
+###### OLD specs below
+
 #
 #    # These are Participants where we are running Sync From Salesforce for the first time since they
 #    # were added to the Program. We create a new User record. The primary motivation for this
@@ -112,7 +182,7 @@ RSpec.describe SyncSalesforceProgram do
 #        end
 #
 #        it 'does not enroll in Canvas' do
-#          expect(sync_account_service).not_to receive(:run)
+#          expect(sync_participant_service).not_to receive(:run)
 #          run_sync
 #        end
 #      end
@@ -182,7 +252,7 @@ RSpec.describe SyncSalesforceProgram do
 #        end
 #
 #        it 'processes more participants after a failure for one' do
-#          expect(sync_account_service).to have_received(:run).once
+#          expect(sync_participant_service).to have_received(:run).once
 #        end
 #
 #        it 'sets the failed_participants attribute' do
@@ -281,5 +351,4 @@ RSpec.describe SyncSalesforceProgram do
 #    end # END 'with failed participants'
 #
 #  end # END '#run'
-
-end
+# end

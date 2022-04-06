@@ -2,36 +2,23 @@
 require 'canvas_api'
 
 # Responsible for initializing a new Canvas course:
-# 1. creates the initial Canvas Sections if specified
-# 2. creates local projects, modules, etc for those found in the Canvas course
-#
-# Note: we discussed having the platform app be the place where all actions that required
-# us to store information in our local database would go through a platform Course Management
-# UI and then relying on the local database information to reconcile and populate newly launched
-# courses. We still want to move in the direction of having some key actions, such as creating
-# a new LTI linked Canvas assignment (e.g. a Project) be done from the platform UI so that we
-# have more programmatic control of what happens, such as creating a resourceId for the LineItem
-# so that we can uniquely identify an LTI linked resource after a course is copied in Canvas and
-# the assignment IDs change, but we don't want to completely re-build all the Canvas UI stuff so
-# folks will still be doing stuff in Canvas which means they could take an action that doesn't match
-# our local database information (such as changing the title of an assignment), so the approach we're
-# moving towards is having this be able to both setup and sync the local database information from
-# the Canvas course information.
+# 1. Creates an enrollment term for the Program
+# 2. creates the initial Canvas and local sections for Cohort Schedules and Teaching Assistants
+# 3. creates local projects, modules, etc for those found in the Canvas course
 class InitializeNewCourse
   include Rails.application.routes.url_helpers
 
   InitializeNewCourseError = Class.new(StandardError)
 
-  def initialize(new_course, section_names)
+  def initialize(new_course, salesforce_program)
     @new_course = new_course
-    @section_names = section_names
+    @salesforce_program = salesforce_program
   end
 
   def run
-    canvas_assignment_ids = initialize_assignments()
-
-    if @section_names.present?
-      canvas_section_ids = create_sections(canvas_assignment_ids)
+    Honeycomb.start_span(name: 'initialize_new_course.run') do
+      canvas_section_ids = create_sections()
+      canvas_assignment_ids = initialize_assignments()
 
       # Add an AssignmentOverride date object to each assignment for each section so that
       # the Edit Assignment Dates page shows the sections.
@@ -154,13 +141,34 @@ private
     )
   end
 
-  def create_sections(canvas_assignment_ids)
+  # On Program launch, create the Cohort Schedule sections (for both the Accelerator course
+  # and LC Playbook source, with SIS IDs). We don't create these on the fly as part of
+  # sync b/c the due dates need to be manually set on them and the sections should not be deleted
+  # b/c we'd lose the dates.
+  #
+  # Also create the Teaching Assistants section on launch since it needs to be there
+  # and there is only ever one per course.
+  def create_sections
     canvas_section_ids = []
-    @section_names.each do |sname|
-      cs = CanvasAPI.client.create_lms_section(course_id: @new_course.canvas_course_id, name: sname)
-      canvas_section_ids << cs.id
-      ps = Section.create!(name: cs.name, course_id: @new_course.id, canvas_section_id: cs.id)
+
+    @salesforce_program.cohort_schedules.each do |cohort_schedule|
+      local_section = CreateSection.new(
+        @new_course,
+        cohort_schedule.canvas_section_name,
+        Section::Type::COHORT_SCHEDULE,
+        cohort_schedule.sfid
+      ).run
+
+      canvas_section_ids << local_section.canvas_section_id
     end
+
+    local_ta_section = CreateSection.new(
+      @new_course,
+      SectionConstants::TA_SECTION,
+      Section::Type::TEACHING_ASSISTANTS
+    ).run
+    canvas_section_ids << local_ta_section.canvas_section_id
+
     canvas_section_ids
   end
 

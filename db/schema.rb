@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_03_01_210843) do
+ActiveRecord::Schema.define(version: 2022_03_11_152012) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
@@ -302,6 +302,7 @@ ActiveRecord::Schema.define(version: 2022_03_01_210843) do
     t.bigint "course_resource_id"
     t.boolean "is_launched", default: false
     t.string "salesforce_program_id", limit: 18
+    t.bigint "last_canvas_sis_import_id"
     t.index ["course_resource_id"], name: "index_courses_on_course_resource_id"
     t.index ["name"], name: "index_courses_on_name", unique: true
   end
@@ -425,7 +426,7 @@ ActiveRecord::Schema.define(version: 2022_03_01_210843) do
     t.string "email", null: false
     t.string "contact_id", limit: 18, null: false
     t.string "status", null: false
-    t.string "role", null: false
+    t.string "role_category", null: false
     t.string "candidate_role_select"
     t.string "canvas_accelerator_course_id", null: false
     t.string "canvas_lc_playbook_course_id", null: false
@@ -439,12 +440,20 @@ ActiveRecord::Schema.define(version: 2022_03_01_210843) do
     t.string "lc2_first_name"
     t.string "lc2_last_name"
     t.string "lc_count"
-    t.string "ta_names", array: true
-    t.string "ta_caseload_name"
     t.datetime "created_at", precision: 6, default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.datetime "updated_at", precision: 6, default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.bigint "canvas_user_id"
+    t.bigint "user_id"
+    t.string "program_id", limit: 18
+    t.string "cohort_id", limit: 18
+    t.string "cohort_schedule_id", limit: 18
+    t.json "ta_caseload_enrollments"
+    t.index ["contact_id", "program_id"], name: "index_participant_sync_infos_on_contact_id_and_program_id", unique: true
     t.index ["sfid"], name: "index_participant_sync_infos_on_sfid", unique: true
+    t.check_constraint "char_length((cohort_id)::text) = 18", name: "chk_participant_sync_infos_cohort_id_length"
+    t.check_constraint "char_length((cohort_schedule_id)::text) = 18", name: "chk_participant_sync_infos_cohort_schedule_id_length"
     t.check_constraint "char_length((contact_id)::text) = 18", name: "chk_participant_sync_infos_contact_id_length"
+    t.check_constraint "char_length((program_id)::text) = 18", name: "chk_participant_sync_infos_program_id_length"
     t.check_constraint "char_length((sfid)::text) = 18", name: "chk_participant_sync_infos_sfid_length"
   end
 
@@ -637,7 +646,14 @@ ActiveRecord::Schema.define(version: 2022_03_01_210843) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.bigint "canvas_section_id"
+    t.string "salesforce_id", limit: 18
+    t.string "section_type", limit: 20
+    t.index ["course_id"], name: "index_sections_on_course_id"
     t.index ["name", "course_id"], name: "index_sections_on_name_and_course_id", unique: true
+    t.index ["salesforce_id", "course_id"], name: "index_sections_on_salesforce_id_and_course_id", unique: true
+    t.index ["salesforce_id"], name: "index_sections_on_salesforce_id"
+    t.check_constraint "(section_type)::text = ANY ((ARRAY['cohort'::character varying, 'cohort_schedule'::character varying, 'teaching_assistants'::character varying, 'ta_caseload'::character varying, 'default_section'::character varying])::text[])", name: "chk_sections_type"
+    t.check_constraint "char_length((salesforce_id)::text) = ANY (ARRAY[18, NULL::integer])", name: "chk_sections_salesforce_id_length"
   end
 
   create_table "service_tickets", force: :cascade do |t|

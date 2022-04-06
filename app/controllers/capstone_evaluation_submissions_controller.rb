@@ -2,7 +2,7 @@ class CapstoneEvaluationSubmissionsController < ApplicationController
   include DryCrud::Controllers::Nestable
   # Controller actions are defined in Submittable.
   include Submittable
-  
+
   layout 'lti_canvas'
 
   nested_resource_of Course
@@ -27,9 +27,7 @@ private
       accelerator_course = Course.find_by(canvas_course_id: accelerator_canvas_course_id)
 
       # Get all Accelerator course sections where this user is a TA
-      sections_as_ta = current_user
-        .sections_with_role(RoleConstants::TA_ENROLLMENT)
-        .select { |section| section.course_id == accelerator_course.id }
+      sections_as_ta = current_user.ta_sections.where(course: accelerator_course)
 
       # Get all users enrolled as students in each section
       sections_as_ta.each do |section|

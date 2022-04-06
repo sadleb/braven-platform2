@@ -28,6 +28,39 @@ class RoleConstants
   ]
 end
 
+class SalesforceConstants
+
+  # Represents the general category of a Role someone can have with Braven.
+  # This corresponds to the Record Type when creating a Candidate in Salesforce.
+  class RoleCategory
+    FELLOW = :Fellow
+    LEADERSHIP_COACH = :'Leadership Coach'
+    TEACHING_ASSISTANT = :'Teaching Assistant'
+
+    # These aren't currently used in Platform, but could come through from SF
+    # MOCK_INTERVIEWER = :'Mock Interviewer'
+    # MENTEE = :Mentee
+    # PROFESSIONAL_MENTOR = :'Professional Mentor'
+  end
+
+  # Represents the actual, specific Role someone has with Braven.
+  # E.g. they may be in the 'Teaching Assistant' category but actually be a Staff
+  # member or university Faculty member.
+  class Role
+    FELLOW = RoleCategory::FELLOW
+
+    LEADERSHIP_COACH = RoleCategory::LEADERSHIP_COACH # an actual Leadership Coach
+    COACH_PARTNER = :'Coach Partner'
+    LC_SUBSTITUTE = :'LC Substitute'
+    PANELIST = :Panelist
+
+    TEACHING_ASSISTANT = RoleCategory::TEACHING_ASSISTANT # an actual Teaching Assistant
+    STAFF = :Staff
+    FACULTY = :Faculty
+    TEST = :Test
+  end
+end
+
 # Sections
 class SectionConstants
   DEFAULT_SECTION = 'Default Section'

@@ -2,6 +2,8 @@
 
 class LaunchProgramMailer < ApplicationMailer
   def success_email
+    @accelerator_course = params[:accelerator_course]
+    @lc_playbook_course = params[:lc_playbook_course]
     mail(to: recipient, subject: 'New Program Launch Successful')
   end
 

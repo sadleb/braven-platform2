@@ -101,6 +101,11 @@ Shoulda::Matchers.configure do |config|
   end
 end
 
+# avoid_changing is the same as `not_to change()` but can be chained. Allows
+# situations like this:
+# https://stackoverflow.com/questions/16858899/how-do-i-expect-something-which-raises-exception-in-rspec/40882831#40882831
+RSpec::Matchers.define_negated_matcher :avoid_changing, :change
+
 def should condition
   expect(subject).to condition
 end
@@ -119,3 +124,9 @@ load 'support/http_streaming_response_patch.rb'
 
 # Pundit authorization.
 require "pundit/rspec"
+
+# Sidekiq workers.
+# See here for a good writeup: https://sloboda-studio.com/blog/testing-sidekiq-jobs/
+require "sidekiq/testing"
+Sidekiq::Testing.inline!
+

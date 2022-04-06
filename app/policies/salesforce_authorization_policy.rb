@@ -8,7 +8,4 @@ class SalesforceAuthorizationPolicy < ApplicationPolicy
     user.can_sync_from_salesforce?
   end
 
-  def update_contacts?
-    user.can_sync_from_salesforce?
-  end
 end

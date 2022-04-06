@@ -8,7 +8,7 @@ class FellowEvaluationSubmissionsController < ApplicationController
   include DryCrud::Controllers::Nestable
   # Controller actions are defined in Submittable.
   include Submittable
-  
+
   layout 'lti_canvas'
 
   # Note: We assume the Course is an LC Playbook (not Accelerator) course
@@ -18,6 +18,8 @@ class FellowEvaluationSubmissionsController < ApplicationController
 
 private
   def set_fellow_users
+    # TODO: Dedup this from capstone_evaluation_submissions_controller.rb!
+
     # Determine the Accelerator course for this LC Playbook course
     accelerator_canvas_course_id = SalesforceAPI.client.get_accelerator_course_id_from_lc_playbook_course_id(
       @course.canvas_course_id,
@@ -25,9 +27,7 @@ private
     accelerator_course = Course.find_by(canvas_course_id: accelerator_canvas_course_id)
 
     # Get all Accelerator course sections where this user is a TA
-    sections_as_ta = current_user
-      .sections_with_role(RoleConstants::TA_ENROLLMENT)
-      .select { |section| section.course_id == accelerator_course.id }
+    sections_as_ta = current_user.ta_sections.where(course: accelerator_course)
 
     # Get all users enrolled as students in each section
     @fellow_users = []

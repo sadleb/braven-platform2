@@ -58,48 +58,92 @@ RSpec.describe CoursesController, type: :controller do
         get :new, params: { create_from_course_id: 1 }, session: valid_session
         expect(response).to be_successful
       end
+
+      it "shows instructions" do
+        get :new, params: { create_from_course_id: 1 }, session: valid_session
+        expect(response.body).to include('setup a new Salesforce Program first:')
+      end
     end
 
     describe "POST #create" do
+      let(:new_course_name) { 'Template From Cloned Course' }
+      let(:destination_course_program) { build :heroku_connect_program_unlaunched }
+      let(:create_params) {
+        {
+          course: { name: new_course_name, id: source_course.id, salesforce_program_id: destination_course_program.sfid},
+        }
+      }
+
+      subject(:post_to_create) do
+        post(:create,
+          params: create_params,
+          session: valid_session
+        )
+      end
 
       shared_examples 'clones as a new Course Template' do
-        let(:new_course_name) { 'Template From Cloned Course' }
+        before(:each) do
+          allow(HerokuConnect::Program).to receive(:find).with(destination_course_program.sfid).and_return(destination_course_program)
+          allow(HerokuConnect::Program).to receive(:find).with(source_course_program.sfid).and_return(source_course_program)
+        end
 
         scenario 'starts the clone job' do
-          expect(CloneCourseJob).to receive(:perform_later).with(user.email, source_course, new_course_name).once
-          post(:create,
-            params: {
-              course: { name: new_course_name },
-              create_from_course_id: source_course.id
-            },
-            session: valid_session
-          )
+          expect(CloneCourseJob).to receive(:perform_later).with(user.email, source_course, new_course_name, destination_course_program).once
+          post_to_create
         end
 
         scenario 'redirects to the courses list' do
           allow(CloneCourseJob).to receive(:perform_later).and_return(nil)
-          post(:create,
-            params: {
-              course: { name: new_course_name },
-              create_from_course_id: source_course.id
-            },
-            session: valid_session
-          )
+          post_to_create
           expect(response).to redirect_to(courses_path)
           expect(flash[:notice]).to match /Template initialization started/
         end
       end
 
+      shared_examples 'Program not found' do
+        it 'redirects with message' do
+          post(:create,
+            params: create_params,
+            session: valid_session
+          )
+          expect(response).to redirect_to(new_course_path(create_from_course_id: create_params[:course][:id]))
+          expect(flash[:alert]).to match /Couldn't find Salesforce Program/
+        end
+      end
+
+      shared_examples 'Program already associated with Courses' do
+        before(:each) do
+          # Note: this logic is actually done in a validate_program_for_create()
+          # method, but it's easier to generate the error this way
+          allow(HerokuConnect::Program).to receive(:find)
+            .and_raise(CoursesController::ExistingProgramError, "Program ID: blah already has an accelerator course. Use a new Program")
+        end
+
+        it 'redirects with message' do
+          post(:create,
+            params: create_params,
+            session: valid_session
+          )
+          expect(response).to redirect_to(new_course_path(create_from_course_id: create_params[:course][:id]))
+          expect(flash[:alert]).to match /Error: Program ID:.*already has.*Use a new Program/
+        end
+      end
+
       context 'from unlaunched course' do
-        let(:source_course) { create :course_unlaunched }
+        let(:source_course_program) { build :heroku_connect_program_unlaunched }
+        let(:source_course) { create :course_unlaunched, salesforce_program_id: source_course_program.sfid }
 
         it_behaves_like 'clones as a new Course Template'
+        it_behaves_like 'Program not found'
       end
 
       context 'from a launched course' do
-        let(:source_course) { create :course_launched }
+        let(:source_course_program) { build :heroku_connect_program_launched }
+        let(:source_course) { create :course_launched, salesforce_program_id: source_course_program.sfid }
 
         it_behaves_like 'clones as a new Course Template'
+        it_behaves_like 'Program not found'
+        it_behaves_like 'Program already associated with Courses'
       end
 
     end

@@ -6,6 +6,9 @@ RSpec.describe SyncSalesforceParticipant do
 # TODO: reimplement specs after this refactoring: https://github.com/bebraven/platform/pull/922
 # https://app.asana.com/0/1201131148207877/1201399664994348
 
+# TODO: write specs for TA Caseload stuff
+# https://app.asana.com/0/1201131148207877/1201348317908959
+
 #  let(:fellow_canvas_course_id) { 11 }
 #  let(:lc_playbook_canvas_course_id) { 12 }
 #  let(:sf_email) { 'test1@example.com' }

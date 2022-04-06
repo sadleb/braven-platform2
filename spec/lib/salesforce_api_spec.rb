@@ -217,51 +217,6 @@ RSpec.describe SalesforceAPI do
       end
     end
 
-    context 'with contact_id only' do
-      let(:contact_id) { '004170000125IpSAOX' }
-      let(:request_url) { "#{SALESFORCE_INSTANCE_URL}/services/apexrest/participants/currentandfuture/?contact_id=#{contact_id}" }
-      let(:filter_by_status) { nil }
-
-      # This is a wrapper function for get_participants()
-      describe '#find_participants_by_contact_id' do
-        let(:enrolled_fellow_participant) { create :salesforce_participant_fellow, :ParticipantStatus => 'Enrolled' }
-        let(:dropped_lc_participant) { create :salesforce_participant_fellow, :ParticipantStatus => 'Dropped' }
-        let(:mock_interview_participant) { create :salesforce_participant_mi }
-        let(:participant_json) { "[#{dropped_lc_participant.to_json}, #{enrolled_fellow_participant.to_json}, #{mock_interview_participant.to_json}]" }
-
-        subject(:run_find_participants_by_contact_id) do
-          SalesforceAPI.client.find_participants_by_contact_id(contact_id: contact_id, filter_by_status: filter_by_status)
-        end
-
-        context 'when missing contact_id' do
-          let(:contact_id) { nil }
-          it 'raises ArgumentError' do
-            expect{ run_find_participants_by_contact_id }.to raise_error(ArgumentError)
-          end
-        end
-
-        context 'when no filter_by_status' do
-          let(:filter_by_status) { nil }
-
-          it 'returns all statuses for lc, ta, and fellow roles' do
-            participants = run_find_participants_by_contact_id
-            expect(participants.count).to eq(2)
-            expect(participants.map(&:id)).to contain_exactly(dropped_lc_participant['Id'], enrolled_fellow_participant['Id'])
-          end
-        end
-
-        context 'when filtered by Enrolled' do
-          let(:filter_by_status) { SalesforceAPI::ENROLLED }
-
-          it 'returns only Enrolled Participants for lc, ta, and fellow roles' do
-            participants = run_find_participants_by_contact_id
-            expect(participants.count).to eq(1)
-            expect(participants.map(&:id)).to contain_exactly(enrolled_fellow_participant['Id'])
-          end
-        end
-      end
-    end
-
     context 'with program_id and contact_id' do
       let(:program_id) { '003170000125IpSAAU' }
       let(:contact_id) { '004170000125IpSAOX' }
@@ -359,108 +314,22 @@ RSpec.describe SalesforceAPI do
 
   describe '#update_zoom_links' do
     let(:id) { 'a2X11000050lakXEAQ' }
-    let(:link1) { 'https://zoom.link1' }
-    let(:link2) { 'https://zoom.link2' }
     let(:request_url) { SALESFORCE_DATA_SERVICE_URL + "\/sobjects\/Participant__c\/#{id}" }
 
     it 'calls the correct endpoint' do
       stub_request(:patch, request_url)
-      response = SalesforceAPI.client.update_zoom_links(id, link1, link2)
+      response = SalesforceAPI.client.update_zoom_links(id, 'https://zoom.link1', 'https://zoom.link2')
       expect(WebMock).to have_requested(:patch, request_url)
         .with(body: '{"Webinar_Access_1__c":"https://zoom.link1","Webinar_Access_2__c":"https://zoom.link2"}').once
     end
-  end
 
-  describe '#get_cohort_schedule_section_names(program_id)' do
-    let(:program_id) { '003170000125IpSAAU' }
-    let(:request_url) {
-      "#{SALESFORCE_DATA_SERVICE_QUERY_URL}?q=SELECT+DayTime__c+FROM+CohortSchedule__c+WHERE+Program__r.Id='#{program_id}'"
-    }
-    let(:cohort_schedule1) { FactoryBot.json(:salesforce_cohort_schedule) }
-    let(:cohort_schedule2) { FactoryBot.json(:salesforce_cohort_schedule) }
-    let(:done) { 'true' }
-    let(:next_records_json) { '' }
-    let(:cohort_schedule_json) { '{"totalSize":2, "done":' + done + ', "records":' + "[#{cohort_schedule1}, #{cohort_schedule2}]#{next_records_json}}" }
-
-    it 'calls the correct endpoint' do
-      stub_request(:get, request_url).to_return(body: cohort_schedule_json)
-      response = SalesforceAPI.client.get_cohort_schedule_section_names(program_id)
-      expect(WebMock).to have_requested(:get, request_url).once
+    # empty string means clear it out, nil means ignore that particular param
+    it 'only updates non-nil links' do
+      stub_request(:patch, request_url)
+      response = SalesforceAPI.client.update_zoom_links(id, nil, '')
+      expect(WebMock).to have_requested(:patch, request_url)
+        .with(body: '{"Webinar_Access_2__c":""}').once
     end
-
-    it 'parses the response into an array of Canvas section names' do
-      stub_request(:get, request_url).to_return(body: cohort_schedule_json)
-      response = SalesforceAPI.client.get_cohort_schedule_section_names(program_id)
-      expect(response).to eq([JSON.parse(cohort_schedule1)['DayTime__c'], JSON.parse(cohort_schedule2)['DayTime__c'] ])
-    end
-
-    it 'handles an empty response' do
-      stub_request(:get, request_url).to_return(body: '{"totalSize":0, "done":true, "records":[]}')
-      response = SalesforceAPI.client.get_cohort_schedule_section_names(program_id)
-      expect(response).to eq([])
-    end
-
-    context 'with paged response' do
-      let(:done) { 'false' }
-      let(:next_records_path) { "#{SalesforceAPI::DATA_SERVICE_PATH}/query/01gD0000002HU6KIAW-2000" }
-      let(:next_records_json) { ', "nextRecordsUrl":"' + next_records_path + '"' }
-
-      it 'gets full list' do
-        cohort_schedule3 = FactoryBot.json(:salesforce_cohort_schedule)
-        next_cohort_schedule_json = '{"totalSize":1, "done":true, "records":[' + cohort_schedule3 + ']}'
-        stub_request(:get, request_url).to_return(body: cohort_schedule_json)
-        stub_request(:get, "#{SALESFORCE_INSTANCE_URL}#{next_records_path}").to_return(body: next_cohort_schedule_json)
-        response = SalesforceAPI.client.get_cohort_schedule_section_names(program_id)
-        expect(response).to eq([JSON.parse(cohort_schedule1)['DayTime__c'], JSON.parse(cohort_schedule2)['DayTime__c'], JSON.parse(cohort_schedule3)['DayTime__c'] ])
-      end
-    end
-
-  end
-
-  describe '#get_cohort_names(program_id)' do
-    let(:program_id) { '003170000125IpSAAU' }
-    let(:request_url) {
-      "#{SALESFORCE_DATA_SERVICE_QUERY_URL}?q=SELECT+Name+FROM+Cohort__c+WHERE+Program__r.Id='#{program_id}'"
-    }
-    let(:cohort1) { FactoryBot.json(:salesforce_cohort) }
-    let(:cohort2) { FactoryBot.json(:salesforce_cohort) }
-    let(:done) { 'true' }
-    let(:next_records_json) { '' }
-    let(:cohort_json) { '{"totalSize":2, "done":' + done + ', "records":' + "[#{cohort1}, #{cohort2}]#{next_records_json}}" }
-
-    it 'calls the correct endpoint' do
-      stub_request(:get, request_url).to_return(body: cohort_json)
-      response = SalesforceAPI.client.get_cohort_names(program_id)
-      expect(WebMock).to have_requested(:get, request_url).once
-    end
-
-    it 'parses the response into an array of Canvas section names' do
-      stub_request(:get, request_url).to_return(body: cohort_json)
-      response = SalesforceAPI.client.get_cohort_names(program_id)
-      expect(response).to eq([JSON.parse(cohort1)['Name'], JSON.parse(cohort2)['Name'] ])
-    end
-
-    it 'handles an empty response' do
-      stub_request(:get, request_url).to_return(body: '{"totalSize":0, "done":true, "records":[]}')
-      response = SalesforceAPI.client.get_cohort_names(program_id)
-      expect(response).to eq([])
-    end
-
-    context 'with paged response' do
-      let(:done) { 'false' }
-      let(:next_records_path) { "#{SalesforceAPI::DATA_SERVICE_PATH}/query/01gD0000002HU6KIAW-2001" }
-      let(:next_records_json) { ', "nextRecordsUrl":"' + next_records_path + '"' }
-
-      it 'gets full list' do
-        cohort3 = FactoryBot.json(:salesforce_cohort)
-        next_cohort_json = '{"totalSize":1, "done":true, "records":[' + cohort3 + ']}'
-        stub_request(:get, request_url).to_return(body: cohort_json)
-        stub_request(:get, "#{SALESFORCE_INSTANCE_URL}#{next_records_path}").to_return(body: next_cohort_json)
-        response = SalesforceAPI.client.get_cohort_names(program_id)
-        expect(response).to eq([JSON.parse(cohort1)['Name'], JSON.parse(cohort2)['Name'], JSON.parse(cohort3)['Name'] ])
-      end
-    end
-
   end
 
   describe '#get_contact_info(contact_id)' do
@@ -487,20 +356,6 @@ RSpec.describe SalesforceAPI do
       stub_request(:patch, request_url_regex)
 
       response = SalesforceAPI.client.set_canvas_user_id(contact_json['id'], '1234')
-
-      expect(WebMock).to have_requested(:patch, request_url_regex).once
-    end
-  end
-
-  describe '#set_canvas_course_ids(program_id, canvas_fellow_course_id, canvas_lc_course_id)' do
-    let(:program_id) { '003170000125IpSAAU' }
-
-    it 'calls the correct endpoint' do
-      program_json = FactoryBot.json(:salesforce_program)
-      request_url_regex = /#{SALESFORCE_INSTANCE_URL}#{SalesforceAPI::DATA_SERVICE_PATH}\/sobjects\/Program__c\/#{program_json['id']}.*/
-      stub_request(:patch, request_url_regex)
-
-      response = SalesforceAPI.client.set_canvas_course_ids(program_json['id'], '1234', '5678')
 
       expect(WebMock).to have_requested(:patch, request_url_regex).once
     end

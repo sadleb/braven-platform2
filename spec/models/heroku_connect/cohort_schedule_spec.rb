@@ -28,13 +28,17 @@ RSpec.describe HerokuConnect::CohortSchedule, type: :model do
     context 'with nil weekday and time' do
       let(:time) { nil }
       let(:weekday) { nil }
-      it { is_expected.to have_attributes(:canvas_section_name => 'UnknownWeekday') }
+      it 'raises error' do
+        expect { cohort_schedule.canvas_section_name }.to raise_error(ArgumentError, /does not have a Weekday set/)
+      end
     end
 
     context 'with nil weekday' do
       let(:time) { '6-8pm' }
       let(:weekday) { nil }
-      it { is_expected.to have_attributes(:canvas_section_name => "UnknownWeekday, #{time}") }
+      it 'raises error' do
+        expect { cohort_schedule.canvas_section_name }.to raise_error(ArgumentError, /does not have a Weekday set/)
+      end
     end
 
     context 'with nil time' do

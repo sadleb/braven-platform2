@@ -67,19 +67,17 @@ RSpec.describe CanvasAPI do
   describe '#create_user' do
     let(:first_name) { 'TestFirstName' }
     let(:last_name) { 'TestLastName' }
-    let(:username) { 'testusername' }
     let(:email) { 'test+email@bebraven.org' }
-    let(:salesforce_id) { 'a2b17000000ijNRAAY' }
-    let(:user_id) { '123456' }
+    let(:sis_id) { 'BVUserId_75_SFContactId_a2b17000000ijNRAAY' }
     let(:timezone) { 'America/Los_Angeles' }
     it 'hits the Canvas API correctly' do
       request_url = "#{CANVAS_API_URL}/accounts/1/users"
       stub_request(:post, request_url).to_return( body: FactoryBot.json(:canvas_user) )
 
-      canvas.create_user(first_name, last_name, username, email, salesforce_id, user_id, timezone)
+      canvas.create_user(first_name, last_name, email, sis_id, timezone)
 
       expect(WebMock).to have_requested(:post, request_url)
-        .with(body: "user%5Bname%5D=#{first_name}+#{last_name}&user%5Bshort_name%5D=#{first_name}&user%5Bsortable_name%5D=#{last_name}%2C+#{first_name}&user%5Bskip_registration%5D=true&user%5Btime_zone%5D=America%2FLos_Angeles&pseudonym%5Bunique_id%5D=#{username}&pseudonym%5Bsend_confirmation%5D=false&communication_channel%5Btype%5D=email&communication_channel%5Baddress%5D=test%2Bemail%40bebraven.org&communication_channel%5Bskip_confirmation%5D=true&communication_channel%5Bconfirmation_url%5D=true&pseudonym%5Bsis_user_id%5D=BVSFID#{salesforce_id}-SISID#{user_id}&enable_sis_reactivation=true").once
+        .with(body: "user%5Bname%5D=#{first_name}+#{last_name}&user%5Bshort_name%5D=#{first_name}&user%5Bsortable_name%5D=#{last_name}%2C+#{first_name}&user%5Bskip_registration%5D=true&user%5Btime_zone%5D=America%2FLos_Angeles&pseudonym%5Bunique_id%5D=test%2Bemail%40bebraven.org&pseudonym%5Bsend_confirmation%5D=false&communication_channel%5Btype%5D=email&communication_channel%5Baddress%5D=test%2Bemail%40bebraven.org&communication_channel%5Bskip_confirmation%5D=true&communication_channel%5Bconfirmation_url%5D=true&pseudonym%5Bsis_user_id%5D=#{sis_id}&enable_sis_reactivation=true").once
     end
   end
 
@@ -151,11 +149,6 @@ RSpec.describe CanvasAPI do
     end
   end
 
-  # TODO: write specs for the following (https://app.asana.com/0/1201131148207877/1201348317908959):
-  # describe '#find_enrollment' do
-  # describe '#find_enrollments_for_course_and_user' do
-  # describe '#find_sections_by_course_id' do
-
   describe '#enroll_user_in_course' do
     let(:course_id) { 71 }
     let(:user_id) { 100 }
@@ -211,7 +204,7 @@ RSpec.describe CanvasAPI do
     let(:user_id) { 100 }
 
     it 'hits the Canvas API correctly' do
-      request_url = "#{CANVAS_API_URL}/users/#{user_id}/communication_channels"
+      request_url = "#{CANVAS_API_URL}/users/#{user_id}/communication_channels?per_page=100"
       channel = FactoryBot.json(:canvas_communication_channel, user_id: user_id)
 
       stub_request(:get, request_url).to_return( body: "[#{channel}]" )
@@ -227,7 +220,7 @@ RSpec.describe CanvasAPI do
     let(:user_id) { 100 }
 
     it 'returns first email channel id' do
-      request_url = "#{CANVAS_API_URL}/users/#{user_id}/communication_channels"
+      request_url = "#{CANVAS_API_URL}/users/#{user_id}/communication_channels?per_page=100"
       channels = "[
         #{FactoryBot.json(:canvas_communication_channel, type: 'sms', user_id: user_id)},
         #{FactoryBot.json(:canvas_communication_channel, type: 'email', user_id: user_id)},
@@ -248,7 +241,7 @@ RSpec.describe CanvasAPI do
     let(:matching_channel) { create :canvas_communication_channel, type: 'email', address: email }
 
     it 'returns the channel with matching email' do
-      request_url = "#{CANVAS_API_URL}/users/#{user_id}/communication_channels"
+      request_url = "#{CANVAS_API_URL}/users/#{user_id}/communication_channels?per_page=100"
       channels = "[
         #{FactoryBot.json(:canvas_communication_channel, type: 'sms', user_id: user_id)},
         #{FactoryBot.json(:canvas_communication_channel, type: 'email', user_id: user_id)},
@@ -260,42 +253,6 @@ RSpec.describe CanvasAPI do
       channel = canvas.get_user_email_channel(user_id, email)
 
       expect(channel).to eq(matching_channel)
-    end
-  end
-
-  describe '#create_user_email_channel' do
-    let(:user_id) { new_channel['user_id'] }
-    let(:email) { 'fake.channel.email@fake.com' }
-    let(:new_channel) { create :canvas_communication_channel, type: 'email', address: email }
-
-    it 'POSTs to the create channel URL' do
-      request_url = "#{CANVAS_API_URL}/users/#{user_id}/communication_channels"
-
-      stub_request(:post, request_url).to_return(body: new_channel.to_json)
-
-      response = canvas.create_user_email_channel(user_id, email)
-
-      expect(WebMock).to have_requested(:post, request_url)
-        .with(body: "communication_channel%5Baddress%5D=#{CGI.escape(email)}&communication_channel%5Btype%5D=email&skip_confirmation=true").once
-
-      expect(response).to eq(new_channel)
-    end
-  end
-
-  describe '#delete_user_email_channel' do
-    let(:user_id) { deleted_channel['user_id'] }
-    let(:email) { 'fake.deleted.channel.email@fake.com' }
-    let(:deleted_channel) { create :canvas_communication_channel, type: 'email', address: email }
-
-    it 'Sends DELETE to the email channel URL' do
-      request_url = "#{CANVAS_API_URL}/users/#{user_id}/communication_channels/email/#{email}"
-
-      stub_request(:delete, request_url).to_return(body: deleted_channel.to_json)
-
-      response = canvas.delete_user_email_channel(user_id, email)
-
-      expect(WebMock).to have_requested(:delete, request_url).once
-      expect(response).to eq(deleted_channel)
     end
   end
 
@@ -446,14 +403,17 @@ RSpec.describe CanvasAPI do
 
   describe '#create_course' do
     let(:name) { 'Test Course Name' }
+    let(:sis_id) { 'BVCourseId_2_SFProgramId_a2Y11000001ga5xEAA' }
+    let(:sis_term_id) { 'Term_SFProgramId_a2Y11000001ga5xEAA' }
+    let(:timezone) { 'America/New_York' }
     it 'hits the Canvas API correctly' do
       request_url = "#{CANVAS_API_URL}/accounts/1/courses"
       stub_request(:post, request_url).to_return( body: FactoryBot.json(:canvas_course) )
 
-      course_data = canvas.create_course(name)
+      course_data = canvas.create_course(name, sis_id, sis_term_id, timezone)
 
       expect(WebMock).to have_requested(:post, request_url)
-        .with(body: "course%5Bname%5D=Test+Course+Name&offer=true").once
+        .with(body: "course%5Bname%5D=Test+Course+Name&course%5Bsis_course_id%5D=#{sis_id}&course%5Bterm_id%5D=sis_term_id%3A#{sis_term_id}&course%5Btime_zone%5D=America%2FNew_York&offer=true").once
       expect(course_data).to have_key('id')
     end
   end
@@ -525,7 +485,7 @@ RSpec.describe CanvasAPI do
     let(:assignment2) { FactoryBot.json(:canvas_assignment, course_id: course_id) }
 
     it 'hits the Canvas API correctly' do
-      request_url = "#{CANVAS_API_URL}/courses/#{course_id}/assignments"
+      request_url = "#{CANVAS_API_URL}/courses/#{course_id}/assignments?per_page=100"
       stub_request(:get, request_url).to_return( body: [assignment1, assignment2].to_json )
 
       assignments = canvas.get_assignments(course_id)
@@ -593,7 +553,7 @@ RSpec.describe CanvasAPI do
     let(:override2) { FactoryBot.json(:canvas_assignment_override_section, assignment_id: assignment_id) }
 
     it 'hits the Canvas API correctly' do
-      request_url = "#{CANVAS_API_URL}/courses/#{course_id}/assignments/#{assignment_id}/overrides"
+      request_url = "#{CANVAS_API_URL}/courses/#{course_id}/assignments/#{assignment_id}/overrides?per_page=100"
       stub_request(:get, request_url).to_return( body: [override1, override2].to_json )
 
       overrides = canvas.get_assignment_overrides(course_id, assignment_id)
@@ -665,7 +625,7 @@ RSpec.describe CanvasAPI do
     let(:canvas_new_rubric) { create :canvas_rubric, course_id: course_id }
 
     it 'hits the Canvas API correctly' do
-      request_url = "#{CANVAS_API_URL}/courses/#{course_id}/rubrics"
+      request_url = "#{CANVAS_API_URL}/courses/#{course_id}/rubrics?per_page=100"
       stub_request(:get, request_url).to_return( body: [ canvas_new_rubric ].to_json )
 
       rubrics = canvas.get_rubrics(course_id)
@@ -677,7 +637,7 @@ RSpec.describe CanvasAPI do
     end
 
     it 'gets all rubrics by default' do
-      request_url = "#{CANVAS_API_URL}/courses/#{course_id}/rubrics"
+      request_url = "#{CANVAS_API_URL}/courses/#{course_id}/rubrics?per_page=100"
       stub_request(:get, request_url).to_return( body: [ canvas_new_rubric, canvas_existing_rubric ].to_json )
 
       rubrics = canvas.get_rubrics(course_id)
@@ -691,7 +651,7 @@ RSpec.describe CanvasAPI do
 
     it 'filters out already associated rubrics when specified' do
       expect_any_instance_of(CanvasAPI).to receive(:get_assignments).and_return([canvas_assignment_with_rubric])
-      rubrics_request_url = "#{CANVAS_API_URL}/courses/#{course_id}/rubrics"
+      rubrics_request_url = "#{CANVAS_API_URL}/courses/#{course_id}/rubrics?per_page=100"
       stub_request(:get, rubrics_request_url).to_return( body: [ canvas_new_rubric, canvas_existing_rubric ].to_json )
 
       rubrics = canvas.get_rubrics(course_id, true)

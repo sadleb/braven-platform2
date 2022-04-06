@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 require 'rest-client'
+require 'sis_import_status'
 
 class CanvasAPI
   UserNotOnCanvas = Class.new(StandardError)
   TimeoutError = Class.new(StandardError)
 
-  LMSUser = Struct.new(:id, :email)
-  LMSEnrollment = Struct.new(:id, :course_id, :type, :section_id)
-  LMSSection = Struct.new(:id, :name)
+  # TODO: refactor and remove LMSRubric. Let's not use structs for some things
+  # and hashes for others: https://app.asana.com/0/1201131148207877/1201902273750974
   LMSRubric = Struct.new(:id, :title)
 
   attr_reader :canvas_url
@@ -117,6 +117,11 @@ class CanvasAPI
     put("/courses/#{course_id}/pages/#{wiki_page_id}", body)
   end
 
+  def update_course(canvas_course_id, fields_to_set)
+    response = put("/courses/#{canvas_course_id}", fields_to_set)
+    JSON.parse(response.body)
+  end
+
   # Submits an assignment for a user that when viewed, launches the specified
   # lti_launch_url as the submission to view.
   #
@@ -151,7 +156,7 @@ class CanvasAPI
   # Returns all submissions for an assignment in the format:
   # { canvas_user_id => submission }
   def get_assignment_submissions(course_id, assignment_id, filter_out_unopened_assignment_submissions = false)
-    response = get("/courses/#{course_id}/assignments/#{assignment_id}/submissions")
+    response = get("/courses/#{course_id}/assignments/#{assignment_id}/submissions?per_page=100")
     all_submissions = get_all_from_pagination(response)
 
     all_submissions.filter_map { |s|
@@ -225,26 +230,28 @@ class CanvasAPI
     JSON.parse(response.body)
   end
 
-  def create_user(first_name, last_name, username, email, salesforce_id, platform_user_id, timezone)
+  def create_user(first_name, last_name, email, sis_id, timezone)
     body = {
         'user[name]' => "#{first_name} #{last_name}",
         'user[short_name]' => first_name,
         'user[sortable_name]' => "#{last_name}, #{first_name}",
         'user[skip_registration]' => true,
         'user[time_zone]' => timezone,
-        'pseudonym[unique_id]' => username,
+        'pseudonym[unique_id]' => email,
         'pseudonym[send_confirmation]' => false,
         'communication_channel[type]' => 'email',
         'communication_channel[address]' => email,
         'communication_channel[skip_confirmation]' => true,
         'communication_channel[confirmation_url]' => true,
-        'pseudonym[sis_user_id]' => format_to_sis_id(salesforce_id, platform_user_id),
+        'pseudonym[sis_user_id]' => sis_id,
         'enable_sis_reactivation' => true
     }
     response = post("/accounts/#{DefaultAccountID}/users", body)
     JSON.parse(response.body)
   end
 
+  # Note: this only searches by email. If we want to search by SIS ID or other things,
+  # alter or exclude the 'include[]' param.
   def search_for_user_in_canvas(search_term)
     # Note: Don't use CGI.escape on search_term bc RestClient handles this internally.
     response = get("/accounts/#{DefaultAccountID}/users", {
@@ -254,17 +261,6 @@ class CanvasAPI
     users = JSON.parse(response.body)
     # Only return an object if one and only one user matches the query.
     users.length == 1 ? users[0] : nil
-  end
-
-  # Wrapper for #show_user_details() that returns a struct
-  def get_user(canvas_user_id)
-    user = show_user_details(canvas_user_id)
-    # Note that login_id is the email they use to login which may be different from the
-    # email they use for notifications. We care about their login email since that is
-    # what matches Salesforce and Platform email fields.
-    LMSUser.new(user['id'], user['login_id'])
-  rescue RestClient::NotFound => e
-    raise UserNotOnCanvas, "canvas_user_id: #{canvas_user_id}"
   end
 
   # https://canvas.instructure.com/doc/api/users.html#method.users.api_show
@@ -289,8 +285,9 @@ class CanvasAPI
   end
 
   # IMPORTANT: login emails are completely separate from the emails that are
-  # used to send Notifications. If you call this, you almost certainly want to
-  # fuss with their communication channels using the methods below.
+  # used to send Notifications. Those are called communication_channels:
+  # https://canvas.instructure.com/doc/api/communication_channels.html
+  # The SIS Import sync is responsible for adjusting those.
   def update_login(login_id, new_email, account_id=DefaultAccountID)
     response = put("/accounts/#{account_id}/logins/#{login_id}", {
       'login[unique_id]': new_email,
@@ -300,7 +297,7 @@ class CanvasAPI
 
   # https://canvas.instructure.com/doc/api/communication_channels.html
   def get_user_communication_channels(user_id)
-    response = get("/users/#{user_id}/communication_channels")
+    response = get("/users/#{user_id}/communication_channels?per_page=100")
     get_all_from_pagination(response)
   end
 
@@ -312,20 +309,6 @@ class CanvasAPI
   def get_user_email_channel(user_id, email, comm_channels = nil)
     channels = comm_channels || get_user_communication_channels(user_id)
     channels.find { |c| c['type'] == 'email' && c['address'] == email}
-  end
-
-  def create_user_email_channel(user_id, email, skip_confirmation = true)
-    response = post("/users/#{user_id}/communication_channels", {
-      'communication_channel[address]': email,
-      'communication_channel[type]': 'email',
-      'skip_confirmation': skip_confirmation
-    })
-    JSON.parse(response.body)
-  end
-
-  def delete_user_email_channel(user_id, email)
-    response = delete("/users/#{user_id}/communication_channels/email/#{email}")
-    JSON.parse(response.body)
   end
 
   # https://canvas.instructure.com/doc/api/notification_preferences.html#method.notification_preferences.update_preferences_by_category
@@ -354,48 +337,15 @@ class CanvasAPI
     get_all_from_pagination(response)
   end
 
-  # Same as get_enrollments() but just for a single user
-  # TODO: I think this method is obsolete. Delete me?
-  # https://app.asana.com/0/1201131148207877/1201348317908953
-  def get_user_enrollments(user_id, course_id=nil, types=[])
-    query_params = "per_page=100"
-    types.each { |t| query_params += "&type[]=#{t}"}
-    response = get("/users/#{user_id}/enrollments")
-    # TODO: if course_id is sent, filter the response to only include those for that course
-    # actually, get rid of this param and call the new find_enrollments_for_course_and_user() instead?
-    enrollments = get_all_from_pagination(response)
-    (enrollments.blank? ? nil : enrollments) # No enrollments returns an empty array and nil is nicer to deal with.
-  end
+  # Gets the enrollments for the specified canvas_user_ids in the specified canvas_course_id
+  #
+  # Returns: { user_id => [array of enrollments] }
+  def get_enrollments_for_course_and_users(canvas_course_id, canvas_user_ids)
+    query_params = "per_page=100&include[]=enrollments&user_ids[]=#{canvas_user_ids.join('&user_ids[]=')}"
+    response = get("/courses/#{canvas_course_id}/users?#{query_params}")
 
-  def find_enrollment(canvas_user_id:, canvas_section_id:)
-    response = get("/sections/#{canvas_section_id}/enrollments?user_id=#{canvas_user_id}")
-    enrollments = JSON.parse(response.body)
-    return nil if enrollments.blank?
-
-    if enrollments.count > 1
-      # This can only happen if they are enrolled with multiple roles in the same section.
-      # Canvas won't create dupe enrollments for a given section/user/role
-      Honeycomb.add_field('alert.canvas_api.duplicate_enrollments_for_user', true)
-      Honeycomb.add_field('canvas.user.id', canvas_user_id.to_s)
-      Honeycomb.add_field('canvas.section.id', canvas_section_id.to_s)
-    end
-
-    enrollment = enrollments.first
-    LMSEnrollment.new(enrollment['id'], enrollment['course_id'],
-                      enrollment['type'].to_sym, enrollment['course_section_id'])
-  end
-
-  def find_enrollments_for_course_and_user(canvas_course_id, canvas_user_id)
-    response = get("/courses/#{canvas_course_id}/enrollments?user_id=#{canvas_user_id}")
-    enrollments = get_all_from_pagination(response)
-    return nil if enrollments.blank?
-    enrollments.map { |enrollment|
-      LMSEnrollment.new(
-        enrollment['id'],
-        enrollment['course_id'],
-        enrollment['type'].to_sym,
-        enrollment['course_section_id']
-      )
+    get_all_from_pagination(response).to_h { |user|
+      [ user['id'], user['enrollments'] ]
     }
   end
 
@@ -460,33 +410,21 @@ class CanvasAPI
     JSON.parse(response.body)
   end
 
-  def find_section_by(course_id:, name:)
-    sections = get_sections(course_id)
-    section = sections.filter { |s| s['name'] == name }&.first
-    return nil if section.nil?
-
-    LMSSection.new(section['id'], section['name'])
-  end
-
-  def find_sections_by_course_id(canvas_course_id)
-    sections = get_sections(canvas_course_id)
-    return nil unless sections.present?
-    sections.map { |s| LMSSection.new(s['id'], s['name']) }
-  end
-
   def get_sections(course_id)
     response = get("/courses/#{course_id}/sections?per_page=100")
     get_all_from_pagination(response)
   end
 
-  def create_lms_section(course_id:, name:)
-    section = create_section(course_id, name)
-    # Check what create section returns
-    LMSSection.new(section['id'], section['name'])
+  def create_section(canvas_course_id, section_name, sis_id)
+    response = post("/courses/#{canvas_course_id}/sections", {
+      'course_section[name]' => section_name,
+      'course_section[sis_section_id]' => sis_id
+    })
+    JSON.parse(response.body)
   end
 
-  def create_section(course_id, section_name)
-    response = post("/courses/#{course_id}/sections", {'course_section[name]' => section_name})
+  def update_section(canvas_section_id, fields_to_set)
+    response = put("/sections/#{canvas_section_id}", fields_to_set)
     JSON.parse(response.body)
   end
 
@@ -502,14 +440,14 @@ class CanvasAPI
 
   # Gets a list of all assignments for a course.
   def get_assignments(course_id)
-    response = get("/courses/#{course_id}/assignments")
+    response = get("/courses/#{course_id}/assignments?per_page=100")
     get_all_from_pagination(response)
   end
 
   # Returns a list of assignment overrides for a section in a course filtered
   # by assignment_ids (if specified)
   def get_assignment_overrides_for_section(course_id, course_section_id, assignment_ids=[])
-    response = get("/courses/#{course_id}/assignments?include[]=overrides")
+    response = get("/courses/#{course_id}/assignments?include[]=overrides&per_page=100")
     get_all_from_pagination(response)
       .filter { |a| (!assignment_ids.present? || assignment_ids.include?(a['id'])) }
       .select { |a| a['has_overrides'] && a['overrides'].present? }
@@ -519,7 +457,7 @@ class CanvasAPI
 
   # Returns a list of all assignment overrides in a course.
   def get_assignment_overrides_for_course(course_id)
-    response = get("/courses/#{course_id}/assignments?include[]=overrides")
+    response = get("/courses/#{course_id}/assignments?include[]=overrides&per_page=100")
     get_all_from_pagination(response)
       .select { |a| a['has_overrides'] && a['overrides'].present? }
       .map { |a| a['overrides'] }
@@ -565,7 +503,7 @@ class CanvasAPI
 
   # https://canvas.instructure.com/doc/api/assignments.html#method.assignment_overrides.index
   def get_assignment_overrides(course_id, assignment_id)
-    response = get("/courses/#{course_id}/assignments/#{assignment_id}/overrides")
+    response = get("/courses/#{course_id}/assignments/#{assignment_id}/overrides?per_page=100")
     get_all_from_pagination(response)
   end
 
@@ -602,12 +540,12 @@ class CanvasAPI
 
 
   def get_course_rubrics_data(course_id)
-    response = get("/courses/#{course_id}/rubrics")
+    response = get("/courses/#{course_id}/rubrics?per_page=100")
     get_all_from_pagination(response)
   end
 
   def get_account_rubrics_data(account_id=DefaultAccountID)
-    response = get("/accounts/#{account_id}/rubrics")
+    response = get("/accounts/#{account_id}/rubrics?per_page=100")
     get_all_from_pagination(response)
   end
 
@@ -707,19 +645,30 @@ class CanvasAPI
 
   end
 
+  def create_enrollment_term(name, sis_term_id, account_id=DefaultAccountID)
+    body = {
+      'enrollment_term[name]': name,
+      'enrollment_term[sis_term_id]': sis_term_id
+    }
+
+    response = post("/accounts/#{account_id}/terms", body)
+    JSON.parse(response.body)
+  end
+
   # See: https://canvas.instructure.com/doc/api/courses.html#method.courses.create
   # Returns course Hash on success: https://canvas.instructure.com/doc/api/courses.html#Course
-  # Set publish:false to leave the course in the unpublished state.
-  # Set time_zone to IANA time zone string.
-  def create_course(name, account_id=DefaultAccountID, publish: true, time_zone: nil)
+  def create_course(name, sis_id, sis_term_id=nil, time_zone=nil, account_id=DefaultAccountID)
+
+    # See: send_sis_import_zipfile_for_full_batch_update() method for more info about the
+    # the undocumented sis_term_id prefix
     body = {
       'course[name]': name,
-      'offer': publish,
+      'course[sis_course_id]': sis_id,
+      'course[term_id]': "sis_term_id:#{sis_term_id}",
+      'course[time_zone]': time_zone,
+      'offer': true, # published vs unpublished
     }
-    body['course[time_zone]'] = time_zone if time_zone
-
     response = post("/accounts/#{account_id}/courses", body)
-
     JSON.parse(response.body)
   end
 
@@ -755,9 +704,69 @@ class CanvasAPI
     })
   end
 
-  private
+  # Query params used for all types of SIS Imports.
+  # update_sis_id_if_login_claimed:
+  #   In order to handle old users created before this SIS Import infrastructure
+  #   was rolled out, we set this to true so that the SIS ID will get updated
+  #   if a user with that login is found (aka email)
+  #
+  # override_sis_stickiness:
+  #   This causes the SIS Import data to override any sticky changes made through
+  #   made through the UI or API. Without this set, changing their name from what
+  #   we originally sent using the API doesn't work
+  #
+  SIS_IMPORT_DEFAULT_QUERY_PARAMS='import_type=instructure_csv&extension=zip&' +
+                                  'update_sis_id_if_login_claimed=true&override_sis_stickiness=true'
 
-  def format_to_sis_id(salesforce_contact_id, platform_user_id)
-    "BVSFID#{salesforce_contact_id}-SISID#{platform_user_id}"
+  # Sends a zip of SIS Import .csvs to the Canvas SIS Import API as a data_set.
+  # See SisImportDataSet for information about data_set_id and diffing_mode_on
+  def send_sis_import_zipfile_for_data_set(zipfile, data_set_id, diffing_mode_on)
+    query_string = "#{SIS_IMPORT_DEFAULT_QUERY_PARAMS}&" +
+                   "diffing_data_set_identifier=#{data_set_id}&" +
+                   "diffing_remaster_data_set=#{!diffing_mode_on}"
+
+    response = post(
+      "/accounts/#{DefaultAccountID}/sis_imports.json?#{query_string}",
+      zipfile
+    )
+    raw_status = JSON.parse(response.body)
+    SisImportStatus.new(raw_status)
   end
+
+  # Sends a zip of SIS Import .csvs to the Canvas SIS Import API in Batch Mode.
+  # This mode is used to replace the data for each course in the "term" with this
+  # new canonical data_set.
+  # See SisImportBatchMode for information.
+  #
+  # Note: the batch_mode_term_id=sis_term_id:the_term_id format doesn't seem to be
+  # documented, but without a sis_term_id prefix the API returns:
+  #   {"errors":[{"message":"The specified resource does not exist."}]}
+  # I found this format here: https://groups.google.com/g/canvas-lms-users/c/6YDFA9RWS3Y?pli=1
+  def send_sis_import_zipfile_for_full_batch_update(zipfile, sis_term_id, change_threshold=nil)
+    query_string = "#{SIS_IMPORT_DEFAULT_QUERY_PARAMS}&" +
+                   "batch_mode=true&" +
+                   "batch_mode_term_id=sis_term_id:#{sis_term_id}"
+    query_string << "&change_threshold=#{change_threshold}" if change_threshold
+
+    response = post(
+      "/accounts/#{DefaultAccountID}/sis_imports.json?#{query_string}",
+      zipfile
+    )
+    raw_status = JSON.parse(response.body)
+    SisImportStatus.new(raw_status)
+  end
+
+  def get_sis_imports(created_since = 1.day.ago)
+    response = get("/accounts/#{DefaultAccountID}/sis_imports", {
+      'created_since': created_since.iso8601(3)
+    })
+    get_all_from_pagination(response)
+  end
+
+  def get_sis_import_status(sis_import_id)
+    response = get("/accounts/#{DefaultAccountID}/sis_imports/#{sis_import_id}")
+    raw_status = JSON.parse(response.body)
+    SisImportStatus.new(raw_status)
+  end
+
 end

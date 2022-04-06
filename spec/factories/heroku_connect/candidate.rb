@@ -13,5 +13,28 @@ FactoryBot.define do
     association :contact, factory: :heroku_connect_contact
     association :program, factory: :heroku_connect_program
 
+    factory :heroku_connect_fellow_candidate, class: 'heroku_connect/candidate' do
+      association :record_type, factory: :heroku_connect_record_type, name: SalesforceConstants::RoleCategory::FELLOW
+    end
+
+    factory :heroku_connect_lc_candidate, class: 'heroku_connect/candidate' do
+      association :record_type, factory: :heroku_connect_record_type, name: SalesforceConstants::RoleCategory::LEADERSHIP_COACH
+
+      factory :heroku_connect_cp_candidate, class: 'heroku_connect/candidate' do
+        coach_partner_role__c { SalesforceConstants::Role::COACH_PARTNER }
+      end
+    end
+
+    factory :heroku_connect_ta_candidate, class: 'heroku_connect/candidate' do
+      association :record_type, factory: :heroku_connect_record_type, name: SalesforceConstants::RoleCategory::TEACHING_ASSISTANT
+
+      factory :heroku_connect_staff_candidate, class: 'heroku_connect/candidate' do
+        coach_partner_role__c { SalesforceConstants::Role::STAFF }
+      end
+
+      factory :heroku_connect_faculty_candidate, class: 'heroku_connect/candidate' do
+        coach_partner_role__c { SalesforceConstants::Role::FACULTY }
+      end
+    end
   end
 end

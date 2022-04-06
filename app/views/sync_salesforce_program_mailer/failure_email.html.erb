@@ -1,4 +1,4 @@
-<% if @exception.is_a?(SyncSalesforceProgram::SyncSalesforceProgramError) && @failed_participants.present? %>
+<% if @exception.is_a?(SyncSalesforceProgram::SyncParticipantsError) && @failed_participants.present? %>
 
   <% content_for :email_css do %>
     tr {
@@ -32,13 +32,13 @@
     <tbody>
     <tr>
        <th><strong>Name</strong></th>
-       <th><strong>Salesforce Contact ID</strong></th>
+       <th><strong>Salesforce Participant ID</strong></th>
        <th><strong>Email</strong></th>
     </tr>
     <% @failed_participants.each do |failure_info| %>
     <tr>
       <td><%= "#{failure_info.first_name} #{failure_info.last_name}" %></td>
-      <td><%= failure_info.salesforce_id %></td>
+      <td><%= failure_info.participant_id %></td>
       <td><%= failure_info.email %></td>
     </tr>
     <tr>
@@ -48,7 +48,7 @@
     </tbody>
   </table>
 
-<% elsif @exception.is_a?(SalesforceAPI::ProgramNotOnSalesforceError) %>
+<% elsif @exception.is_a?(SyncSalesforceProgram::MissingProgramError) %>
   <p><%= @exception.message %></p>
 <% else %>
 

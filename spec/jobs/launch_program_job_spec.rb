@@ -4,15 +4,14 @@ require 'rails_helper'
 
 RSpec.describe LaunchProgramJob, type: :job do
   describe '#perform' do
-    let(:launch_program) { double(LaunchProgram, run: nil) }
+    let(:launch_program) { instance_double(LaunchProgram, run: nil, fellow_destination_course: nil, lc_destination_course: nil) }
     let(:delivery) { double('DummyDeliverer', deliver_now: nil) }
     let(:mailer) { double('DummyMailerInstance', success_email: delivery, failure_email: delivery) }
-    let(:salesforce_program_id) { 'TestSalesforceProgramId' }
     let(:notification_email) { 'fake_notify@email.com' }
-    let(:fellow_source_course_id) { '123123' }
     let(:fellow_course_name) { 'Test Fellow Course Name1' }
-    let(:lc_source_course_id) { '423423' }
+    let(:fellow_source_course) { create(:course_unlaunched) }
     let(:lc_course_name) { 'Test LC Course Name1' }
+    let(:lc_source_course) { create(:course_unlaunched) }
 
     before(:each) do
       allow(LaunchProgram).to receive(:new).and_return(launch_program)
@@ -20,7 +19,14 @@ RSpec.describe LaunchProgramJob, type: :job do
     end
 
     subject(:launch_program_job) do
-      LaunchProgramJob.perform_now(salesforce_program_id, notification_email, fellow_source_course_id, fellow_course_name, lc_source_course_id, lc_course_name)
+      LaunchProgramJob.perform_now(
+        fellow_source_course.salesforce_program_id,
+        notification_email,
+        fellow_source_course.id,
+        fellow_course_name,
+        lc_source_course.id,
+        lc_course_name
+      )
     end
 
     it 'starts the program launch' do

@@ -5,7 +5,7 @@ require 'rails_helper'
 RSpec.describe GradeRise360ModuleForUser do
 
   let(:course) { create(:course) }
-  let(:section) { create(:section_with_canvas_id, course: course) }
+  let(:section) { create(:cohort_section, course: course) }
   let(:user) { create(:fellow_user, section: section) }
   let(:rise360_module_version) { create(:rise360_module_version) }
   let(:course_rise360_module_version) { create(:course_rise360_module_version,

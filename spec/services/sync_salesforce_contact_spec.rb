@@ -3,9 +3,98 @@
 require 'rails_helper'
 
 RSpec.describe SyncSalesforceContact do
+
 # TODO: reimplement specs after this refactoring: https://github.com/bebraven/platform/pull/922
 # https://app.asana.com/0/1201131148207877/1201399664994348
+# See the old ./spec/services/register_user_account_spec.rb for some of the logic that
+# is now here.
 
+  describe '#run' do
+
+    shared_examples 'changes email with no confirmation' do
+      # TODO
+    end
+
+    shared_examples 'sends email change confirmation email' do
+      # TODO
+    end
+
+    shared_examples 'changes their first name' do
+      # TODO
+    end
+
+    shared_examples 'changes their last name' do
+      # TODO
+    end
+
+    context 'when SignupDate__c fails to send to Salesforce' do
+      xit 'does not raise error' do
+        # TODO: this won't cause end-user issues, so don't have it fail for them
+      end
+
+      xit 'retries on subsequent syncs' do
+        # TODO:
+      end
+    end
+
+    context 'before account creation' do
+      it_behaves_like 'changes email with no confirmation'
+      it_behaves_like 'changes their first name'
+      it_behaves_like 'changes their last name'
+
+      xit 'raises when duplicate Contacts with same email' do
+        # TODO: create a second Contact with the same email as someone who already has a Platform account.
+        # This should raise DuplicateContactError and should not create a platform user
+      end
+
+      xit 'creates a new platform user the first time' do
+        # TODO. creates teh user, sends platform id to SF. does not send confirmation email.
+      end
+
+      xit 'keeps trying to send the Platform User ID to Salesforce on failures' do
+        # TODO: raises proper stuff and keeps trying
+      end
+
+      xit 'creates a new Canvas user the first time' do
+        # TODO: creates the Canvas user but does not send to Salesforce yet
+      end
+
+      xit 'handles Canvas user creation failures' do
+        # TODO: raises proper stuff and keeps trying
+      end
+
+      xit 'handles Canvas user notification setting failures' do
+        # TODO: rescues and doesn't try again in the future. One and done.
+      end
+
+      xit 'creates a signup_token and sends to Salesforce' do
+        # TODO: also check that it sends the canvas_user_id to SF.
+      end
+
+      xit 'handles signup_token creation failures' do
+        # TODO: raises proper stuff and keeps trying
+      end
+    end
+
+    context 'after account creation' do
+      it_behaves_like 'sends email change confirmation email'
+      it_behaves_like 'changes their first name'
+      it_behaves_like 'changes their last name'
+
+      context 'handles out of sync users' do
+        # TODO: raises if the SF Contact is missing or the User.canvas_user_id is missing.
+        # Alerts if (and eventually auto-corrects) if the canvas user ID or platform user ID in SF
+        # don't match (bad merge maybe). If we have a signup token sent at, then we got through the
+        # full user creation once, but if they don't match it means they got messed
+        # up in SF later (or maybe manually in Platform admin dash?).
+
+        # TODO: tries to fix the SignupDate__c if it failed to send to SF.
+      end
+    end
+
+  end # '#run'
+
+### OLD specs
 #  describe '#run' do
 #    let(:sync_user_email_to_canvas_service) { instance_double(SyncUserEmailToCanvas, :run! => nil) }
 #

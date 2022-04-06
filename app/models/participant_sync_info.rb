@@ -10,7 +10,7 @@ require 'delegate'
 class ParticipantSyncInfo < ApplicationRecord
 
   # type cast these from strings to symbols to make the code cleaner
-  attribute :role, :symbol
+  attribute :role_category, :symbol
   attribute :status, :symbol
 
   # We use this in conjunction with the HerokuConnect models and this makes it easier to use.
@@ -18,14 +18,28 @@ class ParticipantSyncInfo < ApplicationRecord
     'sfid';
   end
 
+  # Since the fields on this model come from HerokuConnect, it's safer to lookup
+  # the User using the Salesforce Contact.Id instead of the Platform User.Id in
+  # case there was a failure or delay sending the Platform User.Id to Salesforce.
+  belongs_to :user, primary_key: :salesforce_id, foreign_key: :contact_id
+
+  belongs_to :cohort_schedule_section, primary_key: :salesforce_id, foreign_key: :cohort_schedule_id, class_name: Section.name, optional: true
+  belongs_to :cohort_section, primary_key: :salesforce_id, foreign_key: :cohort_id, class_name: Section.name, optional: true
+
   # Define a module with a scope to be included in the HerokuConnect::Participant model.
   # It is responsbile for doing a fancy join / query that efficiently selects
   # the exact attributes used to initialize one of these ParticipantSyncInfo models
   # using the current Salesforce data.
+  #
+  # PRO-TIP: when debugging, use the `attributes` method for one of these to see the values.
+  # E.g. HerokuConnect::Participant.sync_info.find('someID').attributes
   module SyncScope
     def self.included(base)
       base.class_eval do
 
+        # Note: when using a WHERE clause to limit what this scope selects, you need to specify the
+        # the columns on the HerokuConnect::Participant table. See heroku_connect/participant_spec.rb
+        # for a list of those
         scope :sync_info, -> {
           unscope(:select) # throw away the default_columns scope b/c we're overriding what to select
           .left_joins(:contact, :record_type, :program, :cohort, :cohort_schedule, :candidate)
@@ -38,14 +52,23 @@ class ParticipantSyncInfo < ApplicationRecord
             'contact.firstname AS first_name',
             'contact.lastname AS last_name',
             :'contact.email',
+            # HerokuConnect stores this as a double precision type, but we store it as bigint in
+            # the Rails database
+            'CAST(contact.canvas_cloud_user_id__c AS bigint) AS canvas_user_id',
+            # HerokuConnect stores this as a charvar(20), but we store it as bigint in
+            # the Rails database
+            'CAST(contact.platform_user_id__c AS bigint) AS user_id',
             'participant__c.contact__c AS contact_id',
-            'recordtype.name AS role',
+            'recordtype.name AS role_category',
             'participant__c.status__c AS status',
+            'program__c.sfid AS program_id',
             'program__c.canvas_cloud_accelerator_course_id__c AS canvas_accelerator_course_id',
             'program__c.canvas_cloud_lc_playbook_course_id__c AS canvas_lc_playbook_course_id',
             'cohort__c.name AS cohort_section_name',
+            'cohort__c.sfid AS cohort_id',
             'cohortschedule__c.webinar_registration_1__c AS zoom_meeting_id_1',
             'cohortschedule__c.webinar_registration_2__c AS zoom_meeting_id_2',
+            'cohortschedule__c.sfid AS cohort_schedule_id',
 
             # Fields to know if the Zoom Prefix has changed
             'dlrs_lc1_first_name__c AS lc1_first_name',
@@ -58,192 +81,129 @@ class ParticipantSyncInfo < ApplicationRecord
             'cohortschedule__c.weekday__c AS cohort_schedule_weekday',
             'cohortschedule__c.time__c AS cohort_schedule_time',
 
-            # Fields to know their Candidate Role (aka Participant Role aka Volunteer Role)
-            # It's called coach_partner_role__c in SF for legacy reasons, but it's used generically
-            # now to qualify TA's and LC's RecordTypes further.
+            # See Candidate#role for more info on how this is used and what it is.
             'candidate__c.coach_partner_role__c AS candidate_role_select',
 
-            # Fields to know if the TaAssignments changed
-            TA_NAMES_SQL_SUBQUERY,
-            TA_CASELOAD_NAME_SQL_SUBQUERY,
+            # Fields to know if the Salesforce TaAssignment records changed
+            TA_CASELOAD_ENROLLMENTS_SQL_SUBQUERY
           )
           .where(
             recordtype: { name: [
-              HerokuConnect::Participant::Role::FELLOW,
-              HerokuConnect::Participant::Role::LEADERSHIP_COACH,
-              HerokuConnect::Participant::Role::TEACHING_ASSISTANT
+              SalesforceConstants::RoleCategory::FELLOW,
+              SalesforceConstants::RoleCategory::LEADERSHIP_COACH,
+              SalesforceConstants::RoleCategory::TEACHING_ASSISTANT
             ]}
           )
         }
       end
     end # self.included
 
-    TA_NAMES_SQL_SUBQUERY = <<~SQL
+    # Returns a JSON blob like the following, one for each TA Caseload enrollment:
+    # [
+    #   {"ta_name":"Some TA1","ta_participant_id":"a2X11000000nJ5aEAE"},
+    #   {"ta_name":"Some TA2","ta_participant_id":"a2X11000000nJ5fEAQ"}
+    # ]
+    # Access this blob using the 'ta_caseload_enrollments' column like
+    # HerokuConnect::Participant.sync_info.find_by(some_condition).ta_caseload_enrollments
+    TA_CASELOAD_ENROLLMENTS_SQL_SUBQUERY = <<~SQL
       (
-        SELECT array_agg(CONCAT(c.firstname, ' ', c.lastname))
-        FROM ta_assignment__c AS t
-          INNER JOIN participant__c p ON t.ta_participant__c = p.sfid
-          INNER JOIN contact c ON p.contact__c = c.sfid
-        WHERE t.fellow_participant__c = participant__c.sfid
-      ) AS ta_names
+        SELECT json_agg(row_to_json(row))
+        FROM
+        (
+          SELECT DISTINCT ON(ta_participant_id)
+            CONCAT(c.firstname, ' ', c.lastname) AS ta_name,
+            t.ta_participant__c AS ta_participant_id
+          FROM ta_assignment__c AS t
+            INNER JOIN participant__c p ON t.ta_participant__c = p.sfid
+            INNER JOIN contact c ON p.contact__c = c.sfid
+          WHERE
+            t.fellow_participant__c = participant__c.sfid OR
+            t.ta_participant__c = participant__c.sfid
+          ORDER BY ta_participant_id
+        ) AS row
+      ) AS ta_caseload_enrollments
     SQL
 
-    TA_CASELOAD_NAME_SQL_SUBQUERY = <<~SQL
-      (
-        SELECT CONCAT(contact.firstname, ' ', contact.lastname)
-        FROM ta_assignment__c AS tas
-        WHERE ta_participant__c = participant__c.sfid
-        LIMIT 1
-      ) AS ta_caseload_name
-    SQL
   end # SyncScope
 
-  # TODO: actually implement the sync and move this proof of concept to the
-  # sync_current_and_future rake task and SyncSalesforceProgram service.
-  # The sync will now pass a ParticipantSyncInfoDiff object through the layers of the various
-  # sync services after determining that something changed that impacts the sync.
-  # https://app.asana.com/0/1201131148207877/1201453841518463
-  def self.run_sync_poc(max_run_time_seconds)
-    start_time = Time.now.utc
+  # Returns a ParticipantSyncInfo::Diff for the specified participant_id.
+  # If there is nothing to sync ParticipantSyncInfo::Diff#changed? will be false
+  def self.diff_for_id(participant_id)
+    # Most up to date info about this Participant
+    pinfo = HerokuConnect::Participant.sync_info.find(participant_id)
+    current_sync_info = ParticipantSyncInfo.new(pinfo.attributes)
 
-    Honeycomb.start_span(name: 'run_sync_poc.all_programs') do
-      HerokuConnect::Program.current_and_future_program_ids.each do |program_id|
+    # Load the previous data that was successfully synced and saved in the database. May be nil
+    last_sync_info = ParticipantSyncInfo.find_by(sfid: participant_id)
 
-        Honeycomb.start_span(name: 'run_sync_poc.program') do
-          Honeycomb.add_field('salesforce.program.id', program_id)
+    ParticipantSyncInfo::Diff.new(last_sync_info, current_sync_info)
+  end
 
-          new_sync_participant_ids = []
-          new_sync_infos = []
-          last_sync_infos = []
-          participants_to_sync = []
+  # Returns an array of ParticipantSyncInfo::Diff objects for Participants
+  # in the Program.
+  #
+  # Note: if you try to optimize this by storing a hashed value of the attributes,
+  # and comparing against the current hash -> go read this first. It's not really
+  # possible to do maintainably: # https://app.asana.com/0/1201131148207877/1201625616556853
+  def self.diffs_for_program(program)
 
-          # Get all the current info related to a participant that needs to be synced.
-          Honeycomb.start_span(name: 'run_sync_poc.new_sync_infos') do
-
-            # TODO: one idea to make this more efficient is to store a hash of the attribute values
-            # in a column on ParticipantSyncInfo and have the query only return sync_info's that are
-            # new or have changed by joining participant to participant_sync_info on the sfids and using
-            # WHERE clause for when the hashed values don't match. This way, we wouldn't have to load all
-            # the actual attributes into memory just to know if they need to be synced. I started trying to do this,
-            # BUT, it's not possible to do in a dev env b/c the HerokuConnect tables are on the staging database
-            # so we can't join to the local database. Let's punt this until memory issues actually become a problem.
-            # Note: we could still use a hash of the attributes to avoid loading last_sync_infos that have't changed
-            # but it's not worth all the complexity / overhead unless we can get it to only return changed participants
-            # at the DB level
-            new_sync_infos = HerokuConnect::Participant.sync_info
-              .where(program__c: program_id)
-
-            new_sync_participant_ids = new_sync_infos.map(&:sfid)
-            puts "### RUN_POC: new_sync_infos = #{new_sync_participant_ids.count}"
-            Honeycomb.add_field('participant_sync_info.new.count', new_sync_participant_ids.count)
-          end
-
-          # Get the most recently synced info.
-          Honeycomb.start_span(name: 'run_sync_poc.last_sync_infos') do
-            last_sync_infos = ParticipantSyncInfo.where(sfid: new_sync_participant_ids).index_by(&:sfid)
-            puts "### RUN_POC: last_sync_info_count = #{last_sync_infos.count}"
-            Honeycomb.add_field('participant_sync_info.last.count', last_sync_infos.count)
-          end
-
-          # Figure out which participants need to be synced due to changes.
-          Honeycomb.start_span(name: 'run_sync_poc.get_changed_participants') do
-            new_sync_infos.find_each do |participant|
-              last_sync_info = last_sync_infos[participant.sfid]
-              new_sync_info = ParticipantSyncInfo.new(participant.attributes)
-              pdiff = Diff.new(last_sync_info, new_sync_info)
-              has_changed = pdiff.changed?
-              #puts "### RUN_POC: sfid: #{participant.sfid}- pdiff.changed? = #{has_changed}"
-              if has_changed
-                Honeycomb.start_span(name: 'run_sync_poc.changed_participant') do
-                  pdiff.add_to_honeycomb_span()
-                  puts "### RUN_POC: pdiff = #{pdiff.inspect}"
-                  puts "### RUN_POC: last_sync_info = #{last_sync_info.inspect}"
-                  puts "### RUN_POC: new_sync_info = #{new_sync_info.inspect}"
-                end
-              end
-              participants_to_sync << pdiff if has_changed
-            end
-            puts "### RUN_POC: participants_to_sync_count = #{participants_to_sync.count}"
-            Honeycomb.add_field('participant_sync_info.changed.count', participants_to_sync.count)
-          end
-
-          Honeycomb.add_field('participant_sync_info.last.count', last_sync_infos.count)
-          Honeycomb.add_field('participant_sync_info.new.count', new_sync_participant_ids.count)
-          Honeycomb.add_field('participant_sync_info.changed.count', participants_to_sync.count)
-
-          # Help these get garbage collected sooner while we work on the actual sync
-          new_sync_infos = nil
-          new_sync_participant_ids = nil
-          last_sync_infos = nil
-
-          # TODO: kick off the sync with the final participants_to_sync list,
-          # This just pretends the sync workd for this POC and saves the new values as "last synced"
-
-          participants_to_sync.each { |p|
-            Honeycomb.start_span(name: 'run_sync_poc.sync_participant') do
-              elapsed_seconds = Time.now.utc - start_time
-              if elapsed_seconds > max_run_time_seconds
-                puts "### RUN_POC: exiting early b/c sync has been running for #{elapsed_seconds} and the max run_time is #{max_run_time_seconds}"
-                Honeycomb.add_field('run_sync_poc.exited_early?', true)
-                # The time format used is the same in libhoney:
-                # https://github.com/honeycombio/libhoney-rb/blob/3607446da676a59aad47ff72c3e8d749f885f0e9/lib/libhoney/transmission.rb#L187
-                Honeycomb.add_field('run_sync_poc.exit_time', Time.now.utc.iso8601(3))
-                return
-              end
-
-              # TODO: mimic an actual sync taking time to process everyone. We're going to run this
-              # in prod for a bit before actually hooking it up and I want to be able to setup some Honeycomb
-              # queiries to see how long things take when real changes happen, assuming a sync for each of those
-              # can take a bit.
-              puts "  #### RUN_POC: sleeping 4 seconds, pretending to sync. Let's query this span and aggregate the time spent which is dependant on the # changes"
-              sleep 4
-              p.new_sync_info.updated_at = Time.now.utc
-              ParticipantSyncInfo.upsert(p.attributes.except('id', 'created_at'), unique_by: :sfid)
-            end
-          }
-
-        end
-      end # for each program
+    # Get the current values in Salesforce for all the ParticipantSyncInfo columns
+    new_sync_participant_ids = []
+    new_sync_infos = HerokuConnect::Participant.sync_info.where(program__c: program.sfid).map do |p|
+      new_sync_participant_ids << p.sfid
+      ParticipantSyncInfo.new(p.attributes)
     end
-  end # run_sync_poc
 
-  # If the Cohort isn't set (aka Cohort mapping hasn't happened yet), use the section
-  # name for the Cohort Schedule as a placeholder section that we setup before they are
-  # mapped to their real cohort in the 2nd or 3rd week.
-  def primary_enrollment_canvas_section_name
-    cohort_section_name || # E.g. SJSU Brian (Tues)
-      cohort_schedule_canvas_section_name # E.g. 'Monday, 7:00'
+    # Load the previous values that were successfully synced and saved in the database
+    # Note: index_by returns these as { 'sfid' => the_sync_info_model }
+    last_sync_infos = ParticipantSyncInfo.where(sfid: new_sync_participant_ids).index_by(&:sfid)
+
+    # Create the diffs. Note that last_sync_info can be nil
+    new_sync_infos.map { |new_sync_info|
+      last_sync_info = last_sync_infos[new_sync_info.sfid]
+      pdiff = ParticipantSyncInfo::Diff.new(last_sync_info, new_sync_info)
+    }
+  end
+
+  def is_enrolled?
+    status == HerokuConnect::Participant::Status::ENROLLED
+  end
+
+  def is_dropped?
+    status == HerokuConnect::Participant::Status::DROPPED
+  end
+
+  def is_completed?
+    status == HerokuConnect::Participant::Status::COMPLETED
+  end
+
+  def is_mapped_to_cohort?
+    cohort_section_name.present?
+  end
+
+  def accelerator_course_role
+    if role_category == SalesforceConstants::RoleCategory::FELLOW
+      RoleConstants::STUDENT_ENROLLMENT
+    else
+      RoleConstants::TA_ENROLLMENT
+    end
+  end
+
+  def ta_caseload_role
+    if role_category == SalesforceConstants::RoleCategory::FELLOW
+      RoleConstants::STUDENT_ENROLLMENT
+    elsif role_category == SalesforceConstants::RoleCategory::TEACHING_ASSISTANT
+      RoleConstants::TA_ENROLLMENT
+    else
+      raise ArgumentError.new("Expected a Fellow or Teaching Assistant, not: #{role_category}")
+    end
   end
 
   # The name of the Canvas section that corresponds to this Cohort Schedule.
-  # These sections are where we setup the due dates and when Cohort mapping happens
-  # folks are moved from the cohort_schedule_canvas_section_name to their
-  # primary_enrollment_canvas_section_name and the due dates are copied over.
-  def cohort_schedule_canvas_section_name
-    HerokuConnect::CohortSchedule.calculate_canvas_section_name(cohort_schedule_weekday, cohort_schedule_time)
-  end
-
-  # If there is a "Candidate Role" set using "Candidate Role Select" dropdown
-  # (stored in the coach_partner_role__c field for legacy reasons), use that.
-  # Otherwise, use the `RecordType.name` of the Candidate (aka Teaching Assistant, Fellow, etc)
-  def candidate_role
-    HerokuConnect::Candidate.calculate_candidate_role(candidate_role_select, role)
-  end
-
-  # Returns true if that are any TaAssignment__c Salesforce records mapped to this Participant
-  # meaning they should be in the corresponding TA Casload(TA Name) section in Canvas.
-  def assigned_to_canvas_ta_caseload_section?
-    ta_caseload_name.present? || ta_names.present?
-  end
-
-  # Returns a list of Contact full names for each TA Caseload(full_name) section they should
-  # be addded to in Canvas. Reimplements the logic for the :teaching_assistant_sections
-  # field returned from the SalesforceAPI#get_participants() APEX endpoint.
-  def teaching_assistant_full_names
-    ret = []
-    ret << ta_caseload_name if ta_caseload_name.present?
-    ret += ta_names if ta_names.present?
-    ret
+  # These sections are where we setup the due dates. When Cohort mapping happens
+  # folks are added to the Cohort section in Canvas too.
+  def cohort_schedule_section_name
+    HerokuConnect::CohortSchedule.calculate_canvas_section_name(cohort_schedule_id, cohort_schedule_weekday, cohort_schedule_time)
   end
 
   def add_to_honeycomb_span(suffix = nil)
@@ -276,72 +236,142 @@ class ParticipantSyncInfo < ApplicationRecord
 
       @last_sync_info = last_sync_info
       @new_sync_info = new_sync_info
-      @changed = nil
-      @contact_changed = nil
-      @enrollment_changed = nil
-      @zoom_info_changed = nil
-      @ta_assignments_changed = nil
+    end
+
+    # True if this Participant is in a state where the sync logic should run.
+    #
+    # We can't enforce Enrolled Participants to have a Cohort Schedule set in Salesforce
+    # due to the complex logistics of moving folks from the recruitment stage to enrolled stage.
+    # So we just wait until they are given one and then we start syncing them.
+    #
+    # IMPORTANT: do not save this ParticipantSyncInfo if should_sync? is false.
+    # If you did, when they did get a Cohort Schedule then other parts of the
+    # sync may not run b/c we think it was already synced.
+    def should_sync?
+      if requires_cohort_schedule? &&
+         cohort_schedule_id.blank? &&
+         user_id.blank?
+
+        return false
+
+      else
+        return true
+      end
     end
 
     def changed?
-      @changed ||= (
+      return false unless should_sync?
+
+      (
         contact_changed? ||
-        enrollment_changed? ||
+        primary_enrollment_changed? ||
         zoom_info_changed? ||
-        ta_assignments_changed?
+        ta_caseload_sections_changed?
       )
     end
 
     def contact_changed?
-      @contact_changed ||= (
+      (
         contact_id != @last_sync_info&.contact_id ||
         email != @last_sync_info&.email ||
         first_name != @last_sync_info&.first_name ||
-        last_name != @last_sync_info&.last_name
+        last_name != @last_sync_info&.last_name ||
+        canvas_user_id != @last_sync_info&.canvas_user_id ||
+        user_id != @last_sync_info&.user_id
       )
     end
 
-    def enrollment_changed?
-      @enrollment_changed ||= (
-        role != @last_sync_info&.role ||
+    def primary_enrollment_changed?
+      (
+        role_category != @last_sync_info&.role_category ||
         status != @last_sync_info&.status ||
-        primary_enrollment_canvas_section_name != @last_sync_info&.primary_enrollment_canvas_section_name ||
-        candidate_role != @last_sync_info&.candidate_role ||
+        cohort_id != @last_sync_info&.cohort_id ||
+        cohort_schedule_id != @last_sync_info&.cohort_schedule_id ||
+        cohort_section_name != @last_sync_info&.cohort_section_name ||
+        cohort_schedule_name_changed? ||
+        candidate_role_select != @last_sync_info&.candidate_role_select ||
         canvas_accelerator_course_id != @last_sync_info&.canvas_accelerator_course_id ||
         canvas_lc_playbook_course_id != @last_sync_info&.canvas_lc_playbook_course_id
       )
     end
 
+    def ta_caseload_sections_changed?
+      (
+        status != @last_sync_info&.status ||
+        ta_caseload_enrollments != @last_sync_info&.ta_caseload_enrollments
+      )
+    end
+
+    def enrollments_changed?
+      primary_enrollment_changed? || ta_caseload_sections_changed?
+    end
+
+    def cohort_schedule_name_changed?
+      (
+        cohort_schedule_weekday != @last_sync_info&.cohort_schedule_weekday ||
+        cohort_schedule_time != @last_sync_info&.cohort_schedule_time
+      )
+    end
+
     def zoom_info_changed?
-      @zoom_info_changed ||= (
+      (
         zoom_meeting_id_1 != @last_sync_info&.zoom_meeting_id_1 ||
         zoom_meeting_id_2 != @last_sync_info&.zoom_meeting_id_2 ||
         lc1_first_name != @last_sync_info&.lc1_first_name ||
         lc1_last_name != @last_sync_info&.lc1_last_name ||
         lc2_first_name != @last_sync_info&.lc2_first_name ||
         lc2_last_name != @last_sync_info&.lc2_last_name ||
-        contact_changed?
+        contact_changed? ||
+        primary_enrollment_changed?
       )
     end
 
-    def ta_assignments_changed?
-      @ta_assignments_changed ||= (
-        ta_names != @last_sync_info&.ta_names ||
-        ta_caseload_name != @last_sync_info&.ta_caseload_name
+    def zoom_meeting_id_1_changed?
+        zoom_meeting_id_1 != @last_sync_info&.zoom_meeting_id_1
+    end
+
+    def zoom_meeting_id_2_changed?
+        zoom_meeting_id_2 != @last_sync_info&.zoom_meeting_id_2
+    end
+
+    def requires_cohort_schedule?
+      (
+        role_category == SalesforceConstants::RoleCategory::FELLOW ||
+        role_category == SalesforceConstants::RoleCategory::LEADERSHIP_COACH
       )
+    end
+
+    # Call this to save the new_sync_info back to the database so that the next sync will
+    # skip this Participant if there are no changes.
+    def save_successful_sync!
+      unless should_sync?
+        raise RuntimeError.new(
+          "Cannot save a ParticipantSyncInfo for #{@new_sync_info.sfid} b/c should_sync? is false."
+        )
+      end
+
+      @new_sync_info.updated_at = Time.now.utc
+      ParticipantSyncInfo.upsert(@new_sync_info.attributes.except('id', 'created_at'), unique_by: :sfid)
     end
 
     def add_to_honeycomb_span
       Honeycomb.add_field('participant_sync_info.changed?', changed?)
       Honeycomb.add_field('participant_sync_info.contact_changed?', contact_changed?)
-      Honeycomb.add_field('participant_sync_info.enrollment_changed?', enrollment_changed?)
+      Honeycomb.add_field('participant_sync_info.primary_enrollment_changed?', primary_enrollment_changed?)
       Honeycomb.add_field('participant_sync_info.zoom_info_changed?', zoom_info_changed?)
-      Honeycomb.add_field('participant_sync_info.ta_assignments_changed?', ta_assignments_changed?)
+      Honeycomb.add_field('participant_sync_info.ta_caseload_sections_changed?', ta_caseload_sections_changed?)
       @new_sync_info.add_to_honeycomb_span('.new')
       if changed?
         @last_sync_info.add_to_honeycomb_span('.last') if @last_sync_info.present?
         Honeycomb.add_field('participant_sync_info.last_sync_info.exists?', false) if @last_sync_info.blank?
       end
+      # duplicate some of the above with names that match what we use in other places as a convenience
+      Honeycomb.add_field('salesforce.participant.id', sfid)
+      Honeycomb.add_field('user.salesforce_id', contact_id)
+      Honeycomb.add_field('user.email', email)
+      Honeycomb.add_field('user.canvas_user_id', canvas_user_id)
+      Honeycomb.add_field('user.id', user_id)
     end
   end
+
 end

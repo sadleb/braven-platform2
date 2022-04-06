@@ -4,10 +4,10 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
   render_views
 
   let(:lc_playbook_course) { create :course }
-  let(:lc_playbook_section) { create :section, course: lc_playbook_course }
+  let(:lc_playbook_section) { create :cohort_section, course: lc_playbook_course }
 
   let(:accelerator_course) { create :course }
-  let(:accelerator_section) { create :section, course: accelerator_course }
+  let(:accelerator_section) { create :cohort_section, course: accelerator_course }
   let(:launch_section) { accelerator_section }
 
   let(:assignment_overrides) { [] }
@@ -113,7 +113,7 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
 
         # Admins will just see the attendance form for the first section they are a TA in.
         context 'as TA in multiple sections' do
-          let(:accelerator_section2) { create :section, course: accelerator_course  }
+          let(:accelerator_section2) { create :cohort_section, course: accelerator_course  }
           let(:launch_section) { accelerator_section2 }
           before(:each) do
             user.add_role RoleConstants::TA_ENROLLMENT, accelerator_section2
@@ -129,7 +129,7 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
 
     context 'as enrolled (LC) user' do
       let!(:user) { create :ta_user, section: accelerator_section }
-      let(:accelerator_section2) { create :section, course: accelerator_course  }
+      let(:accelerator_section2) { create :cohort_section, course: accelerator_course  }
 
       before(:each) do
         user.add_role RoleConstants::STUDENT_ENROLLMENT, lc_playbook_section
@@ -246,7 +246,8 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
         let!(:fellow_user1) { create :fellow_user, last_name: 'Zebra', section: accelerator_section }
         let!(:fellow_user2) { create :fellow_user, last_name: 'BlastName', section: accelerator_section }
         let!(:fellow_user3) { create :fellow_user, last_name: 'Adams', section: accelerator_section }
-        let!(:ta_section) { create :section, name: SectionConstants::TA_SECTION, course: accelerator_section.course }
+        let!(:ta_section) { create :ta_section, course: accelerator_section.course }
+        let!(:ta_caseload_section) { create :ta_caseload_section, course: accelerator_section.course }
 
         context 'when LC has special permission' do
           before :each do
@@ -263,9 +264,14 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
             expect(response.body).to include(accelerator_section.name)
           end
 
-          it 'excludes TA section from section dropdown' do
+          it 'excludes Teaching Assistants section from section dropdown' do
             subject
             expect(response.body).not_to include(ta_section.name)
+          end
+
+          it 'excludes TA Caseload sections from section dropdown' do
+            subject
+            expect(response.body).not_to include(ta_caseload_section.name)
           end
 
           it 'alphabetizes the list by last name' do

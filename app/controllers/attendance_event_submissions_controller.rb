@@ -19,6 +19,7 @@ class AttendanceEventSubmissionsController < ApplicationController
 
   before_action :set_lti_launch, only: [:launch, :edit, :update]
   before_action :set_accelerator_course, only: [:launch, :edit, :update]
+  before_action :set_all_attendance_sections, only: [:launch, :edit, :update]
   before_action :set_course_attendance_event, only: [:launch, :edit]
   before_action :set_fellow_users, only: [:edit, :update]
   # TODO: evaluate removing this now that we don't use iframes.
@@ -125,7 +126,7 @@ private
     @accelerator_course = Course.find_by(canvas_course_id: accelerator_canvas_course_id)
   end
 
-  # For #launch
+  # For #launch, #edit
   def set_course_attendance_event
     if params[:course_attendance_event_id]
       @course_attendance_event = @accelerator_course.course_attendance_events.find(
@@ -133,6 +134,12 @@ private
       )
     else
       @course_attendance_event = helpers.get_default_course_attendance_event(section)
+    end
+  end
+
+  def set_all_attendance_sections
+    if current_user.can_take_attendance_for_all?
+      @all_attendance_sections = Section.cohort_or_cohort_schedule.where(course: @accelerator_course)
     end
   end
 
@@ -151,7 +158,7 @@ private
     # If we have special permission, try to use the section_id param.
     # Fall back to first section as TA, then first section in the course (if not a TA).
     if current_user.can_take_attendance_for_all?
-      return @accelerator_course.sections.find_by_id(params[:section_id]) || sections_as_ta.first || @accelerator_course.sections.first
+      return @accelerator_course.sections.find_by_id(params[:section_id]) || sections_as_ta.first || @all_attendance_sections.first
     end
 
     # If no special permission, fall back to TA section.
@@ -162,9 +169,7 @@ private
 
   # Get all Accelerator course sections where this user is a TA.
   def sections_as_ta
-    @sections_as_ta ||= current_user
-      .sections_with_role(RoleConstants::TA_ENROLLMENT)
-      .select { |section| section.course_id == @accelerator_course.id}
+    @sections_as_ta ||= current_user.ta_sections.where(course: @accelerator_course)
   end
 
   # For #update

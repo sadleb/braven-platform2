@@ -6,24 +6,27 @@ RSpec.describe SyncSalesforceProgramJob, type: :job do
   describe '#perform' do
     let(:failed_participants) { [] }
     let(:count) { failed_participants.count }
-    let(:program_portal_enrollments) { double(SyncSalesforceProgram, run: nil, failed_participants: failed_participants, count: count) }
+    let(:sync_service) { double(SyncSalesforceProgram, run: nil, failed_participants: failed_participants, count: count) }
     let(:delivery) { double('DummyDeliverer', deliver_now: nil) }
     let(:mailer) { double('DummyMailerInstance', success_email: delivery, failure_email: delivery) }
+    let!(:program) { build :heroku_connect_program }
 
     before(:each) do
-      allow(SyncSalesforceProgram).to receive(:new).and_return(program_portal_enrollments)
+      allow(SyncSalesforceProgram).to receive(:new).and_return(sync_service)
       allow(SyncSalesforceProgramMailer).to receive(:with).and_return(mailer)
+      allow(HerokuConnect::Program).to receive(:find_by).and_return(program)
     end
 
     shared_examples 'starts the sync process' do
-      it 'passes salesforce_program_id and force_zoom_update to the sync service' do
-        program_id = 'some_fake_id'
+      let(:force_canvas_update) { false }
+
+      it 'passes the correct params to the sync service' do
         email = 'example@example.com'
-        SyncSalesforceProgramJob.perform_now(program_id, email, force_zoom_update)
+        SyncSalesforceProgramJob.perform_async(program.sfid, email, force_canvas_update, force_zoom_update)
 
         expect(SyncSalesforceProgram).to have_received(:new)
-          .with(salesforce_program_id: program_id, force_zoom_update: force_zoom_update)
-        expect(program_portal_enrollments).to have_received(:run)
+          .with(program, SyncSalesforceProgramJob::SALESFORCE_SYNC_MAX_DURATION, force_canvas_update, force_zoom_update)
+        expect(sync_service).to have_received(:run)
       end
     end
 
@@ -38,18 +41,16 @@ RSpec.describe SyncSalesforceProgramJob, type: :job do
     end
 
     it 'sends success mail if successful' do
-      program_id = 'some_fake_id'
       email = 'example@example.com'
-      SyncSalesforceProgramJob.perform_now(program_id, email)
+      SyncSalesforceProgramJob.perform_async(program.id, email)
 
       expect(mailer).to have_received(:success_email)
     end
 
     it 'sends failure mail if something bad happens' do
-      allow(program_portal_enrollments).to receive(:run).and_raise('something bad')
-      program_id = 'some_fake_id'
+      allow(sync_service).to receive(:run).and_raise('something bad')
       email = 'example@example.com'
-      expect{ SyncSalesforceProgramJob.perform_now(program_id, email) }.to raise_error('something bad')
+      expect{ SyncSalesforceProgramJob.perform_async(program.id, email) }.to raise_error('something bad')
       expect(mailer).to have_received(:failure_email)
     end
 

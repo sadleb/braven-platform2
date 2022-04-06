@@ -18,7 +18,24 @@ class HerokuConnect::Contact < HerokuConnect::HerokuConnectRecord
       :name, :firstname, :lastname, :email, :preferred_first_name__c,
       :canvas_cloud_user_id__c,
       :discord_user_id__c,
+      :platform_user_id__c,
+      :signup_date__c,
     ]
   end
 
+  def first_name
+    firstname
+  end
+
+  def last_name
+    lastname
+  end
+
+  def canvas_user_id
+    canvas_cloud_user_id__c
+  end
+
+  def user_id
+    platform_user_id__c
+  end
 end

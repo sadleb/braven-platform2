@@ -60,8 +60,8 @@ RSpec.describe Users::PasswordsController, type: :controller do
         @reset_password_token = user.send(:set_reset_password_token)
       end
 
-      it 'resets signup token/sent_at' do
-        # Reset both tokens, for security reasons.
+      it 'resets signup token' do
+        # Reset signup_token, for security reasons.
         user.set_signup_token!
         expect(user.signup_token).not_to eq(nil)
         expect(user.signup_token_sent_at).not_to eq(nil)
@@ -69,7 +69,9 @@ RSpec.describe Users::PasswordsController, type: :controller do
         subject
         user.reload
         expect(user.signup_token).to eq(nil)
-        expect(user.signup_token_sent_at).to eq(nil)
+        # We always keep the sent_at value to determine whether initially we've successfully
+        # created a new user to the point that they can sign up.
+        expect(user.signup_token_sent_at).not_to eq(nil)
       end
 
       it 'redirects to log in page' do

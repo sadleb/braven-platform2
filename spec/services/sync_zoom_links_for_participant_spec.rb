@@ -5,29 +5,32 @@ require 'rails_helper'
 RSpec.describe SyncZoomLinksForParticipant do
   let(:zoom_client) { double(ZoomAPI) }
   let(:sf_client) { double(SalesforceAPI) }
-  # Make sure and set the salesforce_participant for each test
-  let(:salesforce_participant_struct) { SalesforceAPI.participant_to_struct(salesforce_participant) }
   let(:force_zoom_update) { false }
   let(:zoom_registrant1) { create :zoom_registrant }
   let(:zoom_registrant2) { create :zoom_registrant }
 
+  # Make sure and set the participant and participant_sync_info_current for each test
+  let(:participant) { nil }
+  let(:participant_sync_info_current) { nil }
+
+  let(:participant_sync_info) { ParticipantSyncInfo::Diff.new(nil, participant_sync_info_current) }
+
   before(:each) do
     allow(ZoomAPI).to receive(:client).and_return(zoom_client)
     allow(SalesforceAPI).to receive(:client).and_return(sf_client)
+    allow(HerokuConnect::Participant).to receive(:find).and_return(participant)
   end
 
   describe '#run' do
     subject(:run_sync) do
-      SyncZoomLinksForParticipant.new(salesforce_participant_struct, force_zoom_update).run
+      SyncZoomLinksForParticipant.new(participant_sync_info, force_zoom_update).run
     end
 
     shared_examples 'zoom sync' do
 
       before(:each) do
-        salesforce_participant_struct.zoom_meeting_id_1 = meeting_id_1
-        salesforce_participant_struct.zoom_meeting_id_2 = meeting_id_2
-        salesforce_participant_struct.zoom_meeting_link_1 = meeting_link_1
-        salesforce_participant_struct.zoom_meeting_link_2 = meeting_link_2
+        participant_sync_info.zoom_meeting_id_1 = meeting_id_1
+        participant_sync_info.zoom_meeting_id_2 = meeting_id_2
       end
 
       shared_examples 'Enrolled Participant' do
@@ -46,36 +49,41 @@ RSpec.describe SyncZoomLinksForParticipant do
             if meeting_id_1.present?
               generated_link_1 = zoom_registrant1['join_url']
               expect(zoom_client).to receive(:add_registrant).with(meeting_id_1,
-                salesforce_participant_struct.email,
-                "#{first_name_prefix}#{salesforce_participant_struct.first_name}",
-                salesforce_participant_struct.last_name
+                participant_sync_info.email,
+                "#{first_name_prefix}#{participant_sync_info.first_name}",
+                participant_sync_info.last_name
               ).and_return(zoom_registrant1).once
+            elsif participant_sync_info.zoom_meeting_id_1_changed?
+              generated_link_1 = '' # clear out the link in SF
             end
 
             if meeting_id_2.present?
               generated_link_2 = zoom_registrant2['join_url']
               expect(zoom_client).to receive(:add_registrant).with(meeting_id_2,
-                salesforce_participant_struct.email,
-                "#{first_name_prefix}#{salesforce_participant_struct.first_name}",
-                salesforce_participant_struct.last_name
+                participant_sync_info.email,
+                "#{first_name_prefix}#{participant_sync_info.first_name}",
+                participant_sync_info.last_name
               ).and_return(zoom_registrant2).once
+            elsif participant_sync_info.zoom_meeting_id_2_changed?
+              generated_link_2 = '' # clear out the link in SF
             end
 
             # Even if no meeting IDs are configured, this is still called to clear them out if they had been set previously.
-            if generated_link_1 != salesforce_participant_struct.zoom_meeting_link_1 ||
-               generated_link_2 != salesforce_participant_struct.zoom_meeting_link_2
-              expect(sf_client).to receive(:update_zoom_links).with(salesforce_participant_struct.id, generated_link_1, generated_link_2).once
+            if !generated_link_1.nil? || !generated_link_2.nil?
+              expect(sf_client).to receive(:update_zoom_links).with(participant_sync_info.sfid, generated_link_1, generated_link_2).once
+            else
+              expect(sf_client).not_to receive(:update_zoom_links)
             end
 
             zoom_link_info_upsert_data = []
-            if generated_link_1
-              zoom_link_info1 = ZoomLinkInfo.parse(salesforce_participant_struct, :zoom_meeting_id_1)
+            if generated_link_1.present?
+              zoom_link_info1 = ZoomLinkInfo.parse(participant_sync_info, :zoom_meeting_id_1)
               zoom_link_info1.registrant_id = zoom_registrant1['registrant_id']
               zoom_link_info_upsert_data << zoom_link_info1.attributes.except('id', 'created_at', 'updated_at')
             end
 
-            if generated_link_2
-              zoom_link_info2 = ZoomLinkInfo.parse(salesforce_participant_struct, :zoom_meeting_id_2)
+            if generated_link_2.present?
+              zoom_link_info2 = ZoomLinkInfo.parse(participant_sync_info, :zoom_meeting_id_2)
               zoom_link_info2.registrant_id = zoom_registrant2['registrant_id']
               zoom_link_info_upsert_data << zoom_link_info2.attributes.except('id', 'created_at', 'updated_at')
             end
@@ -90,30 +98,26 @@ RSpec.describe SyncZoomLinksForParticipant do
         end
 
         context 'on first sync' do
-          let(:meeting_link_1) { nil }
-          let(:meeting_link_2) { nil }
           it_behaves_like 'syncs the links'
         end
 
         context 'when already synced' do
-          let(:meeting_link_1) { zoom_registrant1['join_url'] if meeting_id_1 }
-          let(:meeting_link_2) { zoom_registrant2['join_url'] if meeting_id_2 }
-
           before(:each) do
             if meeting_id_1
-              zoom_link_info1 = ZoomLinkInfo.parse(salesforce_participant_struct, :zoom_meeting_id_1)
+              zoom_link_info1 = ZoomLinkInfo.parse(participant_sync_info, :zoom_meeting_id_1)
               zoom_link_info1.registrant_id = zoom_registrant1['registrant_id']
               zoom_link_info1.save!
             end
 
             if meeting_id_2
-              zoom_link_info2 = ZoomLinkInfo.parse(salesforce_participant_struct, :zoom_meeting_id_2)
+              zoom_link_info2 = ZoomLinkInfo.parse(participant_sync_info, :zoom_meeting_id_2)
               zoom_link_info2.registrant_id = zoom_registrant2['registrant_id']
               zoom_link_info2.save!
             end
           end
 
           context 'when no changes' do
+            let(:participant_sync_info) { ParticipantSyncInfo::Diff.new(participant_sync_info_current, participant_sync_info_current) }
             it 'skips the sync' do
               expect(zoom_client).not_to receive(:add_registrant)
               expect(sf_client).not_to receive(:update_zoom_links)
@@ -158,8 +162,6 @@ RSpec.describe SyncZoomLinksForParticipant do
           end
 
           context 'when forced update' do
-            let(:meeting_link_1) { 'https://fake.old.zoom.link1.com' }
-            let(:meeting_link_2) { 'https://fake.old.zoom.link2.com' }
             let(:force_zoom_update) { true }
 
             # We already tested the actual link logic above, so these don't both with the actual params sent.
@@ -170,19 +172,24 @@ RSpec.describe SyncZoomLinksForParticipant do
               if meeting_id_1.present?
                 generated_link_1 = zoom_registrant1['join_url']
                 expect(zoom_client).to receive(:add_registrant).with(meeting_id_1, anything, anything, anything).and_return(zoom_registrant1).once
+              elsif participant_sync_info.zoom_meeting_id_1_changed?
+                generated_link_1 = ''
               end
 
               if meeting_id_2.present?
                 generated_link_2 = zoom_registrant2['join_url']
                 expect(zoom_client).to receive(:add_registrant).with(meeting_id_2, anything, anything, anything).and_return(zoom_registrant2).once
+              elsif participant_sync_info.zoom_meeting_id_2_changed?
+                generated_link_2 = ''
               end
 
-              if generated_link_1 != salesforce_participant_struct.zoom_meeting_link_1 ||
-                 generated_link_2 != salesforce_participant_struct.zoom_meeting_link_2
-                expect(sf_client).to receive(:update_zoom_links).with(salesforce_participant_struct.id, generated_link_1, generated_link_2).once
+              if !generated_link_1.nil? || !generated_link_2.nil?
+                expect(sf_client).to receive(:update_zoom_links).with(participant_sync_info.sfid, generated_link_1, generated_link_2).once
+              else
+                expect(sf_client).not_to receive(:update_zoom_links)
               end
 
-              if generated_link_1 || generated_link_2
+              if generated_link_1.present? || generated_link_2.present?
                 expect(ZoomLinkInfo).to receive(:upsert_all)
               else
                 expect(ZoomLinkInfo).not_to receive(:upsert_all)
@@ -196,9 +203,7 @@ RSpec.describe SyncZoomLinksForParticipant do
         # Make sure that this particular error is not treated as a sync failure. Staff members that are hosts
         # of the Zoom meeting can be sync'd to the Course as a Teaching Assistant (or some other staff role).
         # Instead of a real link, just return a message about why the Zoom link wasn't created so people know what's up.
-        context 'when syncing Host of Zoom meeting the first time' do
-          let(:meeting_link_1) { nil }
-          let(:meeting_link_2) { nil }
+        context 'when syncing Host of Zoom meeting' do
           let(:error_message) { 'We cannot create a pre-registered Zoom link for a host.' }
 
           it 'returns a message about why the link wasnt created as the link itself so that staff knows what is going on' do
@@ -208,57 +213,29 @@ RSpec.describe SyncZoomLinksForParticipant do
             if meeting_id_1.present?
               generated_link_1 = SyncZoomLinksForParticipant::ZOOM_HOST_LINK_MESSAGE
               allow(zoom_client).to receive(:add_registrant).with(meeting_id_1,
-                salesforce_participant_struct.email,
-                "#{first_name_prefix}#{salesforce_participant_struct.first_name}",
-                salesforce_participant_struct.last_name
+                participant_sync_info.email,
+                "#{first_name_prefix}#{participant_sync_info.first_name}",
+                participant_sync_info.last_name
               ).and_raise(ZoomAPI::HostCantRegisterForZoomMeetingError, error_message)
+            elsif participant_sync_info.zoom_meeting_id_1_changed?
+              generated_link_1 = ''
             end
 
             if meeting_id_2.present?
               generated_link_2 = SyncZoomLinksForParticipant::ZOOM_HOST_LINK_MESSAGE
               allow(zoom_client).to receive(:add_registrant).with(meeting_id_2,
-                salesforce_participant_struct.email,
-                "#{first_name_prefix}#{salesforce_participant_struct.first_name}",
-                salesforce_participant_struct.last_name
+                participant_sync_info.email,
+                "#{first_name_prefix}#{participant_sync_info.first_name}",
+                participant_sync_info.last_name
               ).and_raise(ZoomAPI::HostCantRegisterForZoomMeetingError, error_message)
+            elsif participant_sync_info.zoom_meeting_id_2_changed?
+              generated_link_2 = ''
             end
 
             # Even if no meeting IDs are configured, this is still called to clear them out if they had been set previously.
-            if generated_link_1 != salesforce_participant_struct.zoom_meeting_link_1 ||
-               generated_link_2 != salesforce_participant_struct.zoom_meeting_link_2
-              expect(sf_client).to receive(:update_zoom_links).with(salesforce_participant_struct.id, generated_link_1, generated_link_2).once
-            end
-
-            expect(ZoomLinkInfo).not_to receive(:upsert_all)
-
-            run_sync
-          end
-        end
-
-        context 'when syncing Host of Zoom meeting subsequent times' do
-          let(:meeting_link_1) { SyncZoomLinksForParticipant::ZOOM_HOST_LINK_MESSAGE }
-          let(:meeting_link_2) { SyncZoomLinksForParticipant::ZOOM_HOST_LINK_MESSAGE }
-
-          it 'skips the sync' do
-            generated_link_1 = nil
-            generated_link_2 = nil
-
-            if meeting_id_1.present?
-              generated_link_1 = SyncZoomLinksForParticipant::ZOOM_HOST_LINK_MESSAGE
-              expect(zoom_client).not_to receive(:add_registrant).with(
-                meeting_id_1, anything, anything, anything
-              )
-            end
-
-            if meeting_id_2.present?
-              generated_link_2 = SyncZoomLinksForParticipant::ZOOM_HOST_LINK_MESSAGE
-              expect(zoom_client).not_to receive(:add_registrant).with(
-                meeting_id_2, anything, anything, anything
-              )
-            end
-
-            if generated_link_1 == salesforce_participant_struct.zoom_meeting_link_1 &&
-               generated_link_2 == salesforce_participant_struct.zoom_meeting_link_2
+            if !generated_link_1.nil? || !generated_link_2.nil?
+              expect(sf_client).to receive(:update_zoom_links).with(participant_sync_info.sfid, generated_link_1, generated_link_2).once
+            else
               expect(sf_client).not_to receive(:update_zoom_links)
             end
 
@@ -271,26 +248,44 @@ RSpec.describe SyncZoomLinksForParticipant do
       end # END 'Enrolled Participant' examples
 
       context 'Fellow' do
-        let(:salesforce_participant) { create :salesforce_participant_fellow }
-        let(:first_name_prefix) { "#{salesforce_participant_struct.zoom_prefix} - " }
+        let(:participant) { build :heroku_connect_fellow_participant }
+        let(:participant_sync_info_current) { create :participant_sync_info_fellow, participant: participant }
+        let(:first_name_prefix) { ZoomLinkInfo.calculate_zoom_prefix(participant_sync_info_current) }
         it_behaves_like 'Enrolled Participant'
       end
 
       context 'Leadership Coach' do
-        let(:salesforce_participant) { create :salesforce_participant_lc }
+        let(:participant) { build :heroku_connect_lc_participant }
+        let(:participant_sync_info_current) { create :participant_sync_info_lc, participant: participant }
         let(:first_name_prefix) { 'LC - ' }
         it_behaves_like 'Enrolled Participant'
       end
 
       context 'Coach Partner' do
-        let(:salesforce_participant) { create :salesforce_participant_cp }
+        let(:participant) { build :heroku_connect_cp_participant }
+        let(:participant_sync_info_current) { create :participant_sync_info_cp, participant: participant }
         let(:first_name_prefix) { 'CP - ' }
         it_behaves_like 'Enrolled Participant'
       end
 
       context 'Teaching Assistant' do
-        let(:salesforce_participant) { create :salesforce_participant_ta }
+        let(:participant) { build :heroku_connect_ta_participant }
+        let(:participant_sync_info_current) { create :participant_sync_info_ta, participant: participant }
         let(:first_name_prefix) { 'TA - ' }
+        it_behaves_like 'Enrolled Participant'
+      end
+
+      context 'Staff' do
+        let(:participant) { build :heroku_connect_staff_participant }
+        let(:participant_sync_info_current) { create :participant_sync_info_staff, participant: participant }
+        let(:first_name_prefix) { 'Staff - ' }
+        it_behaves_like 'Enrolled Participant'
+      end
+
+      context 'Faculty' do
+        let(:participant) { build :heroku_connect_faculty_participant }
+        let(:participant_sync_info_current) { create :participant_sync_info_faculty, participant: participant }
+        let(:first_name_prefix) { 'Faculty - ' }
         it_behaves_like 'Enrolled Participant'
       end
 
@@ -304,25 +299,30 @@ RSpec.describe SyncZoomLinksForParticipant do
         end
 
         context 'without existing links' do
-          let(:meeting_link_1) { nil }
-          let(:meeting_link_2) { nil }
-
           it 'skips the sync' do
             expect(sf_client).not_to receive(:update_zoom_links)
             expect(sf_client).not_to receive(:cancel_registrants)
-            run_sync
+            expect { run_sync }.not_to change(ZoomLinkInfo, :count)
           end
         end
 
         context 'with one existing link' do
-          let(:meeting_link_1) { zoom_registrant1['join_url'] }
-          let(:meeting_link_2) { nil }
+          let(:existing_zoom_link_info) {
+            participant_sync_info.zoom_meeting_id_1 = 'old_meeting_id'
+            zli = ZoomLinkInfo.parse(participant_sync_info, :zoom_meeting_id_1)
+            zli.registrant_id = zoom_registrant1['registrant_id']
+            zli.save!
+            zli
+          }
 
           it 'cancels only that registration and clears the links from their Salesforce Participant record' do
+            expect(zoom_client).to receive(:cancel_registrants)
+              .with(existing_zoom_link_info.meeting_id, [participant_sync_info.email])
+              .and_return(no_content_response).once
+
             if meeting_id_1.present?
-              expect(zoom_client).to receive(:cancel_registrants)
-                .with(meeting_id_1, [salesforce_participant_struct.email])
-                .and_return(no_content_response).once
+              expect(zoom_client).not_to receive(:cancel_registrants)
+                .with(meeting_id_1, anything)
             end
 
             if meeting_id_2.present?
@@ -330,73 +330,82 @@ RSpec.describe SyncZoomLinksForParticipant do
                 .with(meeting_id_2, anything)
             end
 
-            expect(sf_client).to receive(:update_zoom_links).with(salesforce_participant_struct.id, nil, nil)
+            expect(sf_client).to receive(:update_zoom_links).with(participant_sync_info.sfid, '', '')
 
-            run_sync
+            expect { run_sync }.to change(ZoomLinkInfo, :count).by(-1)
           end
         end
 
         context 'with both existing links' do
-          let(:meeting_link_1) { zoom_registrant1['join_url'] }
-          let(:meeting_link_2) { zoom_registrant2['join_url'] }
+          let(:existing_zoom_link_info1) {
+            participant_sync_info.zoom_meeting_id_1 = 'old_meeting_id1'
+            zli1 = ZoomLinkInfo.parse(participant_sync_info, :zoom_meeting_id_1)
+            zli1.registrant_id = zoom_registrant1['registrant_id']
+            zli1.save!
+            zli1
+          }
+          let(:existing_zoom_link_info2) {
+            participant_sync_info.zoom_meeting_id_2 = 'old_meeting_id2'
+            zli2 = ZoomLinkInfo.parse(participant_sync_info, :zoom_meeting_id_2)
+            zli2.registrant_id = zoom_registrant2['registrant_id']
+            zli2.save!
+            zli2
+          }
 
           it 'cancels both registrations and clears the links from their Salesforce Participant record' do
+            expect(zoom_client).to receive(:cancel_registrants)
+              .with(existing_zoom_link_info1.meeting_id, [participant_sync_info.email])
+              .and_return(no_content_response).once
+            expect(zoom_client).to receive(:cancel_registrants)
+              .with(existing_zoom_link_info2.meeting_id, [participant_sync_info.email])
+              .and_return(no_content_response).once
+
             if meeting_id_1.present?
-              expect(zoom_client).to receive(:cancel_registrants)
-                .with(meeting_id_1, [salesforce_participant_struct.email])
-                .and_return(no_content_response).once
+              expect(zoom_client).not_to receive(:cancel_registrants)
+                .with(meeting_id_2, anything)
             end
 
             if meeting_id_2.present?
-              expect(zoom_client).to receive(:cancel_registrants)
-                .with(meeting_id_2, [salesforce_participant_struct.email])
-                .and_return(no_content_response).once
+              expect(zoom_client).not_to receive(:cancel_registrants)
+                .with(meeting_id_2, anything)
             end
 
-            expect(sf_client).to receive(:update_zoom_links).with(salesforce_participant_struct.id, nil, nil)
+            expect(sf_client).to receive(:update_zoom_links).with(participant_sync_info.sfid, '', '')
 
-            run_sync
+            expect { run_sync }.to change(ZoomLinkInfo, :count).by(-2)
           end
-        end
 
-        # Make sure that this particular error is not treated as a sync failure. No need to cancel the registration
-        # of a non-existent meeting.
-        context 'when Zoom meeting deleted' do
-          let(:meeting_link_1) { zoom_registrant1['join_url'] }
-          let(:meeting_link_2) { zoom_registrant2['join_url'] }
-
-          it 'still deletes the links from Salesforce and ignores the ZoomAPI error' do
-            if meeting_id_1.present?
+          # Make sure that this particular error is not treated as a sync failure. No need to cancel the registration
+          # of a non-existent meeting.
+          context 'when Zoom meeting deleted' do
+            it 'still deletes the links from Salesforce and ignores the ZoomAPI error' do
               expect(zoom_client).to receive(:cancel_registrants)
-                .with(meeting_id_1, [salesforce_participant_struct.email])
+                .with(existing_zoom_link_info1.meeting_id, [participant_sync_info.email])
                 .and_raise(ZoomAPI::ZoomMeetingDoesNotExistError, 'We cannot cancel the Zoom registration for email(s)')
+
+              expect(sf_client).to receive(:update_zoom_links).with(participant_sync_info.sfid, '', '').once
+
+              run_sync
             end
-
-            if meeting_id_2.present?
-              expect(zoom_client).to receive(:cancel_registrants)
-                .with(meeting_id_2, [salesforce_participant_struct.email])
-                .and_return(no_content_response).once
-            end
-
-            expect(sf_client).to receive(:update_zoom_links).with(salesforce_participant_struct.id, nil, nil).once
-
-            run_sync
           end
         end
       end # END 'Dropped Participants'
 
       context 'Dropped Fellow' do
-        let(:salesforce_participant) { create :salesforce_participant_fellow, :ParticipantStatus => SalesforceAPI::DROPPED }
+        let(:participant) { build :heroku_connect_fellow_participant, status__c: HerokuConnect::Participant::Status::DROPPED }
+        let(:participant_sync_info_current) { create :participant_sync_info_fellow, participant: participant}
         it_behaves_like 'Dropped Participant'
       end
 
       context 'Dropped Leadership Coach' do
-        let(:salesforce_participant) { create :salesforce_participant_lc, :ParticipantStatus => SalesforceAPI::DROPPED }
+        let(:participant) { build :heroku_connect_lc_participant, status__c: HerokuConnect::Participant::Status::DROPPED }
+        let(:participant_sync_info_current) { create :participant_sync_info_lc, participant: participant }
         it_behaves_like 'Dropped Participant'
       end
 
       context 'Dropped Coach Partner' do
-        let(:salesforce_participant) { create :salesforce_participant_cp, :ParticipantStatus => SalesforceAPI::DROPPED }
+        let(:participant) { build :heroku_connect_cp_participant, status__c: HerokuConnect::Participant::Status::DROPPED }
+        let(:participant_sync_info_current) { create :participant_sync_info_cp, participant: participant }
         it_behaves_like 'Dropped Participant'
       end
     end # END 'zoom sync' examples
@@ -420,7 +429,8 @@ RSpec.describe SyncZoomLinksForParticipant do
     end
 
     context 'with duplicate registrant_id for participant that violates the ZoomLinkInfo unique constraint' do
-      let(:salesforce_participant) { create :salesforce_participant_fellow }
+      let(:participant) { build :heroku_connect_fellow_participant }
+      let(:participant_sync_info_current) { create :participant_sync_info_fellow, participant: participant }
       let(:meeting_id_1) { '1234567890' }
       let(:meeting_id_2) { nil }
       let(:zoom_registrant2) { nil }
@@ -434,7 +444,7 @@ RSpec.describe SyncZoomLinksForParticipant do
           .to receive(:add_registrant)
           .and_return(zoom_registrant1)
         allow(sf_client).to receive(:update_zoom_links)
-        salesforce_participant_struct.zoom_meeting_id_2 = meeting_id_2
+        participant_sync_info.zoom_meeting_id_2 = meeting_id_2
       end
 
       it 'removes ZoomLinkInfo where registrant_id is a duplicate' do

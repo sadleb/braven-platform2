@@ -172,7 +172,7 @@ class CasController < ApplicationController
 
       if credentials_are_valid
         user = successful_authenticator.user
-        add_honeycomb_context(user)
+        User.add_to_honeycomb_trace(user)
         logger.info("Credentials for username '#{@username}' successfully validated using #{successful_authenticator.class.name}.")
         logger.debug("Authenticator provided additional user attributes: #{extra_attributes.inspect}") unless extra_attributes.blank?
 
@@ -220,7 +220,7 @@ class CasController < ApplicationController
             )
 
         user = last_failed_authenticator.user
-        add_honeycomb_context(user)
+        User.add_to_honeycomb_trace(user)
 
         if user.present? && user.registered? &&
            (!user.confirmed? || user.unconfirmed_email == @username)
@@ -241,7 +241,7 @@ class CasController < ApplicationController
 
       # Credentials not valid.
       else
-        add_honeycomb_context(last_failed_authenticator.user)
+        User.add_to_honeycomb_trace(last_failed_authenticator.user)
         logger.warn("Invalid credentials given for user '#{@username}'")
 
         # This message/render MUST match the one in the above `else` for security purposes
@@ -434,10 +434,6 @@ private
     @lt = params[:lt]
   end
 
-  def add_honeycomb_context(user)
-    Honeycomb.add_field('user.present?', user.present?)
-    user&.add_to_honeycomb_trace()
-  end
 end
 
 # TODO: move this to the rubycas-server-core gem here:

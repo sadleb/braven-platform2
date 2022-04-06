@@ -10,6 +10,7 @@ RSpec.describe CloneCourseJob, type: :job do
     let(:notification_email) { 'fake_notify@email.com' }
     let(:source_course) { create :course }
     let(:new_course_name) { 'Test Clone Course Name1' }
+    let(:destination_course_program) { build :heroku_connect_program_unlaunched }
 
     before(:each) do
       allow(clone_course).to receive(:wait_and_initialize)
@@ -19,7 +20,7 @@ RSpec.describe CloneCourseJob, type: :job do
     end
 
     subject(:clone_course_job) do
-      CloneCourseJob.perform_now(notification_email, source_course, new_course_name)
+      CloneCourseJob.perform_now(notification_email, source_course, new_course_name, destination_course_program)
     end
 
     it 'starts the clone process' do

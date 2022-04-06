@@ -26,7 +26,7 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
     # was valid. Just try to send an email if the user exists and then tell them
     # to check their email.
     user = find_user_by_uuid || find_user_by_confirmation_token
-    add_honeycomb_context(user)
+    User.add_to_honeycomb_trace(user)
     user&.send_confirmation_instructions
     redirect_to new_user_confirmation_path
   end
@@ -36,7 +36,7 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
     # Add info to Honeycomb, without revealing on the frontend
     # whether this confirmation token was actually valid.
     user_before_confirmation = User.find_first_by_auth_conditions(confirmation_token: params[:confirmation_token])
-    add_honeycomb_context(user_before_confirmation)
+    User.add_to_honeycomb_trace(user_before_confirmation)
   end
 
   # POST /resource/confirmation/confirm
@@ -60,10 +60,14 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
 
     # Explicitly add this user to the trace since we didn't know who was hitting
     # this endpoint until now.
-    add_honeycomb_context(user)
+    User.add_to_honeycomb_trace(user)
 
     if user.errors.empty?
-      SyncUserEmailToCanvas.new(user).run!
+      sync_contact_service = SyncSalesforceContact.new(user.salesforce_id)
+      @salesforce_contact = sync_contact_service.validate_already_synced_contact!
+      # The user could be confirming an email change, not just their original email.
+      # We need it to immediately work when it's being changed.
+      sync_contact_service.sync_canvas_email
       Rails.logger.info("Finished account confirmation for #{user.inspect}.")
 
       Honeycomb.add_field('confirmations_controller.auto_sign_in', true)
@@ -88,18 +92,18 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
         confirmation_token: confirmation_token_param
       ) and return
     end
-  rescue RestClient::Exception => e
-    # This is a CanvasAPI failure. Presumably the API is down (but it could be a bug).
-    # Rollback the consumption of the token so they can try again in a little bit and
-    # everything will be setup properly instead of waiting for the nightly sync or a
-    # staff member to trigger it. Note: don't do a database transaction to handle the
+  rescue => e
+    # Rollback the consumption of the token so they can try again once the underlying
+    # issue is fixed everything will be setup properly instead of requiring them to
+    # generate a new token themselves (or having a staff member do it).
+    # Note: don't do a database transaction to handle the
     # rollback b/c this is a network call that can take time.
-    Honeycomb.add_field('alert.confirmations_controller.canvas_api_error', true)
+    Honeycomb.add_alert('confirm_failed', "Failed to confirm the email address for #{user.inspect}")
     Rails.logger.error(e.message)
     if user && rollback_params
       user.skip_reconfirmation!
       user.update(rollback_params)
-      Honeycomb.add_field('alert.confirmations_controller.confirmation_rollback', true)
+      Honeycomb.add_field('confirmations_controller.confirmation_rollback', true)
     end
     raise
   end
@@ -151,11 +155,6 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
 
   def configure_permitted_parameters
     devise_parameter_sanitizer.permit(:create, keys: [:uuid, :confirmation_token])
-  end
-
-  def add_honeycomb_context(user)
-    Honeycomb.add_field('user.present?', user.present?)
-    user&.add_to_honeycomb_trace()
   end
 
 end

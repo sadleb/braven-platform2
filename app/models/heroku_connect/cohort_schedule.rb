@@ -30,12 +30,15 @@ class HerokuConnect::CohortSchedule < HerokuConnect::HerokuConnectRecord
   # Implements the same logic as the DayTime__c field in Salesforce. Heroku Connect
   # can't sync formula fields so we're reimplementing the logic here.
   def canvas_section_name
-    HerokuConnect::CohortSchedule.calculate_canvas_section_name(weekday__c, time__c)
+    HerokuConnect::CohortSchedule.calculate_canvas_section_name(sfid, weekday__c, time__c)
   end
 
-  def self.calculate_canvas_section_name(weekday, time=nil)
-    ret = weekday || 'UnknownWeekday'
-    ret = "#{ret}, #{time}" unless time.nil?
+  def self.calculate_canvas_section_name(salesforce_id, weekday, time)
+    unless weekday.present?
+      raise ArgumentError, "Cohort Schedule ID: '#{salesforce_id}' does not have a Weekday set. Set that and try again."
+    end
+    ret = weekday
+    ret = "#{ret}, #{time}" unless time.blank?
     ret
   end
 end

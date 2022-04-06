@@ -1,348 +1,291 @@
 # frozen_string_literal: true
-require 'salesforce_api'
 require 'canvas_api'
-require 'zoom_api'
+require 'salesforce_api'
 
-# Sync's a Salesforce Participant across all applications like
-# Platform, Canvas, and Zoom.
+# Syncs a Participant across Salesforce, Platform, and Canvas by:
+# - creating new local and Canvas platform Users
+# - creating new local and Canvas Sections
+# - adding the necessary user, section, enrollment, and admin rows to the
+#   SisImportDataSet to give them appropriate Canvas access. See there for more info.
+# - syncing the local User Roles to match
 #
-# Note: Discord is separate since it's a bot.
+# IMPORTANT: if a row is omitted from the .csvs, that means they will lose that
+# access if they had it before.
+#
+# Assumptions: when a new Program is launched:
+# - the SIS ID of the course is set properly
+# - a Canvas "term" is created for the Program and set on the Accelerator and LC Playbook courses
+# - the Teaching Assistants and Cohort Schedule sections are created in both courses
+#
+# See here for more info: https://github.com/bebraven/platform/wiki/Salesforce-Sync
 class SyncSalesforceParticipant
 
-  def initialize(salesforce_participant, salesforce_program, force_zoom_update)
-    @sf_participant = salesforce_participant
-    @sf_contact = SalesforceAPI.participant_struct_to_contact_struct(salesforce_participant)
-    @sf_program = salesforce_program
-    @force_zoom_update = force_zoom_update
+  def initialize(sis_import_data_set, salesforce_program, participant_sync_info)
+    @sis_import_data_set = sis_import_data_set
+    @salesforce_program = salesforce_program
+    @participant_sync_info = participant_sync_info
   end
 
-  # Handles all syncing logic for a Participant, such as:
-  # 1. creating them when they become Enrolled
-  # 2. syncing their email and other Contact info
-  # 3. moving them between sections if their enrollment changes
-  # 4. unenrolling them if they become Dropped
-  # 5. adding them to the proper TA Caseload section
-  # 6. syncing their Zoom links
-  #
-  # Note: canvas_role = [:StudentEnrollment, :TaEnrollment, :DesignerEnrollment, :TeacherEnrollment]
   def run
-    # Note that putting the span inside the begin/rescue and letting exceptions bubble through
-    # the block causes Honeycomb to automatically set the 'error' and 'error_detail' fields.
     Honeycomb.start_span(name: 'sync_salesforce_participant.run') do
-      sf_participant.add_to_honeycomb_span()
-      Honeycomb.add_field('sync_salesforce_participant.complete?', false)
+      @accelerator_course = @salesforce_program.accelerator_course
+      @lc_playbook_course = @salesforce_program.lc_playbook_course
+      @participant_sync_info.add_to_honeycomb_span()
 
-      # Find or create local users and make sure they are in sync with Salesforce (and Canvas)
-      create_new_user = (sf_participant.status == SalesforceAPI::ENROLLED)
-      sync_contact_service = SyncSalesforceContact.new(@sf_contact, create_new_user)
-      @user = sync_contact_service.run
-
-      # Note that we run this before the enrollment stuff b/c we want to have the Zoom
-      # links in Salesforce even if we end up short-circuting out below b/c they haven't
-      # created their Canvas account yet (by registering).
-      sync_zoom_links()
-
-      logger.info("Started sync enrollment for #{sf_participant.email}")
-
-      case sf_participant.status
-      when SalesforceAPI::ENROLLED
-        add_enrollment!
-      when SalesforceAPI::DROPPED
-        drop_enrollment!
-      when SalesforceAPI::COMPLETED
-        complete_enrollment!
-      else
-        logger.warn("Doing nothing! Got #{sf_participant.status} from SF")
-      end
-      Honeycomb.add_field('sync_salesforce_participant.complete?', true)
+      set_user()
+      set_accelerator_course_enrollments()
+      set_lc_playbook_course_enrollments()
+      set_canvas_ta_caseload_enrollments()
+      set_admin_permissions()
     end
   end
 
-  private
+private
 
-  attr_reader :sf_participant, :sf_program, :user
+  def set_user
+    return unless @participant_sync_info.is_enrolled?
+    user = sync_user()
+    @sis_import_data_set.add_user(user)
+  end
 
-  # The logic for who get's sync'd is anyone with a ParticipantStatus == 'Enrolled'. If they have a CohortName
-  # set, they are put in a Canvas Section with that name. If it's not set, they are put in a placeholder cohort
-  # that corresponds to the day and time that their Learning Lab meets.
+  # Folks are enrolled in all the sections that apply to them in Canvas, but only one locally.
+  # Before CohortTheThis is either in the Cohort Schedule section or the Cohort section depending
+  # on whether Cohort mapping has happened yet (aka Fellows are assigned their
+  # Leadership Coaches and put together in a Cohort with them).
   #
-  # Assumptions: there are no duplicate Participant objects and if they opt out or drop as a Candidate, the ParticipantStatus is
-  # updated accordingly.
-  def add_enrollment!
-    case sf_participant.role
-    when SalesforceAPI::LEADERSHIP_COACH
-      sync_primary_enrollment(sf_program.fellow_course_id, RoleConstants::TA_ENROLLMENT,
-                      course_section_name)
-      sync_primary_enrollment(sf_program.leadership_coach_course_id,
-                      RoleConstants::STUDENT_ENROLLMENT,
-                      SectionConstants::DEFAULT_SECTION)
+  # When a new Program is launched Cohort Schedules sections are created both locally and
+  # in Canvas. These are where the due dates are set in Canvas (manually).
+  #
+  # When Cohort mapping happens (aka Fellows are assigned their Leadership Coaches and put
+  # together in a Cohort with them), sections are created for the Cohorts both locally and
+  # in Canvas on the fly. In Canvas, folks are in both their Cohort Schedule and their Cohort
+  # section. The former is to control the due dates, the later is for everything else.
+  # Locally in Platform, they are only in one section though. That will be their Cohort section
+  # after mapping happens. This controls their Pundit policy access as well as other features
+  # that operation on a Cohort, like attendance or Capstone Challenge Evaluations.
+  def set_accelerator_course_enrollments
+    cohort_schedule_section = nil
+    cohort_section = nil
+    ta_section = nil
 
-    when SalesforceAPI::FELLOW
-      sync_primary_enrollment(sf_program.fellow_course_id, RoleConstants::STUDENT_ENROLLMENT,
-                      course_section_name)
-      SyncTaCaseloadForParticipant.new(@user, sf_participant, sf_program).run if @user.has_canvas_account?
+    if @participant_sync_info.is_enrolled?
+      case @participant_sync_info.role_category
+      when SalesforceConstants::RoleCategory::FELLOW, SalesforceConstants::RoleCategory::LEADERSHIP_COACH
 
-    when SalesforceAPI::TEACHING_ASSISTANT
-      sync_primary_enrollment(sf_program.fellow_course_id, RoleConstants::TA_ENROLLMENT,
-                        SectionConstants::TA_SECTION, limit_privileges_to_course_section=false)
-      sync_primary_enrollment(sf_program.leadership_coach_course_id, RoleConstants::TA_ENROLLMENT,
-                        SectionConstants::TA_SECTION, limit_privileges_to_course_section=false)
-      SyncTaCaseloadForParticipant.new(@user, sf_participant, sf_program).run if @user.has_canvas_account?
-      give_ta_permissions()
-    else
-      logger.warn("Got unknown role #{sf_participant.role} from SF")
-    end
-  end
-
-  # If the CohortName isn't set, get their LL day/time schedule and use a placeholder section
-  # that we setup before they are mapped to their real cohort in the 2nd or 3rd week.
-  # This function controlls a lot of the behavior in this service!
-  def course_section_name
-    sf_participant.cohort || # E.g. SJSU Brian (Tues)
-      sf_participant.cohort_schedule # E.g. 'Monday, 7:00'
-  end
-
-  def drop_enrollment!
-    if @user.blank?
-      Honeycomb.add_field('sync_salesforce_participant.skip_reason', 'Dropped Participant never synced before')
-      return
-    end
-
-    case sf_participant.role
-    when SalesforceAPI::LEADERSHIP_COACH
-      drop_course_enrollments(sf_program.leadership_coach_course_id)
-      drop_course_enrollments(sf_program.fellow_course_id)
-    when SalesforceAPI::FELLOW
-      drop_course_enrollments(sf_program.fellow_course_id)
-    when SalesforceAPI::TEACHING_ASSISTANT
-      drop_course_enrollments(sf_program.fellow_course_id)
-      drop_course_enrollments(sf_program.leadership_coach_course_id)
-      remove_ta_permissions()
-    else
-      logger.warn("Got unknown role #{sf_participant.role} from SF")
-    end
-  end
-
-  def complete_enrollment!
-    # NOOP
-    # We haven't figured out this yet
-  end
-
-  def drop_course_enrollments(canvas_course_id)
-    if @user.has_canvas_account?
-      enrollments = canvas_client.find_enrollments_for_course_and_user(canvas_course_id, user.canvas_user_id)
-      Honeycomb.add_field('canvas.enrollments.count', enrollments&.count)
-
-      logger.info('Removing user enrollments from canvas')
-      enrollments&.each { |enrollment|
-        canvas_client.delete_enrollment(enrollment: enrollment)
-      }
-    end
-
-    # Even if they had no Canvas account, they may have local Section roles
-    # which we still need to remove since we give them local roles as soon as they
-    # become an Enrolled Participant in Salesforce.
-    course = Course.find_by!(canvas_course_id: canvas_course_id)
-    user.remove_section_roles(course)
-  end
-
-  # Enroll or update their primary enrollment in the proper course and section
-  # The primary enrollment controls the due dates and corresponds to either their
-  # Cohort or Cohort Schedule in Salesforce (or some default section if neither applies).
-  def sync_primary_enrollment(canvas_course_id, role, section_name, limit_privileges_to_course_section=true)
-    Honeycomb.start_span(name: 'sync_salesforce_participant.sync_primary_enrollment') do
-      Honeycomb.add_field('canvas.course.id', canvas_course_id.to_s)
-      Honeycomb.add_field('canvas.section.role', role)
-
-      course = Course.find_by!(canvas_course_id: canvas_course_id)
-      Honeycomb.add_field('course.id', course.id)
-
-      existing_sections = user.sections_by_course(course)
-      existing_section = existing_sections.first
-      existing_role_name = user.roles_by_section(existing_section).first&.name&.to_sym if existing_section
-      Honeycomb.add_field('canvas.section.name.existing', existing_section&.name)
-      Honeycomb.add_field('canvas.section.id.existing', existing_section&.canvas_section_id.to_s)
-      Honeycomb.add_field('canvas.section.role.existing', existing_role_name)
-
-      # Idealy, we'd raise an exception here. Starting with an alert and if we see that
-      # this more or less can't happen with the current code, let's switch this to raise.
-      # Either way, below we remove roles for all sections for this course below before
-      # getting the proper one in place.
-      if existing_sections && existing_sections.count > 1
-        Honeycomb.add_field('alert.duplicate_sections_for_user', true)
-      end
-
-      # Even before someone has registered and created their Canvas account, we create the Canvas
-      # section they would get enrolled in and ensure that they are in the local Section for it
-      # so that features which rely on the local Section roles work from day 1. E.g. attendance
-      section_name = section_name.blank? ? SectionConstants::DEFAULT_SECTION : section_name
-      new_section = find_or_create_section(course, section_name)
-      Honeycomb.add_field('canvas.section.name', new_section.name)
-      Honeycomb.add_field('canvas.section.id', new_section.canvas_section_id.to_s)
-
-      unless @user.has_canvas_account?
-        # Adjust the user's local Section roles even if they don't have a Canvas account
-        user.remove_section_roles(course)
-        user.add_role role, new_section
-
-        Honeycomb.add_field('sync_salesforce_participant.skip_reason', 'No Canvas account yet')
-        logger.info("Skipping sync primary enrollment for #{user.email}. No Canvas account.")
-        return
-      end
-
-      # Check to see if we need to adjust their enrollment in Canvas. Note that we have to actually
-      # call into Canvas to check the enrollment b/c the existing_section should be there after the first sync
-      existing_enrollment = canvas_client.find_enrollment(
-        canvas_user_id: user.canvas_user_id,
-        canvas_section_id: existing_section.canvas_section_id
-      ) if existing_section.present?
-
-      if existing_section.nil? || existing_enrollment.nil?
-        # Brand new first time enrollment
-        Honeycomb.add_field('sync_salesforce_participant.new_enrollment', true)
-        # Even if this is the first time they're being enrolled, their local Section roles
-        # may need to be adjusted if it's changed since the last sync.
-        user.remove_section_roles(course)
-
-        enroll_user(canvas_course_id, role, new_section, limit_privileges_to_course_section)
-
-      elsif !existing_section.canvas_section_id.eql?(new_section.canvas_section_id) || !existing_role_name&.eql?(role)
-        # Section or role has changed.
-        # Fetch assignment overrides, so we can replace ones that get deleted in the next step.
-        assignment_overrides = canvas_client.get_assignment_overrides_for_course(
-          canvas_course_id,
+        cohort_schedule_section = set_canvas_section_enrollment(
+          @accelerator_course, Section::Type::COHORT_SCHEDULE, @participant_sync_info.accelerator_course_role
         )
 
-        # Remove the old enrollment and add the new one.
-        Honeycomb.add_field('sync_salesforce_participant.new_enrollment', false)
-        drop_course_enrollments(canvas_course_id)
-        enroll_user(canvas_course_id, role, new_section, limit_privileges_to_course_section)
+        cohort_section = set_canvas_section_enrollment(
+          @accelerator_course, Section::Type::COHORT, @participant_sync_info.accelerator_course_role
+        ) if @participant_sync_info.cohort_id.present?
 
-        # Add back overrides for this user.
-        new_overrides = []
-        assignment_overrides.each do |override|
-          if override.has_key? 'student_ids' and override['student_ids'].include? user.canvas_user_id
-            override.delete('id')
-            new_overrides << override
-          end
-        end
+      when SalesforceConstants::RoleCategory::TEACHING_ASSISTANT
 
-        Honeycomb.add_field('sync_salesforce_participant.new_overrides.count', new_overrides.count)
-        if new_overrides.count > 0
-          logger.info("Copying assignment overrides: #{new_overrides}")
-          canvas_client.create_assignment_overrides(canvas_course_id, new_overrides)
-        end
+        ta_section = set_canvas_section_enrollment(
+          @accelerator_course, Section::Type::TEACHING_ASSISTANTS, RoleConstants::TA_ENROLLMENT, false
+        )
+
       else
-        Honeycomb.add_field('sync_salesforce_participant.skip_reason', 'No enrollment changes')
-        logger.info("Skipping sync enrollment for #{@user.email}. No enrollment changes.")
+        raise RuntimeError, "Unrecognized Participant role_category '#{@participant_sync_info.role_category}' for Participant ID: #{@participant_sync_info.sfid}"
       end
+    end
+
+    sync_local_primary_enrollment(cohort_schedule_section, cohort_section, ta_section)
+  end
+
+  def set_lc_playbook_course_enrollments
+    return unless @participant_sync_info.is_enrolled?
+
+    case @participant_sync_info.role_category
+    when SalesforceConstants::RoleCategory::LEADERSHIP_COACH
+      set_canvas_section_enrollment(
+        @lc_playbook_course, Section::Type::COHORT_SCHEDULE, RoleConstants::STUDENT_ENROLLMENT
+      )
+
+    when SalesforceConstants::RoleCategory::TEACHING_ASSISTANT
+      set_canvas_section_enrollment(
+        @lc_playbook_course, Section::Type::TEACHING_ASSISTANTS, RoleConstants::TA_ENROLLMENT, false
+      )
+    end
+  end
+
+  def set_canvas_section_enrollment(course, section_type, enrollment_role, limit_section_privileges=true)
+    section = set_canvas_section(course, section_type)
+    @sis_import_data_set.add_enrollment(@participant_sync_info.user, section, enrollment_role, limit_section_privileges)
+    section
+  end
+
+  def set_canvas_section(course, section_type)
+    section = nil
+
+    case section_type
+    when Section::Type::COHORT
+      section = find_or_create_cohort_section()
+      sync_local_section_name(section, @participant_sync_info.cohort_section_name)
+
+    when Section::Type::COHORT_SCHEDULE
+      # This should only happen if it was once set and get's unset. We don't start syncing
+      # folks until they have a Cohort Schedule.
+      if @participant_sync_info.cohort_schedule_id.blank?
+        raise SyncSalesforceProgram::NoCohortScheduleError.new(
+          "No Cohort Schedule assigned to Participant ID: #{@participant_sync_info.sfid}. " +
+          "Make sure and set one."
+        )
+      end
+
+      section = Section.find_by(salesforce_id: @participant_sync_info.cohort_schedule_id, course: course)
+      raise SyncSalesforceProgram::MissingSectionError.new(
+        "The Cohort Schedule '#{@participant_sync_info.cohort_schedule_section_name}' (ID: #{@participant_sync_info.cohort_schedule_id}) " +
+        "is missing a local Platform Section for Course: #{@lc_playbook_course.inspect}. " +
+        "This was supposed to be created as part of Program launch."
+      ) if section.nil?
+
+      sync_local_section_name(section, @participant_sync_info.cohort_schedule_section_name)
+
+    when Section::Type::TEACHING_ASSISTANTS
+      # Each course should have one and only one 'Teaching Assistants' section setup as part of Program launch.
+      section = Section.find_by(course: course, section_type: Section::Type::TEACHING_ASSISTANTS)
+      raise SyncSalesforceProgram::MissingSectionError.new(
+        "The '#{SectionConstants::TA_SECTION}' section is missing a local Platform Section for Course: #{course.inspect}. " +
+        "This was supposed to be created as part of Program launch."
+      ) if section.nil?
+
+    else
+      raise SyncSalesforceProgram::SectionSetupError, "section_type '#{section_type}' not implemented"
+    end
+
+    @sis_import_data_set.add_section(section)
+
+    section
+
+  # Errors with setting the Canvas section can effect more than just this Particpant
+  # Convert these to a SectionSetupError so that the sync knows to stop the overall sync
+  # instead of skipping this Participant.
+  rescue => e
+    raise if e.is_a?(SyncSalesforceProgram::SectionSetupError)
+    raise if e.is_a?(SyncSalesforceProgram::NoCohortScheduleError) # These are Participant specific
+
+    Sentry.capture_exception(e)
+    raise SyncSalesforceProgram::SectionSetupError.new(
+      "Could not process section_type=#{section_type} for canvas_course_id=#{course.canvas_course_id}." +
+      "Check Sentry for more deatils."
+    )
+  end
+
+  # Makes sure an Enrolled Fellow or Teaching Assistant is in the proper "TA Caseload(name)" Canvas
+  # section(s). These sections allow TAs to filter the gradebook down to only the Fellows
+  # they are responsible for grading.
+  def set_canvas_ta_caseload_enrollments
+    return unless @participant_sync_info.is_enrolled?
+    return if @participant_sync_info.ta_caseload_enrollments.blank?
+
+    @participant_sync_info.ta_caseload_enrollments.each do |enrollment|
+      section = find_or_create_ta_caseload_section(enrollment)
+      @sis_import_data_set.add_section(section)
+      @sis_import_data_set.add_enrollment(@participant_sync_info.user, section, @participant_sync_info.ta_caseload_role, true)
     end
   end
 
   # A TA_ENROLLMENT gives them permission to take attendance on behalf of an LC as
   # well as masquerade as other users. We use TA accounts for staff as well as real
   # Teaching Assistants in an "admin" capacity of sorts.
-  def give_ta_permissions()
-    @user.add_role RoleConstants::CAN_TAKE_ATTENDANCE_FOR_ALL
-    if @user.has_canvas_account?
-      canvas_client.assign_account_role(@user.canvas_user_id, CanvasConstants::STAFF_ACCOUNT_ROLE_ID)
-    end
-  end
-
-  def remove_ta_permissions()
-    @user.remove_role RoleConstants::CAN_TAKE_ATTENDANCE_FOR_ALL
-    if @user.has_canvas_account?
-      canvas_client.unassign_account_role(@user.canvas_user_id, CanvasConstants::STAFF_ACCOUNT_ROLE_ID)
-    end
-  rescue RestClient::NotFound
-    # This gets thrown if the account role was manually deleted or never assigned. Fine to skip.
-    Honeycomb.add_field('sync_salesforce_participant.staff_account_role.not_found', true)
-  end
-
-  # Pass in a local db section.
-  def enroll_user(canvas_course_id, role, section, limit_privileges_to_course_section)
-    user.add_role role, section
-    canvas_client.enroll_user_in_course(
-      user.canvas_user_id, canvas_course_id, role, section.canvas_section_id,
-      limit_privileges_to_course_section
-    )
-  end
-
-  # Finds or creates a local DB Section and a Canvas section, but only returns the local one.
-  # Also handles copying Canvas assignment overrides when appropriate.
-  def find_or_create_section(course, section_name)
-    canvas_course_id = course.canvas_course_id
-    existing_section = Section.find_by(
-      course_id: course.id,
-      name: section_name,
-    )
-    return existing_section if existing_section.present?
-
-    # If the Canvas section didn't already exist, create it now.
-    canvas_section = canvas_client.create_lms_section(course_id: canvas_course_id, name: section_name)
-
-    # The above section may be a cohort section or a cohort-schedule section, depending on course_section_name.
-    if sf_participant.cohort
-      # The user has been added to a cohort without an existing section.
-      # Copy the due dates from the cohort-schedule section to the new section.
-      # Note: This also means canvas_section is guaranteed to be a cohort section.
-      cohort_schedule_section = find_canvas_course_section(canvas_course_id, sf_participant.cohort_schedule)
-      # In the edge case where the cohort-schedule section doesn't already
-      # exist in Canvas, we just skip all this assignment-override stuff.
-      if cohort_schedule_section
-        cohort_schedule_overrides = []
-        # Unfortunately, the only way to get a list of overrides from Canvas is to
-        # check each assignment in the course. One API call per assignment.
-        assignment_ids = canvas_client.get_assignments(canvas_course_id).map { |a| a['id'] }
-        assignment_ids.each do |assignment_id|
-          overrides = canvas_client.get_assignment_overrides(canvas_course_id, assignment_id)
-          # Exit early if there aren't any overrides for this assignment.
-          next unless overrides
-
-          # For assignment overrides in the cohort-schedule section, update the override
-          # config to point to the new section, remove the override ID, and add the
-          # override to a big list of all overrides to copy to the new section.
-          overrides.each do |override|
-            if override['course_section_id'] == cohort_schedule_section.id
-              override['course_section_id'] = canvas_section.id
-              override.delete('id')
-              cohort_schedule_overrides << override
-            end
-          end
-        end
-        # Copy all the overrides at once, to reduce the number of API calls.
-        canvas_client.create_assignment_overrides(canvas_course_id, cohort_schedule_overrides)
+  def set_admin_permissions
+    if @participant_sync_info.accelerator_course_role == RoleConstants::TA_ENROLLMENT
+      if @participant_sync_info.is_enrolled?
+        @participant_sync_info.user.add_role RoleConstants::CAN_TAKE_ATTENDANCE_FOR_ALL
+        @sis_import_data_set.add_staff_account_role(@participant_sync_info.user)
+      else
+        @participant_sync_info.user.remove_role RoleConstants::CAN_TAKE_ATTENDANCE_FOR_ALL
       end
     end
+  end
 
-    # Now that all the Canvas stuff is done, create a local section and return that.
-    Section.create!(
-      course_id: course.id,
-      name: section_name,
-      canvas_section_id: canvas_section.id
+  def find_or_create_ta_caseload_section(ta_caseload_enrollment)
+    section_name = HerokuConnect::Participant.ta_caseload_section_name_for(ta_caseload_enrollment['ta_name'])
+    find_or_create_section(
+      @accelerator_course,
+      section_name,
+      ta_caseload_enrollment['ta_participant_id'],
+      Section::Type::TA_CASELOAD
     )
-  end # find_or_create_section
-
-  # Returns Canvas section.
-  def find_canvas_course_section(canvas_course_id, section_name)
-    canvas_client.find_section_by(course_id: canvas_course_id, name: section_name)
   end
 
-  def sync_zoom_links
-    SyncZoomLinksForParticipant.new(sf_participant, @force_zoom_update).run
-  rescue  ZoomAPI::TooManyRequestsError => e
-    # This happens if you try to hit the API for a given email / meeting pair more than
-    # 3 times in a day. Just skip and wait until tomorrow and it should work.
+  def find_or_create_cohort_section()
+    find_or_create_section(
+      @accelerator_course,
+      @participant_sync_info.cohort_section_name,
+      @participant_sync_info.cohort_id,
+      Section::Type::COHORT
+    )
+  end
+
+  def find_or_create_section(course, section_name, salesforce_id, section_type)
+    # There is a unique DB constraint on [salesforce_id, course_id] so this
+    # is sufficient to look up existing ones since we only use this for Cohort
+    # and TA Caseload sections which have a salesforce_id.
+    section = Section.find_by(salesforce_id: salesforce_id, course: course)
+    return section unless section.nil?
+
+    # If we get here, this is the first person being added to a Cohort. Set it up locally and in Canvas.
+    CreateSection.new(course, section_name, section_type, salesforce_id).run
+  rescue => e
     Sentry.capture_exception(e)
-    Honeycomb.add_field('zoom.participant.skip_reason', e.message)
-    Rails.logger.debug(e.message)
+    raise SyncSalesforceProgram::CreateSectionError.new(
+      "Failed to create a Section for: " +
+      "canvas_course_id=#{course.canvas_course_id}, section_name='#{section_name}', section_type=#{section_type}. " +
+      "See Sentry for more details."
+    )
   end
 
-  def canvas_client
-    CanvasAPI.client
+  def sync_local_section_name(local_section, salesforce_section_name)
+    return if local_section.name == salesforce_section_name
+    local_section.update!(name: salesforce_section_name)
   end
 
-  def logger
-    Rails.logger
+  def sync_user
+    if @participant_sync_info.contact_changed?
+      synced_user = SyncSalesforceContact.new(
+        @participant_sync_info.contact_id,
+        @salesforce_program.time_zone
+      ).run
+
+      @participant_sync_info.user = synced_user
+      @participant_sync_info.user_id = synced_user.id
+      @participant_sync_info.canvas_user_id = synced_user.canvas_user_id
+    end
+
+    @participant_sync_info.user
   end
+
+
+  # Users should only have one local Section / Role in the Accelerator course.
+  # This is what controls their Pundit policy permissions as well as what drives
+  # some features that require us to operate on all folks in a given Section
+  # like Attendance for example.
+  def sync_local_primary_enrollment(cohort_schedule_section, cohort_section, ta_section)
+    return unless @participant_sync_info.primary_enrollment_changed?
+
+    # Now that we know something changed about their primary enrollment, just drop everything and
+    # add back what they are supposed to have. This is much simpler than comparing what
+    # they currently have to what they should have and making the necessary changes.
+    @participant_sync_info.user.remove_section_roles(@accelerator_course)
+
+    return if @participant_sync_info.is_dropped?
+
+    if @participant_sync_info.role_category == SalesforceConstants::RoleCategory::TEACHING_ASSISTANT
+      raise ArgumentError, "ta_section is nil" if ta_section.nil?
+      @participant_sync_info.user.add_role @participant_sync_info.accelerator_course_role, ta_section
+      return
+    end
+
+    # Fellows and Leadership Coaches go in their Cohort Schedule section if they haven't
+    # been mapped to a Cohort yet. Otherwise, they go in the Cohort section.
+    if @participant_sync_info.is_mapped_to_cohort?
+      @participant_sync_info.user.add_role @participant_sync_info.accelerator_course_role, cohort_section
+    else
+      @participant_sync_info.user.add_role @participant_sync_info.accelerator_course_role, cohort_schedule_section
+    end
+  end
+
 end

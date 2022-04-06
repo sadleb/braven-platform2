@@ -6,7 +6,7 @@ require 'canvas_api'
 RSpec.describe GradeCapstoneEvaluations do
   let(:canvas_client) { double(CanvasAPI) }
   let(:course) { create(:course) }
-  let(:section) { create(:section_with_canvas_id, course: course) }
+  let(:section) { create(:cohort_section, course: course) }
   let(:user) { create :admin_user }
   let(:fellow_with_already_graded_submission) { create(:fellow_user, section: section) }
   let(:fellow_with_new_submission) { create(:fellow_user, section: section) }

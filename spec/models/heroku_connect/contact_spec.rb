@@ -20,6 +20,7 @@ RSpec.describe HerokuConnect::Contact, type: :model do
     it { should have_db_index(:email) }
     it { should have_db_index(:canvas_cloud_user_id__c) }
     it { should have_db_index(:discord_user_id__c) }
+    it { should have_db_index(:platform_user_id__c) }
   end
 
   describe '#save' do

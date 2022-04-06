@@ -26,7 +26,7 @@ class Users::RegistrationsController < Devise::RegistrationsController
       # to be secure. Still don't reveal anything about which account was
       # tied to the token.
       user = find_user_by_signup_token || find_user_by_reset_password_token
-      add_honeycomb_context(user)
+      User.add_to_honeycomb_trace(user)
 
       if user.present? && user.registered?
         redirect_to cas_login_path(
@@ -43,7 +43,7 @@ class Users::RegistrationsController < Devise::RegistrationsController
     # route allows setting a password for the account, and we need it
     # to be secure.
     user = find_user_by_signup_token || find_user_by_reset_password_token
-    add_honeycomb_context(user)
+    User.add_to_honeycomb_trace(user)
     Honeycomb.add_field('registrations_controller.bad_link', false)
 
     # Act the same as #new, just in case someone tried to register again
@@ -58,7 +58,7 @@ class Users::RegistrationsController < Devise::RegistrationsController
     # If the token was valid, run account registration.
     if user.present?
       # Register the new user in all of our systems.
-      RegisterUserAccount.new(sign_up_params).run do |updated_user|
+      RegisterUserAccount.new(user, sign_up_params).run do |updated_user|
         if updated_user.errors.any? || !updated_user.persisted?
           if updated_user.errors.any? { |e| [:reset_password_token, :signup_token].include? e.attribute }
             # If the token expired, act the same as we do for invalid
@@ -166,13 +166,6 @@ class Users::RegistrationsController < Devise::RegistrationsController
   # This shows a thank you page and let's them know to go confirm their account.
   def after_inactive_sign_up_path_for(resource)
     users_registration_path(:signup_token => resource.signup_token)
-  end
-
-  private
-
-  def add_honeycomb_context(user)
-    Honeycomb.add_field('user.present?', user.present?)
-    user&.add_to_honeycomb_trace()
   end
 
 end

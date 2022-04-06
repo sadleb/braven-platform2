@@ -1,9 +1,31 @@
+<% content_for(:headline) do %>
+  New Course Template
+<% end %>
+
 <% content_for(:breadcrumbs) do %>
+  <li class="breadcrumb-item ml-3"><%= link_to "Home", root_path %></li>
   <li class="breadcrumb-item"><%= link_to 'Course Management', courses_path %></li>
   <li class="breadcrumb-item active" aria-current="page">Initialize New Template</li>
 <% end %>
 
 <div class="col">
+
+<div class="row">
+  <div class="col-md-8">
+    <p class="lead">Before creating a new Course Template from an existing one, setup a new Salesforce Program first:</p>
+    <ul>
+      <li>Find the Salesforce Program currently associated with this template</li>
+      <li>In the dropdown arrow at the top-right of the page, select "Clone"</li>
+      <li>Adjust the "Program Start Date" and "Program End Date" to be in the future</li>
+      <li><strong>Clear out</strong> the "Accelerator Course ID - Highlander" field</li>
+      <li><strong>Clear out</strong> the "LC Playbook Course ID - Highlander" field</li>
+      <li>Clear out the "Discord Server ID" field</li>
+      <li>Hit "Save"</li>
+      <li>Copy and Paste the Program ID from the URL into the field below. It looks something like: <code>a2Y11000001HY5xEAG</code></li>
+    </ul>
+  </div>
+</div>
+
 <%= form_with(model: @course, local: true) do |form| %>
   <% if @course.errors.any? %>
     <div id="error_explanation">
@@ -24,8 +46,13 @@
         <%= form.text_field :name, required: true, class: 'form-control' %>
       </div>
 
+      <div class="form-group">
+        <%= form.label :salesforce_program_id, 'Salesforce Program ID' %>
+        <%= form.text_field :salesforce_program_id, required: true, class: 'form-control', placeholder: 'Ex: a2Y11000001HY5xEAG' %>
+      </div>
+
       <div class="actions">
-        <input type='hidden' id='create_from_course_id' name='create_from_course_id' value='<%= params[:create_from_course_id] %>' />
+        <%= form.hidden_field :id, :value => params[:create_from_course_id] %>
         <%= form.submit 'Initialize New Course Template', class: 'btn btn-primary',
               data: { confirm: 'Are you sure you want to initialize a new Template from this Course?' } %>
         <%= link_to 'Cancel', course_path(params[:create_from_course_id]), class: 'btn btn-secondary'%>
@@ -33,4 +60,5 @@
     </div>
   </div>
 <% end %>
+
 </div>

@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-require 'salesforce_api'
 
 class HerokuConnect::Participant < HerokuConnect::HerokuConnectRecord
   include ParticipantSyncInfo::SyncScope
@@ -38,27 +37,13 @@ class HerokuConnect::Participant < HerokuConnect::HerokuConnectRecord
     ]
   end
 
+  TA_CASELOAD_SECTION_PREFIX = 'TA Caseload'
+
   # Possible values for the status__c
   class Status
     ENROLLED = :Enrolled
     DROPPED = :Dropped
     COMPLETED = :Completed
-  end
-
-  # Possible values for the #role (aka record_type.name)
-  # IMPORTANT: if you add roles here, make sure and add them to
-  # HerokuConnect::Candidate::Role too.
-  class Role
-    FELLOW = :Fellow
-    LEADERSHIP_COACH = :'Leadership Coach'
-    TEACHING_ASSISTANT = :'Teaching Assistant'
-    MOCK_INTERVIEWER = :'Mock Interviewer'
-  end
-
-  # Alias for the record_type.name
-  # See HerokuConnect::Participant::Role for example values.
-  def role
-    record_type.name
   end
 
   # Convenience method to get their actual full name instead of the "name" column, b/c
@@ -67,29 +52,49 @@ class HerokuConnect::Participant < HerokuConnect::HerokuConnectRecord
     contact.name
   end
 
-  # TODO: remove the following three methods from SalesforceAPI and cutover all usage to these ones.
-  # https://app.asana.com/0/1201131148207877/1201515686512765
-
-  # Note: at the time of writing, staff members are also setup with a TA
-  # role. In the future, we may want to distinguish staff from actual TAs.
-  def is_teaching_assistant?
-    role == Role::TEACHING_ASSISTANT
+  # Alias for the record_type.name
+  # See SalesforceConstants::RoleCategory for more info
+  def role_category
+    record_type.name
   end
 
-  # Note: Coach Partner's are a Leadership Coach record type in Salesforce
-  # Their Candidate Role is used to distinguish them from actual LCs.
-  def is_coach_partner?
-    candidate_role == HerokuConnect::Candidate::Role::COACH_PARTNER
-  end
-
-  # Note: candidate_roles, like Coach Partner, use a Leadership Coach record type
-  # in Salesforce so we need to check that as well.
+  # Checks if they're an actual LC
   def is_lc?
-    role == Role::LEADERSHIP_COACH &&
-    (
-      candidate_role == HerokuConnect::Candidate::Role::LEADERSHIP_COACH ||
-      candidate_role == HerokuConnect::Candidate::Role::LC_SUBSTITUTE
-    )
+    candidate.is_lc?
+  end
+
+  # Checks if they're an actual TA.
+  def is_teaching_assistant?
+    candidate.is_teaching_assistant?
+  end
+
+  def is_staff?
+    candidate.is_staff?
+  end
+
+  # Checks if they're a faculty member, usually of a university such as a Professor.
+  def is_faculty?
+    candidate.is_faculty?
+  end
+
+  def is_coach_partner?
+    candidate.is_coach_partner?
+  end
+
+  # A TA can be assigned to a group of Fellows using TaAssignment__c Salesforce
+  # records. If they have assignments, a section will be created locally and in Canvas
+  # with this name so they can filter the gradebook down to their assigned Fellows.
+  def ta_caseload_section_name
+    unless role_category == SalesforceConstants::RoleCategory::TEACHING_ASSISTANT
+      raise RuntimeError.new(
+        "Only '#{SalesforceConstants::RoleCategory::TEACHING_ASSISTANT}' Participants have a ta_caseload_section_name"
+      )
+    end
+    HerokuConnect::Participant.ta_caseload_section_name_for(full_name)
+  end
+
+  def self.ta_caseload_section_name_for(ta_name)
+    "#{TA_CASELOAD_SECTION_PREFIX}(#{ta_name})"
   end
 
 end

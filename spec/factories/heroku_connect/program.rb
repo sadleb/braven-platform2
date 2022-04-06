@@ -4,7 +4,7 @@ FactoryBot.define do
     sequence(:sfid) { |i| "003a%011dZXX" % i }
     createddate { Time.now.utc.strftime("%F %T") }
     isdeleted { false }
-    sequence(:name) {|i| "Heroku Connect Proram#{i}" }
+    sequence(:name) {|i| "Heroku Connect Program#{i}" }
     status__c { HerokuConnect::Program::Status::CURRENT }
     recordtypeid { record_type.sfid }
     sequence(:canvas_cloud_accelerator_course_id__c)
@@ -32,5 +32,6 @@ FactoryBot.define do
       canvas_cloud_lc_playbook_course_id__c { lc_playbook_course.canvas_course_id }
       cohort_schedules { build_list(:heroku_connect_cohort_schedule, 2) }
     end
+
   end
 end

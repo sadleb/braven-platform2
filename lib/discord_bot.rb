@@ -4,11 +4,12 @@ require 'sentry-ruby'
 
 require 'salesforce_api'
 require 'filter_logging'
+require 'honeycomb_braven'
 require 'honeycomb_sentry_integration'
 require 'discordrb_proxy'
 
 require_relative '../config/initializers/restclient_instrumentation'
-require_relative '../config/initializers/honeycomb_sentry_integration'
+require_relative '../config/initializers/honeycomb'
 
 # Character(s) prepended to a message that make the bot treat it as a
 # command.

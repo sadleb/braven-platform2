@@ -76,10 +76,10 @@ RSpec.describe Users::ConfirmationsController, type: :controller do
   end
 
   describe '#confirm' do
-    let(:sync_email_service) { double(SyncUserEmailToCanvas, :run! => nil) }
+    let(:sync_salesforce_contact_service) { double(SyncSalesforceContact, :run => nil) }
 
     before(:each) do
-      allow(SyncUserEmailToCanvas).to receive(:new).and_return(sync_email_service)
+      allow(SyncSalesforceContact).to receive(:new).and_return(sync_salesforce_contact_service)
     end
 
     subject(:run_confirm) do
@@ -92,6 +92,11 @@ RSpec.describe Users::ConfirmationsController, type: :controller do
 
       context 'for valid token' do
         let(:token) { user.confirmation_token }
+
+        before(:each) do
+          allow(sync_salesforce_contact_service).to receive(:validate_already_synced_contact!)
+          allow(sync_salesforce_contact_service).to receive(:sync_canvas_email)
+        end
 
         # it 'disallows login before confirmation' do
         #   # See: cas/login_spec.rb
@@ -127,20 +132,12 @@ RSpec.describe Users::ConfirmationsController, type: :controller do
           expect(response).to redirect_to expected_redirect_url
         end
 
-        # If this is an email change requiring reconfirmation, then when that happens we need
-        # to sync the email change to Canvas. Also, if a staff member was trying to manually set
-        # up this user but made a typo, this can reconcile that.
-        it 'runs Canvas login email sync service' do
-          expect(SyncUserEmailToCanvas).to receive(:new).with(user).and_return(sync_email_service).once
-          expect(sync_email_service).to receive(:run!).once
-          run_confirm
-        end
-
-        context 'when Canvas API call fails' do
+        context 'when Contact ID not found on Salesforce' do
           it 'rolls back the User models confirmation and email columns' do
             user_before_conf = user
-            allow(sync_email_service).to receive(:run!).and_raise(RestClient::Exception)
-            expect{ run_confirm }.to raise_error(RestClient::Exception)
+            allow(sync_salesforce_contact_service).to receive(:validate_already_synced_contact!)
+              .and_raise(SyncSalesforceProgram::MissingContactError)
+            expect{ run_confirm }.to raise_error(SyncSalesforceProgram::MissingContactError)
             expect(User.find(user.id)).to eq(user_before_conf)
           end
         end
@@ -215,6 +212,11 @@ RSpec.describe Users::ConfirmationsController, type: :controller do
       context 'for valid token' do
         let(:token) { user.confirmation_token }
 
+        before(:each) do
+          allow(sync_salesforce_contact_service).to receive(:validate_already_synced_contact!)
+          allow(sync_salesforce_contact_service).to receive(:sync_canvas_email)
+        end
+
         #it 'allows old email to still log in before reconfirmation' do
         #  # See: cas/login_spec.rb
         #end
@@ -230,6 +232,14 @@ RSpec.describe Users::ConfirmationsController, type: :controller do
         #it 'does not allow old email to still log in after reconfirmation' do
         #  # See: cas/login_spec.rb
         #end
+
+        it 'syncs the Canvas email' do
+          expect(sync_salesforce_contact_service).to receive(:sync_canvas_email) do
+            # Make sure the sync happens after the email is confirmed
+            expect(user.reload.email).to eq(unconfirmed_email)
+          end
+          run_confirm
+        end
       end
 
     end

@@ -25,3 +25,20 @@ Honeycomb.configure do |config|
   # Turn this on if you want to see some craziness
   # config.debug = true
 end
+
+
+require 'honeycomb_sentry_integration'
+require 'honeycomb_braven'
+require 'honeycomb-beeline'
+
+module Honeycomb
+  # Extend Honeycomb so that we can add things like
+  # Honeycomb.send_alert() to standardize our instrumentation.
+  extend HoneycombBraven
+
+  # Open the class and prepend our module to intercept calls to :start_span so
+  # we can add tags to Sentry events.
+  class Client
+    prepend HoneycombSentryIntegration
+  end
+end

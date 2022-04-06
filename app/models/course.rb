@@ -47,6 +47,10 @@ class Course < ApplicationRecord
     !is_launched
   end
 
+  def is_accelerator_course?
+    id == program.accelerator_course&.id
+  end
+
   def is_lc_playbook_course?
     id == program.lc_playbook_course&.id
   end
@@ -56,7 +60,6 @@ class Course < ApplicationRecord
   def program
     @program ||= HerokuConnect::Program.find(salesforce_program_id)
   end
-
 
   def rise360_modules
     rise360_module_versions.map { |m| m.rise360_module }
@@ -88,5 +91,15 @@ class Course < ApplicationRecord
 
   def canvas_rubrics_url
     "#{Rails.application.secrets.canvas_url}/courses/#{canvas_course_id}/rubrics"
+  end
+
+  # A globally unique ID for this Course in Canvas.
+  # See here for more info: https://github.com/bebraven/platform/wiki/Salesforce-Sync
+  def sis_id
+    "BVCourseId_#{id}_SFProgramId_#{salesforce_program_id}"
+  end
+
+  def add_to_honeycomb_span(suffix = nil)
+    attributes.each_pair { |attr, value| Honeycomb.add_field("course.#{attr}#{suffix}", value.to_s) }
   end
 end

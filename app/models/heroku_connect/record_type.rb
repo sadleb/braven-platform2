@@ -4,7 +4,7 @@ class HerokuConnect::RecordType < HerokuConnect::HerokuConnectRecord
   self.table_name = 'recordtype'
 
   # type cast these from strings to symbols to make the code cleaner
-  # Note: use the HerokuConnect::Participant::Role.FOO to check against
+  # Note: use the SalesforceConstants::RoleCategory.FOO to check against
   # the possible values for this
   attribute :name, :symbol
 

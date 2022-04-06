@@ -20,13 +20,7 @@
             <td>
               <%= role.name %>
             </td>
-            <td>
-              <% if edit_mode %>
-                <%= link_to 'Delete Enrollment', user_users_role_path(user, role), method: :delete,
-                             data: { confirm: 'Are you sure you want to delete this Enrollment?' } %>
-              <% end %>
-            </td>
-          </tr>
+           </tr>
         <% end %>
       <% else %>
         <tr><td><p><em>No enrollments</em></p></td></tr>

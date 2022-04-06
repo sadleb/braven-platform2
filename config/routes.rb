@@ -207,14 +207,11 @@ Rails.application.routes.draw do
       get 'send_new_signup_email' => 'users#show_send_signup_email'
       post 'send_new_signup_email' => 'users#send_signup_email'
     end
-
-    resources :users_roles, only: [:new, :create, :destroy]
   end
 
   # Sync from Salesforce to Canvas
   post '/salesforce/sync_salesforce_program', to: 'salesforce#sync_salesforce_program'
   get '/salesforce/sync_salesforce_program', to: 'salesforce#init_sync_salesforce_program'
-  post '/salesforce/update_contacts', to: 'salesforce#update_contacts'
 
   # Generate Zoom Links for a meeting
   get 'generate_zoom_links', to: 'zoom#init_generate_zoom_links'

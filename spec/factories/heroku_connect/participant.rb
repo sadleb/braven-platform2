@@ -18,11 +18,30 @@ FactoryBot.define do
     association :cohort_schedule, factory: :heroku_connect_cohort_schedule
 
     factory :heroku_connect_fellow_participant, class: 'heroku_connect/participant' do
-      association :record_type, factory: :heroku_connect_record_type, name: HerokuConnect::Participant::Role::FELLOW
+      association :record_type, factory: :heroku_connect_record_type, name: SalesforceConstants::RoleCategory::FELLOW
+      association :candidate, factory: :heroku_connect_fellow_candidate
+    end
+
+    factory :heroku_connect_lc_participant, class: 'heroku_connect/participant' do
+      association :record_type, factory: :heroku_connect_record_type, name: SalesforceConstants::RoleCategory::LEADERSHIP_COACH
+      association :candidate, factory: :heroku_connect_lc_candidate
+
+      factory :heroku_connect_cp_participant, class: 'heroku_connect/participant' do
+        association :candidate, factory: :heroku_connect_cp_candidate
+      end
     end
 
     factory :heroku_connect_ta_participant, class: 'heroku_connect/participant' do
-      association :record_type, factory: :heroku_connect_record_type, name: HerokuConnect::Participant::Role::TEACHING_ASSISTANT
+      association :record_type, factory: :heroku_connect_record_type, name: SalesforceConstants::RoleCategory::TEACHING_ASSISTANT
+      association :candidate, factory: :heroku_connect_ta_candidate
+
+      factory :heroku_connect_staff_participant, class: 'heroku_connect/participant' do
+        association :candidate, factory: :heroku_connect_staff_candidate
+      end
+
+      factory :heroku_connect_faculty_participant, class: 'heroku_connect/participant' do
+        association :candidate, factory: :heroku_connect_faculty_candidate
+      end
     end
   end
 end

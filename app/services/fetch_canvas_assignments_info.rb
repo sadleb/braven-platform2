@@ -28,7 +28,7 @@ class FetchCanvasAssignmentsInfo
 
     @canvas_waivers_url  = nil
     @canvas_waivers_assignment_id = nil
-    
+
     @canvas_preaccelerator_survey_url = nil
     @canvas_preaccelerator_survey_assignment_id  = nil
 
@@ -60,28 +60,32 @@ class FetchCanvasAssignmentsInfo
   end
 
   def run
-    canvas_assignments = CanvasAPI.client.get_assignments(@canvas_course_id)
+    Honeycomb.start_span(name: 'fetch_canvas_assignments_info.run') do
+      Honeycomb.add_field('canvas.course.id', @canvas_course_id.to_s)
 
-    @canvas_assignment_ids = []
-    @course_project_versions= []
-    @course_survey_versions = []
-    @course_custom_content_versions_mapping = {}
-    @course_attendance_events_mapping = {}
-    @rise360_module_versions_mapping = {}
+      canvas_assignments = CanvasAPI.client.get_assignments(@canvas_course_id)
 
-    canvas_assignments.each do |ca|
-      @canvas_assignment_ids << ca['id']
+      @canvas_assignment_ids = []
+      @course_project_versions= []
+      @course_survey_versions = []
+      @course_custom_content_versions_mapping = {}
+      @course_attendance_events_mapping = {}
+      @rise360_module_versions_mapping = {}
 
-      lti_launch_url = parse_lti_launch_url(ca)
-      if lti_launch_url
-        parse_assignment_info!(lti_launch_url, ca)
-      else
-        # Not an assignment published with an LTI submission type. We don't care
-        # about any of those at the moment but we may in the future.
+      canvas_assignments.each do |ca|
+        @canvas_assignment_ids << ca['id']
+
+        lti_launch_url = parse_lti_launch_url(ca)
+        if lti_launch_url
+          parse_assignment_info!(lti_launch_url, ca)
+        else
+          # Not an assignment published with an LTI submission type. We don't care
+          # about any of those at the moment but we may in the future.
+        end
       end
     end
 
-    self 
+    self
   end
 
 private
@@ -91,46 +95,58 @@ private
   end
 
   def parse_assignment_info!(lti_launch_url, canvas_assignment)
-    cccv = CourseCustomContentVersion.find_by_lti_launch_url(lti_launch_url) 
-    add_project_or_survey_info!(cccv, canvas_assignment) and return if cccv
+    Honeycomb.start_span(name: 'fetch_canvas_assignments_info.parse_assignment_info!') do
+      Honeycomb.add_field('canvas.course.id', @canvas_course_id.to_s)
+      Honeycomb.add_field('canvas.assignment.id', canvas_assignment['id'].to_s)
+      Honeycomb.add_field('canvas.assignment.name', canvas_assignment['name'])
+      Honeycomb.add_field('canvas.assignment.launch_url', lti_launch_url)
 
-    rise360_module_version = Rise360ModuleVersion.find_by_lti_launch_url(lti_launch_url)
-    add_module_info(rise360_module_version, canvas_assignment) and return if rise360_module_version
+      cccv = CourseCustomContentVersion.find_by_lti_launch_url(lti_launch_url)
+      add_project_or_survey_info!(cccv, canvas_assignment) and return if cccv
 
-    # Doesn't matter which Course the CourseAttendanceEvent is attached to, because we'll be
-    # replacing the course. Just get one with the right AttendanceEvent.
-    attendance_event_submission_answer_path = launch_attendance_event_submission_answers_path
-    if lti_launch_url =~ /#{attendance_event_submission_answer_path}/
-      attendance_event = AttendanceEvent.find_by(title: canvas_assignment['name'])
-      course_attendance_event = CourseAttendanceEvent.find_by(attendance_event_id: attendance_event&.id)
-      add_attendance_event_info(course_attendance_event, canvas_assignment)
-      return
+      rise360_module_version = Rise360ModuleVersion.find_by_lti_launch_url(lti_launch_url)
+      add_module_info(rise360_module_version, canvas_assignment) and return if rise360_module_version
+
+      # Doesn't matter which Course the CourseAttendanceEvent is attached to, because we'll be
+      # replacing the course. Just get one with the right AttendanceEvent.
+      attendance_event_submission_answer_path = launch_attendance_event_submission_answers_path
+      if lti_launch_url =~ /#{attendance_event_submission_answer_path}/
+        attendance_event = AttendanceEvent.find_by(title: canvas_assignment['name'])
+        course_attendance_event = CourseAttendanceEvent.find_by(attendance_event_id: attendance_event&.id)
+        if course_attendance_event.present?
+          add_attendance_event_info(course_attendance_event, canvas_assignment)
+        else
+          msg = "No local Platform attedance event found for the Canvas '#{canvas_assignment['name']}' " +
+                "assignment in Canvas Course ID: #{@canvas_course_id}"
+          Honeycomb.add_alert('missing_course_attendance_event', msg)
+        end
+        return
+      end
+
+      # We don't use new_**course**_capstone_evaluation_submission_path here because
+      # InitializeNewCourse needs to be able to detect the LTI launch URL that
+      # was copied containing the old course ID
+      capstone_evaluation_submission_path = 'capstone_evaluation_submissions/new'
+      add_capstone_evaluation_info(canvas_assignment) and return if lti_launch_url =~ /#{capstone_evaluation_submission_path}/
+
+      capstone_evaluation_result_path = launch_capstone_evaluation_results_path
+      add_capstone_evaluation_result_info(canvas_assignment) and return if lti_launch_url =~ /#{capstone_evaluation_result_path}/
+
+      fellow_evaluation_submission_path = 'fellow_evaluation_submissions/new'
+      add_fellow_evaluation_info(canvas_assignment) and return if lti_launch_url =~ /#{fellow_evaluation_submission_path}/
+
+      waivers_launch_path = launch_waiver_submissions_path
+      add_waivers_info(canvas_assignment) and return if lti_launch_url =~ /#{waivers_launch_path}/
+
+      discord_signups_launch_path = launch_discord_signups_path
+      add_discord_signups_info(canvas_assignment) and return if lti_launch_url =~ /#{discord_signups_launch_path}/
+
+      preaccelerator_survey_submission_path = launch_preaccelerator_survey_submissions_path
+      add_preaccelerator_survey_info(canvas_assignment) and return if lti_launch_url =~ /#{preaccelerator_survey_submission_path}/
+
+      postaccelerator_survey_submission_path = launch_postaccelerator_survey_submissions_path
+      add_postaccelerator_survey_info(canvas_assignment) and return if lti_launch_url =~ /#{postaccelerator_survey_submission_path}/
     end
-
-    # We don't use new_**course**_capstone_evaluation_submission_path here because
-    # InitializeNewCourse needs to be able to detect the LTI launch URL that
-    # was copied containing the old course ID
-    capstone_evaluation_submission_path = 'capstone_evaluation_submissions/new'
-    add_capstone_evaluation_info(canvas_assignment) and return if lti_launch_url =~ /#{capstone_evaluation_submission_path}/
-
-    capstone_evaluation_result_path = launch_capstone_evaluation_results_path
-    add_capstone_evaluation_result_info(canvas_assignment) and return if lti_launch_url =~ /#{capstone_evaluation_result_path}/
-
-    fellow_evaluation_submission_path = 'fellow_evaluation_submissions/new'
-    add_fellow_evaluation_info(canvas_assignment) and return if lti_launch_url =~ /#{fellow_evaluation_submission_path}/
-
-    waivers_launch_path = launch_waiver_submissions_path
-    add_waivers_info(canvas_assignment) and return if lti_launch_url =~ /#{waivers_launch_path}/
-
-    discord_signups_launch_path = launch_discord_signups_path
-    add_discord_signups_info(canvas_assignment) and return if lti_launch_url =~ /#{discord_signups_launch_path}/
-
-    preaccelerator_survey_submission_path = launch_preaccelerator_survey_submissions_path
-    add_preaccelerator_survey_info(canvas_assignment) and return if lti_launch_url =~ /#{preaccelerator_survey_submission_path}/
-
-    postaccelerator_survey_submission_path = launch_postaccelerator_survey_submissions_path
-    add_postaccelerator_survey_info(canvas_assignment) and return if lti_launch_url =~ /#{postaccelerator_survey_submission_path}/
-
   end
 
   def add_project_or_survey_info!(course_custom_content_version, canvas_assignment)
@@ -161,7 +177,7 @@ private
       @canvas_waivers_assignment_id = canvas_assignment['id']
     end
   end
-  
+
   def add_discord_signups_info(canvas_assignment)
     if @canvas_discord_signups_url
       raise FetchCanvasAssignmentsInfoError, "Second assignment with Discord Signups found. First[#{@canvas_discord_signups_url}]. Second[#{canvas_assignment['html_url']}]"

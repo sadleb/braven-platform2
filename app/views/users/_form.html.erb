@@ -48,7 +48,7 @@
     </div>
   </div>
 
-  <%# 
+  <%#
     Note: We don't currently have a way to add the user to Canvas using the admin page.
     a) We want to discourage abuse b) you can't do it from dev and be able to login.
     The user must be in the prod platform for SSO to work (unless we added new SSO auth
@@ -60,9 +60,6 @@
     <div class="row">
       <div class="col my-auto">
         <h5>Enrollments</h5>
-      </div>
-      <div class="col">
-        <%= link_to "Edit Enrollments", new_user_users_role_path(@user), class: "btn btn-sm btn-secondary", role: "button" %>
       </div>
     </div>
     <%= render :partial => 'users_roles/list', locals: {user: @user, edit_mode: false} %>

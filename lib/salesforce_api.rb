@@ -59,7 +59,11 @@ class SalesforceAPI
   ParticipantNotOnSalesforceError = Class.new(StandardError)
   ProgramNotOnSalesforceError = Class.new(StandardError)
 
-  # TODO: Figure out how to make this work with a single instance
+  # TODO: Figure out how to make this work with a single instance or just memoize the
+  # data returned from authenticate(). We're at the point where this is probably worth doing.
+  # The call to the authenticate() method below can account for a good deal
+  # of all API calls (across Canvas/Salesforce/Zoom) in a SyncSalesforceProgram run.
+  # https://app.asana.com/0/1201131148207877/1201661063922393
   # @client = nil
 
   # Use this to get an authenticated instance of the API client
@@ -296,19 +300,6 @@ class SalesforceAPI
     JSON.parse(response.body)['Signup_Token__c']
   end
 
-  # Gets a list of all CohortSchedule's for a Program. The names returned are what the Canvas section
-  # should be called when setting up placeholder sections until the actual cohorts are mapped.
-  def get_cohort_schedule_section_names(program_id)
-    initial_api_path = "#{DATA_SERVICE_PATH}/query?q=SELECT+DayTime__c+FROM+CohortSchedule__c+WHERE+Program__r.Id='#{program_id}'"
-    recursively_map_soql_column_to_array('DayTime__c', [], initial_api_path)
-  end
-
-  # Gets a list of the names of all Cohorts available for the specified Program.
-  def get_cohort_names(program_id)
-    initial_api_path = "#{DATA_SERVICE_PATH}/query?q=SELECT+Name+FROM+Cohort__c+WHERE+Program__r.Id='#{program_id}'"
-    recursively_map_soql_column_to_array('Name', [], initial_api_path)
-  end
-
   def get_cohort_lcs(cohort_id)
     # If the cohort ID is invalid, return without making an API call.
     # This prevents SOQLi on cohort_id (like "1'; DROP TABLE Program__c").
@@ -354,25 +345,6 @@ class SalesforceAPI
     result
   end
 
-  def find_program(id:)
-    program = get_program_info(id)
-    raise ProgramNotOnSalesforceError, "Program ID: #{id} not found on Salesforce. Please enter a valid Program ID" if program.nil?
-
-    SalesforceAPI.program_to_struct(program)
-  end
-
-  # Turns a Program hash as returned by Salesforce into an SFProgram struct
-  def self.program_to_struct(program)
-    SFProgram.new(program['Id'], program['Name'], program['SchoolId'],
-              program['Canvas_Cloud_Accelerator_Course_ID__c'].to_i,
-              program['Canvas_Cloud_LC_Playbook_Course_ID__c'].to_i,
-              program['Section_Name_in_LMS_Coach_Course__c'],
-              program['Default_Timezone__c'].to_sym,
-              program['Preaccelerator_Qualtrics_Survey_ID__c'],
-              program['Postaccelerator_Qualtrics_Survey_ID__c'],
-    )
-  end
-
   # See: https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/dome_upsert.htm
   def create_or_update_contact(email, fields_to_set)
      response = patch("#{DATA_SERVICE_PATH}/sobjects/Contact/Email/#{email}", fields_to_set.to_json, JSON_HEADERS)
@@ -403,31 +375,6 @@ class SalesforceAPI
     ret.compact()
   end
 
-  # Gets a list of SFParticipant structs for all Participant records that have a Status set.
-  # Only finds participants with roles fellow, lc, or ta. Returns empty array if none found.
-  #
-  # If you only want Participants with a certain status returned, pass in
-  # a filter_by_status. E.g.:
-  # find_participants_by_contact_id(contact_id: some_id, filter_by_status: SalesforceAPI::ENROLLED)
-  def find_participants_by_contact_id(contact_id:, filter_by_status: nil)
-    raise ArgumentError.new('contact_id is nil') if contact_id.nil?
-
-    participants = get_participants(nil, contact_id)
-    ret = participants.map do |participant|
-      # Having no Status set is treated as though they are not a Participant at all.
-      # We sometimes set this if there are duplicates or test Participants who should
-      # just be skipped but we don't want to delete them for whatever reason.
-      if participant['ParticipantStatus'].present? && FIND_BY_ROLES.include?(participant['Role']&.to_sym)
-        if filter_by_status
-          SalesforceAPI.participant_to_struct(participant) if participant['ParticipantStatus'] == filter_by_status
-        else
-          SalesforceAPI.participant_to_struct(participant)
-        end
-      end
-    end
-    ret.compact()
-  end
-
   # Finds the Participant for a Contact in a Program.
   #
   # A Contact / Program pair should uniquely identify a Participant with any Role in the FIND_BY_ROLES array.
@@ -451,12 +398,17 @@ class SalesforceAPI
     SalesforceAPI.participant_to_struct(participants.first)
   end
 
+  # Note: passing nil for a link means "do nothing". If you want to clear it
+  # out in Salesforce, pass an empty string.
   def update_zoom_links(id, link1, link2)
     # We probably want to cutover the Salesforce fields from "Webinar" to "Zoom" at some point.
     # That was just what they were called for Braven Booster. We call everything Zoom in the
     # platform code b/c that's what it is. Also, they are actually "Meetings" and not
     # Zoom "Webinars"
-    update_participant(id, { 'Webinar_Access_1__c' => link1, 'Webinar_Access_2__c' => link2 })
+    body = {}
+    body['Webinar_Access_1__c'] = link1 unless link1.nil?
+    body['Webinar_Access_2__c'] = link2 unless link2.nil?
+    update_participant(id, body)
   end
 
   # Turns a Participant hash as returned by Salesforce into an SFParticipant struct
@@ -491,14 +443,6 @@ class SalesforceAPI
   def set_canvas_user_id(contact_id, canvas_user_id)
     body = { 'Canvas_Cloud_User_ID__c' => canvas_user_id }
     response = patch("#{DATA_SERVICE_PATH}/sobjects/Contact/#{contact_id}", body.to_json, JSON_HEADERS)
-  end
-
-  def set_canvas_course_ids(program_id, canvas_fellow_course_id, canvas_lc_course_id)
-    body = {
-      'Canvas_Cloud_Accelerator_Course_ID__c' => canvas_fellow_course_id,
-      'Canvas_Cloud_LC_Playbook_Course_ID__c' => canvas_lc_course_id,
-    }
-    patch("#{DATA_SERVICE_PATH}/sobjects/Program__c/#{program_id}", body.to_json, JSON_HEADERS)
   end
 
   def create_campaign_member(fields_to_set)

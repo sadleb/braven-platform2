@@ -1,31 +1,20 @@
 FactoryBot.define do
   factory :user do
+    id { contact.user_id }
+    sequence(:uuid) { SecureRandom.uuid }
+    email { contact.email }
+    first_name { contact.first_name }
+    last_name { contact.last_name }
+    canvas_user_id { contact.canvas_user_id }
+    salesforce_id { contact.sfid }
+
     transient do
-      names do
-        [
-          ['Aaron', 'Anderson'], ['Anthony', 'Anderson'], ['Barry', 'Boswick'], ['Bill', 'Boswick'],
-          ['Bob', 'Boswick'], ['Cara', 'Clark'], ['Candice', 'Clark'], ['Carmen', 'Clark'],
-          ['Diana', 'Davis'], ['Daisy', 'Davis'], ['Deirdre', 'Davis'], ['Fred', 'Fox'],
-          ['Fran', 'Fox'], ['Gertie', 'Gray'], ['Greg', 'Gray'], ['Henry', 'Hill'],
-          ['Harrieta', 'Hill'], ['Harvey', 'Hill'], ['Jack', 'Jones'], ['Jenny', 'Jones'],
-          ['John', 'Jones'], ['Jeff', 'Jones']
-        ]
-      end
+      # If you need a User to match a HerokuConnect::Contact,
+      # pass that in when creating one of these factories
+      contact { build :heroku_connect_contact }
     end
 
-    sequence(:uuid) { SecureRandom.uuid }
-    sequence(:email) {|i| "test#{i}@example.com"}
-    sequence(:first_name) { |i| names[i % names.size][0] }
-    sequence(:last_name) { |i| names[i % names.size][1] }
-    sequence(:canvas_user_id)
-
-    # Note: the salesforce IDs below need to be 18 chars and unique. It's important to use a slight
-    # variation of the pattern for different factories to avoid collisions. We allow want to allow as
-    # big of an integer as possible so it doesn't overflow. Right now we can go up to 11 character digits,
-    # so this won't start failing until we create 100 billion users as part of running our specs.
-
     factory :unregistered_user do
-      sequence(:salesforce_id) { |i| "003x%011dAAQ" % i }
 
       factory :unregistered_user_with_invalid_signup_token do
         sequence(:signup_token) { "starter token" }
@@ -40,7 +29,6 @@ FactoryBot.define do
 
     factory :registered_user do
       sequence(:password) { |i| "Val!dPassword#{i}" }
-      sequence(:salesforce_id) { |i| "003y%011dAAZ" % i }
       confirmed_at { DateTime.now }
       registered_at { DateTime.now }
 

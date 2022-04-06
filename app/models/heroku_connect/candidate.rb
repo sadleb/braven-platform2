@@ -39,28 +39,51 @@ class HerokuConnect::Candidate < HerokuConnect::HerokuConnectRecord
     OPTED_OUT = :'Opted Out'
   end
 
-  # Possible values for candidate_role
-  class Role
-    FELLOW = HerokuConnect::Participant::Role::FELLOW
-    LEADERSHIP_COACH = HerokuConnect::Participant::Role::LEADERSHIP_COACH
-    TEACHING_ASSISTANT = HerokuConnect::Participant::Role::TEACHING_ASSISTANT
-    MOCK_INTERVIEWER = HerokuConnect::Participant::Role::MOCK_INTERVIEWER
-    COACH_PARTNER = :'Coach Partner'
-    LC_SUBSTITUTUE = :'LC Substitute'
-    TEST = :Test
-    PANELIST = :Panelist
+  # Their general Role category with Braven.
+  # See SalesforceConstants::RoleCategory for more info
+  def role_category
+    record_type.name
   end
 
-  # If there is a "Candidate Role Select" set, use that. Otherwise, use the `RecordType.name`
-  # of the Candidate (aka Teaching Assistant, Fellow, etc)
-  # Note: for legacy reasons the "Candidate Role Select" is stored in the coach_partner_role__c field
-  def candidate_role
-    HerokuConnect::Candidate.calculate_candidate_role(coach_partner_role__c, record_type.name)
+  # The actual, specific Role with Braven.
+  # See SalesforceConstants::Role for more info.
+  #
+  # Note: This is calculated as either the "Candidate Role Select" which is used to
+  # further qualify someone's general Role or their general Role if that's not set.
+  # For legacy reasons, the "Candidate Role Select" is stored in the coach_partner_role__c field
+  def role
+    HerokuConnect::Candidate.calculate_role(coach_partner_role__c, role_category)
   end
 
-  # Heroku Connect can't sync formula fields so we're reimplementing the logic of
-  # "Volunteer_Role__c" here (which is now called Candidate Role in the UI).
-  def self.calculate_candidate_role(candidate_role_select, record_type_name)
+  def self.calculate_role(candidate_role_select, record_type_name)
     candidate_role_select || record_type_name
+  end
+
+  def is_fellow?
+    role == SalesforceConstants::Role::FELLOW
+  end
+
+  # Checks if they're an actual LC
+  def is_lc?
+    role == SalesforceConstants::Role::LEADERSHIP_COACH ||
+    role == SalesforceConstants::Role::LC_SUBSTITUTE
+  end
+
+  # Checks if they're an actual TA.
+  def is_teaching_assistant?
+    role == SalesforceConstants::Role::TEACHING_ASSISTANT
+  end
+
+  def is_staff?
+    role == SalesforceConstants::Role::STAFF
+  end
+
+  # Checks if they're a faculty member, usually of a university such as a Professor.
+  def is_faculty?
+    role == SalesforceConstants::Role::FACULTY
+  end
+
+  def is_coach_partner?
+    role == SalesforceConstants::Role::COACH_PARTNER
   end
 end

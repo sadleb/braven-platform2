@@ -155,10 +155,6 @@ RSpec.describe Users::RegistrationsController, type: :controller do
     let(:password_value) { 'Val!dPassw0rd' }
     subject { post :create, params: params }
 
-    let(:sf_client) { double(SalesforceAPI,
-      find_participants_by_contact_id: [SalesforceAPI::SFParticipant.new(user.first_name, user.last_name, user.email)],
-      find_program: SalesforceAPI::SFProgram.new,
-    ) }
     let(:service) { double(RegisterUserAccount, run: nil) }
 
     context 'with no tokens' do
@@ -226,14 +222,15 @@ RSpec.describe Users::RegistrationsController, type: :controller do
     end
 
     context 'with expired signup_token' do
-      let(:user) { create(:unregistered_user) }
+      let(:contact) { build(:heroku_connect_contact) }
+      let(:user) { create(:unregistered_user, salesforce_id: contact.sfid) }
       let(:params) { {
         'user[password]': password_value,
         'user[password_confirmation]': password_value,
       } }
 
       before :each do
-        allow(SalesforceAPI).to receive(:client).and_return(sf_client)
+        allow(HerokuConnect::Contact).to receive(:find_by).and_return(contact)
         params['user[signup_token]'] = user.set_signup_token!
         user.update!(signup_token_sent_at: 5.weeks.ago)
       end
@@ -246,14 +243,15 @@ RSpec.describe Users::RegistrationsController, type: :controller do
     end
 
     context 'with expired reset_password_token' do
-      let(:user) { create(:unregistered_user) }
+      let(:contact) { build(:heroku_connect_contact) }
+      let(:user) { create(:unregistered_user, salesforce_id: contact.sfid) }
       let(:params) { {
         'user[password]': password_value,
         'user[password_confirmation]': password_value,
       } }
 
       before :each do
-        allow(SalesforceAPI).to receive(:client).and_return(sf_client)
+        allow(HerokuConnect::Contact).to receive(:find_by).and_return(contact)
         params['user[reset_password_token]'] = user.send(:set_reset_password_token)
         user.update!(reset_password_sent_at: 5.days.ago)
       end
@@ -273,8 +271,6 @@ RSpec.describe Users::RegistrationsController, type: :controller do
       } }
 
       before :each do
-        allow(service).to receive(:create_canvas_user!)
-        allow(SalesforceAPI).to receive(:client).and_return(sf_client)
         allow(RegisterUserAccount).to receive(:new).and_return(service)
         params['user[signup_token]'] = user.set_signup_token!
       end
@@ -293,7 +289,6 @@ RSpec.describe Users::RegistrationsController, type: :controller do
       } }
 
       before :each do
-        allow(SalesforceAPI).to receive(:client).and_return(sf_client)
         params['user[reset_password_token]'] = user.send(:set_reset_password_token)
       end
 

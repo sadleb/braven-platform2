@@ -37,8 +37,7 @@
       <div class="form-group col mb-0">
         <label for="input-attend-section"><strong>Take Attendance For Section</strong></label>
         <select id="input-attend-section" name="section_id" class="form-control">
-          <%# Exclude the TA section, if there is one. %>
-          <% @accelerator_course.sections.filter { |section| section.name != SectionConstants::TA_SECTION }.each do |s| %>
+          <% @all_attendance_sections.each do |s| %>
             <option value="<%= s.id %>"
                     <%= option_selected(s.id == @section.id) %>
                     ><%= s.name %></option>

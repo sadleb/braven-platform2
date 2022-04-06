@@ -2,7 +2,8 @@
 
 class CoursesController < ApplicationController
   layout 'admin'
-  CourseAdminError = Class.new(StandardError)
+  class CourseAdminError < StandardError; end
+  class ExistingProgramError < StandardError; end
 
   before_action :fetch_canvas_assignment_info, only: [:edit]
   before_action :set_course_type, only: [:edit]
@@ -41,13 +42,29 @@ class CoursesController < ApplicationController
   # POST /courses
   def create
     authorize Course
-    params.require(:create_from_course_id)
 
-    @source_course = Course.find(params[:create_from_course_id])
+    @source_course = Course.find(create_params[:id])
+    salesforce_program_id = create_params[:salesforce_program_id].strip
+    @salesforce_program = HerokuConnect::Program.find(salesforce_program_id)
+    validate_program_for_create(@salesforce_program, @source_course)
 
-    CloneCourseJob.perform_later(current_user.email, @source_course, create_params[:name])
+    CloneCourseJob.perform_later(current_user.email, @source_course, create_params[:name].strip, @salesforce_program)
 
     redirect_to courses_path, notice: 'Course Template initialization started. Watch out for an email.'
+  rescue ActiveRecord::RecordNotFound => e
+    if e.model == HerokuConnect::Program.name
+      redirect_to(
+        new_course_path(create_from_course_id: create_params[:id]),
+        alert: "Error: Couldn't find Salesforce Program with ID: '#{salesforce_program_id}'. Enter a valid Program ID."
+      ) and return
+    else
+      raise
+    end
+  rescue ExistingProgramError => e
+    redirect_to(
+      new_course_path(create_from_course_id: create_params[:id]),
+      alert: "Error: #{e.message}"
+    ) and return
   end
 
   # PATCH/PUT /courses/1
@@ -119,7 +136,21 @@ class CoursesController < ApplicationController
   end
 
   def create_params
-    params.require('course').permit(:name)
+    params.require(:course).permit(:id, :name, :salesforce_program_id)
+  end
+
+  def validate_program_for_create(salesforce_program, source_course)
+    # Check individually so you can create a template from the Accelerator and then go create one
+    # from an LC Playbook for the same new Program.
+    if source_course.is_accelerator_course? && salesforce_program.accelerator_course.present?
+      raise ExistingProgramError.new(
+        "Program ID: '#{salesforce_program.sfid}' already has an 'Accelerator Course ID - Highlander' set. Use a new Program."
+      )
+    elsif source_course.is_lc_playbook_course? && salesforce_program.lc_playbook_course.present?
+      raise ExistingProgramError.new(
+        "Program ID: '#{salesforce_program.sfid}' already has an 'LC Playbook Course ID - Highlander' set. Use a new Program."
+      )
+    end
   end
 
   def set_course_type

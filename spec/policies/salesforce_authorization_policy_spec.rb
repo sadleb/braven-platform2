@@ -39,8 +39,4 @@ RSpec.describe SalesforceAuthorizationPolicy, type: :policy do
     it_behaves_like 'admin or CanSyncFromSalesforce policy'
   end
 
-  permissions :update_contacts? do
-    it_behaves_like 'admin or CanSyncFromSalesforce policy'
-  end
-
 end

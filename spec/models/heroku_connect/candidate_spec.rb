@@ -26,18 +26,15 @@ RSpec.describe HerokuConnect::Candidate, type: :model do
     it { should have_db_index(:program__c) }
   end
 
-  # This is actually stored in the coach_partner_role__c column for legacy reasons.
-  # If that's not set, the role is assumed to be the Record Type. The formula field
-  # in Salesforce is called "Volunteer_Role__c"
-  describe '#candidate_role' do
-    context 'with nil role' do
+  describe '#role' do
+    context 'with nil candidate_role_select' do
       let(:candidate) { build :heroku_connect_candidate, coach_partner_role__c: nil }
-      it { is_expected.to have_attributes(:candidate_role => candidate.record_type.name) }
+      it { is_expected.to have_attributes(:role => candidate.record_type.name) }
     end
 
     context 'when coach partner role set' do
-      let(:candidate) { build :heroku_connect_candidate, coach_partner_role__c: HerokuConnect::Candidate::Role::COACH_PARTNER }
-      it { is_expected.to have_attributes(:candidate_role => HerokuConnect::Candidate::Role::COACH_PARTNER) }
+      let(:candidate) { build :heroku_connect_candidate, coach_partner_role__c: SalesforceConstants::Role::COACH_PARTNER }
+      it { is_expected.to have_attributes(:role => SalesforceConstants::Role::COACH_PARTNER) }
     end
   end
 

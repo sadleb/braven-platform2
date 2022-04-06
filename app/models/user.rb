@@ -51,6 +51,12 @@ class User < ApplicationRecord
     [first_name, last_name].join(' ')
   end
 
+  # A globally unique ID for this User in Canvas.
+  # See here for more info: https://github.com/bebraven/platform/wiki/Salesforce-Sync
+  def sis_id
+    "BVUserId_#{id}_SFContactId_#{salesforce_id}"
+  end
+
   # All sections with a specific role.
   def sections_with_role(role_name)
     Section.with_roles(role_name, self).distinct
@@ -82,17 +88,17 @@ class User < ApplicationRecord
   end
 
   # Removes the roles for all Sections in the specified course
+  # and returns the list of Sections that the user was removed from
   def remove_section_roles(course)
+    sections_removed = []
     RoleConstants::SECTION_ROLES.each { |role|
       sections = sections_with_role(role).where(course: course)
       sections.each do |section|
         remove_role role, section
-        # Delete empty sections, both locally and on Canvas.
-        if section.users.empty? && cohort_section_name_regex.match(section.name)
-          section.destroy
-        end
+        sections_removed << section
       end
     }
+    sections_removed
   end
 
   # True if the user has confirmed their account and can log in.
@@ -105,8 +111,12 @@ class User < ApplicationRecord
     !!registered_at
   end
 
-  def has_canvas_account?
-    canvas_user_id.present?
+  def has_signed_up?
+    registered? && confirmed?
+  end
+
+  def has_not_signed_up?
+    !has_signed_up?
   end
 
   def admin?
@@ -139,10 +149,8 @@ class User < ApplicationRecord
     # LCs also use TA_ENROLLMENT, we need to introduce a separate LC_ENROLLMENT
     # role before we can check TA_ENROLLMENT for a course without specifying
     # the TA_SECTION.
-    ta_section = sections_with_role(RoleConstants::TA_ENROLLMENT).find_by(
-      course: course,
-      name: SectionConstants::TA_SECTION,
-    )
+    ta_section = sections_with_role(RoleConstants::TA_ENROLLMENT).teaching_assistants
+      .find_by(course: course)
     student_section = target_user.student_section_by_course(course)
     return ta_section && student_section ? true : false
   end
@@ -305,6 +313,11 @@ class User < ApplicationRecord
     User.find_by(signup_token: encoded_signup_token)
   end
 
+  def self.add_to_honeycomb_trace(user)
+    Honeycomb.add_field('user.present?', user.present?)
+    user&.add_to_honeycomb_trace
+  end
+
   # Adds common Honeycomb fields to every span in the trace. Useful to be able to group
   # any particular field you're querying for by user.
   #
@@ -342,6 +355,7 @@ class User < ApplicationRecord
       'user.email': email,
       'salesforce.contact.id': salesforce_id,
       'canvas.user.id': canvas_user_id.to_s,
+      'user.sis_id': sis_id,
     }
   end
 protected
@@ -390,15 +404,6 @@ protected
   # See: vendor/bundle/ruby/3.0.0/gems/devise-4.8.0/lib/devise/models/authenticatable.rb
   def serializable_hash(options = nil)
     super({:except => UNSAFE_ATTRIBUTES_FOR_SERIALIZATION})
-  end
-
-
-  # Complete hack so we only delete Section's if they are for a Cohort,
-  # excluding other types like Cohort Schedule, Teaching Assistants, Default Section, etc
-  # We should fix this properly, either by adding a new "type" column or some other more robust way.
-  # https://app.asana.com/0/1201131148207877/1201474235336690
-  def cohort_section_name_regex
-    /C\d* .* \(.*\)/
   end
 
 private
