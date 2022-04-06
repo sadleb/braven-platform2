@@ -32,7 +32,14 @@ namespace :sis_import do
             Honeycomb.add_field('course.id', course.id)
             Honeycomb.add_field('canvas.course.id', course.canvas_course_id)
             Honeycomb.add_field('canvas.course.name', course.name)
-            program = HerokuConnect::Program.find(course.salesforce_program_id)
+            program = nil
+            begin
+              program = HerokuConnect::Program.find(course.salesforce_program_id)
+            rescue ActiveRecord::RecordNotFound => not_found
+              Honeycomb.add_field('sis_import.skip_reason', "Program not found for ID: '#{course.salesforce_program_id}'")
+              puts "  XXX -> Skipping this course b/c there are no Program's associated: #{course.inspect}"
+              next
+            end
             Honeycomb.add_field('salesforce.program.id', course.salesforce_program_id)
 
             puts "\n  --> Migrating course: '#{course.name}' (id=#{course.id}, canvas_course_id=#{course.canvas_course_id}, program_id='#{course.salesforce_program_id}')"
