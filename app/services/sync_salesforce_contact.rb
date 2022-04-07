@@ -90,21 +90,21 @@ class SyncSalesforceContact
     unless user.canvas_user_id.present?
       msg = "The Salesforce Contact ID: '#{user.salesforce_id}' doesn't have " +
             "a Canvas User ID set in Platform."
-      Honeycomb.add_alert('missing_canvas_user_id', msg, :error)
+      Honeycomb.add_support_alert('missing_canvas_user_id', msg, :error)
       raise SyncSalesforceProgram::UserSetupError, msg
     end
 
     unless salesforce_contact.user_id.to_i == user.id
       msg = "The Salesforce Contact ID: '#{user.salesforce_id}' doesn't have " +
             "their 'Platform User ID' field set properly in Salesforce. It should be set to: #{user.id}."
-      Honeycomb.add_alert('mismatched_platform_user_id', msg, :warn)
+      Honeycomb.add_support_alert('mismatched_platform_user_id', msg, :warn)
       # Don't raise b/c things should still work for the end user. We just need to fix this up on the backend
     end
 
     unless salesforce_contact.canvas_user_id.to_i == user.canvas_user_id
       msg = "The Salesforce Contact ID: '#{user.salesforce_id}' doesn't have " +
             "their 'Canvas User ID' field set properly in Salesforce. It should be set to: #{user.canvas_user_id}."
-      Honeycomb.add_alert('mismatched_canvas_user_id', msg, :warn)
+      Honeycomb.add_support_alert('mismatched_canvas_user_id', msg, :warn)
       # Don't raise b/c things should still work for the end user. We just need to fix this up on the backend
     end
 
@@ -167,7 +167,7 @@ private
       if existing_user.present?
         msg << " The user is: #{existing_user.email}. Their Salesforce ID must be updated here: #{user_url(existing_user)}"
       end
-      Honeycomb.add_alert('missing_salesforce_contact', msg, :error)
+      Honeycomb.add_support_alert('missing_salesforce_contact', msg, :error)
       raise SyncSalesforceProgram::MissingContactError, msg
     end
 
@@ -231,7 +231,7 @@ There are duplicate Contacts in Salesforce with the email: #{salesforce_contact.
 
 For reference, the existing Platform user is: #{user_url(existing_user)} and the duplicate Contact ID is: #{salesforce_contact.sfid}.
 EOF
-      Honeycomb.add_alert('save_user_failed', msg, :error)
+      Honeycomb.add_support_alert('save_user_failed', msg, :error)
       raise SyncSalesforceProgram::DuplicateContactError, msg
     else
       raise

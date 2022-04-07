@@ -105,7 +105,7 @@ private
         { salesforce_field_name => @destination_course.canvas_course_id }
       )
     else
-      Honeycomb.add_alert('unknown_course_type',
+      Honeycomb.add_support_alert('unknown_course_type',
         "Cant determine if #{@source_course.name} is an Accelerator course or " +
         "a LC Playbook course. Failed to update Salesforce. To fix, go to Program ID: " +
         "'#{@salesforce_program.sfid}' and manually set the proper " +

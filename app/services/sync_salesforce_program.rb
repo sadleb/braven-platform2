@@ -220,7 +220,7 @@ Open the Participant with ID: #{original_participant.sfid} and use the "Duplicat
 
 For reference, the duplicate Participant is: #{participant.sfid}.
 EOF
-      Honeycomb.add_alert('duplicate_participant_error', msg)
+      Honeycomb.add_support_alert('duplicate_participant_error', msg)
       raise DuplicateParticipantError, msg
     end
 
