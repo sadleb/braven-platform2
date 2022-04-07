@@ -94,6 +94,7 @@ class ParticipantSyncInfo < ApplicationRecord
               SalesforceConstants::RoleCategory::TEACHING_ASSISTANT
             ]}
           )
+          .where.not('participant__c.status__c': nil) # ignore folks where we cleared their Status
         }
       end
     end # self.included
