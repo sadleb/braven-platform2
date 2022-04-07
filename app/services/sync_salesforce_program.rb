@@ -23,13 +23,7 @@ class SyncSalesforceProgram
   class UserSetupError < StandardError; end
   class DuplicateContactError < UserSetupError; end
   class MissingContactError < UserSetupError; end
-  class DuplicateParticipantError < StandardError
-    attr_reader :original_participant, :duplicate_participant
-    def initialize(original_participant, duplicate_participant)
-      @original_participant = original_participant
-      @duplicate_participant = duplicate_participant
-    end
-  end
+  class DuplicateParticipantError < StandardError; end
   class ExitedEarlyError < StandardError; end
   class MissingCourseModelsError < StandardError; end
   class MissingProgramError < StandardError; end
@@ -53,7 +47,7 @@ class SyncSalesforceProgram
     @force_zoom_update = force_zoom_update
     @contact_ids_to_participants = {}
     @failed_participants = []
-    @synced_changes = false
+    @synced_new_canvas_changes = false
   end
 
   # Handles all syncing logic for all Participants in a Program, such as:
@@ -108,7 +102,7 @@ class SyncSalesforceProgram
       # For example, imagine we had one with a duplicate Contact and it took us a day to
       # merge. If no other Participants had changes that actually got through the sync,
       # we'd skip sending the same thing to Canvas that we just sent.
-      if @synced_changes
+      if @synced_new_canvas_changes
         sis_import_status = @sis_import.send_to_canvas()
         @salesforce_program.courses.update_all(last_canvas_sis_import_id: sis_import_status.sis_import_id)
 
@@ -159,50 +153,78 @@ private
         #
         # IMPORTANT: a Participant who already has Canvas access where there is a sync
         # failure specific to them will LOSE access until the error is corrected.
-        begin
 
-          unless participant.should_sync? # See ParticipantSyncInfo#should_sync? for more info
-            msg = 'Participant is not in a syncable state. Maybe they are missing a Cohort Schedule?.'
-            Honeycomb.add_field('sync_salesforce_program.participant.skip_reason', msg)
-            Rails.logger.debug("  Skipping sync for Participant ID: #{participant.sfid}. #{msg}")
-            next
-          end
+        unless participant.should_sync? # See ParticipantSyncInfo#should_sync? for more info
+          msg = 'Participant is not in a syncable state. Maybe they are missing a Cohort Schedule?.'
+          Honeycomb.add_field('sync_salesforce_program.participant.skip_reason', msg)
+          Rails.logger.debug("  Skipping sync for Participant ID: #{participant.sfid}. #{msg}")
+          next
+        end
 
-          if @contact_ids_to_participants.key?(participant.contact_id)
-            raise DuplicateParticipantError.new(@contact_ids_to_participants[participant.contact_id], participant)
-          end
-          @contact_ids_to_participants[participant.contact_id] = participant
+        unique_participant = with_participant_error_handling(participant) do
+          raise_if_duplicate_participant!(participant)
+        end
+        next unless unique_participant
 
+        zoom_sync_success = with_participant_error_handling(participant) do
           # Note that we run this before the enrollment stuff b/c we want to have the Zoom
           # links in Salesforce even if the Participant Canvas sync fails.
           SyncZoomLinksForParticipant.new(participant, @force_zoom_update).run
+        end
 
+        canvas_sync_success = with_participant_error_handling(participant) do
           SyncSalesforceParticipant.new(@sis_import, @salesforce_program, participant).run()
+          @synced_new_canvas_changes = true if participant.changed?
+        end
 
+        # Save the ParticipantSyncInfo back to the database if we fully synced them
+        # so they'll be skipped next sync unless something new changes.
+        if zoom_sync_success && canvas_sync_success
           participant.new_sync_info.updated_at = Time.now.utc
           upsert_data << participant.attributes.except('id', 'created_at')
-          @synced_changes = true if participant.changed?
-        rescue => e
-          # These can impact more than just this Participant. Let the whole sync fail if we can't
-          # setup the Sections properly.
-          raise if e.is_a?(SectionSetupError)
-
-          Sentry.capture_exception(e)
-          error_detail = translate_error_to_user_message(e, participant)
-          Honeycomb.add_field('error', e.class.name)
-          Honeycomb.add_field('error_detail', error_detail)
-          @failed_participants << FailedParticipantInfo.new(
-            participant_id: participant.sfid,
-            email: participant.email,
-            first_name: participant.first_name,
-            last_name: participant.last_name,
-            error_detail: error_detail
-          )
         end
       end
     end
 
     upsert_data
+  end
+
+  def with_participant_error_handling(participant, &block)
+    block.call()
+    return true
+  rescue => e
+    # These can impact more than just this Participant. Let the whole sync fail if we can't
+    # setup the Sections properly.
+    raise if e.is_a?(SectionSetupError)
+
+    Sentry.capture_exception(e)
+    error_detail = translate_error_to_user_message(e, participant)
+    Honeycomb.add_field('error', e.class.name)
+    Honeycomb.add_field('error_detail', error_detail)
+    @failed_participants << FailedParticipantInfo.new(
+      participant_id: participant.sfid,
+      email: participant.email,
+      first_name: participant.first_name,
+      last_name: participant.last_name,
+      error_detail: error_detail
+    )
+    return false
+  end
+
+  def raise_if_duplicate_participant!(participant)
+    if @contact_ids_to_participants.key?(participant.contact_id)
+      original_participant = @contact_ids_to_participants[participant.contact_id]
+      msg = <<-EOF
+There are duplicate Participants in Salesforce for Contact ID: #{participant.contact_id} in Program ID: #{participant.program_id}.
+Open the Participant with ID: #{original_participant.sfid} and use the "Duplicate Check -> Merge" tool to get rid of the duplicate. Make sure and choose Particpant #{original_participant.sfid} as the Master record!
+
+For reference, the duplicate Participant is: #{participant.sfid}.
+EOF
+      Honeycomb.add_alert('duplicate_participant_error', msg)
+      raise DuplicateParticipantError, msg
+    end
+
+    @contact_ids_to_participants[participant.contact_id] = participant
   end
 
   # Once the current SIS Import data is successfully sent to Canvas for a participant,
@@ -338,6 +360,7 @@ private
     error_detail = "#{e.class}: #{e.message}"
 
     if e.is_a?(DuplicateContactError) ||
+       e.is_a?(DuplicateParticipantError) ||
        e.is_a?(MissingContactError) ||
        e.is_a?(UserSetupError) ||
        e.is_a?(ZoomAPI::ZoomMeetingEndedError) ||
@@ -348,13 +371,6 @@ private
 
       error_detail = e.message
 
-    elsif e.is_a?(DuplicateParticipantError)
-      error_detail = <<-EOF
-There are duplicate Participants in Salesforce for Contact ID: #{participant.contact_id} in Program ID: #{participant.program_id}.
-Open the Participant with ID: #{e.original_participant.sfid} and use the "Duplicate Check -> Merge" tool to get rid of the duplicate. Make sure and choose Particpant #{e.original_participant.sfid} as the Master record!
-
-For reference, the duplicate Participant is: #{e.duplicate_participant.sfid}.
-EOF
     elsif e.is_a?(CanvasAPI::TimeoutError)
       error_detail = e.message << " Until it works this user may have trouble accessing Canvas: #{participant.email}"
     end
