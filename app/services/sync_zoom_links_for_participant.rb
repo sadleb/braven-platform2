@@ -58,6 +58,8 @@ private
 
     if links_changed
       Rails.logger.debug('  - Links changed. Updating Salesforce with new links')
+      Honeycomb.add_field('sync_zoom_links_for_participant.link1', new_join_link1)
+      Honeycomb.add_field('sync_zoom_links_for_participant.link2', new_join_link2)
       SalesforceAPI.client.update_zoom_links(@participant_sync_info.sfid, new_join_link1, new_join_link2)
 
       # TODO: if the change was because the meeting_id changed or the email changed, a new registrant
