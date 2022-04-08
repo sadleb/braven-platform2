@@ -38,7 +38,7 @@ class ZoomAPI
   end
 
   def get_meeting_info(meeting_id)
-    get("/meetings/#{meeting_id}")
+    get("/meetings/#{meeting_id.delete_whitespace}")
   rescue RestClient::BadRequest,
     RestClient::TooManyRequests,
     RestClient::NotFound => e
@@ -68,7 +68,7 @@ class ZoomAPI
       'last_name' => last_name,
       'email' => email
     }
-    post("/meetings/#{meeting_id}/registrants", registrant_details)
+    post("/meetings/#{meeting_id.delete_whitespace}/registrants", registrant_details)
 
   rescue RestClient::BadRequest,
          RestClient::TooManyRequests,
@@ -146,7 +146,7 @@ class ZoomAPI
 
   def cancel_registrants(meeting_id, registrant_emails)
     registrants = registrant_emails.map { |registrant| {'email' => registrant } }
-    path = "/meetings/#{meeting_id}/registrants/status"
+    path = "/meetings/#{meeting_id.delete_whitespace}/registrants/status"
     body = { 'action' => 'cancel', 'registrants' => registrants }
     put(path, body)
   rescue RestClient::NotFound => e
@@ -170,7 +170,7 @@ class ZoomAPI
   end
 
   def get_registrants(meeting_id)
-    result = get("/meetings/#{meeting_id}/registrants?page_size=300")
+    result = get("/meetings/#{meeting_id.delete_whitespace}/registrants?page_size=300")
     raise NotImplementedError, 'Paged response returned and not implemented yet' if result['page_count'] && result['page_count'] > 1
     result
   end
@@ -181,7 +181,7 @@ class ZoomAPI
 # Task: https://app.asana.com/0/1174274412967132/1200467981732246
 #  def update_meeting_for_registration(meeting_id)
 #    Rails.logger.info("Updating meeting for registration: #{meeting_id}")
-#    url = "#{BASE_URL}/meetings/#{meeting_id}"
+#    url = "#{BASE_URL}/meetings/#{meeting_id.delete_whitespace}"
 #    data = {
 #      'settings' => {
 #        'approval_type' => 0,
