@@ -191,7 +191,7 @@ private
   # well as masquerade as other users. We use TA accounts for staff as well as real
   # Teaching Assistants in an "admin" capacity of sorts.
   def set_admin_permissions
-    if @participant_sync_info.accelerator_course_role == RoleConstants::TA_ENROLLMENT
+    if @participant_sync_info.has_canvas_staff_permissions?
       if @participant_sync_info.is_enrolled?
         @participant_sync_info.user.add_role RoleConstants::CAN_TAKE_ATTENDANCE_FOR_ALL
         @sis_import_data_set.add_staff_account_role(@participant_sync_info.user)

@@ -200,6 +200,10 @@ class ParticipantSyncInfo < ApplicationRecord
     end
   end
 
+  def has_canvas_staff_permissions?
+    role_category == SalesforceConstants::RoleCategory::TEACHING_ASSISTANT
+  end
+
   # The name of the Canvas section that corresponds to this Cohort Schedule.
   # These sections are where we setup the due dates. When Cohort mapping happens
   # folks are added to the Cohort section in Canvas too.
