@@ -190,6 +190,16 @@ class ParticipantSyncInfo < ApplicationRecord
     end
   end
 
+  def lc_playbook_course_role
+    if role_category == SalesforceConstants::RoleCategory::LEADERSHIP_COACH
+      RoleConstants::STUDENT_ENROLLMENT
+    elsif role_category == SalesforceConstants::RoleCategory::TEACHING_ASSISTANT
+      RoleConstants::TA_ENROLLMENT
+    else
+      nil # Fellows (and others) aren't in the LC Playbook
+    end
+  end
+
   def ta_caseload_role
     if role_category == SalesforceConstants::RoleCategory::FELLOW
       RoleConstants::STUDENT_ENROLLMENT
@@ -269,7 +279,8 @@ class ParticipantSyncInfo < ApplicationRecord
 
       (
         contact_changed? ||
-        primary_enrollment_changed? ||
+        accelerator_enrollment_changed? ||
+        lc_playbook_enrollment_changed? ||
         zoom_info_changed? ||
         ta_caseload_sections_changed?
       )
@@ -286,16 +297,25 @@ class ParticipantSyncInfo < ApplicationRecord
       )
     end
 
-    def primary_enrollment_changed?
+    def accelerator_enrollment_changed?
       (
         role_category != @last_sync_info&.role_category ||
         status != @last_sync_info&.status ||
         cohort_id != @last_sync_info&.cohort_id ||
-        cohort_schedule_id != @last_sync_info&.cohort_schedule_id ||
         cohort_section_name != @last_sync_info&.cohort_section_name ||
+        cohort_schedule_id != @last_sync_info&.cohort_schedule_id ||
         cohort_schedule_name_changed? ||
         candidate_role_select != @last_sync_info&.candidate_role_select ||
-        canvas_accelerator_course_id != @last_sync_info&.canvas_accelerator_course_id ||
+        canvas_accelerator_course_id != @last_sync_info&.canvas_accelerator_course_id
+      )
+    end
+
+    def lc_playbook_enrollment_changed?
+      (
+        role_category != @last_sync_info&.role_category ||
+        status != @last_sync_info&.status ||
+        cohort_schedule_id != @last_sync_info&.cohort_schedule_id ||
+        cohort_schedule_name_changed? ||
         canvas_lc_playbook_course_id != @last_sync_info&.canvas_lc_playbook_course_id
       )
     end
@@ -308,7 +328,7 @@ class ParticipantSyncInfo < ApplicationRecord
     end
 
     def enrollments_changed?
-      primary_enrollment_changed? || ta_caseload_sections_changed?
+      accelerator_enrollment_changed? || lc_playbook_enrollment_changed? || ta_caseload_sections_changed?
     end
 
     def cohort_schedule_name_changed?
@@ -327,7 +347,7 @@ class ParticipantSyncInfo < ApplicationRecord
         lc2_first_name != @last_sync_info&.lc2_first_name ||
         lc2_last_name != @last_sync_info&.lc2_last_name ||
         contact_changed? ||
-        primary_enrollment_changed?
+        accelerator_enrollment_changed?
       )
     end
 
@@ -362,7 +382,8 @@ class ParticipantSyncInfo < ApplicationRecord
     def add_to_honeycomb_span
       Honeycomb.add_field('participant_sync_info.changed?', changed?)
       Honeycomb.add_field('participant_sync_info.contact_changed?', contact_changed?)
-      Honeycomb.add_field('participant_sync_info.primary_enrollment_changed?', primary_enrollment_changed?)
+      Honeycomb.add_field('participant_sync_info.accelerator_enrollment_changed?', accelerator_enrollment_changed?)
+      Honeycomb.add_field('participant_sync_info.lc_playbook_enrollment_changed?', lc_playbook_enrollment_changed?)
       Honeycomb.add_field('participant_sync_info.zoom_info_changed?', zoom_info_changed?)
       Honeycomb.add_field('participant_sync_info.ta_caseload_sections_changed?', ta_caseload_sections_changed?)
       @new_sync_info.add_to_honeycomb_span('.new')

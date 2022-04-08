@@ -91,23 +91,29 @@ private
       end
     end
 
-    sync_local_primary_enrollment(cohort_schedule_section, cohort_section, ta_section)
+    sync_local_accelerator_enrollment(cohort_schedule_section, cohort_section, ta_section)
   end
 
   def set_lc_playbook_course_enrollments
     return unless @participant_sync_info.is_enrolled?
 
+    lc_playbook_course_role = @participant_sync_info.lc_playbook_course_role
+    return if lc_playbook_course_role.nil?
+
+    local_section = nil
     case @participant_sync_info.role_category
     when SalesforceConstants::RoleCategory::LEADERSHIP_COACH
-      set_canvas_section_enrollment(
-        @lc_playbook_course, Section::Type::COHORT_SCHEDULE, RoleConstants::STUDENT_ENROLLMENT
+      local_section = set_canvas_section_enrollment(
+        @lc_playbook_course, Section::Type::COHORT_SCHEDULE, lc_playbook_course_role
       )
 
     when SalesforceConstants::RoleCategory::TEACHING_ASSISTANT
-      set_canvas_section_enrollment(
-        @lc_playbook_course, Section::Type::TEACHING_ASSISTANTS, RoleConstants::TA_ENROLLMENT, false
+      local_section = set_canvas_section_enrollment(
+        @lc_playbook_course, Section::Type::TEACHING_ASSISTANTS, lc_playbook_course_role, false
       )
     end
+
+    sync_local_lc_playbook_enrollment(local_section)
   end
 
   def set_canvas_section_enrollment(course, section_type, enrollment_role, limit_section_privileges=true)
@@ -259,12 +265,12 @@ private
   end
 
 
-  # Users should only have one local Section / Role in the Accelerator course.
+  # Participants should only have one local Section / Role per course.
   # This is what controls their Pundit policy permissions as well as what drives
   # some features that require us to operate on all folks in a given Section
   # like Attendance for example.
-  def sync_local_primary_enrollment(cohort_schedule_section, cohort_section, ta_section)
-    return unless @participant_sync_info.primary_enrollment_changed?
+  def sync_local_accelerator_enrollment(cohort_schedule_section, cohort_section, ta_section)
+    return unless @participant_sync_info.accelerator_enrollment_changed?
 
     # Now that we know something changed about their primary enrollment, just drop everything and
     # add back what they are supposed to have. This is much simpler than comparing what
@@ -286,6 +292,20 @@ private
     else
       @participant_sync_info.user.add_role @participant_sync_info.accelerator_course_role, cohort_schedule_section
     end
+  end
+
+  # TAs and LCs should only have one local Section / Role per course.
+  # This is what controls their Pundit policy permissions as well as what drives
+  # some features that require us to operate on all folks in a given Section
+  # like Attendance for example.
+  def sync_local_lc_playbook_enrollment(local_section)
+    return unless @participant_sync_info.lc_playbook_enrollment_changed?
+
+    @participant_sync_info.user.remove_section_roles(@lc_playbook_course)
+
+    return if @participant_sync_info.is_dropped?
+
+    @participant_sync_info.user.add_role @participant_sync_info.lc_playbook_course_role, local_section
   end
 
 end
