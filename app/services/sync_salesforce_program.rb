@@ -324,7 +324,11 @@ EOF
   def sync_local_program_id
     local_courses = Course.where(salesforce_program_id: @salesforce_program.sfid)
     program_courses = @salesforce_program.courses
-    return if local_courses == program_courses && program_courses.none? { |c| c.salesforce_program_id != @salesforce_program.sfid }
+
+    if (local_courses - program_courses).blank? &&
+       program_courses.none? { |c| c.salesforce_program_id != @salesforce_program.sfid }
+      return
+    end
 
     # This should be uncommon enough in prod Salesforce that an alert is worthwhile so we
     # can keep an eye on it b/c if the IDs change for an actual launched Program and not a test/QA one
@@ -335,8 +339,8 @@ EOF
     )
 
     # Clear out the courses currently mapped to this salesforce_program_id so we can map the new ones
-    local_courses.update_all(salesforce_program_id: nil)
     Honeycomb.add_field('sync_salesforce_program.sync_local_program_id.old_courses', local_courses.inspect)
+    local_courses.update_all(salesforce_program_id: nil)
 
     program_courses.update_all(salesforce_program_id: @salesforce_program.sfid)
     Honeycomb.add_field('sync_salesforce_program.sync_local_program_id.new_courses', program_courses.inspect)
