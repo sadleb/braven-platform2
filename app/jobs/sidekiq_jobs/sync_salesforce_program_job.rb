@@ -34,9 +34,16 @@ class SyncSalesforceProgramJob < SidekiqJob
   # we were calling it for every Enrolled Participant regardless of whether there
   # were changes. The new sync logic won't call the API if there are no changes,
   # and uses an SIS Import, so the time is largely waiting on the import to finish.
+  #
+  # For the new sync, the largest Program which had 599 Participants took about 20 minutes
+  # on the first run. Another program with 285 Participants took 9 minutes.
+  # We generally don't upload that many brand new Enrolled Participants in one go, so 15
+  # min should be safe for now assuming we do batches of under 200-300 BRAND NEW Participants
+  # (changes take less time, esp if there are no Zoom sync changes where writing back to Salesforce
+  # is one of the largest contritors to the long runtime).
   SALESFORCE_SYNC_MAX_DURATION = begin
     max_duration = Integer(ENV['SALESFORCE_SYNC_MAX_DURATION']) if ENV['SALESFORCE_SYNC_MAX_DURATION']
-    max_duration ||= 10.minutes.to_i
+    max_duration ||= 15.minutes.to_i
   end
 
   # Release the lock after after this amount of time.
