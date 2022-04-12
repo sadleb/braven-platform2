@@ -67,6 +67,12 @@ class SyncSalesforceProgram
       Honeycomb.add_field('sync_salesforce_program.force_zoom_update', @force_zoom_update)
       Rails.logger.debug("Started sync for Program Id: #{@salesforce_program.sfid}")
 
+      unless @salesforce_program.is_launched?
+        msg = "Program ID: #{@salesforce_program.sfid} hasn't been launched with Canvas courses yet."
+        Honeycomb.add_field('sync_salesforce_program.skip_reason', msg)
+        return
+      end
+
       if @salesforce_program.accelerator_course.blank? || @salesforce_program.lc_playbook_course.blank?
         msg = "Missing local Course models for Salesforce Program ID: #{@salesforce_program.sfid}"
         Honeycomb.add_alert('missing_local_courses', msg)

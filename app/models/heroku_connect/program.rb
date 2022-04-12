@@ -57,6 +57,15 @@ class HerokuConnect::Program < HerokuConnect::HerokuConnectRecord
     .compact
   }
 
+  # This returns true if the Program has been launched, else false.
+  # We create Program's and start recruiting before we actually launch the Canvas Courses.
+  def is_launched?
+    (
+      canvas_cloud_accelerator_course_id__c.present? ||
+      canvas_cloud_lc_playbook_course_id__c.present?
+    )
+  end
+
   # The local Platform Course model for the Accelerator course.
   #
   # Note that this can't be an association (aka join) b/c in dev the HerokuConnect
