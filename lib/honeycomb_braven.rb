@@ -8,6 +8,18 @@ require 'logger'
 # so that we can add or override methods for the Honeycomb namespace
 module HoneycombBraven
 
+  # Use Rails.logger if present, otherwise make our own.
+  # Required so we can load this in the discord_bot
+  if defined?(Rails) && Rails.respond_to?(:logger)
+    def logger
+      @logger ||= Rails.logger
+    end
+  else
+    def logger
+      @logger ||= Logger.new(STDOUT)
+    end
+  end
+
   # TODO: cutover all alerts to use this and update triggers
   # https://app.asana.com/0/1201131148207877/1202052488545511
 
@@ -66,13 +78,13 @@ module HoneycombBraven
 
     case level
     when :error
-      Rails.logger.error(message)
+      logger.error(message)
     when :warn
-      Rails.logger.warn(message)
+      logger.warn(message)
     when :info
-      Rails.logger.info(message)
+      logger.info(message)
     else
-      Rails.logger.debug(message)
+      logger.debug(message)
     end
   end
 

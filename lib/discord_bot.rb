@@ -1,7 +1,9 @@
+# 3rd party classes
 require 'discordrb'
 require 'honeycomb-beeline'
 require 'sentry-ruby'
 
+# Internal classes
 require 'salesforce_api'
 require 'filter_logging'
 require 'honeycomb_braven'
@@ -1228,6 +1230,10 @@ private
   #
   # Things we don't need/want to write specs for, so they're safe to mark as `private`.
   #
+
+  # IMPORTANT: the bot doesn't run in Rails, so we explicitly initialize what
+  # we need from the config/initializers below. We need to be careful that none of it
+  # assumes it's loaded in the Rails env.
 
   # Initialize Honeycomb and Sentry.
   def initialize_monitoring
