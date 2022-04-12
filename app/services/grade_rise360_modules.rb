@@ -52,6 +52,9 @@ class GradeRise360Modules
   def grade_course(course)
 
     Honeycomb.start_span(name: 'grade_rise360_modules.grade_course') do
+      Honeycomb.add_field('course.id', course.id.to_s)
+      Honeycomb.add_field('canvas.course.id', course.canvas_course_id.to_s)
+
       # We're doing some less-readable queries here because they're drastically
       # more efficient than using the more-readable model associations would be.
       # For reference, the query built by ActiveRecord becomes something like:
@@ -67,14 +70,11 @@ class GradeRise360Modules
       # if this needs to be batched or something.
       # NOTE: Don't copy this UserRole code anywhere else unless you *really* need the performance.
       user_ids = UserRole.where(role: roles).group(:user_id).pluck(:user_id)
+      Honeycomb.add_field('grade_rise360_modules.users.count', user_ids.count)
 
       canvas_assignment_ids = CourseRise360ModuleVersion
         .where(course: course)
         .pluck(:canvas_assignment_id)
-
-      Honeycomb.add_field('course.id', course.id.to_s)
-      Honeycomb.add_field('canvas.course.id', course.canvas_course_id.to_s)
-      Honeycomb.add_field('grade_rise360_modules.users.count', user_ids.count)
       Honeycomb.add_field('grade_rise360_modules.assignments.count', canvas_assignment_ids.count)
 
       canvas_assignment_ids.each do |canvas_assignment_id|
@@ -82,6 +82,11 @@ class GradeRise360Modules
         # into grade_assignment because grabbing the list of users is slow.
         grade_assignment(canvas_assignment_id, user_ids)
       end
+
+    rescue => e
+      msg = "Module Auto-grading failed for course '#{course.name}' (canvas_course_id=#{course.canvas_course_id}). "+
+            "Grades for this course may be out-of-date until this is resolved."
+      Honeycomb.add_alert('grade_rise360_modules_for_course_failed', msg)
     end
   end
 

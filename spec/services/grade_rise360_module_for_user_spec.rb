@@ -310,7 +310,18 @@ RSpec.describe GradeRise360ModuleForUser do
       end
     end
 
-    # Tests for when they've never opened the Module
+    # Tests for when they are a TA role in Canvas or simply not properly Enrolled at the moment.
+    context 'when not a Canvas Student' do
+      before(:each) do
+        allow(canvas_client).to receive(:get_latest_submission)
+          .with(course.canvas_course_id, canvas_assignment_id, user.canvas_user_id)
+          .and_raise(RestClient::NotFound)
+      end
+
+      it_behaves_like 'does not need grading'
+    end
+
+     # Tests for when they've never opened the Module
     context 'when no interactions' do
       let(:canvas_submission) { create :canvas_submission_placeholder, cached_due_date: due_date }
 

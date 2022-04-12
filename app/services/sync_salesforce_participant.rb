@@ -143,7 +143,7 @@ private
       section = Section.find_by(salesforce_id: @participant_sync_info.cohort_schedule_id, course: course)
       raise SyncSalesforceProgram::MissingSectionError.new(
         "The Cohort Schedule '#{@participant_sync_info.cohort_schedule_section_name}' (ID: #{@participant_sync_info.cohort_schedule_id}) " +
-        "is missing a local Platform Section for Course: #{@lc_playbook_course.inspect}. " +
+        "is missing a local Platform Section for Course: #{course.inspect}. " +
         "This was supposed to be created as part of Program launch."
       ) if section.nil?
 

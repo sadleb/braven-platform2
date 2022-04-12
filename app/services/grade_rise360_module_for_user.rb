@@ -144,6 +144,13 @@ class GradeRise360ModuleForUser
       needs_grading_reason = 'Doesn\'t need grading. User is missing a canvas_user_id.'
       Honeycomb.add_field('alert.grade_rise360_module_for_user.missing_canvas_user_id', true)
 
+    # If they have a TA Canvas role (not Student role) or their Canvas account isn't in a good state
+    # (for example, if the sync is having errors and their Canvas account is currently not
+    # properly enrolled in Canvas), skip.
+    elsif !can_grade?
+      @needs_grading = false
+      needs_grading_reason = 'Doesn\'t need grading. User either has a TA Canvas role or isn\'t properly synced to Canvas.'
+
     # If they haven't opened the Module and the due date passes, we need to send a 0 to Canvas.
     #
     # Note: there is still the edge case where after they get a 0, if they open it will go
@@ -307,6 +314,15 @@ private
       new: true,
     )
     @has_new_interactions
+  end
+
+  # All Canvas Student's will have a subission object, even if it's a placeholder b/c they've
+  # never opened the Module, but Canvas TA roles or folks not properly synced to Canvas will
+  # result in a 404 Not Found when we try to get the submission so we can't grade them.
+  def can_grade?
+    canvas_submission.present?
+  rescue RestClient::NotFound => e
+    false
   end
 
   # Represents the submission object stored in Canvas.

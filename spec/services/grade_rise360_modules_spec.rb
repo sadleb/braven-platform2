@@ -224,6 +224,17 @@ RSpec.describe GradeRise360Modules do
             .with(crmv.canvas_assignment_id, users.map { |u| u.id })
         end
       end
+
+      context 'when there are errors' do
+        before :each do
+          allow(grade_modules).to receive(:grade_assignment).and_raise
+        end
+
+        # This course should just be skipped
+        it "does not raise an error" do
+          expect{subject}.not_to raise_error
+        end
+      end
     end
   end  # grade_course
 
