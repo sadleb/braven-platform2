@@ -44,6 +44,7 @@ class HerokuConnect::Participant < HerokuConnect::HerokuConnectRecord
     ENROLLED = :Enrolled
     DROPPED = :Dropped
     COMPLETED = :Completed
+    FAILED = :Failed
   end
 
   # Convenience method to get their actual full name instead of the "name" column, b/c

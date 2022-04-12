@@ -180,6 +180,11 @@ class ParticipantSyncInfo < ApplicationRecord
     status == HerokuConnect::Participant::Status::COMPLETED
   end
 
+  # This is similar to COMPLETED, but just means that they failed the course.
+  def is_failed?
+    status == HerokuConnect::Participant::Status::FAILED
+  end
+
   def is_mapped_to_cohort?
     cohort_section_name.present?
   end

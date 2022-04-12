@@ -277,12 +277,19 @@ private
     # they currently have to what they should have and making the necessary changes.
     @participant_sync_info.user.remove_section_roles(@accelerator_course)
 
-    return if @participant_sync_info.is_dropped?
+    # If they fail the course, treat that the same as dropping and remove their access.
+    # We can revisit this in the future if we decide to do something else.
+    return if @participant_sync_info.is_dropped? || @participant_sync_info.is_failed?
 
     if @participant_sync_info.role_category == SalesforceConstants::RoleCategory::TEACHING_ASSISTANT
       raise ArgumentError, "ta_section is nil" if ta_section.nil?
       @participant_sync_info.user.add_role @participant_sync_info.accelerator_course_role, ta_section
       return
+    else
+      # This shouldn't happen but is here to handle the scenario where a new Status is added.
+      # e.g. before we handled Failed and Completed, we'd run the below code and give them a :StudentEnrollment
+      # role with a nil section causing them to show up in the Take Attendance list for other Programs and Courses
+      raise ArgumentError, "cohort_schedule_section and cohort_section are nil" if cohort_schedule_section.nil? && cohort_section.nil?
     end
 
     # Fellows and Leadership Coaches go in their Cohort Schedule section if they haven't
@@ -303,7 +310,7 @@ private
 
     @participant_sync_info.user.remove_section_roles(@lc_playbook_course)
 
-    return if @participant_sync_info.is_dropped?
+    return if @participant_sync_info.is_dropped? || @participant_sync_info.is_failed?
 
     @participant_sync_info.user.add_role @participant_sync_info.lc_playbook_course_role, local_section
   end
