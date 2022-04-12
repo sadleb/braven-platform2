@@ -167,7 +167,9 @@ class ParticipantSyncInfo < ApplicationRecord
   end
 
   def is_enrolled?
-    status == HerokuConnect::Participant::Status::ENROLLED
+    # Completed is treated as enrolled. They should still get access, but the Program
+    # has ended.
+    status == HerokuConnect::Participant::Status::ENROLLED || is_completed?
   end
 
   def is_dropped?
