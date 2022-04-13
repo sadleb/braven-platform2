@@ -34,6 +34,21 @@ class Section < ApplicationRecord
   scope :cohort_schedule, -> { where(section_type: Type::COHORT_SCHEDULE) }
   scope :teaching_assistants, -> { where(section_type: Type::TEACHING_ASSISTANTS) }
 
+  # Filter down to only sections with at least one User assigned a role for it.
+  scope :with_users, -> { joins(:roles).distinct }
+
+  # Sort names with numbers correctly. E.g. "C11 Blah" should come after "C2 Blah"
+  # From https://stackoverflow.com/a/25042119/12432170.
+  scope :order_by_name, -> {
+    sort_by{ |section|
+      section.name.gsub(/\d+/) { |s|
+        # Left-pad numbers with zeroes.
+        # 8 is arbitrarily longer than the numbers we'll see in titles.
+        "%08d" % s.to_i
+      }
+    }
+  }
+
   # All users, with any role, in this section.
   # This is a function just because I don't know how to write it as an association.
   def users

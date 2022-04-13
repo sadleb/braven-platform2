@@ -221,13 +221,22 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
 
     context 'as non-enrolled (admin) user' do
       let(:user) { create :admin_user }
+      let!(:fellow_user) { create :fellow_user, section: accelerator_section }
       before :each do
         # Set up the section.
         accelerator_section
       end
 
       it_behaves_like 'valid request'
-      it_behaves_like 'no fellows'
+
+      context 'with empty sections' do
+        let!(:empty_section) { create :cohort_section, course: accelerator_course, name: 'EMPTY SECTION' }
+        it 'does not show section in list' do
+          subject
+          expect(response.body).to include("#{accelerator_section.name}")
+          expect(response.body).not_to include("EMPTY SECTION")
+        end
+      end
     end
 
     context 'as enrolled (LC) user' do

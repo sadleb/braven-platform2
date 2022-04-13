@@ -139,7 +139,8 @@ private
 
   def set_all_attendance_sections
     if current_user.can_take_attendance_for_all?
-      @all_attendance_sections = Section.cohort_or_cohort_schedule.where(course: @accelerator_course)
+      @all_attendance_sections = Section.cohort_or_cohort_schedule.with_users
+        .where(course: @accelerator_course).order_by_name
     end
   end
 
