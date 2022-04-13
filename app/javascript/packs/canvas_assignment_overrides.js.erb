@@ -1,0 +1,112 @@
+var dayjs = require('dayjs');
+
+function main() {
+    const fromCourseElem = document.querySelector('#from_course');
+    const fromSectionElem = document.querySelector('#from_section');
+    const fromDateTextElem = document.querySelector('#from_date_text');
+    const toDateElem = document.querySelector('#to_date');
+    const dateOffsetTextElem = document.querySelector('#date_offset_text');
+    const dateOffsetElem = document.querySelector('#date_offset');
+
+    // Dynamic from_section dropdown.
+    const sectionsByCourse = JSON.parse(fromSectionElem.dataset.sections);
+    fromCourseElem.onchange = (e) => {
+        const courseID = e.target.value;
+        if (courseID === '') {
+            fromSectionElem.disabled = true;
+            // Reset all the dynamic page elements.
+            fromDateTextElem.innerText = 'Please choose a course and section';
+            dateOffsetTextElem.innerText = '0';
+            dateOffsetElem.value = '0';
+            toDateElem.value = '';
+            fromDateTextElem.dataset['date'] = null;
+            // Remove all old sections from the dropdown.
+            while (fromSectionElem.options.length > 0) {
+                fromSectionElem.remove(0);
+            }
+            // Add back the default message.
+            fromSectionElem.add(new Option('Select a course first', ''));
+        } else {
+            // Remove all old sections from the dropdown.
+            while (fromSectionElem.options.length > 0) {
+                fromSectionElem.remove(0);
+            }
+            // Add an empty option to the top and make the field required.
+            fromSectionElem.add(new Option('', ''));
+            fromSectionElem.required = true;
+            // Add all this course's sections to the dropdown.
+            sectionsByCourse[courseID].forEach(section => {
+                fromSectionElem.add(new Option(section[0], section[1]));
+            });
+
+            fromSectionElem.disabled = false;
+        }
+    };
+
+    // Dynamic due date based on from_section.
+    fromSectionElem.onchange = (e) => {
+        const sectionID = e.target.value;
+        if (sectionID === '') {
+            // Reset all the dynamic page elements.
+            fromDateTextElem.innerText = 'Please choose a course and section';
+            dateOffsetTextElem.innerText = '0';
+            dateOffsetElem.value = '0';
+            toDateElem.value = '';
+            fromDateTextElem.dataset['date'] = null;
+        } else {
+            // Reset date/offset dynamic page elements.
+            dateOffsetTextElem.innerText = '0';
+            dateOffsetElem.value = '0';
+            toDateElem.value = '';
+            fromDateTextElem.dataset['date'] = null;
+
+            const courseID = fromCourseElem.value;
+            const apiURL = `/courses/${courseID}/canvas_assignment_overrides.json`;
+            fetch(apiURL).then(response => {
+                response.json().then(canvasAssignmentOverrides => {
+                    const override = canvasAssignmentOverrides.find((o) => {
+                        return o.canvas_section_id == sectionID && o.assignment_name === '<%= CanvasAssignmentOverridesController::ANCHOR_ASSIGNMENT %>';
+                    });
+                    if (override && override.due_at) {
+                        const dueDate = new Date(override.due_at).toLocaleDateString();
+                        fromDateTextElem.dataset['date'] = override.due_at;
+                        fromDateTextElem.innerText = dueDate;
+                        return;
+                    }
+
+                    // Override or date is missing.
+                    fromDateTextElem.innerText = 'Unable to find a due date for the assignment in that course/section.';
+                });
+            });
+        }
+    };
+
+    // Dynamic offset based on due dates.
+    toDateElem.onchange = (e) => {
+        const toDateText = e.target.value;
+
+        if (toDateText === '' || !fromDateTextElem.dataset['date']) {
+            // Reset offset dynamic page elements.
+            dateOffsetTextElem.innerText = '0';
+            dateOffsetElem.value = '0';
+        } else {
+            try {
+                const fromDateTime = new Date(fromDateTextElem.dataset['date']);
+                const fromDate = dayjs(fromDateTime.toDateString());
+                const toDate = dayjs(toDateText);
+                const dateOffset = toDate.diff(fromDate, 'day');
+
+                if (dateOffset) {
+                    // If dateOffset is 0 or NaN, don't set these.
+                    dateOffsetTextElem.innerText = dateOffset;
+                    dateOffsetElem.value = dateOffset;
+                }
+            } catch (e) {
+                console.log(e);
+                dateOffsetTextElem.innerText = 'ERROR!';
+            }
+        }
+    };
+}
+
+document.addEventListener("DOMContentLoaded", main);

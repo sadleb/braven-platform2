@@ -1,0 +1,41 @@
+<% content_for :head do %>
+  <%= javascript_pack_tag 'canvas_assignment_overrides', 'data-turbolinks-track': 'reload' %>
+<% end %>
+
+<% content_for(:headline) do %>
+  Copy Assignment Dates to <%= @course.name %>
+<% end %>
+
+<div class="col-md-6">
+  <%= form_with(url: preview_course_canvas_assignment_overrides_path, method: :get, local: true) do |f| %>
+    <div class="form-group">
+      <%= f.label(:from_course, 'Copy dates from old course') %>
+      <%= f.select(:from_course, @courses.map {|c| [c.name, c.id]}, {}, class: 'form-control', required: true) %>
+    </div>
+
+    <div class="form-group">
+      <%= f.label(:from_section, 'Copy dates from old section') %>
+      <%= f.select(:from_section, ['Select a course first'], {}, class: 'form-control', disabled: true, 'data-sections' => @sections_by_course.to_json) %>
+    </div>
+
+    <div class="form-group">
+      <%= f.label(:to_section, 'Copy dates to section') %>
+      <%= f.select(:to_section, @to_sections.map {|c| [c.name, c.canvas_section_id]}, {}, class: 'form-control', required: true) %>
+    </div>
+
+    <div class="form-group">
+      <label>Due date for "<%= @anchor_assignment %>" in old course/section</label>
+      <p><strong id="from_date_text" data-anchor-assignment="<%= @anchor_assignment %>">Please choose a course and section</strong></p>
+    </div>
+
+    <div class="form-group">
+      <%= f.label(:to_date, "Due date for \"#{@anchor_assignment}\" in new course/section") %>
+      <%= f.date_field(:to_date, class: 'form-control', required: true) %>
+      <p class="hint">All assignment due dates will be copied to this course and shifted by <strong id="date_offset_text">0</strong> days.</p>
+    </div>
+
+    <input id="date_offset" name="date_offset" type="hidden" value="0" />
+
+    <input type='submit' value='Preview new due dates' />
+  <% end %>
+</div>

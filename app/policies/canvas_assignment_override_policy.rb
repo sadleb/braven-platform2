@@ -1,0 +1,2 @@
+class CanvasAssignmentOverridePolicy < ApplicationPolicy
+end

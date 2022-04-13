@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_03_11_152012) do
+ActiveRecord::Schema.define(version: 2022_03_23_154527) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
@@ -98,6 +98,7 @@ ActiveRecord::Schema.define(version: 2022_03_11_152012) do
     t.date "all_day_date"
     t.datetime "created_at", precision: 6, default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.datetime "updated_at", precision: 6, default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.string "assignment_name"
     t.index "canvas_assignment_override_id, COALESCE(canvas_section_id, ('-1'::integer)::bigint), COALESCE(canvas_user_id, ('-1'::integer)::bigint)", name: "index_canvas_assignment_overrides_unique_1", unique: true
   end
 

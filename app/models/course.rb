@@ -27,6 +27,8 @@ class Course < ApplicationRecord
 
   has_many :capstone_evaluation_submissions
 
+  has_many :canvas_assignment_overrides, primary_key: :canvas_course_id, foreign_key: :canvas_course_id
+
   before_validation do
     name.strip!
   end

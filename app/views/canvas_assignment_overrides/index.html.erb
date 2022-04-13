@@ -1,0 +1,31 @@
+<% content_for(:headline) do %>
+  Assignment Dates for <%= @course.name %>
+<% end %>
+
+<div class="col-md-12">
+  <table class="table">
+    <thead>
+      <th scope="col">Assignment</th>
+      <th scope="col">User/Section</th>
+      <th scope="col">Due At</th>
+    </thead>
+    <tbody>
+      <% @canvas_assignment_overrides.order(:due_at).each do |override| %>
+        <tr>
+          <td><%= override.assignment_name %></td>
+          <td>
+            <% if override&.section %>
+              Section: <%= override.section&.name %>
+            <% elsif override&.user %>
+              User: <%= override.user&.full_name %>
+            <% else %>
+              User/section not found
+            <% end %>
+          </td>
+          <%# Adjust the date format here, as desired. %>
+          <td><%= override.due_at || 'None' %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

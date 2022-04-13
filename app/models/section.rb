@@ -31,6 +31,7 @@ class Section < ApplicationRecord
   }
 
   scope :cohort_or_cohort_schedule, -> { where(section_type: [Type::COHORT, Type::COHORT_SCHEDULE]) }
+  scope :cohort_schedule, -> { where(section_type: Type::COHORT_SCHEDULE) }
   scope :teaching_assistants, -> { where(section_type: Type::TEACHING_ASSISTANTS) }
 
   # All users, with any role, in this section.

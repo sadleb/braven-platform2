@@ -80,6 +80,12 @@ Rails.application.routes.draw do
       delete :unpublish, on: :member
     end
 
+    resources :canvas_assignment_overrides, only: [:index]  do
+      get :copy_from_course, on: :collection
+      get :preview, on: :collection
+      post :bulk_create, on: :collection
+    end
+
     resources :capstone_evaluation_submissions, only: [:new, :create]
     resources :fellow_evaluation_submissions, only: [:new, :create]
 

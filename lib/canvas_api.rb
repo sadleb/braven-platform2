@@ -456,11 +456,13 @@ class CanvasAPI
   end
 
   # Returns a list of all assignment overrides in a course.
+  # Note: adds a new key 'assignment_name' to each override.
   def get_assignment_overrides_for_course(course_id)
     response = get("/courses/#{course_id}/assignments?include[]=overrides&per_page=100")
     get_all_from_pagination(response)
       .select { |a| a['has_overrides'] && a['overrides'].present? }
-      .map { |a| a['overrides'] }
+      .map { |a| a['overrides']
+        .map { |o| o.merge({'assignment_name' => a['name']}) } }
       .flatten
   end
 

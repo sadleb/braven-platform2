@@ -1,0 +1,34 @@
+<% content_for(:headline) do %>
+  Preview Assignment Dates
+<% end %>
+
+
+<div class="col-md-12">
+  <p>Note: specific due times are not shown here, but will be copied as well. You will be able to adjust due dates/times later.</p>
+  <table class="table">
+    <caption>For <strong><%= @course.name %></strong>, <strong><%= @to_section.name %></strong></caption>
+    <thead>
+      <th scope="col">Assignment</th>
+      <th scope="col">Due Date</th>
+    </thead>
+    <tbody>
+      <% @shifted_canvas_assignment_overrides.each do |override| %>
+        <tr>
+          <td><%= override.assignment_name %></td>
+          <%# Adjust the date format here, as desired. %>
+          <td><%= override.due_at&.strftime("%a, %B %d, %Y") || 'None' %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <p>If anything looks wrong with the above dates, you can go back to the previous page and try again.
+     Otherwise, click the button below to copy the updated dates to the new course/section.</p>
+  <%= form_with(url: bulk_create_course_canvas_assignment_overrides_path, method: :post, local: true) do |f| %>
+    <input name="from_course" type="hidden" value="<%= params[:from_course] %>" />
+    <input name="from_section" type="hidden" value="<%= params[:from_section] %>" />
+    <input name="to_section" type="hidden" value="<%= params[:to_section] %>" />
+    <input name="date_offset" type="hidden" value="<%= params[:date_offset] %>" />
+
+    <input type='submit' value='Confirm and copy' />
+  <% end %>
+</div>
