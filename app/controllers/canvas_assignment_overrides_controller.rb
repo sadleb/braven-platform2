@@ -7,7 +7,7 @@ class CanvasAssignmentOverridesController < ApplicationController
   layout 'admin'
 
   # Be sure to update this if we change the assignment name elsewhere.
-  ANCHOR_ASSIGNMENT = 'ATTEND: Learning Lab 1'
+  ANCHOR_ASSIGNMENT = 'ATTEND: Learning Lab 1: Onboard To Braven'
 
   before_action :set_from_course, only: [:preview, :bulk_create]
   before_action :set_from_section, only: [:preview, :bulk_create]
