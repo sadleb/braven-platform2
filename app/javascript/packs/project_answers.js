@@ -314,3 +314,14 @@ honeySpan.sendNow();
         }
     }, delay);
 });
+
+// If we tried to repair at 10 seconds and it still seems broken, alert the user.
+// TODO: Remove this once we feel confident the Project autosave bug is fixed.
+setTimeout(() => {
+    const input = getOneSupportedElement();
+    if(input.onchange === null) {
+        const statusBar = document.getElementById('autosave-status-bar');
+        statusBar.textContent = 'Something went wrong! Your answers may not save. Be sure to copy your answers in a separate document before closing the project. For additional assistance, please contact support@bebraven.org';
+        statusBar.classList = 'autosave-status-error';
+    }
+}, 11000);
