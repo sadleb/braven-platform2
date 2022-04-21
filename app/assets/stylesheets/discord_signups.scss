@@ -2,6 +2,12 @@ img.discord-signup {
   max-width: 100%;
   margin: 1.25rem auto 2rem auto;  // p { margin-bottom } is 0.75rem.
   display: block;
+  // Fix blurry images on some monitor sizes/resolutions.
+  // https://tutorialsclass.com/code/css-code-to-fix-blurry-image-when-scaling-down/
+  -webkit-backface-visibility: hidden;
+  -ms-transform: translateZ(0); /* IE 9 */
+  -webkit-transform: translateZ(0); /* Chrome, Safari, Opera */
+  transform: translateZ(0);
 }
 
 .discord-authorize-btn,
