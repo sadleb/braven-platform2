@@ -38,7 +38,7 @@ RSpec.describe DiscordSignupsController, type: :controller do
     shared_examples 'renders initial steps' do
       it 'renders initial steps' do
         subject
-        expect(response.body).to include('Step 1: Sign In or Register for Discord')
+        expect(response.body).to include('Join the Braven Discord Server')
       end
     end
 
@@ -199,7 +199,7 @@ RSpec.describe DiscordSignupsController, type: :controller do
 
         it 'shows the verify email steps' do
           subject
-          expect(response.body).to include('Follow these instructions to verify the email associated with your Discord account')
+          expect(response.body).to include('Please Verify Your Email')
         end
       end
 
