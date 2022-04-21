@@ -50,6 +50,7 @@ class Rise360Util
               s3_object = bucket.object(s3_object_key(zipfile.key, entry.name))
               s3_object.put({
                   body: entry.get_input_stream.read,
+                  content_type: ''
               })
             end
           end
