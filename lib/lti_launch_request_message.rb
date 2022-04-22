@@ -26,4 +26,8 @@ class LtiLaunchRequestMessage
     @canvas_roles = @custom['role'] # It's actually a list of roles. E.g. it can be: "TaEnrollment,Account Admin"
   end
 
+  def canvas_url
+    "#{Rails.application.secrets.canvas_url}/courses/#{@canvas_course_id}/assignments/#{@canvas_assignment_id}"
+  end
+
 end

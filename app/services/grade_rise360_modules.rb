@@ -151,6 +151,9 @@ class GradeRise360Modules
 
       end
 
+      # Unset the Sentry user context so that errors aren't associated with the last user we graded.
+      Sentry.set_user({})
+
       Honeycomb.add_field('grade_rise360_modules.grades.count', grades.count)
       # Note: converting grades to string so it doesn't auto-unpack the JSON and
       # fill our schema with crud.

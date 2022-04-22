@@ -18,21 +18,28 @@ class GradeCapstoneEvaluations
 
     grades = {}
     users_to_grade.each do |user|
-      # grade all capstone eval submissions for given user
-      question_scores = grade_capstone_eval_questions(user, true)
-      total_score = question_scores.map { |k, v| v }.sum
+      Honeycomb.start_span(name: 'grade_capstone_evaluation.grade_user') do
+        user.add_to_honeycomb_span('grade_capstone_evaluation')
 
-      grades[user.canvas_user_id] = total_score
+        # grade all capstone eval submissions for given user
+        question_scores = grade_capstone_eval_questions(user, true)
+        total_score = question_scores.map { |k, v| v }.sum
 
-      # Create a submission for the Capstone Evaluations Teamwork assignment for the user
-      # we are giving a grade, so they are able to see the grade breakdown from grades
-      CanvasAPI.client.create_lti_submission(
-        @course.canvas_course_id,
-        @lti_launch.assignment_id,
-        user.canvas_user_id,
-        launch_capstone_evaluation_results_url(protocol: 'https')
-      )
+        grades[user.canvas_user_id] = total_score
+
+        # Create a submission for the Capstone Evaluations Teamwork assignment for the user
+        # we are giving a grade, so they are able to see the grade breakdown from grades
+        CanvasAPI.client.create_lti_submission(
+          @course.canvas_course_id,
+          @lti_launch.assignment_id,
+          user.canvas_user_id,
+          launch_capstone_evaluation_results_url(protocol: 'https')
+        )
+      end
     end
+
+    # Unset the Sentry user context so that errors aren't associated with the last user we graded.
+    Sentry.set_user({})
 
     CanvasAPI.client.update_grades(@course.canvas_course_id, @lti_launch.assignment_id, grades)
 

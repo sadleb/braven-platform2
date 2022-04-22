@@ -102,6 +102,10 @@ class SyncSalesforceProgram
 
       upsert_data = sync_participants()
 
+      # unset the user context that each participant sync would use so that top-level
+      # errors aren't associated with the last user we processed.
+      Sentry.set_user({})
+
       # Only send the SIS Import to Canvas if there are new changes that actually synced.
       # This is to prevent continuously sending the same data to Canvas every sync if we
       # have failing Participants that take some time for us to fix the underlying issue.
@@ -159,6 +163,8 @@ private
         #
         # IMPORTANT: a Participant who already has Canvas access where there is a sync
         # failure specific to them will LOSE access until the error is corrected.
+
+        participant.user&.add_to_honeycomb_span('sync_salesforce_program')
 
         unless participant.should_sync? # See ParticipantSyncInfo#should_sync? for more info
           msg = 'Participant is not in a syncable state. Maybe they are missing a Cohort Schedule?.'

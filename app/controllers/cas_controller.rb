@@ -22,13 +22,13 @@ class CasController < ApplicationController
   # and thus get no benefit from authorization.
   skip_after_action :verify_authorized
 
-  # Skip the add_honeycomb_fields callback for this controller, since we won't be logged in
-  # and it tries to add information about the currently logged in user. Note: if you don't
-  # skip this, just the act of checking current_user or user_signed_in? causes the CAS
-  # validation to happen a second time which conflicts with our feature specs
-  # and these that use VCR with only 1 interaction recorded. I spent too long troubleshooting
-  # that before just adding this line.
-  skip_before_action :add_honeycomb_fields
+  # Skip the add_honeycomb_fields callback for a couple actions in this controller, since
+  # just the act of checking current_user or user_signed_in? causes the CAS validation to
+  # happen a second time which conflicts with our feature specs that use VCR with only 1
+  # interaction recorded. I spent too long troubleshooting that before just adding this hack.
+  # We'll still get honeycomb instrumentation for the actions we care about most, which are
+  # loginpost and login.
+  skip_before_action :add_honeycomb_and_sentry_fields, only: [:validate, :proxyValidate, :serviceValidate]
 
   before_action :set_settings
   before_action :set_request_client

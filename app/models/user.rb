@@ -328,6 +328,7 @@ class User < ApplicationRecord
   def add_to_honeycomb_trace
     honeycomb_id_fields_map.each { |field, value| Honeycomb.add_field_to_trace(field, value) }
     add_login_context_to_honeycomb_span()
+    set_sentry_user_context()
   end
 
   # Adds common Honeycomb fields only to the current span. Useful if you need to add
@@ -340,6 +341,7 @@ class User < ApplicationRecord
     raise ArgumentError.new("caller_name is blank") if caller_name.blank?
     honeycomb_id_fields_map.each { |field, value| Honeycomb.add_field("#{caller_name}.#{field}", value) }
     add_login_context_to_honeycomb_span()
+    set_sentry_user_context()
   end
 
   # Adds user fields useful to troubleshoot login issues to the current span
@@ -347,6 +349,19 @@ class User < ApplicationRecord
     Honeycomb.add_field('user.registered?', registered?)
     Honeycomb.add_field('user.confirmed?', confirmed?)
     Honeycomb.add_field('user.unconfirmed_email', unconfirmed_email)
+  end
+
+  # Sets the user context in Sentry which makes it easier to tie exceptions
+  # to the user it happened for. Note that if you're running an operation
+  # that adds multiple users to different spans, at the end you'll want to
+  # call Sentry.set_user({}) to unset the global user.
+  #
+  # Ideally, we'd implement this using Sentry scopes but it's a lot more work
+  # and the most common use-case here is seeing actual end-user exceptions when
+  # hitting a page, where there is only one global user that exceptions should
+  # be associated with.
+  def set_sentry_user_context
+    Sentry.set_user(id: id, email: email)
   end
 
   def honeycomb_id_fields_map

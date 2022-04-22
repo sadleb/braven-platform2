@@ -9,7 +9,7 @@ class ApplicationController < ActionController::Base
   include Rescuable
 
   before_action :authenticate_user!
-  before_action :add_honeycomb_fields
+  before_action :add_honeycomb_and_sentry_fields
   after_action :remove_x_frame_options
 
   # This callback is a development helper that complains if an action has not explicitly
@@ -97,25 +97,29 @@ class ApplicationController < ActionController::Base
   end
   helper_method :cas_login_url
 
-  # Honeycomb's auto-instrumentation is nice and adds a bunch of common stuff we need to troubleshoot,
-  # but here is a place to add anything that's specific to our environment (or missing from the
+  # Honeycomb and Sentry's auto-instrumentation is nice and adds a bunch of common stuff we need to
+  # troubleshoot, but here is a place to add anything that's specific to our environment (or missing from the
   # auto-instrumentation) that would also help
   #
   # Note that Honeycomb.add_field() auto-prefixes with 'app'. E.g. 'app.user.id'
-  def add_honeycomb_fields
+  def add_honeycomb_and_sentry_fields
 
     # Add the common fields that uniquely identify the user to every span in the trace. It's nice
     # to be able to group whatever you're querying for by user. Depending on the flow or support
     # ticket information, one or the other of these common fields may be more convenient to use.
     current_user&.add_to_honeycomb_trace()
 
-    # Add the common fields for this LtiLaunch to every span in the trace. E.g. canvas_assignment_id.
-    # Careful: If you run any logic in an endpoint authenticated using an LtiLaunch where it
-    # loops over multiple assignments, courses, or users and sends the appropriate IDs
-    # to Honeycomb, make sure you use different Honeycomb fields then this sends b/c this
-    # will clobber all that and just overwrite them with the LtiLaunch values for those fields
-    # in all spans in the trace.
-    @lti_launch&.add_to_honeycomb_trace()
+    if @lti_launch.present?
+      # Add the common fields for this LtiLaunch to every span in the trace. E.g. canvas_assignment_id.
+      # Careful: If you run any logic in an endpoint authenticated using an LtiLaunch where it
+      # loops over multiple assignments, courses, or users and sends the appropriate IDs
+      # to Honeycomb, make sure you use different Honeycomb fields then this sends b/c this
+      # will clobber all that and just overwrite them with the LtiLaunch values for those fields
+      # in all spans in the trace.
+      @lti_launch.add_to_honeycomb_trace()
+
+      Sentry.set_tags(canvas_url: @lti_launch.request_message.canvas_url)
+    end
 
     # Add the HTTP request ID to the current span, so that it doesn’t get an `app` prefix
     # and matches the built-in `request` namespace that the Rails integration uses.
@@ -124,6 +128,8 @@ class ApplicationController < ActionController::Base
     # Add the referer header to the span, so we can see where people are
     # getting redirected from.
     Honeycomb.current_span&.add_field('request.header.referrer', request.referrer)
+
+    Sentry.set_tags(ip_address: request.remote_ip, referrer: request.referrer)
   end
 
   # Remove the default X-Frame-Options header Rails adds. We use CSP instead.
