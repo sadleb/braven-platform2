@@ -49,6 +49,11 @@ while  [[ $(exec 3<>/dev/tcp/redis-persistent/6379 && echo -e "PING\r\n" >&3 && 
   sleep 1
 done
 echo "Redis is up!"
+# Note that I tried using the auto-aof-rewrite-min-size redis config option to rewrite the
+# AOF file automatically when it gets too big, but ran into this bug:
+# https://github.com/sourcegraph/sourcegraph/issues/3300
+echo "Rewriting/compacting Redis AOF file"
+exec 3<>/dev/tcp/redis-persistent/6379 && echo -e "BGREWRITEAOF\r\n" >&3
 
 # Migrate the db, if needed.
 bundle exec rake db:migrate
