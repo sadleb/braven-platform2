@@ -5,6 +5,12 @@ class Course < ApplicationRecord
   scope :unlaunched_courses, -> { where is_launched: false }
 
   has_many :sections
+  has_many :roles, :through => :sections
+  has_many :students, -> { where("roles.name = ?", RoleConstants::STUDENT_ENROLLMENT).distinct }, through: :roles, :source => :users
+  has_many :students_and_lcs, -> { where("roles.name = ?", RoleConstants::STUDENT_ENROLLMENT)
+    .or(where("roles.name = ?", RoleConstants::TA_ENROLLMENT))
+    .merge(Section.cohort_or_cohort_schedule)
+    .distinct }, through: :roles, :source => :users
 
   has_many :course_rise360_module_versions
   has_many :rise360_module_versions, :through => :course_rise360_module_versions
@@ -77,14 +83,6 @@ class Course < ApplicationRecord
 
   def surveys
     survey_versions.map { |v| v.survey }
-  end
-
-  # TODO: update to association
-  # EX:
-  # has_many :student_sections, -> { where("roles.name = ?", RoleConstants::STUDENT_ENROLLMENT) },
-  #   through: :roles, source: :resource, source_type: 'Section'
-  def students
-    sections.map { |s| s.students }.flatten.uniq
   end
 
   def canvas_url

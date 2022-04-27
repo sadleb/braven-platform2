@@ -12,6 +12,7 @@ class CapstoneEvaluationResultsController < ApplicationController
 
   before_action :set_lti_launch, only: [:launch, :score]
   before_action :set_course, only: [:launch, :score]
+  before_action :set_lc_course, only: [:launch, :score]
   before_action :set_grade_capstone_eval_service_instance, only: [:launch, :score]
 
   # WARNING: Do not use LTI Advantage API to create or edit Capstone Evaluation Results
@@ -33,14 +34,16 @@ class CapstoneEvaluationResultsController < ApplicationController
   def score
     authorize :CapstoneEvaluationSubmission
 
+    # Merges ungraded CapstoneEvaluationSubmissions for Accelerator course and LC course
     new_capstone_eval_submissions = @course.capstone_evaluation_submissions.ungraded
+      .or(@lc_course.capstone_evaluation_submissions.ungraded)
 
     if new_capstone_eval_submissions.empty?
       redirect_to launch_capstone_evaluation_results_path(lti_launch_id: @lti_launch.id), alert: 'No new submissions to grade.' and return
     end
 
     @grade_capstone_eval_service.run
-    redirect_to launch_capstone_evaluation_results_path(lti_launch_id: @lti_launch.id), notice: 'Grades have been successfully published.'
+    redirect_to launch_capstone_evaluation_results_path(lti_launch_id: @lti_launch.id), notice: 'Grades have been successfully computed.'
   end
 
 private
@@ -48,9 +51,15 @@ private
     @course = Course.find_by!(canvas_course_id: @lti_launch.course_id)
   end
 
+  def set_lc_course
+    sf_program = HerokuConnect::Program.find(@course.salesforce_program_id)
+    @lc_course = Course.find_by!(canvas_course_id: sf_program.canvas_cloud_lc_playbook_course_id__c)
+  end
+
   def set_grade_capstone_eval_service_instance
     @grade_capstone_eval_service = GradeCapstoneEvaluations.new(
       @course,
+      @lc_course,
       @lti_launch
     )
   end

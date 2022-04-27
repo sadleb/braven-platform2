@@ -6,8 +6,9 @@ require 'canvas_api'
 class GradeCapstoneEvaluations
   include Rails.application.routes.url_helpers
 
-  def initialize(course, lti_launch)
+  def initialize(course, lc_course, lti_launch)
     @course = course
+    @lc_course = lc_course
     @lti_launch = lti_launch
   end
 
@@ -105,24 +106,26 @@ class GradeCapstoneEvaluations
     false
   end
 
-  def students_with_published_submissions
+  def users_with_published_submissions
     all_capstone_eval_submissions.filter_map { |s| s.user if !s.new }
   end
 
-  def remaining_students
-    @course.students.uniq - all_capstone_eval_submissions.map { |s| s.user }
+  def remaining_users
+    @course.students_and_lcs - all_capstone_eval_submissions.map { |s| s.user }
   end
 
-  def students_with_new_submissions
+  def users_with_new_submissions
     all_capstone_eval_submissions.filter_map { |s| s.user if s.new }
   end
 
 private
   def all_capstone_eval_submissions
-    return @course.capstone_evaluation_submissions
+    # Merges CapstoneEvaluationSubmissions for Accelerator course and LC course
+    return @course.capstone_evaluation_submissions.or(@lc_course.capstone_evaluation_submissions)
   end
 
   def new_capstone_eval_submissions
-    return @course.capstone_evaluation_submissions.ungraded
+    # Merges ungraded CapstoneEvaluationSubmissions for Accelerator course and LC course
+    return @course.capstone_evaluation_submissions.ungraded.or(@lc_course.capstone_evaluation_submissions.ungraded)
   end
 end

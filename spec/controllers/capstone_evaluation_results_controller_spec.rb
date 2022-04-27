@@ -5,7 +5,9 @@ RSpec.describe CapstoneEvaluationResultsController, type: :controller do
   render_views
 
   let(:canvas_client) { double(CanvasAPI) }
-  let(:course) { create :course }
+  let(:course) { create :course, salesforce_program_id: 'testsalesforceid18'}
+  let!(:lc_course) { create :course, salesforce_program_id: course.salesforce_program_id}
+  let(:course_program) { build :heroku_connect_program_launched, canvas_cloud_lc_playbook_course_id__c: lc_course.canvas_course_id}
   let(:user) { create :registered_user }
   let(:section) { create :section, course: course }
   let(:cap_eval_results) { CapstoneEvaluationResultsController.new }
@@ -19,6 +21,10 @@ RSpec.describe CapstoneEvaluationResultsController, type: :controller do
 
   before(:each) do
     sign_in user
+    allow(HerokuConnect::Program)
+      .to receive(:find)
+      .with(course.salesforce_program_id)
+      .and_return(course_program)
   end
 
   describe 'GET #launch' do
@@ -32,14 +38,14 @@ RSpec.describe CapstoneEvaluationResultsController, type: :controller do
       context 'with new capstone evaluation submissions to be graded' do
         let!(:ungraded_capstone_evaluation_submission) { create(:ungraded_capstone_evaluation_submission, course_id: course.id) }
 
-        it 'shows there are new submissions to be published' do
+        it 'shows there are new submissions to be computed' do
           subject
-          expect(response.body).to include('Number of new submissions ready to be published:')
+          expect(response.body).to include('Number of new submissions ready to be computed:')
         end
       end
 
       context 'with no new capstone evaluation submissions to be graded' do
-        it 'shows there are no new submissions to be published' do
+        it 'shows there are no new submissions to be computed' do
           subject
           expect(response.body).to include('There are no new submissions')
         end
@@ -60,6 +66,7 @@ RSpec.describe CapstoneEvaluationResultsController, type: :controller do
 
       context 'when submissions have been graded' do
         let!(:graded_capstone_evaluation_submission) { create(:graded_capstone_evaluation_submission, course_id: course.id) }
+        let!(:lc_graded_capstone_evaluation_submission) { create(:graded_capstone_evaluation_submission, course_id: lc_course.id) }
         let!(:ungraded_capstone_evaluation_submission) { create(:ungraded_capstone_evaluation_submission, course_id: course.id) }
 
         context 'if a user has a score for their Teamwork grade' do
@@ -73,6 +80,14 @@ RSpec.describe CapstoneEvaluationResultsController, type: :controller do
               for_user_id: user.id,
               capstone_evaluation_question_id: i + 1,
               input_value: 8
+            ) }
+            # Create 4 graded Capstone Evaluation Submission Answers from an LC (1 for each question) for the current user
+            let!(:"lc_graded_cap_eval_sub_answer-#{i + 1}"){ create(
+              :capstone_evaluation_submission_answer,
+              capstone_evaluation_submission_id: lc_graded_capstone_evaluation_submission.id,
+              for_user_id: user.id,
+              capstone_evaluation_question_id: i + 1,
+              input_value: 9
             ) }
             # Create 4 ungraded Capstone Evaluation Submission Answers for the current user
             let!(:"ungraded_cap_eval_sub_answer-#{i + 1}"){ create(
@@ -89,14 +104,15 @@ RSpec.describe CapstoneEvaluationResultsController, type: :controller do
             expect(response.body).to include('Your Capstone Evaluation Teamwork total score is')
           end
 
-          # only includes submission answers from graded answers - all scores of 8.0 * 4 = 32.0
-          it 'only includes graded submission answers in the user\'s total score' do
+          # Only includes submission answers from graded answers (for both LCs and Fellows)
+          # Fellow scores of 8.0 * 4 = 32.0, LC scores of 9.0 * 4 = 36 --> 32 + 36 = 68 / 2 = 34.0 (ignores the ungraded answers)
+          it 'includes only includes graded Fellow and LC submission answers in the user\'s total score' do
             subject
-            expect(response.body).to include('Your Capstone Evaluation Teamwork total score is: 32.0')
+            expect(response.body).to include('Your Capstone Evaluation Teamwork total score is: 34.0')
           end
         end
 
-        # This can happen if there haven't been any submissions for a user, even though grades have been published
+        # This can happen if there haven't been any submissions for a user, even though grades have been computed
         context 'when a user doesn\'t have a score for their teamwork grade' do
           4.times do |i|
             # Create the 4 Capstone Evaluation Questions
@@ -131,6 +147,19 @@ RSpec.describe CapstoneEvaluationResultsController, type: :controller do
     subject { post :score, params: { lti_launch_id: lti_launch.id } }
     let(:grade_capstone_evaluations_service) { double(GradeCapstoneEvaluations, run: nil) }
 
+    shared_examples 'with new capstone evaluation submissions to grade' do
+      it 'calls the grade_capstone_evaluations service' do
+        expect(grade_capstone_evaluations_service).to receive(:run)
+        subject
+      end
+
+      it 'redirects to the capstone evaluation results page and flashes success notice' do
+          subject
+          expect(response).to redirect_to(launch_capstone_evaluation_results_path(lti_launch_id: lti_launch.id))
+          expect(flash[:notice]).to match(/Grades have been successfully computed./)
+      end
+    end
+
     context 'with admin user' do
       before(:each) do
         user.add_role :admin
@@ -155,19 +184,14 @@ RSpec.describe CapstoneEvaluationResultsController, type: :controller do
         end
       end
 
-      context 'with new capstone evaluation submissions to grade' do
+      context 'with new Fellow capstone evaluation submissions to grade' do
         let!(:ungraded_capstone_evaluation_submission) { create(:ungraded_capstone_evaluation_submission, course_id: course.id) }
+        it_behaves_like 'with new capstone evaluation submissions to grade'
+      end
 
-        it 'calls the grade_capstone_evaluations service' do
-          expect(grade_capstone_evaluations_service).to receive(:run)
-          subject
-        end
-
-        it 'redirects to the capstone evaluation results page and flashes success notice' do
-            subject
-            expect(response).to redirect_to(launch_capstone_evaluation_results_path(lti_launch_id: lti_launch.id))
-            expect(flash[:notice]).to match(/Grades have been successfully published./)
-        end
+      context 'with new LC capstone evaluation submissions to grade' do
+        let!(:ungraded_capstone_evaluation_submission) { create(:ungraded_capstone_evaluation_submission, course_id: lc_course.id) }
+        it_behaves_like 'with new capstone evaluation submissions to grade'
       end
     end
 

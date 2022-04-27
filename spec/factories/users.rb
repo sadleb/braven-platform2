@@ -70,6 +70,12 @@ FactoryBot.define do
         end
       end
 
+      factory :lc_user do
+        after :create do |user, options|
+          user.add_role RoleConstants::TA_ENROLLMENT, options.section
+        end
+      end
+
       factory :admin_user do
         after :create do |user|
           user.add_role :admin
