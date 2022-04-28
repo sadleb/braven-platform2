@@ -355,7 +355,7 @@ RSpec.describe DiscordBot do
       } }
 
       it 'sends an alert' do
-        expect(Honeycomb).to receive(:add_field).with('alert.unconfigured_members', true)
+        expect(Honeycomb).to receive(:add_alert).once
         subject
       end
     end

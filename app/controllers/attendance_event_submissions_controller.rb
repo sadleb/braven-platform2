@@ -33,16 +33,18 @@ class AttendanceEventSubmissionsController < ApplicationController
   def launch
     if @course_attendance_event.nil?
       authorize @accelerator_course, policy_class: AttendanceEventSubmissionPolicy
-      Honeycomb.add_field('alert.attendance.no_events', true)
-      logger.warn("User #{current_user} is trying to take attendance but there are no events " \
-                  "in the Accelerator course '#{@accelerator_course.inspect}'")
+      msg = "User #{current_user} is trying to take attendance but there are no events " \
+        "in the Accelerator course '#{@accelerator_course.inspect}'"
+      Honeycomb.add_alert('attendance.no_events', msg)
+      logger.warn(msg)
       render :no_course_attendance_events and return
     end
 
     if sections_as_ta.count != 1 and not current_user.admin?
       authorize @accelerator_course, policy_class: AttendanceEventSubmissionPolicy
-      Honeycomb.add_field('alert.attendance.multiple_sections', true)
-      logger.error("User #{current_user} is a TA in multiple sections. Cannot take attendance.")
+      msg = "User #{current_user} is a TA in multiple sections. Cannot take attendance."
+      Honeycomb.add_alert('attendance.multiple_sections', msg)
+      logger.error(msg)
       render :multiple_sections and return
     end
 

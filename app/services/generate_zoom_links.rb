@@ -46,8 +46,9 @@ class GenerateZoomLinks
 
     unless @failed_participants.empty?
       Rails.logger.error(@failed_participants.inspect)
-      Honeycomb.add_field('alert.generate_zoom_links.failed_participants', @failed_participants)
-      raise GenerateZoomLinksError, "Failed to generate Zoom links. The following participants failed => #{@failed_participants.inspect}"
+      msg = "Failed to generate Zoom links. The following participants failed => #{@failed_participants.inspect}"
+      Honeycomb.add_alert('generate_zoom_links.failed_participants', msg)
+      raise GenerateZoomLinksError, msg
     end
 
     # Generate a CSV populated with the join_url so we can email it

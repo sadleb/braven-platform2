@@ -75,7 +75,7 @@ class DiscordSignupsController < ApplicationController
         Sentry.capture_exception(discorderror)
 
         current_user.update!(discord_token: nil)
-        Honeycomb.add_field('alert.discord_token.reset', true)
+        Honeycomb.add_alert('discord_token.reset', 'Probably safe to ignore unless this person opens a ticket.')
 
         redirect_to launch_discord_signups_url(lti_launch_id: @lti_launch.id), alert: 'Something went wrong, please try authorizing again.' and return
       end
@@ -154,7 +154,7 @@ class DiscordSignupsController < ApplicationController
       )
     rescue Discordrb::Errors::UnknownError => discorderror
       if params[:error]
-        Honeycomb.add_field('alert.discord_authorization_cancelled', true)
+        Honeycomb.add_alert('discord_authorization_cancelled', 'The user canceled authorization.')
         Sentry.capture_exception(discorderror)
         redirect_to launch_discord_signups_url(lti_launch_id: lti_launch_id), alert: 'You clicked cancel instead of authorize. Try again and click Authorize to be added to the Braven Discord server.' and return
       else

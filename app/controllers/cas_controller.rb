@@ -253,7 +253,7 @@ class CasController < ApplicationController
       logger.error(e)
       Honeycomb.add_field('error', e.class.name)
       Honeycomb.add_field('error_detail', e.message)
-      Honeycomb.add_field('alert.cas_controller.login_failed', true)
+      Honeycomb.add_alert('cas_controller.login_failed', e.message)
       Sentry.capture_exception(e)
       # generate another login ticket to allow for re-submitting the form
       @lt = LT.create!(@request_client).ticket

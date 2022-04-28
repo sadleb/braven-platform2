@@ -283,7 +283,10 @@ private
 
           # Here's the bug!
           found_bug = true
-          Honeycomb.add_field('alert.xapi_suspend_data_bug', true)
+          Honeycomb.add_alert('xapi_suspend_data_bug',
+                              'We have encountered the xAPI suspend_data bug. ' \
+                              'We attempt to repair this automatically, but  ' \
+                              'may want to look into it anyway.')
           Honeycomb.add_field('xapi.suspend_data.lessons', lessons.to_json)
           # Fix it!
           # The bug shows up when you're on the Quiz results screen

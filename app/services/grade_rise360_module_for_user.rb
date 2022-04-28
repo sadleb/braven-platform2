@@ -142,7 +142,7 @@ class GradeRise360ModuleForUser
     if @user.canvas_user_id.blank?
       @needs_grading = false
       needs_grading_reason = 'Doesn\'t need grading. User is missing a canvas_user_id.'
-      Honeycomb.add_field('alert.grade_rise360_module_for_user.missing_canvas_user_id', true)
+      Honeycomb.add_alert('grade_rise360_module_for_user.missing_canvas_user_id', needs_grading_reason)
 
     # If they have a TA Canvas role (not Student role) or their Canvas account isn't in a good state
     # (for example, if the sync is having errors and their Canvas account is currently not
