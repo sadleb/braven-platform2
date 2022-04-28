@@ -7,6 +7,7 @@ RSpec.describe GradeCapstoneEvaluations do
   let(:canvas_client) { double(CanvasAPI) }
   let(:course) { create(:course) }
   let(:lc_course) { create(:course) }
+  let(:other_course) { create(:course) }
   let(:cohort_section) { create(:cohort_section, course: course) }
   let(:lc_section) { create(:cohort_section, course: lc_course) }
   let(:user) { create :admin_user }
@@ -53,17 +54,31 @@ RSpec.describe GradeCapstoneEvaluations do
 
     before(:each) do
       allow(CanvasAPI).to receive(:client).and_return(canvas_client)
-      allow(canvas_client)
-        .to receive(:create_lti_submission)
-      allow(canvas_client)
-        .to receive(:update_grades)
+      allow(canvas_client).to receive(:get_assignment_submissions).and_return({})
+      allow(canvas_client).to receive(:create_lti_submission)
+      allow(canvas_client).to receive(:update_grades)
     end
 
     subject(:run_service) { grade_capstone_evaluations_service.run() }
 
-    it 'calls create_lti_submission' do
-      expect(canvas_client).to receive(:create_lti_submission)
-      subject
+    context 'when grading a user for the first time' do
+      it 'calls create_lti_submission' do
+        expect(canvas_client).to receive(:create_lti_submission)
+        subject
+      end
+    end
+
+    context 'when regrading a user' do
+      before(:each) do
+        allow(canvas_client)
+          .to receive(:get_assignment_submissions)
+          .and_return({fellow_with_new_submission.canvas_user_id => {"already_has_submission"=>true}})
+      end
+
+      it 'does not create a new Canvas LTI submission' do
+        expect(canvas_client).not_to receive(:create_lti_submission)
+        subject
+      end
     end
 
     it 'calls update_grades' do
@@ -75,7 +90,7 @@ RSpec.describe GradeCapstoneEvaluations do
        expect(ungraded_capstone_evaluation_submission.new).to eq(true)
        subject
        expect(ungraded_capstone_evaluation_submission.reload.new).to eq(false)
-     end
+    end
   end
 
   describe '#grade_capstone_eval_questions' do
@@ -84,6 +99,7 @@ RSpec.describe GradeCapstoneEvaluations do
       user_id: fellow_with_already_graded_submission.id
     ) }
     let(:graded_capstone_evaluation_submission_1) { create(:graded_capstone_evaluation_submission, course_id: course.id) }
+    let(:ungraded_capstone_eval_submission_for_other_course) { create(:ungraded_capstone_evaluation_submission, course_id: other_course.id)}
 
     4.times do |i|
       # Create the 4 Capstone Evaluation Questions
@@ -120,6 +136,15 @@ RSpec.describe GradeCapstoneEvaluations do
         for_user_id: fellow_with_already_graded_submission.id,
         capstone_evaluation_question_id: i + 1,
         input_value: 4
+      ) }
+      # Create ungraded submission answers for the current user for another course they are enrolled in
+      # This should not be incorporated into the grade since it's not for this course
+      let!(:"ungraded_cap_eval_sub_answers-#{i + 16}"){ create(
+        :capstone_evaluation_submission_answer,
+        capstone_evaluation_submission_id: ungraded_capstone_eval_submission_for_other_course.id,
+        for_user_id: fellow_with_already_graded_submission.id,
+        capstone_evaluation_question_id: i + 1,
+        input_value: 2
       ) }
     end
 
@@ -165,6 +190,7 @@ RSpec.describe GradeCapstoneEvaluations do
       user_id: fellow_with_already_graded_submission.id
     ) }
     let!(:lc_graded_capstone_evaluation_submission) { create(:graded_capstone_evaluation_submission, course_id: lc_course.id) }
+    let(:graded_capstone_eval_submission_for_other_course) { create(:graded_capstone_evaluation_submission, course_id: other_course.id)}
 
     4.times do |i|
       # Create the 4 Capstone Evaluation Questions
@@ -193,6 +219,15 @@ RSpec.describe GradeCapstoneEvaluations do
         for_user_id: fellow_with_already_graded_submission.id,
         capstone_evaluation_question_id: i + 1,
         input_value: 6
+      ) }
+      # Create graded submission answers for the current user for another course they are enrolled in
+      # This should not be incorporated into the grade since it's not for this course
+      let!(:"graded_cap_eval_sub_answers-#{i + 12}"){ create(
+        :capstone_evaluation_submission_answer,
+        capstone_evaluation_submission_id: graded_capstone_eval_submission_for_other_course.id,
+        for_user_id: fellow_with_already_graded_submission.id,
+        capstone_evaluation_question_id: i + 1,
+        input_value: 2
       ) }
     end
 

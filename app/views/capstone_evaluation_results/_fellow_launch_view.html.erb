@@ -2,13 +2,13 @@
 <% if @grade_capstone_eval_service.user_has_grade?(current_user) %>
   <h2>Total Score</h2>
 
-  <p>Your Capstone Evaluation Teamwork total score is: <%= @grade_capstone_eval_service.fellow_total_score(current_user) %> / <%= CapstoneEvaluationQuestion::TOTAL_POINTS_POSSIBLE %></p>
+  <p>Your Capstone Evaluation Teamwork total score is: <%= @grade_capstone_eval_service.fellow_total_score(current_user).round(2) %> / <%= CapstoneEvaluationQuestion::TOTAL_POINTS_POSSIBLE.round(2) %></p>
 
   <h2>Score Breakdown</h2>
 
   <ul>
     <% @grade_capstone_eval_service.grade_capstone_eval_questions(current_user, false).each do |question, score| %>
-      <li><%= question %>: <%= score %> / <%= CapstoneEvaluationQuestion::POINTS_POSSIBLE %></li>
+      <li><%= question %>: <%= score.round(2) %> / <%= CapstoneEvaluationQuestion::POINTS_POSSIBLE %></li>
     <% end %>
   </ul>
 <% else %>

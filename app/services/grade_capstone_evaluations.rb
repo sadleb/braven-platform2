@@ -18,6 +18,11 @@ class GradeCapstoneEvaluations
       .uniq
 
     grades = {}
+
+    # Returns all previous submissions for the assignment in the format:
+    # { canvas_user_id => submission }
+    previous_submissions = CanvasAPI.client.get_assignment_submissions(@course.canvas_course_id, @lti_launch.assignment_id, true)
+
     users_to_grade.each do |user|
       Honeycomb.start_span(name: 'grade_capstone_evaluation.grade_user') do
         user.add_to_honeycomb_span('grade_capstone_evaluation')
@@ -28,14 +33,16 @@ class GradeCapstoneEvaluations
 
         grades[user.canvas_user_id] = total_score
 
-        # Create a submission for the Capstone Evaluations Teamwork assignment for the user
+        # Create a submission for the Capstone Evaluations Teamwork assignment for the user if they don't already have one
         # we are giving a grade, so they are able to see the grade breakdown from grades
-        CanvasAPI.client.create_lti_submission(
-          @course.canvas_course_id,
-          @lti_launch.assignment_id,
-          user.canvas_user_id,
-          launch_capstone_evaluation_results_url(protocol: 'https')
-        )
+        unless previous_submissions[user.canvas_user_id]
+          CanvasAPI.client.create_lti_submission(
+            @course.canvas_course_id,
+            @lti_launch.assignment_id,
+            user.canvas_user_id,
+            launch_capstone_evaluation_results_url(protocol: 'https')
+          )
+        end
       end
     end
 
@@ -60,9 +67,9 @@ class GradeCapstoneEvaluations
     end
 
     if all_submissions == true
-      submission_answers_for_user = CapstoneEvaluationSubmissionAnswer.where(for_user: user)
+      submission_answers_for_user = CapstoneEvaluationSubmissionAnswer.where(for_user: user, submission: all_capstone_eval_submissions)
     else
-      submission_answers_for_user = CapstoneEvaluationSubmissionAnswer.where(for_user: user).graded
+      submission_answers_for_user = CapstoneEvaluationSubmissionAnswer.where(for_user: user, submission: all_capstone_eval_submissions).graded
     end
 
     # Total by summation.
