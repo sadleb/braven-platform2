@@ -7,7 +7,6 @@ default: &default
   log:
     output:
     level: INFO
-  booster_portal_domain: <%= ENV['BOOSTER_PORTAL_DOMAIN'] %>
   database: &default_db
     database: platform
     reconnect: true
@@ -23,9 +22,8 @@ default: &default
 development: &development_config
   <<: *default
   log:
-    output: 
+    output:
     level: DEBUG
-  booster_portal_domain: boosterweb
   theme: simple
   organization: Braven Docker SSO
   database:
@@ -37,7 +35,7 @@ development: &development_config
 test:
   <<: *development_config
   log:
-    output: 
+    output:
     level: ERROR
   organization: "RSPEC-TEST"
   database:

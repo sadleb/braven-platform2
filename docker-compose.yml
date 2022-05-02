@@ -2,7 +2,7 @@ version: "3.5"
 
 services:
   platformweb:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
       args:
@@ -42,20 +42,21 @@ services:
       AWS_PLATFORM_FILES_BUCKET: ${AWS_PLATFORM_FILES_BUCKET}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-       
 
-      
+
+
     # Need privileged mode to change the sysctl flags in docker-compose/scripts/docker_compose_run.sh
     privileged: true
-    
+
     networks:
       - bravendev
     command: ./docker-compose/scripts/docker_compose_run.sh
 
   platformdb:
     image: postgres:12
-    env_file:
-      - .env.database
+    environment:
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
     volumes:
       - db-platform:/var/lib/postgresql/data
     networks:
