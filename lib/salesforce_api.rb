@@ -59,23 +59,9 @@ class SalesforceAPI
   ParticipantNotOnSalesforceError = Class.new(StandardError)
   ProgramNotOnSalesforceError = Class.new(StandardError)
 
-  # TODO: Figure out how to make this work with a single instance or just memoize the
-  # data returned from authenticate(). We're at the point where this is probably worth doing.
-  # The call to the authenticate() method below can account for a good deal
-  # of all API calls (across Canvas/Salesforce/Zoom) in a SyncSalesforceProgram run.
-  # https://app.asana.com/0/1201131148207877/1201661063922393
-  # @client = nil
-
   # Use this to get an authenticated instance of the API client
   def self.client
-    # A sloppy singleton
-    # if @client.nil?
-    #   s = new
-    #   @client = s.authenticate
-    # end
-    # @client
-    s = new
-    s.authenticate
+    @client_instance ||= new().authenticate
   end
 
   def authenticate
