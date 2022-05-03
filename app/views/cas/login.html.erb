@@ -1,7 +1,7 @@
 <div class="col-md-4 offset-md-4">
   <h1>Braven Login</h1>
   <% if @message %>
-    <p><%= @message[:message] %></p>
+    <p role="alert"><%= @message[:message] %></p>
   <% end %>
 
   <% if request.cookies["login_flash"] %>
