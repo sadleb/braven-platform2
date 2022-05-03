@@ -19,12 +19,6 @@ class InitializeNewCourse
     Honeycomb.start_span(name: 'initialize_new_course.run') do
       canvas_section_ids = create_sections()
       canvas_assignment_ids = initialize_assignments()
-
-      # Add an AssignmentOverride date object to each assignment for each section so that
-      # the Edit Assignment Dates page shows the sections.
-      if canvas_assignment_ids.present?
-        CanvasAPI.client.create_assignment_override_placeholders(@new_course.canvas_course_id, canvas_assignment_ids, canvas_section_ids)
-      end
     end
   end
 

@@ -20,7 +20,6 @@ RSpec.describe InitializeNewCourse do
   before(:each) do
     allow(CanvasAPI).to receive(:client).and_return(canvas_client)
     allow(canvas_client).to receive(:get_assignments).and_return(assignments)
-    allow(canvas_client).to receive(:create_assignment_override_placeholders)
     allow(canvas_client).to receive(:update_assignment_lti_launch_url)
     allow(CreateSection).to receive(:new).and_return(create_section_service)
     allow(create_section_service).to receive(:run) do
@@ -49,12 +48,6 @@ RSpec.describe InitializeNewCourse do
         expect(CreateSection).to receive(:new)
           .with(new_course, SectionConstants::TA_SECTION, Section::Type::TEACHING_ASSISTANTS).once
         run_initialize_service
-      end
-
-      it "creates the AssignmentOverride placeholders" do
-        run_initialize_service
-        expect(canvas_client).to have_received(:create_assignment_override_placeholders)
-          .with(new_course.canvas_course_id, assignment_ids, sections.map(&:canvas_section_id)).once
       end
 
       # Note: When we switch over to static endpoints for LTI launch URLs this will go away.
