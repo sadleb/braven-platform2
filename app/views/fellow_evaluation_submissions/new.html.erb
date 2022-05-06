@@ -69,7 +69,9 @@
           <legend class="capstone-evaluation-question">
             Is there anything additional about this Fellow’s readiness for the workplace, or any general comments about this Fellow, you’d like to share with us?
           </legend>
-          <textarea class="form-control" name="<%= "fellow_evaluation[#{user.id}][other-fellow-comments-from-lc]" %>"></textarea>
+          <% textarea_name = "fellow_evaluation[#{user.id}][other-fellow-comments-from-lc]" %>
+          <label for="<%= textarea_name %>">Additional feedback</label>
+          <textarea class="form-control" name="<%= textarea_name %>" id="<%= textarea_name %>"></textarea>
         </fieldset>
       </fieldset>
     <% end %>
