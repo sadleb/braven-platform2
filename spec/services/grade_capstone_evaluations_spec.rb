@@ -62,9 +62,38 @@ RSpec.describe GradeCapstoneEvaluations do
     subject(:run_service) { grade_capstone_evaluations_service.run() }
 
     context 'when grading a user for the first time' do
-      it 'calls create_lti_submission' do
-        expect(canvas_client).to receive(:create_lti_submission)
-        subject
+      context 'for active users in the course' do
+        it 'calls create_lti_submission' do
+          expect(canvas_client).to receive(:create_lti_submission).once
+          subject
+        end
+      end
+
+      context 'for dropped users' do
+        # Create user in the course
+        let!(:fellow_to_be_dropped) { create(:fellow_user, section: cohort_section) }
+        # Create ungraded submission
+        let!(:dropped_ungraded_cap_eval_submission) { create(:ungraded_capstone_evaluation_submission, course_id: course.id) }
+        # Create ungraded submissions for the user who will be dropped
+        4.times do |i|
+          # Create 4 ungraded Capstone Evaluation Submission Answers for a user
+          let!(:"dropped_ungraded_cap_eval_sub_answer-#{i + 1}"){ create(
+            :capstone_evaluation_submission_answer,
+            capstone_evaluation_submission_id: dropped_ungraded_cap_eval_submission.id,
+            for_user_id: fellow_to_be_dropped.id,
+            capstone_evaluation_question_id: i + 1,
+            input_value: 8
+          ) }
+        end
+
+        it 'doesn\'t call create_lti_submission' do
+          # Drop user from the course by deleting their enrollments
+          UserRole.where(user_id: fellow_to_be_dropped.id).delete_all
+          # It should still call create_lti_submission for submission answers for fellow_with_new_submission
+          # but not for the submission answers for fellow_to_be_dropped
+          expect(canvas_client).to receive(:create_lti_submission).once
+          subject
+        end
       end
     end
 
@@ -87,9 +116,9 @@ RSpec.describe GradeCapstoneEvaluations do
     end
 
     it 'updates ungraded assignments that were graded to new: false' do
-       expect(ungraded_capstone_evaluation_submission.new).to eq(true)
-       subject
-       expect(ungraded_capstone_evaluation_submission.reload.new).to eq(false)
+      expect(ungraded_capstone_evaluation_submission.new).to eq(true)
+      subject
+      expect(ungraded_capstone_evaluation_submission.reload.new).to eq(false)
     end
   end
 

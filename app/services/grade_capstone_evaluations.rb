@@ -13,9 +13,10 @@ class GradeCapstoneEvaluations
   end
 
   def run
-    users_to_grade = CapstoneEvaluationSubmissionAnswer.where(submission: new_capstone_eval_submissions)
+    users_to_grade = CapstoneEvaluationSubmissionAnswer.where(submission: new_capstone_eval_submissions).where(for_user: @course.students_and_lcs)
       .map { |answer| answer.for_user }
       .uniq
+    return if users_to_grade.empty?
 
     grades = {}
 
