@@ -120,6 +120,37 @@ RSpec.describe GradeCapstoneEvaluations do
       subject
       expect(ungraded_capstone_evaluation_submission.reload.new).to eq(false)
     end
+
+    context 'with a failing user' do
+      # Create a second user with submissions to be graded
+      let!(:new_fellow_user) { create(:fellow_user, section: cohort_section) }
+      4.times do |i|
+        let!(:"ungraded_sub_answer-for_invalid_fellow#{i + 1}"){ create(
+          :capstone_evaluation_submission_answer,
+          capstone_evaluation_submission_id: ungraded_capstone_evaluation_submission.id,
+          for_user_id: new_fellow_user.id,
+          capstone_evaluation_question_id: i + 1,
+          input_value: 8
+        ) }
+      end
+
+      before(:each) do
+        allow(Honeycomb).to receive(:add_alert)
+        allow(canvas_client).to receive(:create_lti_submission).and_raise
+      end
+
+      # Both users will fail, but we want to make sure it continues trying to create a grade for
+      # the second user after the first one fails (and doesn't just fail for all after the first failure)
+      it 'skips failing users and continues grading subsequent users' do
+        expect(canvas_client).to receive(:create_lti_submission).twice
+        subject
+      end
+
+      it 'sends Honeycomb alert' do
+        subject
+        expect(Honeycomb).to have_received(:add_alert).with('capstone_eval_grading_failed', anything).twice
+      end
+    end
   end
 
   describe '#grade_capstone_eval_questions' do

@@ -32,8 +32,6 @@ class GradeCapstoneEvaluations
         question_scores = grade_capstone_eval_questions(user, true)
         total_score = question_scores.map { |k, v| v }.sum
 
-        grades[user.canvas_user_id] = total_score
-
         # Create a submission for the Capstone Evaluations Teamwork assignment for the user if they don't already have one
         # we are giving a grade, so they are able to see the grade breakdown from grades
         unless previous_submissions[user.canvas_user_id]
@@ -44,7 +42,15 @@ class GradeCapstoneEvaluations
             launch_capstone_evaluation_results_url(protocol: 'https')
           )
         end
+
+        grades[user.canvas_user_id] = total_score
       end
+    rescue => e
+      Rails.logger.error(e)
+      Sentry.capture_exception(e)
+      msg = "Failed to create grade for: '#{user.inspect}' " +
+      "\nError: #{e.inspect}"
+      Honeycomb.add_alert('capstone_eval_grading_failed', msg)
     end
 
     # Unset the Sentry user context so that errors aren't associated with the last user we graded.
