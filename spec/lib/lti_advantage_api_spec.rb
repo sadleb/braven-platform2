@@ -1,6 +1,7 @@
 require 'rails_helper'
 require 'lti_advantage_api'
 require 'lti_score'
+require 'lti_result'
 
 RSpec.describe LtiAdvantageAPI do
   let(:canvas_cloud_url) { Rails.application.secrets.canvas_url }
@@ -61,14 +62,15 @@ RSpec.describe LtiAdvantageAPI do
       stub_request(:get, result_service_url).to_return(body: [score_result].to_json )
       response = api.get_result()
       expect(WebMock).to have_requested(:get, result_service_url)
-      expect(response).to eq(score_result)
+      expect(response).to eq(LtiResult.new(score_result))
     end
 
-    it "returns nil if there is no submission" do
+    it "returns LtiResult with #present? false if there is no submission" do
       stub_request(:get, result_service_url).to_return(body: [].to_json )
       response = api.get_result()
       expect(WebMock).to have_requested(:get, result_service_url)
-      expect(response).to eq(nil)
+      expect(response).to eq(LtiResult.new(nil))
+      expect(response.present?).to eq(false)
     end
   end
 

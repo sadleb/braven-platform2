@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 require 'rest-client'
 require 'lti_resource_link_request_message'
+require 'lti_result'
 
 # Helps access the LTI Advatange services described in the following links. These
 # services are mostly used for passing grade data back to Canvas from our LTI extension.
@@ -51,13 +52,13 @@ class LtiAdvantageAPI
       'a submission there forever even if something went wrong. Re-submit if necessary.'
   end
 
-  # Gets the Result object for a score created using the `create_score` method
-  # or nil if there is no score
+  # Gets an LtiResult object for a score created using the `create_score` method.
+  # If there is no score, LtiResult.present? will be false
   #
-  # See: https://canvas.instructure.com/doc/api/result.html
+  # See: lib/lti_result.rb
   def get_result()
     results = get_line_item_for_user(@canvas_user_id)
-    results.first # Only one Result object is returned when you pass a user_id in.
+    LtiResult.new(results.first) # Only one Result object is returned when you pass a user_id in.
   end
 
   def get_line_item_for_user(canvas_user_id)

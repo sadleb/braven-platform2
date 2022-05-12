@@ -36,7 +36,7 @@ class WaiverSubmissionsController < FormAssemblyController
   # Show the FormAssembly waiver form for them to sign.
   #
   # GET /waiver_submissions/new
-  def new 
+  def new
     authorize :waiver_submission
 
     if params[:tfa_next].present?
@@ -63,7 +63,7 @@ class WaiverSubmissionsController < FormAssemblyController
   def create
     authorize :waiver_submission
 
-    # Create a submission for this assignment in Canvas. This is required to to have the 
+    # Create a submission for this assignment in Canvas. This is required to to have the
     # Pre-Requisites module satisfy its completion requirements in order to unlock
     # access to the rest of the Canvas modules.
     lti_score = LtiScore.new_full_credit_submission(
@@ -95,7 +95,7 @@ private
   end
 
   def waivers_already_signed?
-    lti_advantage_api_client.get_result().present?
+    lti_advantage_api_client.get_result().has_full_credit?
   end
 
   def lti_advantage_api_client

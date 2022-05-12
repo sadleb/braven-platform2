@@ -112,16 +112,16 @@ private
 
   # Overrides Submittable
   # We give a full-credit score to the Fellow for submitting their surveys,
-  # so we can check Canvas to see whether this exists in order to determine
+  # so we can check Canvas to see whether this has happened in order to determine
   # whether there's already been a submission.
   def previous_submission
     # Memoize so we don't do another network call
-    @line_item ||= LtiAdvantageAPI.new(@lti_launch).get_result().present?
+    @result ||= LtiAdvantageAPI.new(@lti_launch).get_result()
     # Return an instance_variable for Submittable to use with instance_path
-    return @line_item ? @accelerator_survey_submission : nil
+    return @result.has_full_credit? ? @accelerator_survey_submission : nil
   end
 
-  # We don't have anything saved to the DB, so we explicitly specify the 
+  # We don't have anything saved to the DB, so we explicitly specify the
   # parent and fetch the instance
   def parent_variable_name
     'course'

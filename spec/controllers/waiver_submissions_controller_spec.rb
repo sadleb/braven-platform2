@@ -1,4 +1,5 @@
 require 'rails_helper'
+require 'lti_result'
 
 RSpec.describe WaiverSubmissionsController, type: :controller do
   render_views
@@ -28,8 +29,8 @@ RSpec.describe WaiverSubmissionsController, type: :controller do
     end
 
     context '#launch' do
-      let(:waivers_submission_result) { nil }
-      let(:lti_advantage_api) { double(LtiAdvantageAPI, :get_result => nil) }
+      let(:waivers_submission_result) { LtiResult.new(nil) }
+      let(:lti_advantage_api) { double(LtiAdvantageAPI, :get_result => waivers_submission_result) }
 
       before(:each) do
         allow(lti_advantage_api).to receive(:get_result).and_return(waivers_submission_result)
@@ -45,7 +46,15 @@ RSpec.describe WaiverSubmissionsController, type: :controller do
         expect(lti_advantage_api).to have_received(:get_result).once
       end
 
-      context 'when waivers havent been signed' do
+      context 'when waivers havent been signed or graded' do
+        it 'shows the button to launch the waivers' do
+          new_waivers_regex = "/waiver_submissions/new?lti_launch_id=#{lti_launch.id}"
+          expect(response.body).to match /<a href=".*#{Regexp.escape(new_waivers_regex)}"/
+        end
+      end
+
+      context 'when waivers havent been signed but were given a zero grade' do
+        let(:waivers_submission_result) { LtiResult.new(build(:lti_result, resultScore: 0.0)) }
         it 'shows the button to launch the waivers' do
           new_waivers_regex = "/waiver_submissions/new?lti_launch_id=#{lti_launch.id}"
           expect(response.body).to match /<a href=".*#{Regexp.escape(new_waivers_regex)}"/
@@ -53,7 +62,7 @@ RSpec.describe WaiverSubmissionsController, type: :controller do
       end
 
       context 'when waivers are already signed' do
-        let(:waivers_submission_result) { build(:lti_result) }
+        let(:waivers_submission_result) { LtiResult.new(build(:lti_result)) }
         it 'redirects to completed page' do
           expect(response).to redirect_to completed_waiver_submissions_path(lti_launch_id: lti_launch.id)
         end

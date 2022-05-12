@@ -1,4 +1,5 @@
 require 'rails_helper'
+require 'lti_result'
 
 RSpec.describe AcceleratorSurveySubmissionsController, type: :controller do
   render_views
@@ -58,7 +59,7 @@ RSpec.describe AcceleratorSurveySubmissionsController, type: :controller do
 
       ['Pre', 'Post'].each do | type |
         context 'unsubmitted' do
-          let(:previous_submission) { false }
+          let(:previous_submission) { LtiResult.new(nil) }
           let(:type) { type }
 
           it_behaves_like 'checks for previous submission'
@@ -83,7 +84,7 @@ RSpec.describe AcceleratorSurveySubmissionsController, type: :controller do
         end
 
         context 'previously submitted' do
-          let(:previous_submission) { true }
+          let(:previous_submission) { LtiResult.new(build :lti_result) }
           let(:type) { type }
 
           it_behaves_like 'checks for previous submission'
@@ -94,6 +95,21 @@ RSpec.describe AcceleratorSurveySubmissionsController, type: :controller do
               lti_launch_id: lti_launch.id,
             )
             expect(response).to redirect_to(url)
+          end
+        end
+
+        context 'previous submission is not full credit' do
+          let(:previous_submission) { LtiResult.new(build :lti_result, resultScore: 0.0) }
+          let(:type) { type }
+
+          it_behaves_like 'checks for previous submission'
+
+          it 'returns a success response' do
+            expect(response).to be_successful
+          end
+
+          it 'shows the launch button' do
+            expect(response.body).to match /Click here to get started/
           end
         end
       end
@@ -142,7 +158,7 @@ RSpec.describe AcceleratorSurveySubmissionsController, type: :controller do
 
       ['Pre', 'Post'].each do | type |
         context 'unsubmitted' do
-          let(:previous_submission) { false }
+          let(:previous_submission) { LtiResult.new(nil) }
           let(:type) { type }
 
           it_behaves_like 'checks for previous submission'
@@ -172,7 +188,7 @@ RSpec.describe AcceleratorSurveySubmissionsController, type: :controller do
         end
 
         context 'previously submitted' do
-          let(:previous_submission) { true }
+          let(:previous_submission) { LtiResult.new(build :lti_result) }
           let(:type) { type }
 
           it_behaves_like 'checks for previous submission'
@@ -215,7 +231,7 @@ RSpec.describe AcceleratorSurveySubmissionsController, type: :controller do
     context 'valid parameters' do
       ['Pre', 'Post'].each do | type |
         context 'new submission' do
-          let(:previous_submission) { false }
+          let(:previous_submission) { LtiResult.new(nil) }
           let(:type) { type }
 
           it_behaves_like 'checks for previous submission'
@@ -244,7 +260,7 @@ RSpec.describe AcceleratorSurveySubmissionsController, type: :controller do
         end
 
         context 'existing submission' do
-          let(:previous_submission) { true }
+          let(:previous_submission) { LtiResult.new(build :lti_result) }
           let(:type) { type }
 
           it_behaves_like 'checks for previous submission'
