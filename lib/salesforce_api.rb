@@ -377,7 +377,7 @@ class SalesforceAPI
     participants = participants.filter { |p| FIND_BY_ROLES.include?(p['Role']&.to_sym)}
 
     if participants.count > 1
-      Honeycomb.add_alert('salesforce_api.duplicate_participants_for_program',
+      Honeycomb.add_support_alert('salesforce_api.duplicate_participants_for_program',
                           "Duplicate participants encountered for Contact ID: #{contact_id}, Program ID: #{program_id}")
     end
 

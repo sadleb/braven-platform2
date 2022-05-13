@@ -265,6 +265,7 @@ RSpec.describe SalesforceAPI do
           before(:each) do
             allow(Honeycomb).to receive(:add_field)
             allow(Honeycomb).to receive(:add_alert)
+            allow(Honeycomb).to receive(:add_support_alert)
           end
 
           # The behavior is undefined if there are duplicate Participants in a Program with a Role
@@ -274,7 +275,7 @@ RSpec.describe SalesforceAPI do
           it 'sends Honeycomb alert' do
             response = run_find_participant
             expect(response.id).to eq(first_participant['Id'])
-            expect(Honeycomb).to have_received(:add_alert).with('salesforce_api.duplicate_participants_for_program', anything).once
+            expect(Honeycomb).to have_received(:add_support_alert).with('salesforce_api.duplicate_participants_for_program', anything).once
           end
         end
       end
