@@ -158,6 +158,24 @@ RSpec.describe GradeUnsubmittedAssignments do
         end
       end
     end
+
+    context 'with no assignment filter' do
+      let(:grade_unsubmitted_assignments) { GradeUnsubmittedAssignments.new(nil, false) }
+      let(:assignments) { [unpublished_assignment, online_entry_assignment] }
+      let(:submissions_obj) { {online_entry_assignment['id'] => [submission_due_yesterday]} }
+
+      it 'calls get_unsubmitted_assignment_data' do
+        expect(canvas_client).to receive(:get_unsubmitted_assignment_data)
+        subject
+      end
+
+      context 'with submissions returned' do
+        it 'calls zero_out_grades' do
+          expect(grade_unsubmitted_assignments).to receive(:zero_out_grades)
+          subject
+        end
+      end
+    end
   end # end describe grade_unsubmitted_assignments
 
   describe '#zero_out_grades' do
@@ -217,8 +235,8 @@ RSpec.describe GradeUnsubmittedAssignments do
       end
     end
 
-    context 'with an assignment that is an attendance event' do
-      let(:assignment) { create(:canvas_assignment) }
+    context 'with a published assignment that is an attendance event' do
+      let(:assignment) { create(:canvas_assignment, published: true) }
       let!(:attendance_event) { create(:course_attendance_event, canvas_assignment_id: assignment['id']) }
 
       it 'does not pass the assignment filter and returns false' do

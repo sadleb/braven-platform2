@@ -8,7 +8,10 @@ require 'salesforce_api'
 require 'canvas_api'
 
 class GradeUnsubmittedAssignments
-  def initialize
+  def initialize(canvas_course_ids=nil, filter_assignments=true)
+    # If canvas_course_ids is nil, default to running/recently ended programs.
+    @canvas_course_ids = canvas_course_ids
+    @filter_assignments = filter_assignments
   end
 
   def run
@@ -19,7 +22,7 @@ class GradeUnsubmittedAssignments
       # We also get recently ended programs b/c we want to keep grading until we're sure that
       # the final grades have been sent to the university.
       # https://app.asana.com/0/1201131148207877/1200788567441198
-      canvas_course_ids = SalesforceAPI.client
+      canvas_course_ids = @canvas_course_ids || SalesforceAPI.client
         .get_current_and_future_accelerator_canvas_course_ids(ended_less_than: 45.days.ago)
 
       Honeycomb.add_field('grade_unsubmitted_assignments.canvas_course_ids', canvas_course_ids)
@@ -37,8 +40,12 @@ class GradeUnsubmittedAssignments
 
   def grade_unsubmitted_assignments(course)
     # Get all assignments for course and run through assignment filter
-    assignment_ids = CanvasAPI.client.get_assignments(course.canvas_course_id)
-      .filter_map { |a| assignment_filter(a) }
+    assignments = CanvasAPI.client.get_assignments(course.canvas_course_id)
+    assignment_ids = assignments.map { |a| a['id'] }
+
+    if @filter_assignments
+      assignment_ids = assignments.filter_map { |a| assignment_filter(a) }
+    end
 
     if assignment_ids.empty?
       Rails.logger.info("Skip grading assignments for canvas_course = #{course.canvas_course_id}; no assignments to grade")

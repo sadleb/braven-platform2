@@ -30,4 +30,13 @@
   <%= render :partial => 'course_attendance_events/list', locals: {read_only: true, course_attendance_events: @course.course_attendance_events} %>
 
   <p><small><em><b>Hint:</b> Cmd-Click "View On Canvas" to open in new tab</em></small></p>
+
+  <h3>Danger Zone</h3>
+  <p>Careful with these! You may be modifying student grades or other information in a running course.</p>
+  <div class="row">
+    <div class="col">
+      <%= button_to 'Grade Unsubmitted Assignments', grade_course_grade_unsubmitted_assignments_path(@course), data: { confirm: 'This will zero-out grades for students with unsubmitted assignments! You should only do this at the end of the course. Are you sure?' }, class: 'btn' %>
+    </div>
+  </div>
+
 </div>

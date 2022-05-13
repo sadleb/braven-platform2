@@ -130,6 +130,12 @@ Rails.application.routes.draw do
         delete :unpublish
       end
     end
+
+    resources :grade_unsubmitted_assignments, only: [] do
+      collection do
+        post :grade
+      end
+    end
   end
 
   resources :rise360_module_grades, only: [:show]
