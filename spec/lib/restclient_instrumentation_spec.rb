@@ -6,14 +6,25 @@ RSpec.describe RestClientInstrumentation do
 RestClient::Request.prepend(RestClientInstrumentation)
 
   let(:span) { instance_double(Honeycomb::Span) }
-  let(:class_name) { 'Example' }
+  let(:calling_class) { 'Example' }
+  let(:calling_method) { 'with_around_example_hooks' }
+  let(:parent_calling_class) { 'Hooks' }
+  let(:parent_calling_method) { 'run' }
   let(:target_url) { 'https://fakeurl.com/some/path' }
   let(:fake_body) { '{"fake":"response"}' }
   let(:expected_headers) { {} }
 
   before(:each) do
     expect(Honeycomb).to receive(:start_span).and_yield(span)
-    expect(span).to receive(:add_field).with('restclient.class_name', class_name).once # Example is the class one caller up. E.g. the `it` block.
+    # If these break b/c of some future change to the internal rspec code,
+    # just update the expected value to match. For example, the calling_class at
+    # the moment is 'Example' In other words, the class that defines the `it` method
+    # that takes a block.
+    expect(span).to receive(:add_field).with('restclient.class', calling_class).once
+    expect(span).to receive(:add_field).with('restclient.method', calling_method).once
+    expect(span).to receive(:add_field).with('restclient.parent_class', parent_calling_class).once
+    expect(span).to receive(:add_field).with('restclient.parent_method', parent_calling_method).once
+
     expect(span).to receive(:add_field).with('restclient.request.method', method).once
     expect(span).to receive(:add_field).with('restclient.request.url', target_url).once
     expect(span).to receive(:add_field).with('restclient.timestamp', anything).once
@@ -55,7 +66,10 @@ RestClient::Request.prepend(RestClientInstrumentation)
     let(:method) { 'get' }
     let(:status) { 401 }
     let(:fake_body) { '{"errors":{"type":"unauthorized","message":"Missing access token"}}' }
-    let(:class_name) { 'RaiseError' }
+    let(:calling_class) { 'RaiseError' }
+    let(:calling_method) { 'matches?' }
+    let(:parent_calling_class) { 'Handler' }
+    let(:parent_calling_method) { 'handle_matcher' }
 
     it 'adds error details to Honeycomb' do
       expect(span).to receive(:add_field).with('restclient.response.body', fake_body)

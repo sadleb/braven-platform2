@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'discordrb'
 
 module Discordrb::API
@@ -37,7 +39,7 @@ module Discordrb::API
     # HACK: for #request, dynamically inject restclient's response into NoPermission - this allows us to rate limit
     noprm = Discordrb::Errors::NoPermission.new
     noprm.define_singleton_method(:_rc_response) { e.response }
-    raise noprm, "The bot doesn't have the required permission to do this!"
+    raise noprm, 'The bot doesn\'t have the required permission to do this!'
   rescue RestClient::BadGateway
     Discordrb::LOGGER.warn('Got a 502 while sending a request! Not a big deal, retrying the request')
     retry

@@ -17,15 +17,40 @@ module RestClientInstrumentation
       logger = Logger.new(STDOUT)
     end
 
-    # Go up the stack looking for the first file not in the restclient gem
-    # (starting at caller of this, aka the 2nd index, and searching a max of 5 levels)
-    calling_file_path = caller_locations(2,5).find {|cl| !cl.path.include?('restclient')}.path
-    calling_class = File.basename(calling_file_path, '.rb').camelize
+    # Go down the stack looking for the first file not in the restclient gem to get
+    # the API file calling this. Once that's found, look for the next file to get
+    # the file calling that API. Add this info to Honeycomb to help manage alerts
+    # and troubleshoot API errors.
+    calling_location = nil
+    parent_calling_location = nil
+    caller_locations(2,10).each do |cl| # 2nd index (direct caller) through 10th arbitrarily
+      if calling_location.nil?
+        calling_location = cl if !cl.path.include?('restclient')
+      elsif parent_calling_location.nil?
+        if cl.path != calling_location.path
+          parent_calling_location = cl
+          break
+        else
+          # keep updating the caller to the deepest stackframe in that file
+          # so we get the actual method being called in that file, not the helper
+          # get/put/patch or retry_timeut stuff
+          calling_location = cl
+        end
+      end
+    end
+    calling_class = File.basename(calling_location.path, '.rb').camelize
+    parent_calling_class = File.basename(parent_calling_location.path, '.rb').camelize if parent_calling_location
 
     # I'm trying to mimic what normal Rails request's send:
     # https://guides.rubyonrails.org/active_support_instrumentation.html#process-action-action-controller
     Honeycomb.start_span(name: "restclient.#{method}") do |span|
-      span.add_field('restclient.class_name', calling_class)
+      # Note: if you change these fields below, make sure and update the place in
+      # lib/discord_bot.rb that overrides/fixes it for discord if necessary. Search for
+      # 'restclient.class' in there.
+      span.add_field('restclient.class', calling_class)
+      span.add_field('restclient.method', calling_location.base_label)
+      span.add_field('restclient.parent_class', parent_calling_class)
+      span.add_field('restclient.parent_method', parent_calling_location&.base_label)
       span.add_field('restclient.timestamp', DateTime.now)
       span.add_field('restclient.request.method', method)
       span.add_field('restclient.request.url', redacted_url) # Strips out password if it's in there.

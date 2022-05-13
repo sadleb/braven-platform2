@@ -1246,8 +1246,9 @@ private
 
         # Fix restclient_instrumentation class name being incorrectly set for Discord API calls.
         if fields['name'].start_with?('restclient')
-          if fields.has_key?('restclient.class_name') && fields['restclient.class_name'] == 'Api'
-            fields['restclient.class_name'] = 'Discordrb::API'
+          if fields.has_key?('restclient.class') && fields['restclient.class'] == 'DiscordrbProxy'
+            fields['restclient.class'] = 'Discordrb::Proxy'
+            fields['restclient.parent_class'] = 'Discordrb::API'
           end
         end
 
