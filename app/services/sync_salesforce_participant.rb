@@ -87,7 +87,7 @@ private
         )
 
       else
-        raise RuntimeError, "Unrecognized Participant role_category '#{@participant_sync_info.role_category}' for Participant ID: #{@participant_sync_info.sfid}"
+        raise RuntimeError, "For Participant ID: #{@participant_sync_info.sfid} '#{@participant_sync_info.role_category}' is an unrecognized Participant role_category"
       end
     end
 
@@ -142,8 +142,8 @@ private
 
       section = Section.find_by(salesforce_id: @participant_sync_info.cohort_schedule_id, course: course)
       raise SyncSalesforceProgram::MissingSectionError.new(
-        "The Cohort Schedule '#{@participant_sync_info.cohort_schedule_section_name}' (ID: #{@participant_sync_info.cohort_schedule_id}) " +
-        "is missing a local Platform Section for Course: #{course.inspect}. " +
+        "For Participant ID: #{@participant_sync_info.sfid} the Cohort Schedule '#{@participant_sync_info.cohort_schedule_section_name}' " +
+        "(ID: #{@participant_sync_info.cohort_schedule_id}) is missing a local Platform Section for Course: #{course.inspect}. " +
         "This was supposed to be created as part of Program launch."
       ) if section.nil?
 
@@ -153,12 +153,13 @@ private
       # Each course should have one and only one 'Teaching Assistants' section setup as part of Program launch.
       section = Section.find_by(course: course, section_type: Section::Type::TEACHING_ASSISTANTS)
       raise SyncSalesforceProgram::MissingSectionError.new(
-        "The '#{SectionConstants::TA_SECTION}' section is missing a local Platform Section for Course: #{course.inspect}. " +
+        "For Participant ID: #{@participant_sync_info.sfid} the '#{SectionConstants::TA_SECTION}' section is " +
+        "missing a local Platform Section for Course: #{course.inspect}. " +
         "This was supposed to be created as part of Program launch."
       ) if section.nil?
 
     else
-      raise SyncSalesforceProgram::SectionSetupError, "section_type '#{section_type}' not implemented"
+      raise SyncSalesforceProgram::SectionSetupError, "Participant ID: #{@participant_sync_info.sfid} has a section_type '#{section_type}' which is not implemented"
     end
 
     @sis_import_data_set.add_section(section)
@@ -174,7 +175,7 @@ private
 
     Sentry.capture_exception(e)
     raise SyncSalesforceProgram::SectionSetupError.new(
-      "Could not process section_type=#{section_type} for canvas_course_id=#{course.canvas_course_id}." +
+      "For Participant ID: #{@participant_sync_info.sfid} we could not process section_type=#{section_type} in canvas_course_id=#{course.canvas_course_id}." +
       "Check Sentry for more deatils."
     )
   end
@@ -238,7 +239,7 @@ private
   rescue => e
     Sentry.capture_exception(e)
     raise SyncSalesforceProgram::CreateSectionError.new(
-      "Failed to create a Section for: " +
+      "For Participant ID: #{@participant_sync_info.sfid} we failed to create a Section for: " +
       "canvas_course_id=#{course.canvas_course_id}, section_name='#{section_name}', section_type=#{section_type}. " +
       "See Sentry for more details."
     )
@@ -282,14 +283,14 @@ private
     return if @participant_sync_info.is_dropped? || @participant_sync_info.is_failed?
 
     if @participant_sync_info.role_category == SalesforceConstants::RoleCategory::TEACHING_ASSISTANT
-      raise ArgumentError, "ta_section is nil" if ta_section.nil?
+      raise ArgumentError, "For Participant ID: #{@participant_sync_info.sfid} the ta_section is nil" if ta_section.nil?
       @participant_sync_info.user.add_role @participant_sync_info.accelerator_course_role, ta_section
       return
     else
       # This shouldn't happen but is here to handle the scenario where a new Status is added.
       # e.g. before we handled Failed and Completed, we'd run the below code and give them a :StudentEnrollment
       # role with a nil section causing them to show up in the Take Attendance list for other Programs and Courses
-      raise ArgumentError, "cohort_schedule_section and cohort_section are nil" if cohort_schedule_section.nil? && cohort_section.nil?
+      raise ArgumentError, "For Participant ID: #{@participant_sync_info.sfid} the cohort_schedule_section and cohort_section are nil" if cohort_schedule_section.nil? && cohort_section.nil?
     end
 
     # Fellows and Leadership Coaches go in their Cohort Schedule section if they haven't
