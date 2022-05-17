@@ -56,7 +56,7 @@ function createParagraph( writer, text ) {
 
 function createPrivacyPolicyParagraph( writer ) {
     const paragraph = createParagraph( writer, LINKED_IN_NOTE );
-    writer.append( writer.createText( 'privacy policy', { 'linkHref': PRIVACY_POLICY_URL } ), paragraph );
+    writer.append( writer.createText( 'privacy policy', { 'linkHref': PRIVACY_POLICY_URL, 'linkOpenInNewTab': true } ), paragraph );
     writer.append( writer.createText( '.' ), paragraph );
     return paragraph;
 }
