@@ -39,6 +39,9 @@ class GenerateZoomLinks
   end
 
   def run
+    # Note: Do not add alerts here. Errors are either shown to the user running the tool in the
+    # UI or emailed to them if they happen in the job. The rest of Product Support doesn't need
+    # an alert.
     Honeycomb.add_field('generate_zoom_links.participants', participants_to_register)
     Honeycomb.add_field('generate_zoom_links.participants.count', participants_to_register.count)
 
@@ -47,7 +50,6 @@ class GenerateZoomLinks
     unless @failed_participants.empty?
       Rails.logger.error(@failed_participants.inspect)
       msg = "Failed to generate Zoom links. The following participants failed => #{@failed_participants.inspect}"
-      Honeycomb.add_alert('generate_zoom_links.failed_participants', msg)
       raise GenerateZoomLinksError, msg
     end
 
