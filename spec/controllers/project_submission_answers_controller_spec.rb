@@ -53,22 +53,22 @@ RSpec.describe ProjectSubmissionAnswersController, type: :controller do
     end
 
     context "as a Fellow" do
-      it_behaves_like 'a successful request' 
+      it_behaves_like 'a successful request'
     end
 
     context "as a TA" do
       let(:ta_section) { create :ta_section, course: course_project_version.course }
-      let(:ta_user) { create :ta_user, section: ta_section }
+      let(:ta_user) { create :ta_user, accelerator_section: ta_section }
       let(:user_viewing_submission) { ta_user }
 
-      it_behaves_like 'a successful request' 
+      it_behaves_like 'a successful request'
     end
 
     context "as an LC" do
-      let(:lc_user) { create :ta_user, section: section }
+      let(:lc_user) { create :ta_user, accelerator_section: section }
       let(:user_viewing_submission) { lc_user }
 
-      it_behaves_like 'a successful request' 
+      it_behaves_like 'a successful request'
     end
   end # 'GET #index'
 

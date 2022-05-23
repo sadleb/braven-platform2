@@ -70,7 +70,7 @@ class SyncSalesforceProgram
       unless @salesforce_program.is_launched?
         msg = "Program ID: #{@salesforce_program.sfid} hasn't been launched with Canvas courses yet."
         Honeycomb.add_field('sync_salesforce_program.skip_reason', msg)
-        return
+        return self
       end
 
       if @salesforce_program.accelerator_course.blank? || @salesforce_program.lc_playbook_course.blank?
@@ -106,13 +106,13 @@ class SyncSalesforceProgram
       # errors aren't associated with the last user we processed.
       Sentry.set_user({})
 
-      # Only send the SIS Import to Canvas if there are new changes that actually synced.
-      # This is to prevent continuously sending the same data to Canvas every sync if we
-      # have failing Participants that take some time for us to fix the underlying issue.
-      # For example, imagine we had one with a duplicate Contact and it took us a day to
-      # merge. If no other Participants had changes that actually got through the sync,
-      # we'd skip sending the same thing to Canvas that we just sent.
-      if @synced_new_canvas_changes
+      # Only send the SIS Import to Canvas if we force it or there are new changes that
+      # actually synced. This is to prevent continuously sending the same data to Canvas
+      # every sync if we have failing Participants that take some time for us to fix the
+      # underlying issue. For example, imagine we had one with a duplicate Contact and it
+      # took us a day to merge. If no other Participants had changes that actually got
+      # through the sync, we'd skip sending the same thing to Canvas that we just sent.
+      if @force_canvas_update || @synced_new_canvas_changes
         sis_import_status = @sis_import.send_to_canvas()
         @salesforce_program.courses.update_all(last_canvas_sis_import_id: sis_import_status.sis_import_id)
 
@@ -393,9 +393,5 @@ EOF
     end
 
     error_detail
-  end
-
-  def canvas_client
-    CanvasAPI.client
   end
 end

@@ -170,7 +170,7 @@ RSpec.describe User, type: :model do
     end
 
     context 'user is a non-student in the course' do
-      let(:user) { create :ta_user, section: section }
+      let(:user) { create :ta_user, accelerator_section: section }
 
       it { should eq(false) }
     end
@@ -190,7 +190,7 @@ RSpec.describe User, type: :model do
 
     context 'target user is not a Fellow in the course' do
       let(:ta_section) { create :ta_section, course: course }
-      let(:user) { create :ta_user, section: ta_section }
+      let(:user) { create :ta_user, accelerator_section: ta_section }
 
       context 'target user is a Fellow in another course' do
         let(:another_course) { create :course }
@@ -205,12 +205,12 @@ RSpec.describe User, type: :model do
       end
 
       context 'target user is another TA' do
-        let(:target_user) { create :ta_user, section: ta_section, canvas_user_id: 111 }
+        let(:target_user) { create :ta_user, accelerator_section: ta_section, canvas_user_id: 111 }
         it { should eq(false) }
       end
 
       context 'target user is an LC' do
-        let(:target_user) { create :ta_user, section: section, canvas_user_id: 111 }
+        let(:target_user) { create :ta_user, accelerator_section: section, canvas_user_id: 111 }
         it { should eq(false) }
       end
     end
@@ -220,7 +220,7 @@ RSpec.describe User, type: :model do
 
       context 'user is TA in course' do
         let(:ta_section) { create :ta_section, course: course }
-        let(:user) { create :ta_user, section: ta_section }
+        let(:user) { create :ta_user, accelerator_section: ta_section }
         it { should eq(true) }
 
         context 'with additional enrollment' do
@@ -235,7 +235,7 @@ RSpec.describe User, type: :model do
       context 'user is a TA in a different course' do
         let(:other_course) { create :course }
         let(:ta_section) { create :ta_section, course: other_course }
-        let(:user) { create :ta_user, section: ta_section }
+        let(:user) { create :ta_user, accelerator_section: ta_section }
         it { should eq(false) }
       end
 
@@ -251,7 +251,7 @@ RSpec.describe User, type: :model do
 
       context 'user is in the same section' do
         context 'as LC' do
-          let(:user) { create :ta_user, section: section }
+          let(:user) { create :ta_user, accelerator_section: section }
           it { should eq(false) }
         end
 
@@ -266,7 +266,7 @@ RSpec.describe User, type: :model do
       let(:another_course) { create :course }
 
       let(:ta_section) { create :ta_section, course: another_course }
-      let(:user) { create :ta_user, section: ta_section }
+      let(:user) { create :ta_user, accelerator_section: ta_section }
 
       let(:another_section) { create :section, course: another_course }
       let(:target_user) { create :fellow_user, section: another_section }
@@ -286,7 +286,7 @@ RSpec.describe User, type: :model do
 
       context 'user is an LC' do
         context 'in the same section' do
-          let(:user) { create :ta_user, section: section }
+          let(:user) { create :ta_user, accelerator_section: section }
           it { should eq(true) }
 
           context 'with multiple enrollments' do
@@ -301,14 +301,14 @@ RSpec.describe User, type: :model do
 
         context 'in a different section' do
           let(:another_section) { create :section, course: course }
-          let(:user) { create :ta_user, section: another_section }
+          let(:user) { create :ta_user, accelerator_section: another_section }
           it { should eq(false) }
         end
 
         context 'in a different course' do
           let(:another_course) { create :course }
           let(:another_section) { create :section, course: course }
-          let(:user) { create :ta_user, section: another_section }
+          let(:user) { create :ta_user, accelerator_section: another_section }
           it { should eq(false) }
         end
       end
@@ -320,13 +320,13 @@ RSpec.describe User, type: :model do
 
       context 'user is a TA in the course' do
         let(:ta_section) { create :ta_section, course: course }
-        let(:user) { create :ta_user, section: ta_section }
+        let(:user) { create :ta_user, accelerator_section: ta_section }
         it { should eq(false) }
       end
     end
 
     context 'target user is not a Fellow in the section' do
-      let(:user) { create :ta_user, section: section }
+      let(:user) { create :ta_user, accelerator_section: section }
 
       context 'target user is a Fellow' do
         context 'in another section/cohort' do
@@ -345,12 +345,12 @@ RSpec.describe User, type: :model do
 
       context 'target user is another TA in the course' do
         let(:ta_section) { create :ta_section, course: course }
-        let(:target_user) { create :ta_user, section: ta_section, canvas_user_id: 111 }
+        let(:target_user) { create :ta_user, accelerator_section: ta_section, canvas_user_id: 111 }
         it { should eq(false) }
       end
 
       context 'target user is another LC in the section' do
-        let(:target_user) { create :ta_user, section: section, canvas_user_id: 111 }
+        let(:target_user) { create :ta_user, accelerator_section: section, canvas_user_id: 111 }
         it { should eq(false) }
       end
 
@@ -363,7 +363,7 @@ RSpec.describe User, type: :model do
     context 'is LC for target but in different course' do
       let(:another_course) { create :course }
       let(:another_section) { create :section, course: another_course }
-      let(:user) { create :ta_user, section: another_section }
+      let(:user) { create :ta_user, accelerator_section: another_section }
       let(:target_user) { create :fellow_user, section: another_section }
 
       it { should eq(false) }
@@ -381,25 +381,25 @@ RSpec.describe User, type: :model do
 
       context 'user is a TA in the same course' do
         let(:ta_section) { create :ta_section, course: course }
-        let(:user) { create :ta_user, section: ta_section }
+        let(:user) { create :ta_user, accelerator_section: ta_section }
         it { should eq(true) }
       end
 
       context 'user is a TA in a different course' do
         let(:another_course) { create :course }
         let(:ta_section) { create :ta_section, course: another_course }
-        let(:user) { create :ta_user, section: ta_section }
+        let(:user) { create :ta_user, accelerator_section: ta_section }
         it { should eq(false) }
       end
 
       context 'user is an LC in the same section' do
-        let(:user) { create :ta_user, section: section }
+        let(:user) { create :ta_user, accelerator_section: section }
         it { should eq(true) }
       end
 
       context 'user is an LC in a different section' do
         let(:another_section) { create :section, course: course }
-        let(:user) { create :ta_user, section: another_section }
+        let(:user) { create :ta_user, accelerator_section: another_section }
         it { should eq(false) }
       end
 
@@ -489,7 +489,7 @@ RSpec.describe User, type: :model do
 
     it 'sets token/sent_at' do
       expect(user.signup_token).to eq(nil)
-      expect(user.signup_token_sent_at).to eq(nil)
+      user.update!(signup_token_sent_at: nil)
       subject
       expect(user.signup_token).not_to eq(nil)
       expect(user.signup_token_sent_at).not_to eq(nil)

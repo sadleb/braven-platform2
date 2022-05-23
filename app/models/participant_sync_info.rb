@@ -23,8 +23,19 @@ class ParticipantSyncInfo < ApplicationRecord
   # case there was a failure or delay sending the Platform User.Id to Salesforce.
   belongs_to :user, primary_key: :salesforce_id, foreign_key: :contact_id
 
-  belongs_to :cohort_schedule_section, primary_key: :salesforce_id, foreign_key: :cohort_schedule_id, class_name: Section.name, optional: true
-  belongs_to :cohort_section, primary_key: :salesforce_id, foreign_key: :cohort_id, class_name: Section.name, optional: true
+  belongs_to :accelerator_course,
+    primary_key: :canvas_course_id, foreign_key: :canvas_accelerator_course_id, class_name: Course.name
+  belongs_to :lc_playbook_course,
+    primary_key: :canvas_course_id, foreign_key: :canvas_lc_playbook_course_id, class_name: Course.name, optional: true
+
+  belongs_to :cohort_section, ->(psi) { where(course: psi.accelerator_course) },
+    primary_key: :salesforce_id, foreign_key: :cohort_id, class_name: Section.name, optional: true
+  belongs_to :accelerator_cohort_schedule_section, ->(psi) { where(course: psi.accelerator_course) },
+    primary_key: :salesforce_id, foreign_key: :cohort_schedule_id, class_name: Section.name, optional: true
+  belongs_to :lc_playbook_cohort_schedule_section, ->(psi) { where(course: psi.lc_playbook_course) },
+    primary_key: :salesforce_id, foreign_key: :cohort_schedule_id, class_name: Section.name, optional: true
+  # See lc_playbook_ta_section and accelerator_ta_section methods below for those ones.
+  # Can't use a belongs_to association with a custom scope b/c there is no actual foreign key relationship.
 
   # Define a module with a scope to be included in the HerokuConnect::Participant model.
   # It is responsbile for doing a fancy join / query that efficiently selects
@@ -217,6 +228,18 @@ class ParticipantSyncInfo < ApplicationRecord
     end
   end
 
+  def program
+    HerokuConnect::Program.find(program_id)
+  end
+
+  def lc_playbook_ta_section
+    Section.find_by(course: lc_playbook_course, section_type: Section::Type::TEACHING_ASSISTANTS)
+  end
+
+  def accelerator_ta_section
+    Section.find_by(course: accelerator_course, section_type: Section::Type::TEACHING_ASSISTANTS)
+  end
+
   def has_canvas_staff_permissions?
     role_category == SalesforceConstants::RoleCategory::TEACHING_ASSISTANT
   end
@@ -347,8 +370,8 @@ class ParticipantSyncInfo < ApplicationRecord
 
     def zoom_info_changed?
       (
-        zoom_meeting_id_1 != @last_sync_info&.zoom_meeting_id_1 ||
-        zoom_meeting_id_2 != @last_sync_info&.zoom_meeting_id_2 ||
+        zoom_meeting_id_1_changed? ||
+        zoom_meeting_id_2_changed? ||
         lc1_first_name != @last_sync_info&.lc1_first_name ||
         lc1_last_name != @last_sync_info&.lc1_last_name ||
         lc2_first_name != @last_sync_info&.lc2_first_name ||

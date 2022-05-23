@@ -71,6 +71,7 @@ class HerokuConnect::Program < HerokuConnect::HerokuConnectRecord
   # Note that this can't be an association (aka join) b/c in dev the HerokuConnect
   # and Platform databases aren't the same and you can't join across different databases.
   def accelerator_course
+    return nil if canvas_cloud_accelerator_course_id__c.blank?
     Course.find_by_canvas_course_id(canvas_cloud_accelerator_course_id__c)
   end
 
@@ -79,6 +80,7 @@ class HerokuConnect::Program < HerokuConnect::HerokuConnectRecord
   # Note that this can't be an association (aka join) b/c in dev the HerokuConnect
   # and Platform databases aren't the same and you can't join across different databases.
   def lc_playbook_course
+    return nil if canvas_cloud_lc_playbook_course_id__c.blank?
     Course.find_by_canvas_course_id(canvas_cloud_lc_playbook_course_id__c)
   end
 

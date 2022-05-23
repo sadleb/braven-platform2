@@ -374,7 +374,7 @@ RSpec.describe GradeCapstoneEvaluations do
 
   describe '#remaining_users' do
     let!(:fellow_with_no_submission) { create(:fellow_user, section: cohort_section) }
-    let!(:lc_with_no_submission) { create(:lc_user, section: cohort_section) }
+    let!(:lc_with_no_submission) { create(:lc_user, accelerator_section: cohort_section) }
 
     subject { grade_capstone_evaluations_service.remaining_users() }
 

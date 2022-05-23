@@ -172,7 +172,7 @@ RSpec.describe FellowEvaluationSubmissionsController, type: :controller do
     context 'as non-student (TA)' do
       # This is a TA in teh LC Playbook course, which I'm not sure we have,
       # but we want to check non-student enrollments in LC Playbook.
-      let(:user) { create :ta_user, section: lc_playbook_section }
+      let(:user) { create :ta_user, accelerator_section: lc_playbook_section }
       it_behaves_like 'not permitted'
     end
   end

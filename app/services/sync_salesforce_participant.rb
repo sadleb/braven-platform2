@@ -95,22 +95,23 @@ private
   end
 
   def set_lc_playbook_course_enrollments
-    return unless @participant_sync_info.is_enrolled?
-
     lc_playbook_course_role = @participant_sync_info.lc_playbook_course_role
     return if lc_playbook_course_role.nil?
 
     local_section = nil
-    case @participant_sync_info.role_category
-    when SalesforceConstants::RoleCategory::LEADERSHIP_COACH
-      local_section = set_canvas_section_enrollment(
-        @lc_playbook_course, Section::Type::COHORT_SCHEDULE, lc_playbook_course_role
-      )
 
-    when SalesforceConstants::RoleCategory::TEACHING_ASSISTANT
-      local_section = set_canvas_section_enrollment(
-        @lc_playbook_course, Section::Type::TEACHING_ASSISTANTS, lc_playbook_course_role, false
-      )
+    if @participant_sync_info.is_enrolled?
+      case @participant_sync_info.role_category
+      when SalesforceConstants::RoleCategory::LEADERSHIP_COACH
+        local_section = set_canvas_section_enrollment(
+          @lc_playbook_course, Section::Type::COHORT_SCHEDULE, lc_playbook_course_role
+        )
+
+      when SalesforceConstants::RoleCategory::TEACHING_ASSISTANT
+        local_section = set_canvas_section_enrollment(
+          @lc_playbook_course, Section::Type::TEACHING_ASSISTANTS, lc_playbook_course_role, false
+        )
+      end
     end
 
     sync_local_lc_playbook_enrollment(local_section)

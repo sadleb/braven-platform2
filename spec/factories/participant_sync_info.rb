@@ -32,7 +32,11 @@ FactoryBot.define do
     factory :participant_sync_info_ta do
       transient do
         participant { build :heroku_connect_ta_participant }
+        accelerator_ta_section { create :ta_section, course: program.accelerator_course }
+        lc_playbook_ta_section { create :ta_section, course: program.lc_playbook_course }
       end
+
+      user { create :ta_user, contact: contact, accelerator_section: accelerator_ta_section, lc_playbook_section: lc_playbook_ta_section }
 
       factory :participant_sync_info_ta_with_ta_caseload do
         ta_caseload_enrollments {
@@ -50,8 +54,9 @@ FactoryBot.define do
     end
 
     factory :participant_sync_info_with_cohort do
-      cohort_section { create :cohort_section, cohort: cohort }
-      cohort_schedule_section { create :cohort_schedule_section, cohort_schedule: cohort_schedule }
+      cohort_section { create :cohort_section, cohort: cohort, course: program.accelerator_course }
+      accelerator_cohort_schedule_section { create :cohort_schedule_section, cohort_schedule: cohort_schedule, course: program.accelerator_course }
+      lc_playbook_cohort_schedule_section { create :cohort_schedule_section, cohort_schedule: cohort_schedule, course: program.lc_playbook_course }
 
       cohort_schedule_id { cohort_schedule.sfid }
       cohort_schedule_weekday { cohort_schedule.weekday__c }
@@ -59,13 +64,13 @@ FactoryBot.define do
       zoom_meeting_id_1 { cohort_schedule.webinar_registration_1__c }
       zoom_meeting_id_2 { cohort_schedule.webinar_registration_2__c }
 
-      cohort_id { cohort.sfid }
-      cohort_section_name { cohort.name }
-      lc1_first_name { cohort.dlrs_lc1_first_name__c }
-      lc1_last_name { cohort.dlrs_lc1_last_name__c }
-      lc2_first_name { cohort.dlrs_lc_firstname__c }
-      lc2_last_name { cohort.dlrs_lc_lastname__c }
-      lc_count { cohort.dlrs_lc_total__c }
+      cohort_id { cohort&.sfid }
+      cohort_section_name { cohort&.name }
+      lc1_first_name { cohort&.dlrs_lc1_first_name__c }
+      lc1_last_name { cohort&.dlrs_lc1_last_name__c }
+      lc2_first_name { cohort&.dlrs_lc_firstname__c }
+      lc2_last_name { cohort&.dlrs_lc_lastname__c }
+      lc_count { cohort&.dlrs_lc_total__c }
 
       factory :participant_sync_info_fellow do
         transient do
@@ -74,9 +79,11 @@ FactoryBot.define do
         user { create :fellow_user, contact: contact, section: cohort_section }
 
         factory :participant_sync_info_fellow_unmapped do
-          # override the associations
+          transient do
+            cohort { nil}
+          end
           cohort_section { nil }
-          user { create :fellow_user, contact: contact, section: cohort_schedule_section }
+          user { create :fellow_user, contact: contact, section: accelerator_cohort_schedule_section }
         end
 
         factory :participant_sync_info_fellow_with_ta_caseload do
@@ -90,14 +97,14 @@ FactoryBot.define do
         transient do
           participant { build :heroku_connect_lc_participant }
         end
-        user { create :ta_user, contact: contact, section: cohort_section }
+        user { create :lc_user, contact: contact, accelerator_section: cohort_section, lc_playbook_section: lc_playbook_cohort_schedule_section }
       end
 
       factory :participant_sync_info_cp do
         transient do
           participant { build :heroku_connect_cp_participant }
         end
-        user { create :ta_user, contact: contact, section: cohort_section }
+        user { create :lc_user, contact: contact, accelerator_section: cohort_section, lc_playbook_section: lc_playbook_cohort_schedule_section }
       end
 
     end # participant_sync_info_with_cohort

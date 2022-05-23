@@ -17,12 +17,12 @@ FactoryBot.define do
     factory :unregistered_user do
 
       factory :unregistered_user_with_invalid_signup_token do
-        sequence(:signup_token) { "starter token" }
+        sequence(:signup_token) {|i| "token#{i}" }
         sequence(:signup_token_sent_at) { 1.year.ago }
       end
 
       factory :unregistered_user_with_valid_signup_token do
-        sequence(:signup_token) { "starter token" }
+        sequence(:signup_token) {|i| "token#{i}" }
         sequence(:signup_token_sent_at) { DateTime.now }
       end
     end
@@ -31,6 +31,13 @@ FactoryBot.define do
       sequence(:password) { |i| "Val!dPassword#{i}" }
       confirmed_at { DateTime.now }
       registered_at { DateTime.now }
+      signup_token_sent_at { DateTime.now }
+
+      # section only used in child factory callbacks.
+      transient do
+        section { build(:cohort_section) }
+        lc_playbook_section { build(:cohort_schedule_section) }
+      end
 
       factory :unconfirmed_user do
         confirmed_at { nil }
@@ -42,11 +49,6 @@ FactoryBot.define do
         confirmed_at { 1.day.ago }
         sequence(:confirmation_token) { |i| "13m9XK%09d" % i }
         unconfirmed_email { "#{email}.unconfirmed" }
-      end
-
-      # section only used in child factory callbacks.
-      transient do
-        section { build(:section) }
       end
 
       factory :fellow_user do
@@ -65,14 +67,26 @@ FactoryBot.define do
       end
 
       factory :ta_user do
+        transient do
+          accelerator_section { build(:ta_section) }
+          lc_playbook_section { build(:ta_section) }
+        end
+
         after :create do |user, options|
-          user.add_role RoleConstants::TA_ENROLLMENT, options.section
+          user.add_role RoleConstants::TA_ENROLLMENT, options.accelerator_section
+          user.add_role RoleConstants::STUDENT_ENROLLMENT, options.lc_playbook_section
         end
       end
 
       factory :lc_user do
+        transient do
+          accelerator_section { build(:ta_section) }
+          lc_playbook_section { build(:ta_section) }
+        end
+
         after :create do |user, options|
-          user.add_role RoleConstants::TA_ENROLLMENT, options.section
+          user.add_role RoleConstants::TA_ENROLLMENT, options.accelerator_section
+          user.add_role RoleConstants::STUDENT_ENROLLMENT, options.lc_playbook_section
         end
       end
 

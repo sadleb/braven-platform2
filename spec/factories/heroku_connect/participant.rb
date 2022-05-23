@@ -13,7 +13,7 @@ FactoryBot.define do
     association :record_type, factory: :heroku_connect_record_type
     association :contact, factory: :heroku_connect_contact
     association :candidate, factory: :heroku_connect_candidate
-    association :program, factory: :heroku_connect_program
+    association :program, factory: :heroku_connect_program_launched
     association :cohort, factory: :heroku_connect_cohort
     association :cohort_schedule, factory: :heroku_connect_cohort_schedule
 

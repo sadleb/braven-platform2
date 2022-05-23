@@ -128,12 +128,8 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
     end
 
     context 'as enrolled (LC) user' do
-      let!(:user) { create :ta_user, section: accelerator_section }
+      let!(:user) { create :lc_user, accelerator_section: accelerator_section, lc_playbook_section: lc_playbook_section }
       let(:accelerator_section2) { create :cohort_section, course: accelerator_course  }
-
-      before(:each) do
-        user.add_role RoleConstants::STUDENT_ENROLLMENT, lc_playbook_section
-      end
 
       context 'no attendance events' do
         it_behaves_like 'no attendance events'
@@ -240,10 +236,7 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
     end
 
     context 'as enrolled (LC) user' do
-      let(:user) { create :ta_user, section: accelerator_section }
-      before(:each) do
-        user.add_role RoleConstants::STUDENT_ENROLLMENT, lc_playbook_section
-      end
+      let(:user) { create :lc_user, accelerator_section: accelerator_section, lc_playbook_section: lc_playbook_section }
 
       it_behaves_like 'valid request'
 
@@ -452,7 +445,7 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
     end
 
     context 'as the LC' do
-      let(:user) { create :ta_user, section: accelerator_section }
+      let(:user) { create :lc_user, accelerator_section: accelerator_section }
       before(:each) do
         user.add_role RoleConstants::STUDENT_ENROLLMENT, lc_playbook_section
       end

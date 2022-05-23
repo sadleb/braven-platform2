@@ -5,7 +5,7 @@ require 'canvas_api'
 RSpec.describe SelectAttendanceEventByDate do
   let(:course) { create :course }
   let(:section) { create :section, course: course }
-  let(:ta_user) { create :ta_user, section: section }
+  let(:ta_user) { create :ta_user, accelerator_section: section }
   let(:fellow_user) { create :fellow_user, section: section }
   let(:date) { Time.now.utc }
   let(:assignment_overrides) { [] }

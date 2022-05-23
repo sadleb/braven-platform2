@@ -1,7 +1,6 @@
 FactoryBot.define do
   factory :heroku_connect_contact, class: 'heroku_connect/contact' do
     sequence(:id)
-    sequence(:platform_user_id__c)
 
     # Note: salesforce IDs need to be 18 chars and unique. It's important to use a slight
     # variation of the pattern for different factories to avoid collisions. We allow want to allow as
@@ -16,7 +15,12 @@ FactoryBot.define do
     name { "#{firstname} #{lastname}" }
     sequence(:email) {|i| "contact_email#{i}@example.com"}
     preferred_first_name__c { "#{firstname}_preferred" }
+    sequence(:platform_user_id__c)
     sequence(:canvas_cloud_user_id__c)
     sequence(:discord_user_id__c)
+
+    factory :heroku_connect_contact_signed_up, class: 'heroku_connect/contact' do
+      signup_date__c { Time.now.utc.strftime("%F %T") }
+    end
   end
 end

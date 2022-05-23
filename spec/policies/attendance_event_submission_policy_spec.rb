@@ -8,7 +8,7 @@ RSpec.describe AttendanceEventSubmissionPolicy, type: :policy do
 
   let(:course_attendance_event) { create :course_attendance_event, course: course }
 
-  let(:ta_user) { create :ta_user, section: section }
+  let(:ta_user) { create :ta_user, accelerator_section: section }
   let(:attendance_event_submission) { create(
     :attendance_event_submission,
     course_attendance_event: course_attendance_event,

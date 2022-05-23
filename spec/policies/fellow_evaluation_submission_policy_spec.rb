@@ -70,7 +70,7 @@ RSpec.describe FellowEvaluationSubmissionPolicy, type: :policy do
 
   permissions :show? do
     let(:admin_user) { create :admin_user }
-    let(:ta_user) { create :ta_user, section: section }
+    let(:ta_user) { create :ta_user, accelerator_section: section }
 
     before(:each) do
       fellow_evaluation_submission.update!(user: user)

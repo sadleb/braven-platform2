@@ -82,7 +82,7 @@ RSpec.describe CapstoneEvaluationSubmissionsController, type: :controller do
     end
 
     context 'as non-fellow (TA) user' do
-      let!(:user) { create :ta_user, section: section }
+      let!(:user) { create :ta_user, accelerator_section: section }
       let!(:fellow_user) { create :fellow_user, section: section }
 
       it_behaves_like 'valid request'
@@ -132,13 +132,8 @@ RSpec.describe CapstoneEvaluationSubmissionsController, type: :controller do
       let!(:student_course) { create :course }
       let!(:student_section) { create :section, course: student_course }
       let(:sf_client) { double(SalesforceAPI, get_accelerator_course_id_from_lc_playbook_course_id: student_course.canvas_course_id) }
-      let!(:user) { create :ta_user, section: student_section }
+      let!(:user) { create :lc_user, accelerator_section: student_section, lc_playbook_section: section }
       let!(:eval_user) { create :fellow_user, section: student_section }
-
-      before :each do
-        # Enroll the LC in the LC Playbook course as a Student.
-        user.add_role RoleConstants::STUDENT_ENROLLMENT, section
-      end
 
       it_behaves_like 'valid request'
 

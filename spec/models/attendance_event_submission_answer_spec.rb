@@ -10,7 +10,7 @@ RSpec.describe AttendanceEventSubmissionAnswer, type: :model do
   let(:section) { create :section, course: course }
 
   let(:fellow_user) { create :fellow_user, section: section }
-  let(:ta_user) { create :ta_user, section: section }
+  let(:ta_user) { create :ta_user, accelerator_section: section }
 
   let(:attendance_event) { create :attendance_event }
   let(:course_attendance_event) { create(

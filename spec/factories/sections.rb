@@ -36,9 +36,12 @@ FactoryBot.define do
     end
 
     factory :ta_caseload_section do
-      sequence(:name) { |i| "TA Caseload(#{i}" }
+      transient do
+        sequence(:ta_caseload_info) { |i| {"ta_name"=>"TAFirst xTestTALast#{i}", "ta_participant_id"=>"003x%011dSSB" % i} }
+      end
+      name { "TA Caseload(#{ta_caseload_info['ta_name']}" }
       section_type { Section::Type::TA_CASELOAD}
-      sequence(:salesforce_id) {|i| "003x%011dSSB" % i }
+      salesforce_id {"#{ta_caseload_info['ta_participant_id']}" }
     end
 
   end

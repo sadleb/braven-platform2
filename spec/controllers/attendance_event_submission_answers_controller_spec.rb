@@ -86,7 +86,7 @@ RSpec.describe AttendanceEventSubmissionAnswersController, type: :controller do
 
         context 'TA' do
           let(:salesforce_participant) { create :salesforce_participant_ta, zoom_meeting_link1: zoom_meeting_link1, zoom_meeting_link2: zoom_meeting_link2, zoom_meeting_link3: zoom_meeting_link3 }
-          let(:user) { create :ta_user, section: section }
+          let(:user) { create :ta_user, accelerator_section: section }
           it_behaves_like 'an LTI assignment launch'
           it_behaves_like 'shows the Zoom link'
         end

@@ -19,7 +19,6 @@ FactoryBot.define do
     factory :heroku_connect_program_unlaunched, class: 'heroku_connect/program' do
       canvas_cloud_accelerator_course_id__c { nil }
       canvas_cloud_lc_playbook_course_id__c { nil }
-      cohort_schedules { build_list(:heroku_connect_cohort_schedule, 2) }
     end
 
     factory :heroku_connect_program_launched, class: 'heroku_connect/program' do
@@ -30,7 +29,6 @@ FactoryBot.define do
 
       canvas_cloud_accelerator_course_id__c { accelerator_course.canvas_course_id }
       canvas_cloud_lc_playbook_course_id__c { lc_playbook_course.canvas_course_id }
-      cohort_schedules { build_list(:heroku_connect_cohort_schedule, 2) }
     end
 
   end

@@ -3,7 +3,8 @@
 require 'rails_helper'
 
 RSpec.describe InitializeNewCourse do
-  let(:destination_course_program) { build :heroku_connect_program_launched }
+  let(:cohort_schedules) { build_list(:heroku_connect_cohort_schedule, 2) }
+  let(:destination_course_program) { build :heroku_connect_program_launched, cohort_schedules: cohort_schedules }
   let(:source_course) { create :course_launched }
   let(:canvas_client) { instance_double(CanvasAPI) }
   let(:create_section_service) { instance_double(CreateSection) }
