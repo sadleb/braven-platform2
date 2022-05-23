@@ -19,9 +19,15 @@ RSpec.describe SalesforceAPI do
     WebMock.disable_net_connect!
   end
 
+  let(:access_token) { 'test-token' }
+  let(:login_response) { { 'instance_url' => SALESFORCE_INSTANCE_URL, 'access_token' => access_token }.to_json }
+
   before(:each) do
-    login_response = { 'instance_url' => SALESFORCE_INSTANCE_URL, 'access_token' => 'test-token' }.to_json
     stub_request(:post, "#{SALESFORCE_LOGIN_URL}/services/oauth2/token").to_return(body: login_response )
+  end
+
+  after(:each) do
+    SalesforceAPI.instance_variable_set(:@client_instance, nil)
   end
 
   describe '.client' do
@@ -41,6 +47,70 @@ RSpec.describe SalesforceAPI do
         .with(headers: {'Authorization'=>'Bearer test-token'}).once
     end
 
+  end
+
+  # Set rest_method before calling this and provide a run_method subject
+  shared_examples 'refreshes invalid access_tokens' do
+    let(:error_response_json) { '[{"message":"Session expired or invalid","errorCode":"INVALID_SESSION_ID"}]' }
+    let(:success_json) { '{"some_field":"some_value"}' }
+    let(:rest_path) { '/fake/endpoint' }
+    let(:new_access_token) { 'test-token2' }
+    let(:new_login_response) { { 'instance_url' => SALESFORCE_INSTANCE_URL, 'access_token' => new_access_token }.to_json }
+
+    before(:each) do
+      # sanity check
+      expect(SalesforceAPI.client.instance_variable_get(:@access_token)).to eq(access_token)
+      stub_request(:post, "#{SALESFORCE_LOGIN_URL}/services/oauth2/token").to_return(body: new_login_response)
+
+      stub_request(rest_method, "#{SALESFORCE_INSTANCE_URL}#{rest_path}").to_return(
+        {status: 401, body: error_response_json},
+        {status: 200, body: success_json}
+      )
+    end
+
+    it 'refreshes and retries' do
+      response = run_method()
+      expect(response.code).to eq(200)
+      expect(response.body).to eq(success_json)
+      expect(WebMock).to have_requested(rest_method, "#{SALESFORCE_INSTANCE_URL}#{rest_path}").twice
+      expect(WebMock).to have_requested(:post, "#{SALESFORCE_LOGIN_URL}/services/oauth2/token").twice
+      expect(SalesforceAPI.client.instance_variable_get(:@access_token)).to eq(new_access_token)
+    end
+  end
+
+  describe '#get' do
+    let(:rest_method) { :get }
+    subject 'run_method' do
+      SalesforceAPI.client.get(rest_path)
+    end
+    it_behaves_like 'refreshes invalid access_tokens'
+  end
+
+  describe '#post' do
+    let(:rest_method) { :post }
+    let(:rest_body) { {'some_key': 'some_value'} }
+    subject 'run_method' do
+      SalesforceAPI.client.post(rest_path, rest_body)
+    end
+    it_behaves_like 'refreshes invalid access_tokens'
+  end
+
+  describe '#put' do
+    let(:rest_method) { :put}
+    let(:rest_body) { {'some_key': 'some_value'} }
+    subject 'run_method' do
+      SalesforceAPI.client.put(rest_path, rest_body)
+    end
+    it_behaves_like 'refreshes invalid access_tokens'
+  end
+
+  describe '#patch' do
+    let(:rest_method) { :patch }
+    let(:rest_body) { {'some_key': 'some_value'} }
+    subject 'run_method' do
+      SalesforceAPI.client.patch(rest_path, rest_body)
+    end
+    it_behaves_like 'refreshes invalid access_tokens'
   end
 
   describe '#get_accelerator_course_id_from_lc_playbook_course_id' do

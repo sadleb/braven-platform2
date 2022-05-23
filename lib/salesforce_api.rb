@@ -96,19 +96,27 @@ class SalesforceAPI
   end
 
   def get(path, params={}, headers={})
-    RestClient.get("#{@salesforce_url}#{path}", {params: params}.merge(@global_headers.merge(headers)))
+    with_invalid_session_handling do
+      RestClient.get("#{@salesforce_url}#{path}", {params: params}.merge(@global_headers.merge(headers)))
+    end
   end
 
   def post(path, body, headers={})
-    RestClient.post("#{@salesforce_url}#{path}", body, @global_headers.merge(headers))
+    with_invalid_session_handling do
+      RestClient.post("#{@salesforce_url}#{path}", body, @global_headers.merge(headers))
+    end
   end
 
   def put(path, body, headers={})
-    RestClient.put("#{@salesforce_url}#{path}", body, @global_headers.merge(headers))
+    with_invalid_session_handling do
+      RestClient.put("#{@salesforce_url}#{path}", body, @global_headers.merge(headers))
+    end
   end
 
   def patch(path, body, headers={})
-    RestClient.patch("#{@salesforce_url}#{path}", body, @global_headers.merge(headers))
+    with_invalid_session_handling do
+      RestClient.patch("#{@salesforce_url}#{path}", body, @global_headers.merge(headers))
+    end
   rescue RestClient::InternalServerError => e
     # The following transient error happens when two things are trying to update the same
     # Salesforce record: https://developer.salesforce.com/forums/?id=9060G000000I2r1QAC
@@ -121,6 +129,31 @@ class SalesforceAPI
       result = RestClient.patch("#{@salesforce_url}#{path}", body, @global_headers.merge(headers))
       Honeycomb.add_field('salesforce_api.retry_success', true)
       result
+    else
+      raise
+    end
+  end
+
+  # Wrap a RestClient call with handling for when the access_token becomes invalid.
+  # We just refresh it.
+  def with_invalid_session_handling &block
+
+    # Original call.
+    block.call()
+
+  rescue RestClient::Unauthorized => e
+    # The following error happens when the access_token becomes invalid and we need to
+    # get a new one:
+    # [{"message":"Session expired or invalid","errorCode":"INVALID_SESSION_ID"}]
+    if e.http_body =~ /INVALID_SESSION_ID/
+      Honeycomb.add_field('salesforce_api.retry_authentication', e.inspect)
+
+      # Get a new access token. Note that since the client is just a singleton,
+      # refreshing the auth for this instance effectively refreshes it for all consumers.
+      authenticate()
+
+      # Retry
+      block.call()
     else
       raise
     end
