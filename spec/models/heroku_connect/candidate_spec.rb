@@ -44,4 +44,33 @@ RSpec.describe HerokuConnect::Candidate, type: :model do
     end
   end
 
+  describe '#is_teaching_assistant?' do
+    context 'with a candidate who is a teaching assistant' do
+      let(:candidate) { build :heroku_connect_ta_candidate, coach_partner_role__c: SalesforceConstants::Role::TEACHING_ASSISTANT}
+      it 'returns true' do
+        expect(candidate.is_teaching_assistant?).to eq(true)
+      end
+    end
+
+    context 'with a candidate who has an empty role is a teaching assistant' do
+      let(:candidate) { build :heroku_connect_ta_candidate, coach_partner_role__c: nil}
+      it 'returns true' do
+        expect(candidate.is_teaching_assistant?).to eq(true)
+      end
+    end
+
+    context 'with a candidate who is not a teaching assistant (staff)' do
+      let(:candidate) { build :heroku_connect_ta_candidate, coach_partner_role__c: SalesforceConstants::Role::STAFF }
+      it 'returns true' do
+        expect(candidate.is_teaching_assistant?).to eq(false)
+      end
+    end
+
+    context 'with a test user candidate who is a teaching assistant' do
+      let(:candidate) { build :heroku_connect_ta_candidate, coach_partner_role__c: :Test}
+      it 'returns true' do
+        expect(candidate.is_teaching_assistant?).to eq(true)
+      end
+    end
+  end
 end

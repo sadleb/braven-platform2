@@ -229,6 +229,13 @@ Rails.application.routes.draw do
   get 'generate_zoom_links', to: 'zoom#init_generate_zoom_links'
   post 'generate_zoom_links', to: 'zoom#generate_zoom_links'
 
+  # Generate Test Users
+  get 'generate_test_users', to: 'test_users#index'
+  post 'generate_test_users', to: 'test_users#post'
+  get '/test_users/cohort_schedules/:id', to: 'test_users#cohort_schedules'
+  get '/test_users/cohort_sections/:id', to: 'test_users#cohort_sections'
+  get '/test_users/tas/:id', to: 'test_users#get_program_tas'
+
   # Schedule Discord messages
   resources :discord_schedule, only: [:index, :new, :create, :destroy]
   resources :discord_servers, only: [:index, :new, :create, :destroy] do

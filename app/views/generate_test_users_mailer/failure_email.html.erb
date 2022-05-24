@@ -1,0 +1,43 @@
+<p>Uh oh! The test user generation process failed.</p>
+
+<% if @failed_users.present? %>
+  <p>The following test users failed to generate:</p>
+  <ol>
+    <% @failed_users.each do |user| %>
+      <li>
+        <ul>
+          <li>Email: <%= user['email'] %></li>
+          <li>First Name: <%= user['first_name'] %></li>
+          <li>Last Name: <%= user['last_name'] %></li>
+          <li>Error Detail: <%= user['error_detail'] %></li>
+          <li>Error Messages: <%= user['error_message'] %></li>
+        </ul>
+      </li>
+    <% end %>
+  </ol>
+<% elsif @sync_error.present? %>
+  <p>There was an error syncing some users to Canvas. Below is the error.</p>
+  <pre><strong><%= @sync_error %></strong></pre>
+<% else %>
+  <p>We failed to generate test users. Below is the error.</p>
+  <pre><strong><%= @exception.class %>: <%= @exception.message %></strong><pre>
+<% end %>
+
+<% if @success_users.present? %>
+  <hr>
+  <p>The following test users generated successfully</p>
+  <p>You can register your test user(s) by using the signup links below. If a user is missing a signup link, they may have been created successfully in Salesforce, but did not get synced properly to Canvas.</p>
+
+  <ol>
+    <% @success_users.each do |user| %>
+    <li>
+      <a href="#" style="text-decoration: none; color:#222"><%= user['email'] %></a>:
+      <% if user['signup_token'].blank? %>
+        <span>No signup link created</span>
+      <% else %>
+        <%= link_to 'User Signup Link', user['signup_url'] %>
+      <% end %>
+    </li>
+    <% end %>
+  </ol>
+<% end %>

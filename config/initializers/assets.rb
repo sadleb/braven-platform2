@@ -21,6 +21,7 @@ Rails.application.config.assets.precompile += %w( layouts/form_assembly.css )
 Rails.application.config.assets.precompile += %w( layouts/rise360_container.css )
 Rails.application.config.assets.precompile += %w( rise360_content.css )
 Rails.application.config.assets.precompile += %w( braven_network.css )
+Rails.application.config.assets.precompile += %w( test_users.css )
 
 # Add fonts to precompile
 Rails.application.config.assets.precompile << /\.(?:svg|eot|woff|ttf)\z/

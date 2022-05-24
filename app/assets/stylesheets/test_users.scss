@@ -1,0 +1,8 @@
+@import "shared/variables";
+
+div.test-user-form {
+  label.required::after {
+    content: ' *';
+    color: $bv-red;
+  }
+}

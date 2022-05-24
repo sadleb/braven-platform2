@@ -1,0 +1,65 @@
+<% content_for :head do %>
+  <%= stylesheet_link_tag 'test_users', media: 'all', 'data-turbolinks-track': 'reload' %>
+  <%= javascript_pack_tag 'test_users', 'data-turbolinks-track': 'reload' %>
+<% end %>
+
+<% content_for :headline do %>
+  Generate Test Users
+<% end %>
+
+<% content_for(:breadcrumbs) do %>
+  <li class="breadcrumb-item ml-3"><%= link_to "Home", root_path %></li>
+  <li class="breadcrumb-item active" aria-current="page">Generate Test Users</li>
+<% end %>
+
+<div class="col-md-7">
+  <%= form_with(url: generate_test_users_path, method: "post", local: true, autocomplete: "off") do |form| %>
+    <div id="form-container" class="test-user-form">
+      <div class="row form-section mb-5">
+        <div class="col-10">
+          <div class="form-group mb-1">
+            <%= form.label :role, "Select role:", class: "required" %>
+            <%= form.select('role[]', @role_options, {}, required: true, class: 'form-control mb-0 select-element role-select') %>
+          </div>
+          <div class="form-group mb-1">
+            <%= form.label :program_id, "Select program:", class: "required" %>
+            <%= form.select('program_id[]', @program_options, {}, required: true, class: 'form-control mb-0 select-element program-select') %>
+          </div>
+          <div class="form-group mb-1 cohort-schedule-area cohort-area" hidden="true">
+            <%= form.label :cohort_schedule, "Select cohort schedule:", class: "required" %>
+            <%= form.select('cohort_schedule[]', ['Choose a program first'], {}, disabled: true, class: 'form-control mb-0 select-element cohort-schedule-select') %>
+          </div>
+          <div class="form-group mb-1 cohort-section-area cohort-area" hidden="true">
+            <%= form.label :cohort_section, "Select cohort section:" %>
+            <%= form.select('cohort_section[]', ['Choose a cohort schedule first'], {}, disabled: true, class: 'form-control mb-0 select-element cohort-section-select') %>
+          </div>
+          <div class="form-group mb-1 ta-form-area" hidden="true">
+            <%= form.label :ta, "Select a TA assignment:" %>
+            <%= form.select('ta[]', ['Choose a program first'], {}, disabled: true, class: 'form-control mb-0 select-element ta-select') %>
+          </div>
+          <div class="form-group mb-1">
+            <%= form.label :first_name, "First Name:", class: "required" %>
+            <%= form.text_field 'first_name[]', class: "form-control mb-0", required: true, placeholder: "First name" %>
+          </div>
+          <div class="form-group mb-1">
+            <%= form.label :tag, "Tag: (e.g AttendanceShowLatest, DryRun)", class: "required" %>
+            <%= form.text_field 'tag[]', class: "form-control mb-0", required: true, maxlength: "25", placeholder: "Tag" %>
+          </div>
+          <div class="form-group mb-1">
+            <%= form.label :email, "Email you are creating test user for:", class: "required" %>
+            <%= form.email_field 'email[]', class: "form-control mb-0", required: true, placeholder: "you@example.com", autocomplete: "email" %>
+          </div>
+        </div>
+        <div class="col-2 btn-div">
+          <%= button_tag "Clone", class: "btn btn-sm mb-0 clone-btn" %>
+          <%= button_tag "Delete", class: "btn btn-sm delete-btn" %>
+        </div>
+      </div>
+    </div>
+    <%= button_tag "Add Another User", class: "btn btn-md mt-0", id: "add-btn" %>
+
+    <div class="actions">
+      <%= form.submit "Generate Test User(s)", class: "btn btn-primary", id: "generate-btn" %>
+    </div>
+  <% end %>
+</div>

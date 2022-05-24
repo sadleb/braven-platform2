@@ -301,6 +301,11 @@ class SalesforceAPI
      patch("#{DATA_SERVICE_PATH}/sobjects/Participant__c/#{id}", fields_to_set.to_json, JSON_HEADERS)
   end
 
+  def update_candidate(candidate_id, fields_to_set)
+    response = patch("#{DATA_SERVICE_PATH}/sobjects/Candidate__c/Id/#{candidate_id}", fields_to_set.to_json, JSON_HEADERS)
+    JSON.parse(response.body)
+  end
+
   # Get information about a Contact record
   def get_contact_info(contact_id)
     response = get("#{DATA_SERVICE_PATH}/sobjects/Contact/#{contact_id}" \
@@ -367,6 +372,21 @@ class SalesforceAPI
   # See: https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/dome_upsert.htm
   def create_or_update_contact(email, fields_to_set)
      response = patch("#{DATA_SERVICE_PATH}/sobjects/Contact/Email/#{email}", fields_to_set.to_json, JSON_HEADERS)
+     JSON.parse(response.body)
+  end
+
+  def create_candidate(fields_to_set)
+    response = post("#{DATA_SERVICE_PATH}/sobjects/Candidate__c", fields_to_set.to_json, JSON_HEADERS)
+    JSON.parse(response.body)
+  end
+
+  def create_participant(fields_to_set)
+    response = post("#{DATA_SERVICE_PATH}/sobjects/Participant__c", fields_to_set.to_json, JSON_HEADERS)
+    JSON.parse(response.body)
+  end
+
+  def create_ta_assignment(fields_to_set)
+     response = post("#{DATA_SERVICE_PATH}/sobjects/TA_Assignment__c", fields_to_set.to_json, JSON_HEADERS)
      JSON.parse(response.body)
   end
 
