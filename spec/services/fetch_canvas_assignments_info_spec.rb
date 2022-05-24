@@ -12,23 +12,6 @@ RSpec.describe FetchCanvasAssignmentsInfo do
     allow(canvas_client).to receive(:get_assignments).and_return(assignments)
   end
 
-  context 'for fellow evaluation' do
-    let(:lti_launch_url) { new_course_fellow_evaluation_submission_path(course) }
-    let(:assignment) { create(
-      :canvas_assignment,
-      course_id: course.canvas_course_id,
-      name: 'Fellow Assessment',
-      lti_launch_url: lti_launch_url,
-    ) }
-    let(:assignments) { [ assignment ] }
-
-    it 'detects a fellow evaluation assignment' do
-      assignments_info = FetchCanvasAssignmentsInfo.new(course.canvas_course_id).run
-      expect(assignments_info.canvas_fellow_evaluation_url).to match(/\/courses\/#{course.canvas_course_id}\/assignments\/#{assignment['id']}/)
-      expect(assignments_info.canvas_fellow_evaluation_assignment_id).to eq(assignment['id'])
-    end
-  end
-
   context 'for capstone evaluations' do
     let(:capstone_evaluations_lti_launch_url) { new_course_capstone_evaluation_submission_path(course) }
     let(:capstone_evaluations_assignment) { create(

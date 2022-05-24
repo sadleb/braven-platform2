@@ -1,3 +1,5 @@
+# DEPRECATED: This feature has been removed. The models/tables are left
+# in place for access to historical data.
 
 # This it our custom key-value model for storing LC responses for Fellow
 # Evaluations.

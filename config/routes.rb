@@ -87,7 +87,6 @@ Rails.application.routes.draw do
     end
 
     resources :capstone_evaluation_submissions, only: [:new, :create]
-    resources :fellow_evaluation_submissions, only: [:new, :create]
 
     resources :waivers, only: [] do
       collection do
@@ -118,13 +117,6 @@ Rails.application.routes.draw do
     end
 
     resources :postaccelerator_surveys, controller: 'accelerator_surveys', type: 'Post', only: [] do
-      collection do
-        post :publish
-        delete :unpublish
-      end
-    end
-
-    resources :fellow_evaluations, only: [] do
       collection do
         post :publish
         delete :unpublish
@@ -196,8 +188,6 @@ Rails.application.routes.draw do
       get :completed
     end
   end
-
-  resources :fellow_evaluation_submissions, only: [:show]
 
   resources :rate_this_module_submissions, only: [:edit, :update] do
     collection do

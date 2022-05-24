@@ -51,11 +51,6 @@ private
       initialize_new_capstone_evaluation(canvas_assignment_info.canvas_capstone_evaluations_assignment_id)
     end
 
-    # Fellow evalution
-    if canvas_assignment_info.canvas_fellow_evaluation_assignment_id
-      initialize_new_fellow_evaluation(canvas_assignment_info.canvas_fellow_evaluation_assignment_id)
-    end
-
     # Waivers, Modules, Pre-, and Post-Accelerator assignments don't need their
     # LTI launch URLs updated for a new course because they use course-agnostic
     # endpoints.
@@ -124,14 +119,6 @@ private
       @new_course.canvas_course_id,
       canvas_assignment_id,
       new_course_capstone_evaluation_submission_url(@new_course, protocol: 'https'),
-    )
-  end
-
-  def initialize_new_fellow_evaluation(canvas_assignment_id)
-    CanvasAPI.client.update_assignment_lti_launch_url(
-      @new_course.canvas_course_id,
-      canvas_assignment_id,
-      new_course_fellow_evaluation_submission_url(@new_course, protocol: 'https'),
     )
   end
 

@@ -1,3 +1,5 @@
+# DEPRECATED: This feature has been removed. The models/tables are left
+# in place for access to historical data.
 
 # This is created when a Leadership Coach reviews their Fellows in their
 # Fellow Evaluation assignment.

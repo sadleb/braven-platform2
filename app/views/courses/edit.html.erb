@@ -122,24 +122,6 @@
 
         <div class="form-group">
           <div class="row">
-            <span class="col-md-3">Fellow Evaluation</span>
-            <span class="col-md-9 align-right"><small><em>Note: add this to LC Playbook (not Accelerator) courses</em></small></span>
-          </div>
-          <div class="row">
-            <% if has_fellow_evaluation? %>
-              <%= link_to 'View Fellow Evaluation', canvas_fellow_evaluation_url, class: 'col-md-10' %>
-              <%= link_to 'Delete', unpublish_course_fellow_evaluations_path(@course, canvas_assignment_id: canvas_fellow_evaluation_assignment_id),
-                                    method: :delete, class: 'btn btn-secondary col-md-2 my-0',
-                                    data: { confirm: 'Are you sure you want to delete the Fellow Evaluation assignment?' } %>
-            <% else %>
-              <span class="col-md-10"><em>No Fellow Evaluation Assignment</em></span>
-              <%= link_to 'Add', publish_course_fellow_evaluations_path(@course), method: :post, class: 'btn btn-secondary col-md-2 my-0' %>
-            <% end %>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <div class="row">
             <span class="col-md-3">Discord Signups</span>
             <span class="col-md-9 align-right"><small><em>Note: add this to Accelerator (not LC Playbook) courses</em></small></span>
           </div>
