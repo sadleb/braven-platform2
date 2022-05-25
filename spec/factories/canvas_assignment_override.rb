@@ -14,6 +14,10 @@ FactoryBot.define do
     lock_at { nil }
     unlock_at { nil }
 
+    # Note: assignment_name is added by our canvas_api.get_assignment_overrides_for_course.
+    # It does NOT exist in the original Canvas API responses.
+    sequence(:assignment_name) {|i| "Example Assignment#{i}"}
+
     factory :canvas_assignment_override_due do
       # Arbitrary non-nil due date.
       due_at { 3.days.from_now.utc.to_time.iso8601 }
