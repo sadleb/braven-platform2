@@ -104,7 +104,7 @@ class GenerateTestUsers
 
     unless @user_contact_ids.empty?
       # Add a delay to ensure participants are finished being created in Salesforce before we try to sync them
-      sleep 30
+      sleep 1.minute
       sync_programs
     end
   end
@@ -158,7 +158,7 @@ private
     email_part_two = @params['email'][user_index].split('@')[1]
 
     email_to_check = "#{email_part_one}+#{last_name}@#{email_part_two}"
-    user_number = check_user_existence(email_to_check)
+    user_number = get_unique_suffix(email_to_check)
 
     full_email = "#{email_part_one}+#{last_name}#{user_number}@#{email_part_two}"
     last_name = "#{last_name}#{user_number}"
@@ -170,15 +170,19 @@ private
   # If there is already a user with the email, increment one and add it
   # to the email until you find an email without an existing user.
   # Return the number to be added to the email and last_name for the new user
-  def check_user_existence(original_email)
+  def get_unique_suffix(original_email)
     email = original_email.downcase
-    return if HerokuConnect::Contact.where(email: email).empty?
+    previous_user_emails = @user_contact_ids.map{|u| u['email'].downcase}
 
-    count = 0
-    while HerokuConnect::Contact.where(email: email).exists?
+    # The email can be used as is if it doesn't already exists in the database or in the users we
+    # previously generated while running this service now, otherwise we need to add an incrementor to the email
+    count = nil
+    while HerokuConnect::Contact.where(email: email).exists? || previous_user_emails.include?(email)
+      count ||= 0
       count = count + 1
       email = original_email.downcase.gsub(/@/, "#{count}@")
     end
+
     count
   end
 
