@@ -3,10 +3,11 @@
 class AcceleratorSurveySubmissionPolicy < ApplicationPolicy
 
   def show?
-    # Delegate to logic in the user model.
-    return true if user&.can_access?(record)
+    # Only Fellows can take these surveys.
+    # Delegate to logic in the user model for extra checks.
+    return true if user&.is_enrolled_as_student?(record&.course) && user&.can_access?(record)
 
-    raise Pundit::NotAuthorizedError, message: ERROR_ENROLLMENT_SUBMISSION
+    raise Pundit::NotAuthorizedError, message: "Only Fellows need to complete this survey."
   end
 
   def new?

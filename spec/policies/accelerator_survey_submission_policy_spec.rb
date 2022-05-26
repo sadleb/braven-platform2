@@ -14,23 +14,13 @@ RSpec.describe AcceleratorSurveySubmissionPolicy, type: :policy do
   subject { described_class }
 
   permissions :completed? do
-    it "allows any admin user to view the submission confirmation page" do
-      user.add_role :admin
-      expect(subject).to permit user, accelerator_survey_submission
-    end
-
-    it "allows a ta user to view a submission confirmations" do
-      user.add_role RoleConstants::STUDENT_ENROLLMENT, section
-      ta_user = create(:registered_user)
-      ta_user.add_role RoleConstants::TA_ENROLLMENT, ta_section
-      expect(subject).to permit ta_user, accelerator_survey_submission
-    end
-
-    it "allows an lc user to view a submission confirmation for one of their students" do
+    it "disallows an lc user to open the survey" do
       user.add_role RoleConstants::STUDENT_ENROLLMENT, section
       lc_user = create(:registered_user)
       lc_user.add_role RoleConstants::TA_ENROLLMENT, section
-      expect(subject).to permit lc_user, accelerator_survey_submission
+      expect {
+        expect(subject).not_to permit lc_user, accelerator_survey_submission
+      }.to raise_error(Pundit::NotAuthorizedError)
     end
 
     it "allows users to see their own submission confirmation" do
@@ -76,18 +66,8 @@ RSpec.describe AcceleratorSurveySubmissionPolicy, type: :policy do
   end
 
   permissions :new? do
-    it "allows any admin user to see the accelerator survey form" do
-      user.add_role :admin
-      expect(subject).to permit user, accelerator_survey_submission
-    end
-
     it "allows any fellow enrolled in course to see the accelerator survey form" do
       user.add_role RoleConstants::STUDENT_ENROLLMENT, section
-      expect(subject).to permit user, accelerator_survey_submission
-    end
-
-    it "allows any TA enrolled in course to see the accelerator survey form" do
-      user.add_role RoleConstants::TA_ENROLLMENT, section
       expect(subject).to permit user, accelerator_survey_submission
     end
 
@@ -99,18 +79,8 @@ RSpec.describe AcceleratorSurveySubmissionPolicy, type: :policy do
   end
 
   permissions :launch? do
-    it "allows any admin user to see the accelerator survey launch button" do
-      user.add_role :admin
-      expect(subject).to permit user, accelerator_survey_submission
-    end
-
     it "allows any fellow enrolled in course to see the accelerator survey launch button" do
       user.add_role RoleConstants::STUDENT_ENROLLMENT, section
-      expect(subject).to permit user, accelerator_survey_submission
-    end
-
-    it "allows any TA enrolled in course to see the accelerator survey launch button" do
-      user.add_role RoleConstants::TA_ENROLLMENT, section
       expect(subject).to permit user, accelerator_survey_submission
     end
 
