@@ -575,6 +575,8 @@ RSpec.describe CanvasAPI do
     before :each do
       override1.delete('id')
       override2.delete('id')
+      override1.delete('assignment_name')
+      override2.delete('assignment_name')
     end
 
     it 'hits the Canvas API correctly' do
