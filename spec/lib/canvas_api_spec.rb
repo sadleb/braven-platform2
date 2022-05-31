@@ -587,7 +587,7 @@ RSpec.describe CanvasAPI do
       canvas.create_assignment_overrides(course_id, overrides)
 
       expect(WebMock).to have_requested(:post, request_url).once
-      expect(WebMock).to have_requested(:post, request_url).with(body: "assignment_overrides[][assignment_id]=1&assignment_overrides[][due_at]&assignment_overrides[][all_day]=false&assignment_overrides[][all_day_date]&assignment_overrides[][lock_at]&assignment_overrides[][unlock_at]&assignment_overrides[][title]=Test+-+Section7&assignment_overrides[][course_section_id]=3&assignment_overrides[][assignment_id]=1&assignment_overrides[][due_at]&assignment_overrides[][all_day]=false&assignment_overrides[][all_day_date]&assignment_overrides[][lock_at]&assignment_overrides[][unlock_at]&assignment_overrides[][title]=Test+-+Section8&assignment_overrides[][course_section_id]=4")
+      expect(WebMock).to have_requested(:post, request_url).with(body: "assignment_overrides[][assignment_id]=1&assignment_overrides[][due_at]&assignment_overrides[][all_day]=false&assignment_overrides[][all_day_date]&assignment_overrides[][lock_at]&assignment_overrides[][unlock_at]&assignment_overrides[][title]=#{override1['title'].gsub(' ', '+')}&assignment_overrides[][course_section_id]=3&assignment_overrides[][assignment_id]=1&assignment_overrides[][due_at]&assignment_overrides[][all_day]=false&assignment_overrides[][all_day_date]&assignment_overrides[][lock_at]&assignment_overrides[][unlock_at]&assignment_overrides[][title]=#{override2['title'].gsub(' ', '+')}&assignment_overrides[][course_section_id]=4")
     end
   end
 
