@@ -37,15 +37,14 @@ class DiscordSignupsController < ApplicationController
 
     program_id = course.salesforce_program_id
 
-    participant = SalesforceAPI.client.find_participant(
-      contact_id: current_user.salesforce_id, program_id: program_id
+    participant = HerokuConnect::Participant.with_discord_info.find_participant(
+      current_user.salesforce_id, program_id
     )
     participant.add_to_honeycomb_span()
 
-    # Show Staff/Faculty/Test TAs a different page, so they can't use this.
-    # Note: We will likely adjust how this is determined later. See the Slack
-    # discussions in this task for more info: https://app.asana.com/0/0/1201314155101899/f
-    if participant.role == SalesforceAPI::TEACHING_ASSISTANT && participant.volunteer_role != 'Teaching Assistant'
+    # Show Staff/Faculty a different page, so they can't use this.
+    # Checks if participant has a TA record type, but they aren't an actual TA (meaning they are staff or faculty)
+    if participant.role_category == SalesforceConstants::RoleCategory::TEACHING_ASSISTANT && !participant.is_teaching_assistant?
       return render :no_discord
     end
 

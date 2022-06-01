@@ -5,8 +5,7 @@ RSpec.describe AttendanceEventSubmissionAnswersController, type: :controller do
 
   describe 'GET #launch' do
 
-    let(:salesforce_participant_struct) { SalesforceAPI.participant_to_struct(salesforce_participant) }
-    let(:course) { create :course, salesforce_program_id: salesforce_participant_struct.program_id }
+    let(:course) { create :course, salesforce_program_id: participant.program_id }
     let(:section) { create :section, course: course }
     let(:course_attendance_event) { create(
       :course_attendance_event,
@@ -19,15 +18,14 @@ RSpec.describe AttendanceEventSubmissionAnswersController, type: :controller do
         canvas_assignment_id: course_attendance_event.canvas_assignment_id,
       )
     }
-    let(:sf_client) { double(SalesforceAPI, find_participant: salesforce_participant_struct) }
 
     # Defaults. Must be overriden in tests
     let(:user) { nil }
-    let(:salesforce_participant) { nil }
+    let(:participant) { nil }
     let(:attendance_event) { nil }
 
     before(:each) do
-      allow(SalesforceAPI).to receive(:client).and_return(sf_client)
+      allow(HerokuConnect::Participant).to receive(:find_participant).and_return(participant)
     end
 
     subject { get :launch, params: { state: lti_launch.state } }
@@ -40,7 +38,6 @@ RSpec.describe AttendanceEventSubmissionAnswersController, type: :controller do
 
       context 'non-enrolled user' do
         let(:course) { create :course }
-        let(:salesforce_participant_struct) { nil }
         let(:user) { create :registered_user }
 
         it 'does not authorize access' do
@@ -50,7 +47,7 @@ RSpec.describe AttendanceEventSubmissionAnswersController, type: :controller do
     end
 
     shared_examples 'attendance event without Zoom link' do
-      let(:salesforce_participant) { create :salesforce_participant, zoom_meeting_link1: nil, zoom_meeting_link2: nil, zoom_meeting_link3: nil }
+      let(:participant) { build :heroku_connect_participant, webinar_access_1__c: nil, webinar_access_2__c: nil, webinar_access_3__c: nil }
       let(:user) { create :fellow_user, section: section }
 
       it_behaves_like 'an LTI assignment launch'
@@ -78,14 +75,14 @@ RSpec.describe AttendanceEventSubmissionAnswersController, type: :controller do
         end
 
         context 'Fellow' do
-          let(:salesforce_participant) { create :salesforce_participant_fellow, zoom_meeting_link1: zoom_meeting_link1, zoom_meeting_link2: zoom_meeting_link2, zoom_meeting_link3: zoom_meeting_link3 }
+          let(:participant) { build :heroku_connect_fellow_participant, webinar_access_1__c: zoom_meeting_link1, webinar_access_2__c: zoom_meeting_link2, webinar_access_3__c: zoom_meeting_link3 }
           let(:user) { create :fellow_user, section: section }
           it_behaves_like 'an LTI assignment launch'
           it_behaves_like 'shows the Zoom link'
         end
 
         context 'TA' do
-          let(:salesforce_participant) { create :salesforce_participant_ta, zoom_meeting_link1: zoom_meeting_link1, zoom_meeting_link2: zoom_meeting_link2, zoom_meeting_link3: zoom_meeting_link3 }
+          let(:participant) { build :heroku_connect_ta_participant, webinar_access_1__c: zoom_meeting_link1, webinar_access_2__c: zoom_meeting_link2, webinar_access_3__c: zoom_meeting_link3 }
           let(:user) { create :ta_user, accelerator_section: section }
           it_behaves_like 'an LTI assignment launch'
           it_behaves_like 'shows the Zoom link'

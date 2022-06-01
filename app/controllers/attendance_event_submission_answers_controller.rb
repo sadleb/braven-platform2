@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-require 'salesforce_api'
 
 # Represents the attendance answer (aka attendance status) submitted for a
 # Fellow (student) for a given event (e.g. a Learning Lab). An
@@ -43,7 +42,7 @@ private
     zoom_link_to_show = AttendanceEvent::ZOOM_MEETING_LINK_ATTRIBUTE_FOR[@attendance_event.event_type.to_sym]
     if zoom_link_to_show
       program_id = @course_attendance_event.course.salesforce_program_id
-      participant = SalesforceAPI.client.find_participant(contact_id: current_user.salesforce_id, program_id: program_id)
+      participant = HerokuConnect::Participant.find_participant(current_user.salesforce_id, program_id)
 
       # Make it easier to debug and be extra defensive if values other than the three attributes
       # we're allowing to be dynamically sent to the struct in order to get the Zoom links are used.

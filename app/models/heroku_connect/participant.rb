@@ -33,9 +33,33 @@ class HerokuConnect::Participant < HerokuConnect::HerokuConnectRecord
       :program__c,
       :cohort__c,
       :cohort_schedule__c,
-      :webinar_access_1__c, :webinar_access_2__c,
+      :webinar_access_1__c,
+      :webinar_access_2__c,
+      :webinar_access_3__c
     ]
   end
+
+  alias_attribute :program_id, :program__c
+  alias_attribute :contact_id, :contact__c
+  alias_attribute :zoom_meeting_link_1, :webinar_access_1__c
+  alias_attribute :zoom_meeting_link_2, :webinar_access_2__c
+  alias_attribute :zoom_meeting_link_3, :webinar_access_3__c
+
+  scope :find_participant, ->(contact_id, program_id) {
+    find_by(program__c: program_id, contact__c: contact_id)
+  }
+
+  # PRO-TIP: when debugging, use the `attributes` method for one of these to see the values.
+  # E.g. HerokuConnect::Participant.with_discord_info.find_participant(contact_id, program_id).attributes
+  # Without the `.attributes` added on at the end you want be able to see the joined info when printing the
+  # participant even though you do have access to those attributes
+  scope :with_discord_info, -> {
+    joins(:contact, :program)
+    .select(
+      'contact.discord_user_id__c as discord_user_id',
+      'program__c.discord_server_id__c as discord_server_id'
+    )
+  }
 
   TA_CASELOAD_SECTION_PREFIX = 'TA Caseload'
 
@@ -80,6 +104,17 @@ class HerokuConnect::Participant < HerokuConnect::HerokuConnectRecord
 
   def is_coach_partner?
     candidate.is_coach_partner?
+  end
+
+  def add_to_honeycomb_span(suffix = nil)
+    Honeycomb.add_field("salesforce.participant.id#{suffix}", sfid)
+    attributes.each_pair do |attr, value|
+      # These are HerokuConnect attributes that are meaningless
+      # (and confusing if named salesforce.participant.id for example)
+      next if attr == 'id' || attr == 'isdeleted'
+
+      Honeycomb.add_field("salesforce.participant.#{attr}#{suffix}", value.to_s)
+    end
   end
 
   # A TA can be assigned to a group of Fellows using TaAssignment__c Salesforce

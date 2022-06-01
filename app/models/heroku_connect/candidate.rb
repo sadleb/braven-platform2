@@ -69,7 +69,7 @@ class HerokuConnect::Candidate < HerokuConnect::HerokuConnectRecord
     role == SalesforceConstants::Role::LC_SUBSTITUTE
   end
 
-  # Checks if they're an actual TA.
+  # Checks if they're an actual TA, includes test user TAs
   def is_teaching_assistant?
     (role == SalesforceConstants::Role::TEACHING_ASSISTANT || role == :Test || role.empty?) && role_category == :"Teaching Assistant"
   end

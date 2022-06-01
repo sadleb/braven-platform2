@@ -6,9 +6,9 @@ FactoryBot.define do
     isdeleted { false }
     sequence(:name) {|i| "Heroku Connect Participant#{i}" }
     status__c { HerokuConnect::Participant::Status::ENROLLED }
-    recordtypeid { record_type.sfid }
     sequence(:webinar_access_1__c) { |i| "https://fake.zoom.link/zoom_meeting_1/#{i}"}
     sequence(:webinar_access_2__c) { |i| "https://fake.zoom.link/zoom_meeting_2/#{i}"}
+    sequence(:webinar_access_3__c) { |i| "https://fake.zoom.link/zoom_meeting_3/#{i}"}
 
     association :record_type, factory: :heroku_connect_record_type
     association :contact, factory: :heroku_connect_contact
@@ -20,11 +20,13 @@ FactoryBot.define do
     factory :heroku_connect_fellow_participant, class: 'heroku_connect/participant' do
       association :record_type, factory: :heroku_connect_record_type, name: SalesforceConstants::RoleCategory::FELLOW
       association :candidate, factory: :heroku_connect_fellow_candidate
+      recordtypeid { '0121J000001De1vQAC' }
     end
 
     factory :heroku_connect_lc_participant, class: 'heroku_connect/participant' do
       association :record_type, factory: :heroku_connect_record_type, name: SalesforceConstants::RoleCategory::LEADERSHIP_COACH
       association :candidate, factory: :heroku_connect_lc_candidate
+      recordtypeid { '0121J000001De1wQAC' }
 
       factory :heroku_connect_cp_participant, class: 'heroku_connect/participant' do
         association :candidate, factory: :heroku_connect_cp_candidate
@@ -34,6 +36,11 @@ FactoryBot.define do
     factory :heroku_connect_ta_participant, class: 'heroku_connect/participant' do
       association :record_type, factory: :heroku_connect_record_type, name: SalesforceConstants::RoleCategory::TEACHING_ASSISTANT
       association :candidate, factory: :heroku_connect_ta_candidate
+      recordtypeid { Rails.application.secrets.salesforce_ta_participant_record_type_id }
+
+      factory :heroku_connect_test_ta_participant, class: 'heroku_connect/participant' do
+        association :candidate, factory: :heroku_connect_test_ta_candidate
+      end
 
       factory :heroku_connect_staff_participant, class: 'heroku_connect/participant' do
         association :candidate, factory: :heroku_connect_staff_candidate

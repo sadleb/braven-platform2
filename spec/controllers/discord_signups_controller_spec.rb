@@ -6,7 +6,6 @@ require 'salesforce_api'
 RSpec.describe DiscordSignupsController, type: :controller do
   render_views
 
-  let(:sf_client) { instance_double(SalesforceAPI) }
   let(:discordrb_api_user) { instance_double(Discordrb::API::User) }
 
   let(:course) { create :course }
@@ -30,9 +29,7 @@ RSpec.describe DiscordSignupsController, type: :controller do
     subject { get :launch, params: { lti_launch_id: lti_launch.id, state: lti_launch.state }}
 
     before(:each) do
-      allow(SalesforceAPI).to receive(:client).and_return(sf_client)
-      allow(sf_client).to receive(:find_participant)
-      .and_return(participant)
+      allow(HerokuConnect::Participant).to receive(:find_participant).and_return(participant)
     end
 
     shared_examples 'renders initial steps' do
@@ -48,13 +45,19 @@ RSpec.describe DiscordSignupsController, type: :controller do
       end
 
       context 'with a real TA participant (has TA role and volunteer role)' do
-        let(:participant) { SalesforceAPI.participant_to_struct(create(:salesforce_participant_real_ta)) }
+        let(:participant) { build :heroku_connect_ta_participant }
 
         it_behaves_like 'renders initial steps'
       end
 
-      context 'with a fake TA participant (has TA role, but non-TA volunteer role)' do
-        let(:participant) { SalesforceAPI.participant_to_struct(create(:salesforce_participant_fake_ta)) }
+      context 'with a test TA participant (has TA role and Test volunteer role)' do
+        let(:participant) { build :heroku_connect_test_ta_participant }
+
+        it_behaves_like 'renders initial steps'
+      end
+
+      context 'with a fake TA participant (has TA role, but non-TA volunteer role - staff and faculty)' do
+        let(:participant) { build :heroku_connect_staff_participant }
 
         it 'renders the \'no discord\' page' do
           subject
@@ -64,7 +67,7 @@ RSpec.describe DiscordSignupsController, type: :controller do
     end
 
     context 'with a student participant' do
-      let(:participant) { SalesforceAPI.participant_to_struct(create(:salesforce_participant_fellow)) }
+      let(:participant) { build :heroku_connect_fellow_participant }
 
       before(:each) do
         user.add_role RoleConstants::STUDENT_ENROLLMENT, section
@@ -74,7 +77,7 @@ RSpec.describe DiscordSignupsController, type: :controller do
     end
 
     context 'with a valid discord_state' do
-      let(:participant) { SalesforceAPI.participant_to_struct(create(:salesforce_participant_fellow)) }
+      let(:participant) { build :heroku_connect_fellow_participant }
 
       before(:each) do
         user.add_role RoleConstants::STUDENT_ENROLLMENT, section
@@ -91,7 +94,7 @@ RSpec.describe DiscordSignupsController, type: :controller do
     end
 
     context 'without discord_state' do
-      let(:participant) { SalesforceAPI.participant_to_struct(create(:salesforce_participant_fellow)) }
+      let(:participant) { build :heroku_connect_fellow_participant }
 
       before(:each) do
         user.add_role RoleConstants::STUDENT_ENROLLMENT, section
@@ -109,7 +112,7 @@ RSpec.describe DiscordSignupsController, type: :controller do
 
     context 'with an expired launch id in the discord_state' do
       let(:original_discord_state) { "teststate,#{LtiLaunch.last.id + 1}" }
-      let(:participant) { SalesforceAPI.participant_to_struct(create(:salesforce_participant_fellow)) }
+      let(:participant) { build :heroku_connect_fellow_participant }
 
       before(:each) do
         user.add_role RoleConstants::STUDENT_ENROLLMENT, section
@@ -126,7 +129,7 @@ RSpec.describe DiscordSignupsController, type: :controller do
     end
 
     context 'with an expired discord_token' do
-      let(:participant) { SalesforceAPI.participant_to_struct(create(:salesforce_participant_fellow)) }
+      let(:participant) { build :heroku_connect_fellow_participant }
 
       before(:each) do
         user.add_role RoleConstants::STUDENT_ENROLLMENT, section
@@ -142,7 +145,7 @@ RSpec.describe DiscordSignupsController, type: :controller do
     end
 
     context 'with no discord_token' do
-      let(:participant) { SalesforceAPI.participant_to_struct(create(:salesforce_participant_fellow)) }
+      let(:participant) { build :heroku_connect_fellow_participant }
 
       before(:each) do
         user.add_role RoleConstants::STUDENT_ENROLLMENT, section
@@ -153,7 +156,7 @@ RSpec.describe DiscordSignupsController, type: :controller do
     end
 
     context 'with a discord_token that is raising Discordrb::Errors::UnknownError / Unauthorized' do
-      let(:participant) { SalesforceAPI.participant_to_struct(create(:salesforce_participant_fellow)) }
+      let(:participant) { build :heroku_connect_fellow_participant }
 
       before(:each) do
         user.add_role RoleConstants::STUDENT_ENROLLMENT, section
@@ -177,7 +180,14 @@ RSpec.describe DiscordSignupsController, type: :controller do
     end
 
     context 'with a valid discord_token' do
-      let(:participant) { SalesforceAPI.participant_to_struct(create(:salesforce_participant_fellow)) }
+      let(:program) { build :heroku_connect_program }
+      let(:contact) { build :heroku_connect_contact }
+      let(:participant1) { build :heroku_connect_fellow_participant,
+        program__c: program,
+        contact__c: contact
+      }
+      let(:participants_with_discord) { HerokuConnect::Participant.with_discord_info }
+      let(:participant) { participants_with_discord.first }
 
       before(:each) do
         user.update!(discord_token: 'faketoken')
@@ -205,12 +215,14 @@ RSpec.describe DiscordSignupsController, type: :controller do
 
       context 'with discord_user with a verified email' do
         let(:discord_user) { { id: 'fakeid1', email: 'test@gmail.com', username: 'test_user_name', verified: true }.to_json }
-        let(:discord_server) { create(:discord_server, discord_server_id: participant.discord_server_id) }
+        let(:discord_server) { create(:discord_server, discord_server_id: program.discord_server_id__c ) }
         let(:user_in_discord_servers) { [{id: discord_server.discord_server_id}].to_json }
 
         before(:each) do
           stub_request(:get, "#{Discordrb::API.api_base}/users/@me/guilds").to_return(body: user_in_discord_servers)
           allow(Discordrb::API::Server).to receive(:add_member)
+          participant.discord_server_id = program.discord_server_id__c
+          participant.discord_user_id = contact.discord_user_id__c
         end
 
         it 'shows the final instructions' do

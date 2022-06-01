@@ -55,6 +55,7 @@ class SalesforceAPI
   MOCK_INTERVIEWER = :'Mock Interviewer'
   FIND_BY_ROLES = [LEADERSHIP_COACH, FELLOW, TEACHING_ASSISTANT]
 
+  class ParticipantLookupError < StandardError; end
   class SalesforceDataError < StandardError; end
   ParticipantNotOnSalesforceError = Class.new(StandardError)
   ProgramNotOnSalesforceError = Class.new(StandardError)
@@ -404,6 +405,10 @@ class SalesforceAPI
   # TODO: rename to find_participants_by_program_id()
   # https://app.asana.com/0/1201131148207877/1201217979889312
   def find_participants_by(program_id:)
+    if defined?(Rails) && Rails.respond_to?(:logger) && !caller_locations.first.path.include?('salesforce_api_spec.rb')
+      raise ParticipantLookupError, "All participant lookups should be made using HerokuConnect::Participant,"\
+      "except from the discord_bot because it doesn't have access to the HerokuConnect database."
+    end
     participants = get_participants(program_id)
 
     ret = participants.map do |participant|
@@ -420,6 +425,10 @@ class SalesforceAPI
   # In other words, per program there should only be one Fellow, LC, or TA Participant per contact.
   # Returns the first found if there are duplicates and sends an alert to Honeycomb
   def find_participant(contact_id:, program_id:)
+    if defined?(Rails) && Rails.respond_to?(:logger) && !caller_locations.first.path.include?('salesforce_api_spec.rb')
+      raise ParticipantLookupError, "All participant lookups should be made using HerokuConnect::Participant,"\
+      "except from the discord_bot because it doesn't have access to the HerokuConnect database."
+    end
     raise ArgumentError.new('contact_id is nil') if contact_id.nil?
     raise ArgumentError.new('program_id is nil') if program_id.nil?
 
