@@ -1,11 +1,15 @@
+// Custom element/attribute management through the clipboard pipeline.
+// This file works together with elementidediting.js.
+
 import Plugin from '@ckeditor/ckeditor5-core/src/plugin';
 import UpcastWriter from '@ckeditor/ckeditor5-engine/src/view/upcastwriter';
+import Clipboard from '@ckeditor/ckeditor5-clipboard/src/clipboard';
 import UniqueId from './uniqueid';
 import { ELEMENT_NAME_PREFIX, ELEMENT_ID_PREFIX } from './uniqueid';
 
-export default class InputUniqueAttributeEditing extends Plugin {
+export default class ClipboardAttributeEditing extends Plugin {
     static get requires() {
-        return [ UniqueId ];
+        return [ UniqueId, Clipboard ];
     }
 
     init() {
@@ -38,7 +42,7 @@ export default class InputUniqueAttributeEditing extends Plugin {
                             element.getChildren(),
                         )
                     );
-                } else if ( element.name == 'div' && element.hasClass( 'select-wrapper' ) ) {
+                } else if ( element.name === 'div' && element.hasClass( 'select-wrapper' ) ) {
                     // Dropdown wrapper.
                     // Expected structure is:
                     // <div class="select-wrapper">
@@ -50,7 +54,7 @@ export default class InputUniqueAttributeEditing extends Plugin {
 
                     let newChildren = [];
                     for ( const child of element.getChildren() ) {
-                        if ( child.name == 'select' ) {
+                        if ( child.name === 'select' ) {
                             // Dropdown.
                             const newChildAttributes = new Map( child.getAttributes() );
                             if ( newChildAttributes.has( 'name' ) && newChildAttributes.get( 'name' ).startsWith( ELEMENT_NAME_PREFIX ) ) {
@@ -86,7 +90,7 @@ export default class InputUniqueAttributeEditing extends Plugin {
                             newChildren,
                         )
                     );
-                } else if ( element.name == 'fieldset' && element.hasAttribute( 'data-radio-group' ) ) {
+                } else if ( element.name === 'fieldset' && element.hasAttribute( 'data-radio-group' ) ) {
                     // Radio list.
                     const newAttributes = new Map( element.getAttributes() );
                     newAttributes.set( 'data-radio-group', this._getNewName() );
@@ -102,7 +106,7 @@ export default class InputUniqueAttributeEditing extends Plugin {
                     for ( const div of element.getChildren() ) {
                         let newChildren = [];
                         for ( const child of div.getChildren() ) {
-                            if ( child.name == 'input' ) {
+                            if ( child.name === 'input' ) {
                                 // Radio button.
                                 const newRadioAttributes = new Map( child.getAttributes() );
                                 if ( newRadioAttributes.has( 'name' ) && newRadioAttributes.get( 'name' ).startsWith( ELEMENT_NAME_PREFIX ) ) {
@@ -145,6 +149,28 @@ export default class InputUniqueAttributeEditing extends Plugin {
                             element.name,
                             newAttributes,
                             newDivs,
+                        )
+                    );
+                } else if ( element.is( '$text' ) ) {
+                    // Text nodes have to be handled separately, and before we check
+                    // any attributes on element.name, which may be undefined.
+                    newContentElements.push(
+                        writer.createText(
+                            element.data
+                        )
+                    );
+                } else if ( element.name.startsWith('h') && element.name.length === 2 && !isNaN(element.name[1])) {
+                    // Headings: h1, h2, h3, etc.
+                    const newAttributes = new Map( element.getAttributes() );
+                    if ( newAttributes.has( 'id' ) && newAttributes.get( 'id' ).startsWith( ELEMENT_ID_PREFIX ) ) {
+                        newAttributes.set( 'id', this._getNewId() );
+                    }
+
+                    newContentElements.push(
+                        writer.createElement(
+                            element.name,
+                            newAttributes,
+                            element.getChildren(),
                         )
                     );
                 } else {
