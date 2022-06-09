@@ -236,6 +236,7 @@ class CasController < ApplicationController
           # Make sure the message/render here always match the ones in the `else` below this
           # so that a bad-actor can't use this behavior to determine if they have found valid credentials
           @message = GENERIC_LOGIN_FAILED_ERROR_MESSAGE
+          @show_banner = true
           return render :login, status: :unauthorized
         end
 
@@ -246,6 +247,7 @@ class CasController < ApplicationController
 
         # This message/render MUST match the one in the above `else` for security purposes
         @message = GENERIC_LOGIN_FAILED_ERROR_MESSAGE
+        @show_banner = true
         return render :login, status: :unauthorized
       end
 
