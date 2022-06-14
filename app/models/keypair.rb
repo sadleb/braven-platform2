@@ -2,19 +2,19 @@
 
 # https://github.com/Drieam/LtiLauncher
 # MIT License
-# 
+#
 # Copyright (c) 2019 Drieam
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -47,11 +47,10 @@
 # Borrowed from: https://github.com/Drieam/LtiLauncher
 class Keypair < ApplicationRecord
   ALGORITHM = 'RS256'
-  # Note: we directly use the ENV var b/c Rails.application.secret_key_base gets regenerated in dev and breaks our ability to decrypt existing keys.
-  attr_encrypted :_keypair, key: ENV['SECRET_KEY_BASE'].first(32) 
+  encrypts :keypair
   after_initialize :set_keypair
 
-  validates :_keypair, presence: true
+  validates :keypair, presence: true
   validates :jwk_kid, presence: true
 
   # The last 3 keypairs are considered valid and can be used
@@ -104,7 +103,7 @@ class Keypair < ApplicationRecord
 
   # Returns an `OpenSSL::PKey::RSA` instance loaded with our keypair.
   def private_key
-    OpenSSL::PKey::RSA.new(_keypair)
+    OpenSSL::PKey::RSA.new(keypair)
   end
 
   # Returns an `OpenSSL::PKey::RSA` instance loaded with the public part of our keypair.
@@ -123,7 +122,7 @@ class Keypair < ApplicationRecord
   # See: https://ruby-doc.org/stdlib-2.6.5/libdoc/openssl/rdoc/OpenSSL/PKey/RSA.html#method-c-new
   def set_keypair
     # The generated keypair is stored in PEM encoding.
-    self._keypair ||= OpenSSL::PKey::RSA.new(2048).to_pem
+    self.keypair ||= OpenSSL::PKey::RSA.new(2048).to_pem
     self.jwk_kid = public_jwk.kid
   end
 end

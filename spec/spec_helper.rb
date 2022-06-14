@@ -48,9 +48,39 @@ RSpec.configure do |config|
   # triggering implicit auto-inclusion in groups with matching metadata.
   config.shared_context_metadata_behavior = :apply_to_host_groups
 
-  # If you turn logging up, this adds a log when each test starts to run
+  config.before(:all) do
+    # libhoney introduced the excon gem for HTTP requests here:
+    # https://github.com/honeycombio/libhoney-rb/commit/820bc2fb6ac7860d01743db1f3726191981cde81
+    # This lead to tons of error messages logged (when using :debug level logging)
+    # with: "Libhoney::TransmissionClient: 💥 no stubs matched"
+    # and a huge hash of the request information. The below setting gets rid of that error
+    # by allowing actual network requests to go out when running tests.
+    # See: https://github.com/excon/excon#stubs
+    Excon.defaults[:allow_unstubbed_requests] = true 
+    # The above setting works for most things in the test suite, but there seems to be an
+    # issue during shutdown where queued events that didn't already send are tried but for some reason
+    # they don't use the allow_unstubbed_requests. The below just stubs everything with
+    # an empty fallback json response to avoid all the errors output during shutdown. Note
+    # that generally, the events still seem to actually get sent to Honeycomb so we can see the
+    # traces for specs.
+    Excon.stub({}, {:body => '{}', :status => 200})
+  end
+
   config.before :example do |x|
+    # If you turn logging up, this adds a log when each test starts to run
     Rails.logger.warn("### running spec example: #{x.metadata[:full_description].inspect}")
+
+     # Wrap all examples in a root Honeycomb span with the test name. This makes debugging
+     # tests easier. It also makes it easier to write, test, and see your Honeycomb fields.
+     #
+     # Example span_name: "accelerator_survey_submissions_controller_spec.rb:58 - checks Canvas LTI Advantage API for a score"
+    span_name = "#{File.basename(x.metadata[:location])} - #{x.metadata[:description]}"
+    @root_honeycomb_span  = Honeycomb.start_span(name: span_name)
+    @root_honeycomb_span.add_field('rspec.example.name', x.metadata[:full_description])
+  end
+
+  config.after :example do |x|
+    @root_honeycomb_span.send
   end
 
 # The settings below are suggested to provide a good initial experience

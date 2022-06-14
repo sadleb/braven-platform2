@@ -26,8 +26,7 @@ require 'rails_helper'
 RSpec.describe Keypair, type: :model do
   describe 'database' do
     it { is_expected.to have_db_column(:jwk_kid).of_type(:string).with_options(null: false) }
-    it { is_expected.to have_db_column(:encrypted__keypair).of_type(:string).with_options(null: false) }
-    it { is_expected.to have_db_column(:encrypted__keypair_iv).of_type(:string).with_options(null: false) }
+    it { is_expected.to have_db_column(:keypair).of_type(:text).with_options(null: false) }
     it { is_expected.to have_db_column(:created_at).of_type(:datetime).with_options(null: false) }
     it { is_expected.to have_db_column(:updated_at).of_type(:datetime).with_options(null: false) }
     it { is_expected.to have_db_index(:created_at) }
@@ -37,32 +36,32 @@ RSpec.describe Keypair, type: :model do
   describe 'settings' do
     it { expect(described_class::ALGORITHM).to eq 'RS256' }
     # TODO: don't know why this fails...
-    #it { is_expected.to have_attr_encrypted(:_keypair) }
+    #it { is_expected.to have_attr_encrypted(:keypair) }
   end
 
   describe 'validations' do
-    it { is_expected.to validate_presence_of(:_keypair) }
+    it { is_expected.to validate_presence_of(:keypair) }
     it { is_expected.to validate_presence_of(:jwk_kid) }
   end
 
   describe 'callbacks' do
     describe '#set_keypair' do
       subject { build(:keypair) }
-      it { expect(subject._keypair).to include('-----BEGIN RSA PRIVATE KEY-----') }
-      it { expect(subject._keypair.length).to be > 1024 }
+      it { expect(subject.keypair).to include('-----BEGIN RSA PRIVATE KEY-----') }
+      it { expect(subject.keypair.length).to be > 1024 }
       it { expect(subject.jwk_kid).to be_present }
 
       it 'does not change the keypair after persisting' do
-        expect { subject.save! }.not_to change { subject._keypair }
+        expect { subject.save! }.not_to change { subject.keypair }
       end
 
       it 'does not change the keypair after reloading' do
         subject.save
-        expect { subject.reload }.not_to change { subject._keypair }
+        expect { subject.reload }.not_to change { subject.keypair }
       end
 
       it 'saves the JWT kid of the generated key' do
-        key = OpenSSL::PKey::RSA.new(subject._keypair)
+        key = OpenSSL::PKey::RSA.new(subject.keypair)
         jwk = JWT::JWK.create_from(key.public_key)
         expect(subject.jwk_kid).to eq jwk.kid
       end
@@ -205,7 +204,7 @@ RSpec.describe Keypair, type: :model do
 
     describe '#public_jwk_export' do
       subject { build_stubbed(:keypair) }
-      let(:rsa_keypair) { OpenSSL::PKey::RSA.new(subject._keypair) }
+      let(:rsa_keypair) { OpenSSL::PKey::RSA.new(subject.keypair) }
       let(:jwk_keypair) { JWT::JWK.create_from(rsa_keypair.public_key) }
 
       it { expect(subject.public_jwk_export).to include(alg: 'RS256', use: 'sig') }
@@ -219,13 +218,13 @@ RSpec.describe Keypair, type: :model do
         expect(subject.private_key).to be_a OpenSSL::PKey::RSA
       end
       it 'returns the keypair from the database' do
-        expect(subject.private_key.to_s).to eq subject._keypair
+        expect(subject.private_key.to_s).to eq subject.keypair
       end
     end
 
     describe '#public_key' do
       subject { build_stubbed(:keypair) }
-      let(:rsa_keypair) { OpenSSL::PKey::RSA.new(subject._keypair) }
+      let(:rsa_keypair) { OpenSSL::PKey::RSA.new(subject.keypair) }
       it 'returns an OpenSSL::PKey::RSA' do
         expect(subject.public_key).to be_a OpenSSL::PKey::RSA
       end

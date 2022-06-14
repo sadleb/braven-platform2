@@ -24,7 +24,7 @@ class LtiLaunchController < ApplicationController
                                          .merge(:state => LtiLaunchController.generate_state, :nonce => SecureRandom.hex(10)))
 
     # Step 2 in the flow, do the handshake
-    redirect_to "#{LTI_AUTH_RESPONSE_URL}?#{@lti_launch.auth_params.to_query}"
+    redirect_to "#{LTI_AUTH_RESPONSE_URL}?#{@lti_launch.auth_params.to_query}", allow_other_host: true
   end
 
 

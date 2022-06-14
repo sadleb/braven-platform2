@@ -13,11 +13,16 @@ module Platform
   class Application < Rails::Application
 
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 6.1
+    config.load_defaults 7.0
 
     # Determines whether forgery protection is added on ActionController:Base. This is false by default to
     # be backwards compatible with v5.2 and below who may have removed it from ApplicationController
     config.action_controller.default_protect_from_forgery = true
+
+    # Enable ActiveRecord encryption: https://edgeguides.rubyonrails.org/active_record_encryption.html
+    config.active_record.encryption.primary_key = Rails.application.secrets.active_record_encryption_primary_key
+    config.active_record.encryption.deterministic_key = Rails.application.secrets.active_record_encryption_deterministic_key
+    config.active_record.encryption.key_derivation_salt = Rails.application.secrets.active_record_encryption_derivation_salt
 
     # Allows us to serve Rise360 static files hosted on AWS S3 through our server avoiding browser cross-origin issues.
     config.middleware.use LtiRise360Proxy, backend: "https://#{Rails.application.secrets.aws_files_bucket}.s3.amazonaws.com"

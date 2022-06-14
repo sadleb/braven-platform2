@@ -90,7 +90,13 @@ RSpec.configure do |config|
   # For controllers, we need tell Devise how to find our custom devise controllers
   config.before :type => 'controller' do
     # Mimic the router behavior of setting the Devise scope through the env.
-    @request.env['devise.mapping'] = Devise.mappings[:user]
+    request.env['devise.mapping'] = Devise.mappings[:user]
+
+    # Rails 7 added a new safety check to throw ActionController::Redirecting::UnsafeRedirectError
+    # if you try and redirect to a domain outside your own unless you explicitly tell the redirect
+    # that it's OK. This broke some of our specs which use the host config to redirect and it doesn't
+    # match the default host set of rspec controller requests. Change them to match
+    request.host = Rails.application.secrets.application_host
   end
 end
 

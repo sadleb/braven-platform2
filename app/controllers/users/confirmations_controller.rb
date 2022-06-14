@@ -76,7 +76,7 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
       self.resource = user
       redirect_path_for_user = sign_in_and_get_redirect_path
       set_flash_message!(:notice, :confirmed)
-      redirect_to redirect_path_for_user and return
+      redirect_to redirect_path_for_user, allow_other_host: true and return
     else
       # This is most likely for a bad token or a token that's already been consumed or
       # an expired token. Don't reveal any information about the token's validity or the
