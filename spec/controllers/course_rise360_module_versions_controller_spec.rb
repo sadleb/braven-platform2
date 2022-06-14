@@ -177,7 +177,7 @@ RSpec.describe CourseRise360ModuleVersionsController, type: :controller do
 
     it 'adds the hidden force_delete_student_data param to the form' do
       subject
-      expect(response.body).to include('<input value="true" type="hidden" name="force_delete_student_data" id="force_delete_student_data" />')
+      expect(response.body).to include('<input value="true" autocomplete="off" type="hidden" name="force_delete_student_data" id="force_delete_student_data" />')
     end
   end
 
@@ -348,7 +348,7 @@ RSpec.describe CourseRise360ModuleVersionsController, type: :controller do
 
     it 'adds the hidden force_delete_student_data param to the form' do
       subject
-      expect(response.body).to include('<input value="true" type="hidden" name="force_delete_student_data" id="force_delete_student_data" />')
+      expect(response.body).to include('<input value="true" autocomplete="off" type="hidden" name="force_delete_student_data" id="force_delete_student_data" />')
     end
   end
 end

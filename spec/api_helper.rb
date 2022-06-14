@@ -13,6 +13,12 @@ class JsonStrategy
       evaluation.notify(:after_json, json)
     end
   end
+
+  # See here for why this is here:
+  # https://webcache.googleusercontent.com/search?q=cache:1zDoRp951GMJ:https://bytemeta.vip/repo/thoughtbot/factory_bot/issues/1536+&cd=9&hl=en&ct=clnk&gl=us
+  def to_sym
+    :json
+  end
 end
 
 FactoryBot.register_strategy(:json, JsonStrategy)

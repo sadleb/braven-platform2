@@ -13,7 +13,7 @@ RSpec.describe Users::RegistrationsController, type: :controller do
       it 'shows uuid param in hidden field' do
         # Act like the uuid is valid, for security purposes.
         subject
-        expect(response.body).to include("<input value=\"#{uuid}\" type=\"hidden\" name=\"user[uuid]\"")
+        expect(response.body).to include("<input value=\"#{uuid}\" autocomplete=\"off\" type=\"hidden\" name=\"user[uuid]\"")
       end
     end
 
@@ -23,7 +23,7 @@ RSpec.describe Users::RegistrationsController, type: :controller do
 
       it 'shows uuid param in hidden field' do
         subject
-        expect(response.body).to include("<input value=\"#{uuid}\" type=\"hidden\" name=\"user[uuid]\"")
+        expect(response.body).to include("<input value=\"#{uuid}\" autocomplete=\"off\" type=\"hidden\" name=\"user[uuid]\"")
       end
     end
   end
@@ -72,7 +72,7 @@ RSpec.describe Users::RegistrationsController, type: :controller do
         subject
         expect(response.body).to include("<h1>Create Account</h1>")
         expect(response.body).to include("<form action=\"#{user_registration_path}\"")
-        expect(response.body).to include("<input value=\"#{params[:signup_token]}\" type=\"hidden\" name=\"user[signup_token]\"")
+        expect(response.body).to include("<input value=\"#{params[:signup_token]}\" autocomplete=\"off\" type=\"hidden\" name=\"user[signup_token]\"")
       end
     end
 
@@ -86,7 +86,7 @@ RSpec.describe Users::RegistrationsController, type: :controller do
         subject
         expect(response.body).to include("<h1>Create Account</h1>")
         expect(response.body).to include("<form action=\"#{user_registration_path}\"")
-        expect(response.body).to include("<input value=\"#{params[:reset_password_token]}\" type=\"hidden\" name=\"user[reset_password_token]\"")
+        expect(response.body).to include("<input value=\"#{params[:reset_password_token]}\" autocomplete=\"off\" type=\"hidden\" name=\"user[reset_password_token]\"")
       end
     end
 
@@ -130,7 +130,7 @@ RSpec.describe Users::RegistrationsController, type: :controller do
         subject
         expect(response.body).to include("<h1>Create Account</h1>")
         expect(response.body).to include("<form action=\"#{user_registration_path}\"")
-        expect(response.body).to include("<input value=\"#{params[:signup_token]}\" type=\"hidden\" name=\"user[signup_token]\"")
+        expect(response.body).to include("<input value=\"#{params[:signup_token]}\" autocomplete=\"off\" type=\"hidden\" name=\"user[signup_token]\"")
       end
     end
 
@@ -146,7 +146,7 @@ RSpec.describe Users::RegistrationsController, type: :controller do
         subject
         expect(response.body).to include("<h1>Create Account</h1>")
         expect(response.body).to include("<form action=\"#{user_registration_path}\"")
-        expect(response.body).to include("<input value=\"#{params[:reset_password_token]}\" type=\"hidden\" name=\"user[reset_password_token]\"")
+        expect(response.body).to include("<input value=\"#{params[:reset_password_token]}\" autocomplete=\"off\" type=\"hidden\" name=\"user[reset_password_token]\"")
       end
     end
   end
@@ -342,7 +342,7 @@ RSpec.describe Users::RegistrationsController, type: :controller do
         subject
         expect(response.body).to include("<h1>Create Account</h1>")
         expect(response.body).to include("<form action=\"#{user_registration_path}\"")
-        expect(response.body).to include("<input value=\"#{params['user[signup_token]']}\" type=\"hidden\" name=\"user[signup_token]\"")
+        expect(response.body).to include("<input value=\"#{params['user[signup_token]']}\" autocomplete=\"off\" type=\"hidden\" name=\"user[signup_token]\"")
       end
 
       it 'renders errors' do
