@@ -4,7 +4,7 @@ require 'canvas_api'
 class ApplicationController < ActionController::Base
   include RubyCAS::Server::Core::Tickets
   include DryCrud::Controllers
-  include Pundit
+  include Pundit::Authorization
   # Custom error handling.
   include Rescuable
 
