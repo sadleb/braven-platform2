@@ -160,6 +160,9 @@ Rails.application.routes.draw do
     collection do
       get :launch
     end
+    get :bulk_export_csv
+    get :bulk_import_new
+    post :bulk_import_preview
   end
 
   resources :attendance_event_submission_answers, only: [] do

@@ -1,0 +1,28 @@
+<div class="row">
+  <div class="col">
+    <h1>Attendance for <%= @attendance_event_submission.attendance_event.title %></h1>
+
+      <p>Upload a CSV of attendance data with the following columns (in this order):</p>
+      <pre>First name,Last name,Present?,Late?,Reason for absence,Cohort Schedule,Cohort,Platform User Id</pre>
+      <p>If you don't already have one, you can download a <%= link_to "template CSV with all enrolled Fellows",
+        attendance_event_submission_bulk_export_csv_path(@attendance_event_submission,
+                                                         params: { lti_launch_id: @lti_launch.id,
+                                                                   course_attendance_event_id: @course_attendance_event.id },
+                                                         format: :csv) %> for this event.</p>
+      <p>You may add additional columns to the right of the document (for example, a Notes column) if needed, and they'll be ignored by this import.</p>
+
+    <%= form_with(url: attendance_event_submission_bulk_import_preview_path, method: "post", local: true) do |f| %>
+      <input type="hidden" name="lti_launch_id" value="<%= @lti_launch.id %>">
+      <input type="hidden" name="course_attendance_event_id" value="<%= @course_attendance_event.id %>">
+
+      <div class="form-group">
+        <%= f.label :attendance_csv, "Attendance CSV" %>
+        <%= f.file_field :attendance_csv, class: "form-control-file", required: true %>
+      </div>
+
+      <div class="actions">
+        <%= f.submit "Preview Import", class: "btn btn-primary" %>
+      </div>
+    <% end %>
+  </div>
+</div>

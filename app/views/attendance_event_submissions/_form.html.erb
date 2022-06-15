@@ -58,6 +58,28 @@
 <div class="row">
   <div class="col">
     <h1>Attendance for <%= @attendance_event_submission.attendance_event.title %></h1>
+
+    <% if current_user.can_take_attendance_for_all? %>
+      <div class="row pb-3">
+        <form method="GET" action="<%= attendance_event_submission_bulk_export_csv_path(@attendance_event_submission, format: :csv) %>">
+          <input type="hidden" name="lti_launch_id" value="<%= @lti_launch.id %>">
+          <input type="hidden" name="course_attendance_event_id" value="<%= @course_attendance_event.id %>">
+
+          <div class="actions col">
+            <button type="submit" class="btn btn-secondary">Bulk Export CSV</button>
+          </div>
+        </form>
+        <form method="GET" action="<%= attendance_event_submission_bulk_import_new_path(@attendance_event_submission) %>">
+          <input type="hidden" name="lti_launch_id" value="<%= @lti_launch.id %>">
+          <input type="hidden" name="course_attendance_event_id" value="<%= @course_attendance_event.id %>">
+
+          <div class="actions col">
+            <button type="submit" class="btn btn-secondary">Bulk Import</button>
+          </div>
+        </form>
+      </div>
+    <% end %>
+
     <% if @fellow_users.empty? %>
       <p>You have no fellows to take attendance for.</p>
       <p>If you think this is wrong, please reach out to support@bebraven.org.</p>

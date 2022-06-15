@@ -101,6 +101,36 @@ class User < ApplicationRecord
     sections_removed
   end
 
+  # HerokuConnect helpers:
+  # Note that these can't be an association (aka join) b/c in dev the HerokuConnect
+  # and Platform databases aren't the same and you can't join across different databases.
+
+  # Return a HerokuConnect::Contact record for this user.
+  def contact
+    @contact ||= HerokuConnect::Contact.find_by(sfid: salesforce_id)
+  end
+
+  # Return a HerokuConnect::Participant record for this user in the specified
+  # course, assuming the user has a Salesforce Contact ID and the course has
+  # a Salesforce Program ID.
+  def participant(course)
+    @participant ||= HerokuConnect::Participant.find_participant(salesforce_id, course.salesforce_program_id)
+  end
+
+  # Return a HerokuConnect::Cohort record for this user in the specified
+  # course, assuming the user has a Salesforce Contact ID, the course has
+  # a Salesforce Program ID, and the Participant is in a Cohort.
+  def cohort(course)
+    @cohort ||= participant(course)&.cohort
+  end
+
+  # Return a HerokuConnect::CohortSchedule record for this user in the specified
+  # course, assuming the user has a Salesforce Contact ID, the course has
+  # a Salesforce Program ID, and the Participant is in a Cohort Schedule.
+  def cohort_schedule(course)
+    @cohort_schedule ||= participant(course)&.cohort_schedule
+  end
+
   # True if the user has confirmed their account and can log in.
   def confirmed?
     !!confirmed_at

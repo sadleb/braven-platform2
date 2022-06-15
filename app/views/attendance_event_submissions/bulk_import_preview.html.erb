@@ -1,0 +1,91 @@
+<div class="row">
+  <div class="col">
+    <h1>Preview Attendance Import for <%= @attendance_event_submission.attendance_event.title %></h1>
+    <p>Nothing has been imported yet. Attendance will not be saved until you click "Confirm Import" at the bottom of this page.</p>
+
+    <h2>Unprocessed Fellows</h2>
+    <p>Please double-check these are correct. If you continue, these Fellows will be <strong>ignored</strong> for this import.</p>
+    <p><%= @unprocessed_rows.count %> Fellow(s) in this import are unprocessed.</p>
+    <ul>
+      <% @unprocessed_rows.each do |row| %>
+        <li>
+          <%= row[AttendanceEventSubmissionsController::CSVHeaders::FIRST_NAME.parameterize.underscore] %>
+          <%= row[AttendanceEventSubmissionsController::CSVHeaders::LAST_NAME.parameterize.underscore] %>:
+          <%= row[AttendanceEventSubmissionsController::UNPROCESSED_REASON] %>
+        </li>
+      <% end %>
+    </ul>
+
+    <h2>Processed Fellows</h2>
+    <p>Please double-check these are correct. If you continue, attendance for these Fellows will be <strong>updated</strong>.</p>
+    <p>If you modify any of these fields, your modified answer will be saved instead of the original values from the CSV.</p>
+
+    <p>Import summary:</p>
+    <ul>
+      <li>Fellows in attendance: <strong><%= @unsaved_answers.filter { |a| a.in_attendance }.count %></strong></li>
+      <li>Fellows absent: <strong><%= @unsaved_answers.filter { |a| a.in_attendance == false }.count %></strong></li>
+    </ul>
+
+    <h3>Import Details</h3>
+    <%= form_for(@attendance_event_submission, local: true) do |f| %>
+      <input type="hidden" name="lti_launch_id" value="<%= @lti_launch.id %>">
+      <input type="hidden" name="course_attendance_event_id" value="<%= @course_attendance_event.id %>">
+
+      <% @unsaved_answers.each do |answer| %>
+        <% fellow = answer.for_user %>
+
+        <fieldset>
+          <% radio_name = "attendance_event_submission[#{fellow.id}][in_attendance]" %>
+          <% absence_reason_name = "attendance_event_submission[#{fellow.id}][absence_reason]" %>
+          <% checkbox_name = "attendance_event_submission[#{fellow.id}][late]" %>
+          <% input_id_prefix = "input-#{fellow.id}" %>
+
+          <legend><%= fellow.full_name %></legend>
+
+          <div class="form-row">
+            <div class="form-group col-md-2 mb-1">
+            <input id="<%= input_id_prefix %>-present"
+                  type="radio"
+                  name="<%= radio_name %>"
+                  value="true"
+                  required
+                  <%= input_checked(answer&.in_attendance == true) %>>
+            <label for="<%= input_id_prefix %>-present" class="pl-1">Present</label>
+            </div>
+
+            <div class="form-group col-md-2 mb-1">
+            <input id="<%= input_id_prefix %>-absent"
+                  type="radio"
+                  name="<%= radio_name %>"
+                  value="false"
+                  required
+                  <%= input_checked(answer&.in_attendance == false) %>>
+            <label for="<%= input_id_prefix %>-absent" class="pl-1">Absent</label>
+            </div>
+
+            <div class="form-group col-md-2 mb-1">
+            <input id="<%= input_id_prefix %>-late"
+                  type="checkbox"
+                  name="<%= checkbox_name %>"
+                  <%= input_checked(answer&.late) %>>
+            <label for="<%= input_id_prefix %>-late" class="pl-1">Late</label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="<%= input_id_prefix %>-reason">Reason for absence</label>
+            <input id="<%= input_id_prefix %>-reason"
+                  name="<%= absence_reason_name %>"
+                  class="form-control col-md-5"
+                  value="<%= answer&.absence_reason %>">
+          </div>
+        </fieldset>
+      <% end %>
+
+      <div class="actions">
+        <%= f.submit "Confirm Import", class: "btn btn-primary" %>
+      </div>
+    <% end %>
+    <p>Saving attendance for many Fellows at once may be slow! After you click "Confirm Import", keep this tab open until the process is complete to avoid losing data.</p>
+  </div>
+</div>
