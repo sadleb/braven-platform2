@@ -15,12 +15,10 @@ FactoryBot.define do
 
     factory :heroku_connect_fellow_candidate, class: 'heroku_connect/candidate' do
       association :record_type, factory: :heroku_connect_record_type, name: SalesforceConstants::RoleCategory::FELLOW
-      recordtypeid { '0121J000001De1qQAC' }
     end
 
     factory :heroku_connect_lc_candidate, class: 'heroku_connect/candidate' do
       association :record_type, factory: :heroku_connect_record_type, name: SalesforceConstants::RoleCategory::LEADERSHIP_COACH
-      recordtypeid { '0121J000001De1rQAC' }
 
       factory :heroku_connect_cp_candidate, class: 'heroku_connect/candidate' do
         coach_partner_role__c { SalesforceConstants::Role::COACH_PARTNER }
@@ -29,7 +27,6 @@ FactoryBot.define do
 
     factory :heroku_connect_ta_candidate, class: 'heroku_connect/candidate' do
       association :record_type, factory: :heroku_connect_record_type, name: SalesforceConstants::RoleCategory::TEACHING_ASSISTANT
-      recordtypeid { Rails.application.secrets.salesforce_ta_candidate_record_type_id }
 
       factory :heroku_connect_test_ta_candidate, class: 'heroku_connect/candidate' do
         coach_partner_role__c { SalesforceConstants::Role::TEST }
