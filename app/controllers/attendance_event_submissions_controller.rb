@@ -220,7 +220,7 @@ class AttendanceEventSubmissionsController < ApplicationController
         for_user_id: row[CSVHeaders::PLATFORM_USER_ID.parameterize.underscore].to_i,
         in_attendance: to_boolean(row[CSVHeaders::IN_ATTENDANCE.parameterize.underscore]),
         late: to_boolean(row[CSVHeaders::LATE.parameterize.underscore]),
-        absence_reason: row[CSVHeaders::ABSENCE_REASON.parameterize.underscore].strip,
+        absence_reason: row[CSVHeaders::ABSENCE_REASON.parameterize.underscore]&.strip,
       )
     end
 
