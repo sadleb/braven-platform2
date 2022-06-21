@@ -97,6 +97,11 @@ gem 'will_paginate'
 gem 'rest-client'
 
 gem 'devise'
+# Pin to v1x since v2x is a complete rewrite of the gem that would take a lot
+# of work to upgrade. See cas_sessions_controller_10_4_patch.rb for code that
+# patches this to work with Rails 7 while not upgrading the gem to 2x.
+# Also see the devise_cas_authenticable_2_0 branch for where I started to try the upgrade
+# TODO: upgrade to devise_cas_authenticatable 2.0.
 gem 'devise_cas_authenticatable', '~> 1'
 
 gem 'react-rails'
