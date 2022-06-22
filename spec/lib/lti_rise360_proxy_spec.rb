@@ -19,6 +19,7 @@ RSpec.describe LtiRise360Proxy do
   let!(:lti_launch) { create(:lti_launch_canvas) }
   let(:is_authenticated) { false }
   let(:warden) { double(Warden, :authenticated? => is_authenticated, :authenticate => nil, :user => nil) }
+  let(:content_security_policy) { instance_double(ActionDispatch::ContentSecurityPolicy, :script_src => nil, :worker_src => nil) }
   #let(:stack) { LrsXapiProxy.new(app) }
   #let(:request) { Rack::MockRequest.new(stack) }
 
@@ -59,6 +60,7 @@ RSpec.describe LtiRise360Proxy do
 
     before(:each) do
       env('warden', warden)
+      env('action_dispatch.content_security_policy', content_security_policy)
       allow(Rise360Util).to receive(:presigned_url).and_return(proxied_full_url)
       stub_request(:get, proxied_full_url).to_return({:body => fake_html})
       get(original_full_path)
