@@ -156,8 +156,16 @@
   <p><em>Note: Editing Course Settings for a launched course isn't implemented yet.</em></p>
   <%= render :partial => 'show_settings' %>
 <% end %>
-
 <br/>
+
+<h3>Set Initial Due Dates</h3>
+<div class="row pb-4">
+  <div class="col-md-6">
+    <p>Copy due dates from another course into this one. You should only do this in a new course, right after launching it.</p>
+    <%= link_to 'Copy Due Dates', copy_from_course_course_canvas_assignment_overrides_path(@course), class: 'btn btn-secondary' %>
+  </div>
+</div>
+
 <h3>Edit Resources</h3>
 <div class="row">
   <div class="col-md-6">
