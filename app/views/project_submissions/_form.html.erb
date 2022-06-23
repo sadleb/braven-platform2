@@ -3,23 +3,27 @@
 <div class="bv-custom-content-container"
      id="custom-content-wrapper"
      data-turbolinks="false"
-     data-read-only="false"
+     data-read-only="<%= @read_only %>"
      data-project-submission-id="<%= @project_submission.id %>">
 
   <%== @course_project_version.project_version.body %>
 
-  <!-- Submit -->
-  <%= react_component('Projects/ProjectSubmitButton', {
-    hasSubmission: @has_previous_submission,
-    # Note: this'll crash if lti_launch is nil. Switch to &. safe
-    # referencing once we can handle nil state in the JS.
-    ltiLaunchState: @lti_launch.state,
-    courseContentVersionId: @course_project_version.id,
-  })%>
+  <%# Don't show submit option if the grades finalized date has passed %>
+  <%# And the project is in read only mode %>
+  <% unless @read_only %>
+    <!-- Submit -->
+    <%= react_component('Projects/ProjectSubmitButton', {
+      hasSubmission: @has_previous_submission,
+      # Note: this'll crash if lti_launch is nil. Switch to &. safe
+      # referencing once we can handle nil state in the JS.
+      ltiLaunchState: @lti_launch.state,
+      courseContentVersionId: @course_project_version.id,
+    })%>
 
-  <%# Project autosave feedback %>
-  <%# Remove this if/when we redo in React. %>
-  <div id="autosave-status-bar" role="status" aria-live="polite"></div>
+    <%# Project autosave feedback %>
+    <%# Remove this if/when we redo in React. %>
+    <div id="autosave-status-bar" role="status" aria-live="polite"></div>
+  <% end %>
 
 </div>
 

@@ -35,7 +35,8 @@ class HerokuConnect::Participant < HerokuConnect::HerokuConnectRecord
       :cohort_schedule__c,
       :webinar_access_1__c,
       :webinar_access_2__c,
-      :webinar_access_3__c
+      :webinar_access_3__c,
+      :grades_finalized_extension__c
     ]
   end
 

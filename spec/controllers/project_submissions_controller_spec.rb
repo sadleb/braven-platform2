@@ -121,6 +121,13 @@ RSpec.describe ProjectSubmissionsController, type: :controller do
   end # 'GET #new'
 
   describe 'GET #edit' do
+    let!(:program) { build :heroku_connect_program,
+      canvas_cloud_accelerator_course_id__c: lti_launch.course_id,
+      grades_finalized_date__c: Time.now.utc.to_date
+    }
+    let!(:participant) { build :heroku_connect_fellow_participant,
+      grades_finalized_extension__c: Time.now.utc.to_date
+    }
 
     subject(:edit_request) do
       get(
@@ -132,6 +139,12 @@ RSpec.describe ProjectSubmissionsController, type: :controller do
           lti_launch_id: lti_launch.id,
         }
       )
+    end
+
+    before(:each) do
+      allow(HerokuConnect::Program).to receive(:find_by).and_return(program)
+      allow(HerokuConnect::Participant).to receive(:find_participant).and_return(participant)
+      allow(Honeycomb).to receive(:add_support_alert)
     end
 
     it 'returns a success response' do
@@ -151,6 +164,76 @@ RSpec.describe ProjectSubmissionsController, type: :controller do
       expect(response.body).to match /Permission Denied/
     end
 
+    context 'when no HerokuConnect::Program is found for the course' do
+      let!(:program) { nil }
+      it 'sends Honeycomb alert' do
+        edit_request
+        expect(Honeycomb).to have_received(:add_support_alert).once
+      end
+
+      it 'launches the project in normal edit mode with a submit button' do
+        edit_request
+        expect(response.body).to include('data-read-only="false"')
+        expect(response.body).to include('<div data-react-class="Projects/ProjectSubmitButton"')
+      end
+    end
+
+    context 'with a program that has a grade_finalized_date that has not passed' do
+      it 'launches the project in normal edit mode with a submit button' do
+        edit_request
+        expect(response.body).to include('data-read-only="false"')
+        expect(response.body).to include('<div data-react-class="Projects/ProjectSubmitButton"')
+      end
+    end
+
+    context 'with a program that has a grade_finalized_date that passed' do
+      let!(:program) { build :heroku_connect_program,
+        canvas_cloud_accelerator_course_id__c: lti_launch.course_id,
+        grades_finalized_date__c: Time.now.utc.to_date - 1.day
+      }
+
+      context 'with a participant that has a grade_finalized_extension date that has not passed' do
+        it 'launches the project in normal edit mode with a submit button' do
+          edit_request
+          expect(response.body).to include('data-read-only="false"')
+          expect(response.body).to include('<div data-react-class="Projects/ProjectSubmitButton"')
+        end
+      end
+
+      context 'with a participant that has a grade_finalized_extension date that has passed' do
+        let!(:participant) { build :heroku_connect_fellow_participant,
+          grades_finalized_extension__c: Time.now.utc.to_date - 1.day
+        }
+        it 'launches the project in read-only mode with no submit button' do
+          edit_request
+          expect(response.body).to include('data-read-only="true"')
+          expect(response.body).not_to include('<div data-react-class="Projects/ProjectSubmitButton"')
+        end
+      end
+
+      context 'with a participant that does not have a grade_finalized_extension date' do
+        let!(:participant) { build :heroku_connect_fellow_participant,
+          grades_finalized_extension__c: nil
+        }
+        it 'launches the project in read-only mode with no submit button' do
+          edit_request
+          expect(response.body).to include('data-read-only="true"')
+          expect(response.body).not_to include('<div data-react-class="Projects/ProjectSubmitButton"')
+        end
+      end
+    end
+
+    context 'with a program that does not have a grade_finalized_date' do
+      let!(:program) { build :heroku_connect_program,
+        canvas_cloud_accelerator_course_id__c: lti_launch.course_id,
+        grades_finalized_date__c: nil
+      }
+      it 'launches the project in normal edit mode with a submit button' do
+        edit_request
+        expect(response.body).to include('data-read-only="false"')
+        expect(response.body).to include('<div data-react-class="Projects/ProjectSubmitButton"')
+      end
+    end
   end
 
 

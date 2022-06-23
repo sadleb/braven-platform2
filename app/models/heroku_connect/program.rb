@@ -34,6 +34,7 @@ class HerokuConnect::Program < HerokuConnect::HerokuConnectRecord
       :default_timezone__c,
       :program_end_date__c,
       :program_start_date__c,
+      :grades_finalized_date__c
     ]
   end
 

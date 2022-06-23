@@ -19,6 +19,7 @@ class ProjectSubmissionsController < ApplicationController
   skip_before_action :verify_authenticity_token, only: [:create], if: :is_sessionless_lti_launch?
 
   before_action :set_has_previous_submission, only: [:edit, :new]
+  before_action :set_read_only, only: [:edit]
 
   def show
     authorize @project_submission
@@ -101,4 +102,29 @@ private
     ).exists?
   end
 
+  def set_read_only
+    @read_only = false
+    program = HerokuConnect::Program.find_by(canvas_cloud_accelerator_course_id__c: @lti_launch.course_id)
+    if program.nil?
+      msg = "No program found for Course with the canvas course id: #{@lti_launch.course_id}. " +
+      "Projects will automatically be launched in edit mode instead of read only mode if a program is " +
+      "missing, even if the 'Grades Finalized Date' has passed."
+      Honeycomb.add_support_alert('missing_program_error', msg)
+    end
+
+    # Return and launch project like normal if the program grades_finalized_date hasn't passed
+    # Using the safety operator after program in case there is a missing program
+    # If a program is missing, default to opening in edit mode
+    # Convert the grades finalized date to the end of the day in the time zone of the program
+    return unless program&.grades_finalized_date__c&.end_of_day&.in_time_zone(program&.default_timezone__c)&.past?
+
+    participant = HerokuConnect::Participant.find_participant(current_user.salesforce_id, program)
+    # Return and launch project like normal if the participant has a grades_finalized_extension date and it hasn't passed
+    # Convert the grades finalized extension to the end of the day in the time zone of the program
+    return unless participant.grades_finalized_extension__c.blank? ||
+                  participant.grades_finalized_extension__c&.end_of_day&.in_time_zone(program.default_timezone__c)&.past?
+
+    # If grades_finalized_date has passed and the participant does not have an extension, make project read only
+    @read_only = true
+  end
 end
