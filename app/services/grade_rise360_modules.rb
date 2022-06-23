@@ -59,17 +59,22 @@ class GradeRise360Modules
       # more efficient than using the more-readable model associations would be.
       # For reference, the query built by ActiveRecord becomes something like:
       #
-      #   SELECT "users_roles"."user_id" FROM "users_roles" WHERE "users_roles"."role_id" IN (
+      #   SELECT "users_roles"."user_id" FROM "users_roles" 
+      #     INNER JOIN "users" "user" ON "user"."id" = "users_roles"."user_id" 
+      #   WHERE "users_roles"."role_id" IN (
       #     SELECT "roles"."id" FROM "roles" WHERE <...> AND "roles"."resource_id" IN (
       #       SELECT "sections"."id" FROM "sections" WHERE "sections"."course_id" = <course.id>
       #     )
-      #   ) GROUP BY "users_roles"."user_id"
+      #   ) AND "user"."registered_at" IS NOT NULL
+      #   GROUP BY "users_roles"."user_id"
       sections = Section.where(course: course)
       roles = Role.where(resource: sections, name: RoleConstants::STUDENT_ENROLLMENT)
       # We're loading all the User IDs into memory right now, so keep an eye out
       # if this needs to be batched or something.
       # NOTE: Don't copy this UserRole code anywhere else unless you *really* need the performance.
-      user_ids = UserRole.where(role: roles).group(:user_id).pluck(:user_id)
+      user_ids = UserRole.joins(:user).where(role: roles).where.not(user: {registered_at: nil})
+        .group(:user_id).pluck(:user_id)
+
       Honeycomb.add_field('grade_rise360_modules.users.count', user_ids.count)
 
       canvas_assignment_ids = CourseRise360ModuleVersion

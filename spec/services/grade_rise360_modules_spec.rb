@@ -129,7 +129,7 @@ RSpec.describe GradeRise360Modules do
 
     let(:course) { create(:course) }
 
-    context "with no sections in course" do
+    shared_examples "no users to grade" do
       # Create one assignment, so we can check grade_assignment calls.
       let!(:course_rise360_module_version) { create(:course_rise360_module_version,
         course: course
@@ -149,29 +149,22 @@ RSpec.describe GradeRise360Modules do
           .to have_received(:grade_assignment)
           .with(canvas_assignment_id, [])
       end
+
+    end
+
+    context "with no sections in course" do
+      it_behaves_like "no users to grade"
     end
 
     context "with no enrolled users in course" do
-      # Create one assignment, so we can check grade_assignment calls.
-      let!(:course_rise360_module_version) { create(:course_rise360_module_version,
-        course: course
-      ) }
-      let(:canvas_assignment_id) {
-        course_rise360_module_version.canvas_assignment_id
-      }
       let!(:section) { create(:section, course: course) }
+      it_behaves_like "no users to grade"
+    end
 
-      before :each do
-        allow(grade_modules).to receive(:grade_assignment).and_return(nil)
-      end
-
-      it "gets empty user_ids" do
-        subject
-
-        expect(grade_modules)
-          .to have_received(:grade_assignment)
-          .with(canvas_assignment_id, [])
-      end
+    context "with no registered users in course" do
+      let!(:section) { create(:section, course: course) }
+      let!(:unregistered_user) { create(:fellow_user, section: section, registered_at: nil, confirmed_at: nil) }
+      it_behaves_like "no users to grade"
     end
 
     context "with no module versions in course" do
