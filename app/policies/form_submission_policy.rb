@@ -1,4 +1,4 @@
-class WaiverSubmissionPolicy < ApplicationPolicy
+class FormSubmissionPolicy < ApplicationPolicy
   attr_reader :user, :course
 
   def initialize(user, course)
@@ -10,11 +10,11 @@ class WaiverSubmissionPolicy < ApplicationPolicy
   def launch?
     raise Pundit::NotAuthorizedError, "no course specified" unless course
 
-    # launch the waiver if the user is a student in this course
+    # launch the form if the user is a student in this course
     return true if user.is_enrolled_as_student?(course)
 
-    # if user is not a student, send error message - only students fill out waivers
-    raise Pundit::NotAuthorizedError, message: "Only Fellows need to complete waivers."
+    # if user is not a student, send error message - only students fill out forms
+    raise Pundit::NotAuthorizedError, message: "Only Fellows need to complete forms."
   end
 
   def new?

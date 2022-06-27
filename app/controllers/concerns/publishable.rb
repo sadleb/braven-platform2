@@ -3,7 +3,7 @@
 # "Publishable" behavior for controllers that modify Assignments in a Canvas
 # course, for example:
 #   - CapstoneEvaluationsController
-#   - WaiversController
+#   - FormsController
 #   - Course{Project, Survey, Rise360Module}VersionsControllers
 #
 # This concern adds 3 actions to your controller to modify Canvas:
@@ -17,7 +17,7 @@
 # You can choose which of these actions your controller exposes by configuring
 # them in config/routes.rb.
 #
-# For example, {CapstoneEvaluations,Waivers}Controllers do not currently support
+# For example, {CapstoneEvaluations,FormsControllers} do not currently support
 # #publish_latest. However, the Course*VersionsControllers do.
 #
 # This concern heavily depends on DryCrud::Controllers::Nestable, and requires

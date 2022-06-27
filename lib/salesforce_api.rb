@@ -252,8 +252,12 @@ class SalesforceAPI
   # - Returns nil if not found
   # - Discards info from other programs if multiple have the same canvas_course_id.
   #   There is a validation on the Salesforce side that is meant to prevent this.
-  # - There are no LC equivalents to these. e.g. They sign their waivers out-of-band before getting
+  # - There are no LC equivalents to these. e.g. They sign their Forms out-of-band before getting
   #   Confirmed as an LC.
+  #
+  # The "FA_ID_Fellow_Waivers__c" Salesforce API uses the field label "FA ID Fellow Forms" in Salesforce
+  # We only updated the field label to use "Forms" instead of "Waivers" because updating
+  # the API name that we grab here would add too much complexity
   def get_fellow_form_assembly_info(canvas_course_id)
     soql_query = "SELECT Id, FA_ID_Fellow_PostSurvey__c, FA_ID_Fellow_PreSurvey__c, FA_ID_Fellow_Waivers__c " \
                  "FROM Program__c " \

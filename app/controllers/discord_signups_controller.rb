@@ -24,7 +24,7 @@ class DiscordSignupsController < ApplicationController
   class DiscordServerIdError  < StandardError; end
   # Note: this is the actual name of the assignment. The convention
   # for assignment naming is things like: CLASS: Learning Lab2,
-  # MODULE: Lead Authentically, TODO: Complete Waivers
+  # MODULE: Lead Authentically, TODO: Complete Forms
   DISCORD_ASSIGNMENT_NAME = 'TODO: Complete Discord Signup'
   DISCORD_POINTS_POSSIBLE = 10.0
 

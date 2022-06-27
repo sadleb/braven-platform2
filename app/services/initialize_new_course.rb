@@ -51,7 +51,7 @@ private
       initialize_new_capstone_evaluation(canvas_assignment_info.canvas_capstone_evaluations_assignment_id)
     end
 
-    # Waivers, Modules, Pre-, and Post-Accelerator assignments don't need their
+    # Forms, Modules, Pre-, and Post-Accelerator assignments don't need their
     # LTI launch URLs updated for a new course because they use course-agnostic
     # endpoints.
 

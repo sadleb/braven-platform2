@@ -1,15 +1,15 @@
 module CoursesHelper
 
-  def has_waivers?
-    !!@canvas_assignment_info.canvas_waivers_url
+  def has_forms?
+    !!@canvas_assignment_info.canvas_forms_url
   end
 
-  def canvas_waivers_url
-    @canvas_assignment_info.canvas_waivers_url
+  def canvas_forms_url
+    @canvas_assignment_info.canvas_forms_url
   end
 
-  def canvas_waivers_assignment_id
-    @canvas_assignment_info.canvas_waivers_assignment_id
+  def canvas_forms_assignment_id
+    @canvas_assignment_info.canvas_forms_assignment_id
   end
 
   def has_capstone_evaluations_assignment?

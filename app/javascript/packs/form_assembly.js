@@ -27,7 +27,7 @@ export async function main() {
         let esigWarningLegend = esigWarning.querySelector('legend.errMsg');
         esigWarningLegend.innerHTML = '<i class="fa fa-envelope" aria-hidden="true"></i> Next step';
         let esigWarningMsg = esigWarning.querySelector('div.errMsg');
-        esigWarningMsg.innerText = 'Immediately check your email and spam for a link to verify the waivers you just signed ' +
+        esigWarningMsg.innerText = 'Immediately check your email and spam for a link to verify the forms you just signed ' +
                                    'after submitting the signed response below.';
 
         honeySpan.addField('esignature_message_changed', 'true');

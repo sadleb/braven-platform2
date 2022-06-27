@@ -88,7 +88,7 @@ Rails.application.routes.draw do
 
     resources :capstone_evaluation_submissions, only: [:new, :create]
 
-    resources :waivers, only: [] do
+    resources :forms, only: [] do
       collection do
         post :publish
         delete :unpublish
@@ -185,7 +185,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :waiver_submissions, only: [:new, :create] do
+  resources :form_submissions, only: [:new, :create] do
     collection do
       get :launch
       get :completed

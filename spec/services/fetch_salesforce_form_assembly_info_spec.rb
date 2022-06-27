@@ -21,8 +21,9 @@ RSpec.describe FetchSalesforceFormAssemblyInfo do
 
   context 'for valid course and user' do
 
-    it 'gets the Fellow Waivers ID' do
-      expect(form_assembly_info.waivers_form_id).to eq(sf_form_assembly_info['FA_ID_Fellow_Waivers__c'])
+    it 'gets the Fellow Forms ID' do
+      # The "FA_ID_Fellow_Waivers__c" Salesforce API goes with the field label "FA ID Fellow Forms" in Salesforce
+      expect(form_assembly_info.forms_form_id).to eq(sf_form_assembly_info['FA_ID_Fellow_Waivers__c'])
     end
 
     it 'gets the Pre-Accelerator ID' do

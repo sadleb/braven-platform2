@@ -4,7 +4,7 @@ require 'form_assembly_api'
 
 # We have Pre- and Post-Accelerator Surveys that Fellows respond to at the
 # beginning and end of the course. These surveys are built on FormAssembly, like
-# waivers (see WaiverSubmissionsController).
+# forms (see FormSubmissionsController).
 #
 # This controller handles rendering (#new) and submitting (#create) the form
 # for the survey. It allows the user to submit once and shows a "Thank You" page
@@ -131,7 +131,7 @@ private
     @course
   end
 
-  # We use the #completed action like WaiverSubmissionsController because
+  # We use the #completed action like FormSubmissionsController because
   # there's no instance to for the ID needed for the #show action.
   def instance_path(instance)
     send(

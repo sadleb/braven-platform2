@@ -9,7 +9,7 @@ FactoryBot.define do
   transient do
     sequence(:canvas_course_id)
     sequence(:line_item_id)
-    submission_data { 'https://some.lti.launch.url.such.as/waivers/completed' }
+    submission_data { 'https://some.lti.launch.url.such.as/forms/completed' }
     submission_type { 'basic_lti_launch' }
   end
 
@@ -47,7 +47,7 @@ end
 #    "resultMaximum"=>100.0,
 #    "https://canvas.instructure.com/lti/submission"=>{
 #      "new_submission"=>true,
-#      "submission_data"=>"https://platformweb/waivers/completed",
+#      "submission_data"=>"https://platformweb/forms/completed",
 #      "submission_type"=>"basic_lti_launch"
 #    }
 # }

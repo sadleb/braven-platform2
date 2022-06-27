@@ -1,4 +1,4 @@
-class WaiverPolicy < ApplicationPolicy
+class FormPolicy < ApplicationPolicy
   def publish?
     edit?
   end

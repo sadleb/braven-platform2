@@ -1,18 +1,18 @@
 require 'rails_helper'
 
-RSpec.describe WaiversController, type: :controller do
+RSpec.describe FormsController, type: :controller do
   render_views
 
 
   # This should return the minimal set of values that should be in the session
   # in order to pass any filters (e.g. authentication) defined in
-  # WaiversController. Be sure to keep this updated too.
+  # FormsController. Be sure to keep this updated too.
   let(:valid_session) { {} }
 
   context 'when logged in as admin user' do
     let!(:admin_user) { create :admin_user }
     let(:course) { create :course }
-    let(:assignment_name) { WaiversController::WAIVERS_ASSIGNMENT_NAME }
+    let(:assignment_name) { FormsController::FORMS_ASSIGNMENT_NAME }
     let(:created_canvas_assignment) { build(:canvas_assignment, course_id: course.canvas_course_id, name: assignment_name) }
     let(:canvas_client) { double(CanvasAPI) }
 
@@ -42,14 +42,14 @@ RSpec.describe WaiversController, type: :controller do
 
         it 'calls the API correctly' do
           # Hardcoding the path so that if someone changes it they're forced to see this comment
-          # and consider that it will break all previously published Waivers assignments.
+          # and consider that it will break all previously published Forms assignments.
           expect(canvas_client).to have_received(:create_lti_assignment)
-            .with(course.canvas_course_id, assignment_name, nil, WaiversController::WAIVERS_POINTS_POSSIBLE, true).once
+            .with(course.canvas_course_id, assignment_name, nil, FormsController::FORMS_POINTS_POSSIBLE, true).once
           expect(canvas_client).to have_received(:update_assignment_lti_launch_url)
             .with(
               course.canvas_course_id,
               created_canvas_assignment['id'],
-              /waiver_submissions\/launch/,
+              /form_submissions\/launch/,
             ).once
         end
 

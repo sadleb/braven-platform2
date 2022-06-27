@@ -1,13 +1,13 @@
 require 'rails_helper'
 require 'lti_result'
 
-RSpec.describe WaiverSubmissionsController, type: :controller do
+RSpec.describe FormSubmissionsController, type: :controller do
   render_views
 
 
   # This should return the minimal set of values that should be in the session
   # in order to pass any filters (e.g. authentication) defined in
-  # WaiversController. Be sure to keep this updated too.
+  # FormsController. Be sure to keep this updated too.
   let(:valid_session) { {} }
 
   context 'when logged in as fellow' do
@@ -29,11 +29,11 @@ RSpec.describe WaiverSubmissionsController, type: :controller do
     end
 
     context '#launch' do
-      let(:waivers_submission_result) { LtiResult.new(nil) }
-      let(:lti_advantage_api) { double(LtiAdvantageAPI, :get_result => waivers_submission_result) }
+      let(:forms_submission_result) { LtiResult.new(nil) }
+      let(:lti_advantage_api) { double(LtiAdvantageAPI, :get_result => forms_submission_result) }
 
       before(:each) do
-        allow(lti_advantage_api).to receive(:get_result).and_return(waivers_submission_result)
+        allow(lti_advantage_api).to receive(:get_result).and_return(forms_submission_result)
         allow(LtiAdvantageAPI).to receive(:new).and_return(lti_advantage_api)
         get :launch, params: { lti_launch_id: lti_launch.id }, session: valid_session
       end
@@ -42,29 +42,29 @@ RSpec.describe WaiverSubmissionsController, type: :controller do
         expect(response).to be_successful
       end
 
-      it 'looks for an existing Canvas waiver submission' do
+      it 'looks for an existing Canvas form submission' do
         expect(lti_advantage_api).to have_received(:get_result).once
       end
 
-      context 'when waivers havent been signed or graded' do
-        it 'shows the button to launch the waivers' do
-          new_waivers_regex = "/waiver_submissions/new?lti_launch_id=#{lti_launch.id}"
-          expect(response.body).to match /<a href=".*#{Regexp.escape(new_waivers_regex)}"/
+      context 'when forms havent been signed or graded' do
+        it 'shows the button to launch the forms' do
+          new_forms_regex = "/form_submissions/new?lti_launch_id=#{lti_launch.id}"
+          expect(response.body).to match /<a href=".*#{Regexp.escape(new_forms_regex)}"/
         end
       end
 
-      context 'when waivers havent been signed but were given a zero grade' do
-        let(:waivers_submission_result) { LtiResult.new(build(:lti_result, resultScore: 0.0)) }
-        it 'shows the button to launch the waivers' do
-          new_waivers_regex = "/waiver_submissions/new?lti_launch_id=#{lti_launch.id}"
-          expect(response.body).to match /<a href=".*#{Regexp.escape(new_waivers_regex)}"/
+      context 'when forms havent been signed but were given a zero grade' do
+        let(:forms_submission_result) { LtiResult.new(build(:lti_result, resultScore: 0.0)) }
+        it 'shows the button to launch the forms' do
+          new_forms_regex = "/form_submissions/new?lti_launch_id=#{lti_launch.id}"
+          expect(response.body).to match /<a href=".*#{Regexp.escape(new_forms_regex)}"/
         end
       end
 
-      context 'when waivers are already signed' do
-        let(:waivers_submission_result) { LtiResult.new(build(:lti_result)) }
+      context 'when forms are already signed' do
+        let(:forms_submission_result) { LtiResult.new(build(:lti_result)) }
         it 'redirects to completed page' do
-          expect(response).to redirect_to completed_waiver_submissions_path(lti_launch_id: lti_launch.id)
+          expect(response).to redirect_to completed_form_submissions_path(lti_launch_id: lti_launch.id)
         end
       end
     end
@@ -160,7 +160,7 @@ RSpec.describe WaiverSubmissionsController, type: :controller do
         allow(lti_advantage_api).to receive(:create_score).and_return(lti_score_response)
         allow(LtiAdvantageAPI).to receive(:new).and_return(lti_advantage_api)
         allow(LtiScore).to receive(:new_full_credit_submission)
-          .with(fellow_user.canvas_user_id, completed_waiver_submissions_url(protocol: 'https')).and_return(lti_score_request)
+          .with(fellow_user.canvas_user_id, completed_form_submissions_url(protocol: 'https')).and_return(lti_score_request)
 
         post :create, params: { lti_launch_id: lti_launch.id }, session: valid_session
       end
@@ -174,7 +174,7 @@ RSpec.describe WaiverSubmissionsController, type: :controller do
       end
 
       it 'shows the thank you page with message about next steps' do
-        expect(response.body).to match /Waivers Submitted - One More Step/
+        expect(response.body).to match /Forms Submitted - One More Step/
         expect(response.body).to match /Thank you/
         expect(response.body).to match /#{Regexp.escape('immediately <strong>check your email and spam</strong>')}/
       end
@@ -188,7 +188,7 @@ RSpec.describe WaiverSubmissionsController, type: :controller do
 
       it 'shows message about still needing to do email verification if they didnt' do
         get :completed, params: { lti_launch_id: lti_launch.id }, session: valid_session
-        expect(response.body).to match(/Please check your email and spam folder for a link to verify your waivers if you haven't already/)
+        expect(response.body).to match(/Please check your email and spam folder for a link to verify your forms if you haven't already/)
       end
     end # '#completed'
 

@@ -49,7 +49,7 @@ test('changes the message when found', async () => {
     .toBe('<i class="fa fa-envelope" aria-hidden="true"></i> Next step');
 
   expect(document.querySelector('#tfa_esignature-email-warning div.errMsg').innerText)
-    .toBe('Immediately check your email and spam for a link to verify the waivers you just signed after submitting the signed response below.');
+    .toBe('Immediately check your email and spam for a link to verify the forms you just signed after submitting the signed response below.');
 });
 
 

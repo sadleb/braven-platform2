@@ -64,7 +64,7 @@ RSpec.describe AcceleratorSurveySubmissionsController, type: :controller do
 
           it_behaves_like 'checks for previous submission'
 
-          # These tests are duplicated from WaiverSubmissionsController
+          # These tests are duplicated from FormSubmissionsController
           # because both controllers use FormAssemblyController.
           it 'returns a success response' do
             expect(response).to be_successful
@@ -163,7 +163,7 @@ RSpec.describe AcceleratorSurveySubmissionsController, type: :controller do
 
           it_behaves_like 'checks for previous submission'
 
-          # These tests are duplicated from WaiverSubmissionsController
+          # These tests are duplicated from FormSubmissionsController
           # because both controllers use FormAssemblyController.
           it 'returns a success response' do
             expect(response).to be_successful

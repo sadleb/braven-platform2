@@ -29,21 +29,21 @@ RSpec.describe FetchCanvasAssignmentsInfo do
     end
   end
 
-  context 'for waivers' do
-    # The URL is hardcoded b/c if we ever change it, it will break previously published waivers.
-    let(:waivers_lti_launch_url) { 'https://platformweb/waiver_submissions/launch' }
-    let(:waiver_assignment) {
+  context 'for forms' do
+    # The URL is hardcoded b/c if we ever change it, it will break previously published forms.
+    let(:forms_lti_launch_url) { 'https://platformweb/form_submissions/launch' }
+    let(:form_assignment) {
       create(:canvas_assignment,
-                name: WaiversController::WAIVERS_ASSIGNMENT_NAME,
+                name: FormsController::FORMS_ASSIGNMENT_NAME,
                 course_id: course.canvas_course_id,
-                lti_launch_url: waivers_lti_launch_url)
+                lti_launch_url: forms_lti_launch_url)
     }
-    let(:assignments) { [waiver_assignment] }
+    let(:assignments) { [form_assignment] }
 
-    it 'detects a waivers assignment' do
+    it 'detects a forms assignment' do
       assignments_info = FetchCanvasAssignmentsInfo.new(course.canvas_course_id).run
-      expect(assignments_info.canvas_waivers_url).to match(/\/courses\/#{course.canvas_course_id}\/assignments\/#{waiver_assignment['id']}/)
-      expect(assignments_info.canvas_waivers_assignment_id).to eq(waiver_assignment['id'])
+      expect(assignments_info.canvas_forms_url).to match(/\/courses\/#{course.canvas_course_id}\/assignments\/#{form_assignment['id']}/)
+      expect(assignments_info.canvas_forms_assignment_id).to eq(form_assignment['id'])
     end
   end
 

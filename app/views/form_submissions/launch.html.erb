@@ -1,0 +1,11 @@
+<% content_for :title, 'Launch Forms' %>
+
+<% content_for :instructions_prompt do %>
+  <p>In order to participate in Braven, please sign and submit the forms.</p>
+<% end %>
+
+<% content_for :instructions_call_to_action do  %>
+  <p><a href="<%= @new_forms_url %>" class="btn btn-primary btn-lg" target="_parent">Click here to get started</a></p>
+<% end %>
+
+<%= render partial: 'instructions' %>

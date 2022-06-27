@@ -10,7 +10,7 @@ class FetchCanvasAssignmentsInfo
   include Rails.application.routes.url_helpers
 
   attr_reader :canvas_assignment_ids,
-              :canvas_waivers_url, :canvas_waivers_assignment_id,
+              :canvas_forms_url, :canvas_forms_assignment_id,
               :canvas_preaccelerator_survey_url, :canvas_preaccelerator_survey_assignment_id,
               :canvas_postaccelerator_survey_url, :canvas_postaccelerator_survey_assignment_id,
               :canvas_capstone_evaluations_url, :canvas_capstone_evaluations_assignment_id,
@@ -25,8 +25,8 @@ class FetchCanvasAssignmentsInfo
     @canvas_course_id = canvas_course_id
     @canvas_assignment_ids = nil
 
-    @canvas_waivers_url  = nil
-    @canvas_waivers_assignment_id = nil
+    @canvas_forms_url  = nil
+    @canvas_forms_assignment_id = nil
 
     @canvas_preaccelerator_survey_url = nil
     @canvas_preaccelerator_survey_assignment_id  = nil
@@ -128,8 +128,8 @@ private
       capstone_evaluation_result_path = launch_capstone_evaluation_results_path
       add_capstone_evaluation_result_info(canvas_assignment) and return if lti_launch_url =~ /#{capstone_evaluation_result_path}/
 
-      waivers_launch_path = launch_waiver_submissions_path
-      add_waivers_info(canvas_assignment) and return if lti_launch_url =~ /#{waivers_launch_path}/
+      forms_launch_path = launch_form_submissions_path
+      add_forms_info(canvas_assignment) and return if lti_launch_url =~ /#{forms_launch_path}/
 
       discord_signups_launch_path = launch_discord_signups_path
       add_discord_signups_info(canvas_assignment) and return if lti_launch_url =~ /#{discord_signups_launch_path}/
@@ -162,12 +162,12 @@ private
     @course_attendance_events_mapping[canvas_assignment['id']] = course_attendance_event
   end
 
-  def add_waivers_info(canvas_assignment)
-    if @canvas_waivers_url
-      raise FetchCanvasAssignmentsInfoError, "Second assignment with Waivers found. First[#{@canvas_waivers_url}]. Second[#{canvas_assignment['html_url']}]"
+  def add_forms_info(canvas_assignment)
+    if @canvas_forms_url
+      raise FetchCanvasAssignmentsInfoError, "Second assignment with Forms found. First[#{@canvas_forms_url}]. Second[#{canvas_assignment['html_url']}]"
     else
-      @canvas_waivers_url = canvas_assignment['html_url']
-      @canvas_waivers_assignment_id = canvas_assignment['id']
+      @canvas_forms_url = canvas_assignment['html_url']
+      @canvas_forms_assignment_id = canvas_assignment['id']
     end
   end
 

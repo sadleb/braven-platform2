@@ -94,7 +94,7 @@ class LtiLaunchController < ApplicationController
          /#{launch_attendance_event_submission_answers_path}/,
          /#{course_project_version_project_submission_path('.*', '')}\d+$/,
          /#{survey_submission_path('')}\d+$/,
-         /#{completed_waiver_submissions_path}/,
+         /#{completed_form_submissions_path}/,
          /#{completed_discord_signups_path}/,
          /#{completed_preaccelerator_survey_submissions_path}/,
          /#{completed_postaccelerator_survey_submissions_path}/,
