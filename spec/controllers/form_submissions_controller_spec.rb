@@ -174,9 +174,8 @@ RSpec.describe FormSubmissionsController, type: :controller do
       end
 
       it 'shows the thank you page with message about next steps' do
-        expect(response.body).to match /Forms Submitted - One More Step/
+        expect(response.body).to match /no additional required steps to take here/
         expect(response.body).to match /Thank you/
-        expect(response.body).to match /#{Regexp.escape('immediately <strong>check your email and spam</strong>')}/
       end
     end # '#create'
 
@@ -188,7 +187,7 @@ RSpec.describe FormSubmissionsController, type: :controller do
 
       it 'shows message about still needing to do email verification if they didnt' do
         get :completed, params: { lti_launch_id: lti_launch.id }, session: valid_session
-        expect(response.body).to match(/Please check your email and spam folder for a link to verify your forms if you haven't already/)
+        expect(response.body).to match(/no additional steps required/)
       end
     end # '#completed'
 
