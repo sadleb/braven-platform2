@@ -12,6 +12,7 @@ FactoryBot.define do
       # If you need a User to match a HerokuConnect::Contact,
       # pass that in when creating one of these factories
       contact { build :heroku_connect_contact }
+      participant { build :heroku_connect_participant }
     end
 
     factory :unregistered_user do

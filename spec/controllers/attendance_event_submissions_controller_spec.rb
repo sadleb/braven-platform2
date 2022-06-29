@@ -12,6 +12,7 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
 
   let(:assignment_overrides) { [] }
 
+  let(:participant) { build :heroku_connect_fellow_participant }
   let(:canvas_client) { double(CanvasAPI) }
   let(:salesforce_client) { double(SalesforceAPI) }
 
@@ -30,6 +31,7 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
     allow(CanvasAPI).to receive(:client).and_return(canvas_client)
     allow(canvas_client).to receive(:get_assignment_overrides_for_section)
       .and_return(assignment_overrides)
+    allow(HerokuConnect::Participant).to receive(:find_participant).and_return(participant)
   end
 
   shared_examples 'valid request' do
@@ -477,5 +479,132 @@ RSpec.describe AttendanceEventSubmissionsController, type: :controller do
       let(:user) { create :registered_user }
       it_behaves_like 'not permitted'
     end
+  end
+
+  # Bulk endpoints.
+
+  describe 'GET #bulk_export_csv' do
+
+    let!(:user) { create :lc_user, accelerator_section: accelerator_section, lc_playbook_section: lc_playbook_section }
+    let!(:fellow_user1) { create :fellow_user, section: accelerator_section }
+    let!(:fellow_user2) { create :fellow_user, section: accelerator_section }
+    let!(:fellow_user3) { create :fellow_user, section: accelerator_section }
+    let(:course_attendance_event) { create(
+      :course_attendance_event,
+      course: accelerator_course,
+    ) }
+    let(:attendance_event_submission) { create(
+      :attendance_event_submission,
+      course_attendance_event: course_attendance_event,
+      user: user,
+    ) }
+    let!(:attendance_event_submission_answer) { create(
+      :present_attendance_event_submission_answer,
+      attendance_event_submission: attendance_event_submission,
+      for_user: fellow_user1,
+    ) }
+
+    subject {
+      get(
+        :bulk_export_csv,
+        params: {
+          course_attendance_event_id: course_attendance_event.id,
+          attendance_event_submission_id: attendance_event_submission.id,
+          lti_launch_id: @lti_launch.id,
+        },
+        format: 'csv',
+      )
+    }
+
+    it 'exports csv with all users and existing data' do
+      subject
+      expect(response.body).to match /^#{AttendanceEventSubmissionsController::CSVHeaders::ALL_HEADERS}/
+      expect(response.body.lines.count).to eq(accelerator_course.students.count + 1)  # users + header row
+      expect(response.body).to match /#{fellow_user1.first_name},#{fellow_user1.last_name},true,false,,/
+    end
+
+  end
+
+  describe 'GET #bulk_import_new' do
+
+    let!(:user) { create :lc_user, accelerator_section: accelerator_section, lc_playbook_section: lc_playbook_section }
+    let(:course_attendance_event) { create(
+      :course_attendance_event,
+      course: accelerator_course,
+    ) }
+    let(:attendance_event_submission) { create(
+      :attendance_event_submission,
+      course_attendance_event: course_attendance_event,
+      user: user,
+    ) }
+
+    subject {
+      get(
+        :bulk_import_new,
+        params: {
+          course_attendance_event_id: course_attendance_event.id,
+          attendance_event_submission_id: attendance_event_submission.id,
+          lti_launch_id: @lti_launch.id,
+        },
+      )
+    }
+
+    it_behaves_like 'valid request'
+
+    it 'renders form' do
+      subject
+      expect(response.body).to match /<form/
+      expect(response.body).to match /<input.*accept="text\/csv".*type="file"/
+    end
+
+  end
+
+  describe 'POST #bulk_import_preview' do
+
+    let!(:user) { create :lc_user, accelerator_section: accelerator_section, lc_playbook_section: lc_playbook_section }
+    # IDs below are from the attendace.csv fixture loaded further down.
+    let!(:fellow_user1) { create :fellow_user, id: 24, section: accelerator_section }
+    let!(:fellow_user2) { create :fellow_user, id: 23, section: accelerator_section }
+    let!(:fellow_user3) { create :fellow_user, id: 18, section: accelerator_section }
+    let(:course_attendance_event) { create(
+      :course_attendance_event,
+      course: accelerator_course,
+    ) }
+    let(:attendance_event_submission) { create(
+      :attendance_event_submission,
+      course_attendance_event: course_attendance_event,
+      user: user,
+    ) }
+
+    let(:csv_upload) { fixture_file_upload(Rails.root.join('spec/fixtures/attendance_csvs/attendance.csv'), 'text/csv') }
+
+    subject {
+      post(
+        :bulk_import_preview,
+        params: {
+          course_attendance_event_id: course_attendance_event.id,
+          attendance_event_submission_id: attendance_event_submission.id,
+          lti_launch_id: @lti_launch.id,
+          attendance_csv: csv_upload,
+        },
+      )
+    }
+
+    it_behaves_like 'valid request'
+
+    it 'renders form' do
+      subject
+      expect(response.body).to match /<form/
+    end
+
+    it 'loads csv data into form' do
+      subject
+      expect(response.body).to match /Fellows in attendance:.*1/
+      expect(response.body).to match /Fellows absent:.*0/
+      expect(response.body).to match /checked>/
+      expect(response.body).to match /No attendance recorded in the .* column/
+      expect(response.body).to match /name="attendance_event_submission\[24\]\[absence_reason\]"/
+    end
+
   end
 end

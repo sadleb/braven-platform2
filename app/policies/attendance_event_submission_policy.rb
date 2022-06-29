@@ -22,6 +22,14 @@ class AttendanceEventSubmissionPolicy < ApplicationPolicy
     raise Pundit::NotAuthorizedError, message: 'You do not have permission to take attendance for this course.'
   end
 
+  def show?
+    launch?
+  end
+
+  def new?
+    launch?
+  end
+
   def edit?
     launch?
   end

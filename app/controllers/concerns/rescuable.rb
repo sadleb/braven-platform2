@@ -31,7 +31,7 @@ private
     capture_error(exception)
 
     @request = request
-    render 'errors/internal_server_error', layout: 'lti_canvas', status: 500
+    render 'errors/internal_server_error', :formats => [:html], layout: 'lti_canvas', status: 500
   end
 
   def handle_invalid_authenticity_token(exception)
@@ -40,21 +40,21 @@ private
     # Get only the path portion of the referrer, so this page doesn't introduce
     # an open redirect vulnerability.
     @referrer_path = Addressable::URI.parse(request.referrer)&.request_uri
-    render 'errors/invalid_authenticity_token', layout: 'lti_canvas', status: 500
+    render 'errors/invalid_authenticity_token', :formats => [:html], layout: 'lti_canvas', status: 500
   end
 
   def handle_security_error(exception)
     capture_error(exception)
 
     @request = request
-    render 'errors/security_error', layout: 'lti_canvas', status: 500
+    render 'errors/security_error', :formats => [:html], layout: 'lti_canvas', status: 500
   end
 
   def handle_generate_zoom_links_error(exception)
     capture_error(exception)
 
     @exception = exception
-    render 'errors/generate_zoom_links_error', layout: 'lti_canvas', status: 500
+    render 'errors/generate_zoom_links_error', :formats => [:html], layout: 'lti_canvas', status: 500
   end
 
   def handle_lti_auth_error(exception)
@@ -62,7 +62,7 @@ private
 
     @request = request
     @exception = exception
-    render 'errors/lti_auth_error', layout: 'lti_canvas', status: 500
+    render 'errors/lti_auth_error', :formats => [:html], layout: 'lti_canvas', status: 500
   end
 
   def capture_error(exception)

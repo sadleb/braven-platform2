@@ -1,0 +1,5 @@
+First name,Last name,Present?,Late?,Reason for absence,Cohort Schedule,Cohort,Platform User Id
+test1,test2,true,,"",TEST: SJSU Cohort Schedule1,,24
+TestFirst3,TestLast3,,,,BAY: tuesdays 6pm,C7 Tue Virtual (),23
+TestFirst1,TestLast1,,,,BAY: tuesdays 6pm,C8 Tue Virtual (),18
+TestFirst2,TestLast2,,,,BAY: tuesdays 6pm,C8 Tue Virtual (),17

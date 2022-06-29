@@ -25,6 +25,7 @@ class AttendanceEventSubmissionsController < ApplicationController
     COHORT = "Cohort"
     PLATFORM_USER_ID = "Platform User Id"
 
+    # If you change this, update app/services/export_attendance_csv.rb too!
     ALL_HEADERS = [
       FIRST_NAME,
       LAST_NAME,
@@ -138,25 +139,8 @@ class AttendanceEventSubmissionsController < ApplicationController
     authorize @attendance_event_submission, :show?
 
     course = @course_attendance_event.course
-    export_data = CSV.generate(headers: true) do |csv|
-      csv << CSVHeaders::ALL_HEADERS
-
-      @all_fellow_users.each do |user|
-        answer = @answers.find_by(for_user: user)
-
-        # Make sure these match the order defined in the CSV headers!
-        csv << [
-          user.first_name,
-          user.last_name,
-          answer&.in_attendance,
-          answer&.late,
-          answer&.absence_reason,
-          user.cohort_schedule(course)&.name,
-          user.cohort(course)&.name,
-          user.id,
-        ]
-      end
-    end
+    service = ExportAttendanceCsv.new(course, @all_fellow_users, @answers)
+    export_data = service.run
 
     respond_to do |format|
       format.csv { send_data export_data }
@@ -167,63 +151,22 @@ class AttendanceEventSubmissionsController < ApplicationController
     authorize @attendance_event_submission, :new?
   end
 
-  # This is a POST route.
+  # This is a POST route because we have to send the CSV file, but it's not
+  # actually changing anything on the server.
   def bulk_import_preview
     authorize @attendance_event_submission, :new?
 
-    validation_converter = ->(field, field_info) {
-      # TODO: any validation? otherwise move this inline.
+    service = ImportAttendanceCsv.new(params[:attendance_csv], @attendance_event_submission, @all_fellow_users)
 
-      field&.strip
-    }
-    data = CSV.read(params[:attendance_csv].path, 
-                   headers: true,
-                   # Normalize headers, to allow for variations in the source CSV.
-                   header_converters: lambda { |h| h.parameterize.underscore },
-                   encoding: 'bom|utf-8',
-                   converters: validation_converter)
-      .map(&:to_h)
-
-    # This is a find_or_new_by() so we have an object to authorize against
-    @attendance_event_submission = AttendanceEventSubmission.where(
-      user: current_user,
-      course_attendance_event: @course_attendance_event,
-    ).order(:updated_at).last
-    # TODO:
-    raise if @attendance_event_submission.nil?
-
-    # Filter
-    @unprocessed_rows = []
-    @unsaved_answers = []
-    data.each do |row|
-      # Add to unprocessed if "Present?" is empty or if the user is not in @fellow_users.
-      user_id = row[CSVHeaders::PLATFORM_USER_ID.parameterize.underscore]&.to_i
-      in_attendance = row[CSVHeaders::IN_ATTENDANCE.parameterize.underscore]
-      if in_attendance.blank?
-        row[UNPROCESSED_REASON] = "No attendance recorded in the '#{CSVHeaders::IN_ATTENDANCE}' column"
-        @unprocessed_rows << row
-        next
-      elsif User.where(id: user_id).none?
-        # Complain about invalid user IDs.
-        row[UNPROCESSED_REASON] = "User ID '#{user_id}' not found"
-        @unprocessed_rows << row
-        next
-      elsif @all_fellow_users.none? { |u| u.id == user_id }
-        # Complain about non-enrolled Fellows.
-        row[UNPROCESSED_REASON] = "Not currently enrolled in this course"
-        @unprocessed_rows << row
-        next
-      end
-
-      @unsaved_answers << AttendanceEventSubmissionAnswer.new(
-        attendance_event_submission: @attendance_event_submission,
-        for_user_id: row[CSVHeaders::PLATFORM_USER_ID.parameterize.underscore].to_i,
-        in_attendance: to_boolean(row[CSVHeaders::IN_ATTENDANCE.parameterize.underscore]),
-        late: to_boolean(row[CSVHeaders::LATE.parameterize.underscore]),
-        absence_reason: row[CSVHeaders::ABSENCE_REASON.parameterize.underscore]&.strip,
-      )
+    begin
+      @unprocessed_rows, @unsaved_answers = service.run
+    rescue CSV::MalformedCSVError
+      return redirect_to attendance_event_submission_bulk_import_new_path(
+          @attendance_event_submission,
+          course_attendance_event_id: @course_attendance_event,
+          lti_launch_id: @lti_launch.id),
+        alert: 'Please make sure the file you are uploading is a CSV.'
     end
-
   end
 
 private
@@ -333,13 +276,5 @@ private
       # current_user is allowed to access.
       @all_fellow_users.any? { |user| user.id.to_s == user_id.to_s }
     end
-  end
-
-  # Custom string handling for CSV import values.
-  # Returns true, false, or nil depending on the value.
-  def to_boolean(value)
-    value = value&.downcase&.strip
-    return false if value == "no"
-    ActiveModel::Type::Boolean.new.cast(value)
   end
 end
