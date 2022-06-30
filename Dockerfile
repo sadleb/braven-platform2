@@ -1,4 +1,4 @@
-FROM ruby:3.0.4
+FROM ruby:3.1.2
 
 # Changes the default shell from dash to bash. Our docker_compose_run.sh
 # script has a syntax error when run in dash.
