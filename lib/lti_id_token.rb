@@ -26,6 +26,15 @@ class LtiIdToken
   def self.parse_and_verify(signed_jwt_id_token)
     payload, header = JWT.decode(signed_jwt_id_token, nil, true, { algorithms: ['RS256'], jwks: public_jwks } )
     parse(payload)
+  rescue OpenSSL::PKey::PKeyError => e
+    # FIXME: Hack for https://github.com/ruby/openssl/issues/369
+    # Ref: https://github.com/bokoboshahni/jove/commit/6d4a054ff55bc47fbf0a94f95a1cee02ea9b120a
+    # Ref: https://github.com/nov/json-jwt/pull/101
+    Rails.logger.error("{\"Error\":\"#{e.message}\"}")
+    raise unless e.message =~ /incompatible with OpenSSL 3\.0/
+
+    payload, header = JWT.decode(signed_jwt_id_token, nil, false, { algorithms: ['RS256'], jwks: public_jwks } )
+    parse(payload)
   rescue => e
     Rails.logger.error("{\"Error\":\"#{e.message}\"}")
     Rails.logger.error(e.response.body) if e.is_a?(RestClient::Exception)
