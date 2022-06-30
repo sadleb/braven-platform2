@@ -46,6 +46,7 @@
     "babel-plugin-transform-react-remove-prop-types": "^0.4.24",
     "bootstrap": "^4.6.0",
     "bootswatch": "^4.6.0",
+    "caniuse-lite": "^1.0.30001361",
     "css-loader": "5.2.7",
     "dayjs": "^1.11.0",
     "file-loader": "^6.2.0",
