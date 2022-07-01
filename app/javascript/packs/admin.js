@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Here's the easter egg keystrokes
   var pattern = ['Tab', 'b', 's'];
   var current = 0;
+  var showing = false;
 
   // This is only running on admin pages so ...  forgive me.
   var keyHandler = function (event) {
@@ -23,10 +24,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update how much of the pattern is complete
     current++;
 
-    // If complete, alert and reset
+    // If complete, take action and reset
     if (pattern.length === current) {
       current = 0;
-      showBrian();
+      if(showing) {
+        document.body.style.background = '';
+        showing = false;
+      } else {
+        showBrian();
+        showing = true;
+      }
     }
   };
 
